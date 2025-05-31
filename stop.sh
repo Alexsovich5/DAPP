@@ -43,7 +43,7 @@ print_step "Stopping services on known ports..."
 # Stop Angular (port 4200)
 if lsof -Pi :4200 -sTCP:LISTEN -t >/dev/null 2>&1; then
     print_step "Stopping Angular frontend (port 4200)..."
-    lsof -ti:4200 | xargs kill -9 2>/dev/null || true
+    lsof -ti:4200 | xargs kill -15 2>/dev/null || true
 else
     print_warning "No service found on port 4200"
 fi
