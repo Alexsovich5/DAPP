@@ -186,9 +186,9 @@ else
         touch node_modules/.package-lock.json 2>/dev/null || true
     fi
     
-    # Start the frontend server in background
+    # Start the frontend server in background with explicit host binding
     print_step "Starting Angular development server..."
-    npm start &
+    npx nx serve --host=0.0.0.0 --port=4200 &
     FRONTEND_PID=$!
     cd ../..
     
