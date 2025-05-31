@@ -139,22 +139,19 @@ else
     print_step "Starting Python FastAPI backend..."
     
     # Check if virtual environment exists
-    if [ ! -d "backend_py/venv" ]; then
+    if [ ! -d "$SCRIPT_DIR/backend_py/venv" ]; then
         print_step "Creating Python virtual environment..."
-        cd backend_py
-        python3 -m venv venv
-        cd ..
+        python3 -m venv "$SCRIPT_DIR/backend_py/venv"
     fi
     
     # Activate virtual environment and install dependencies
-    cd backend_py
-    source venv/bin/activate
+    source "$SCRIPT_DIR/backend_py/venv/bin/activate"
     
     # Install requirements if needed
-    if [ ! -f "venv/.deps_installed" ] || [ requirements.txt -nt venv/.deps_installed ]; then
+    if [ ! -f "$SCRIPT_DIR/backend_py/venv/.deps_installed" ] || [ "$SCRIPT_DIR/backend_py/requirements.txt" -nt "$SCRIPT_DIR/backend_py/venv/.deps_installed" ]; then
         print_step "Installing Python dependencies..."
-        pip install -r requirements.txt
-        touch venv/.deps_installed
+        pip install -r "$SCRIPT_DIR/backend_py/requirements.txt"
+        touch "$SCRIPT_DIR/backend_py/venv/.deps_installed"
     fi
     
     # Run database migrations
