@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, JSON
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, JSON, DECIMAL
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
@@ -29,6 +29,15 @@ class User(Base):
     
     # Profile completion tracking
     is_profile_complete = Column(Boolean, default=False)
+    
+    # Soul Before Skin fields
+    emotional_onboarding_completed = Column(Boolean, default=False)
+    soul_profile_visibility = Column(String, default='hidden')  # hidden, visible, selective
+    emotional_depth_score = Column(DECIMAL(5,2), nullable=True)
+    core_values = Column(JSON, nullable=True)  # Store values responses
+    personality_traits = Column(JSON, nullable=True)  # Store personality assessment
+    communication_style = Column(JSON, nullable=True)  # Store communication preferences
+    emotional_responses = Column(JSON, nullable=True)  # Store onboarding question responses
     
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(

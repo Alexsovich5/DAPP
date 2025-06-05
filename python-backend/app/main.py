@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 from pydantic import ValidationError
 
-from app.api.v1.routers import auth, matches, profiles, users
+from app.api.v1.routers import auth, matches, profiles, users, soul_connections, revelations
 from app.core.database import create_tables
 from app.middleware.middleware import log_requests_middleware
 from app.utils.error_handler import validation_error_handler
@@ -81,6 +81,10 @@ v1_app.include_router(auth.router, prefix="/auth", tags=["auth"])
 v1_app.include_router(users.router, prefix="/users", tags=["users"])
 v1_app.include_router(profiles.router, prefix="/profiles", tags=["profiles"])
 v1_app.include_router(matches.router, prefix="/matches", tags=["matches"])
+
+# Soul Before Skin routers
+v1_app.include_router(soul_connections.router, prefix="/soul-connections", tags=["soul-connections"])
+v1_app.include_router(revelations.router, prefix="/revelations", tags=["revelations"])
 
 # Add profile aliases for Angular compatibility
 v1_app.include_router(profiles.router, prefix="/profile", tags=["profile-alias"])

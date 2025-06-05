@@ -15,6 +15,15 @@ export interface User {
   location?: string;
   created_at?: string;
   updated_at?: string;
+  
+  // Soul Before Skin fields
+  emotional_onboarding_completed?: boolean;
+  soul_profile_visibility?: 'hidden' | 'visible' | 'selective';
+  emotional_depth_score?: number;
+  core_values?: Record<string, any>;
+  personality_traits?: Record<string, any>;
+  communication_style?: Record<string, any>;
+  emotional_responses?: Record<string, any>;
 }
 
 export interface RegisterData {
