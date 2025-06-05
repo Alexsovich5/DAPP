@@ -1,0 +1,106 @@
+name: dinner1-cicd-gitlab
+
+services:
+  gitlab_db:
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_USER: gitlab
+      POSTGRES_PASSWORD: ${ADMIN_PASSWORD:-Dinner1CI4dm1n!}
+      POSTGRES_DB: gitlabhq_production
+    volumes:
+      - gitlab-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gitlab"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dinner1-cicd-network
+
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    restart: always
+    hostname: ${GITLAB_DOMAIN:-gitlab.local}
+    depends_on:
+      gitlab_db:
+        condition: service_healthy
+    ports:
+      - "${GITLAB_PORT:-8080}:80"
+      - "${GITLAB_SSH_PORT:-2222}:22"
+    volumes:
+      - gitlab-config:/etc/gitlab
+      - ./gitlab-logs:/var/log/gitlab
+      - ./gitlab-data:/var/opt/gitlab
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://${GITLAB_DOMAIN:-gitlab.local}'
+        gitlab_rails['initial_root_password'] = '${ADMIN_PASSWORD:-Dinner1CI4dm1n!}'
+        postgresql['enable'] = false
+        gitlab_rails['db_adapter'] = 'postgresql'
+        gitlab_rails['db_host'] = 'gitlab_db'
+        gitlab_rails['db_username'] = 'gitlab'
+        gitlab_rails['db_password'] = '${ADMIN_PASSWORD:-Dinner1CI4dm1n!}'
+        gitlab_rails['db_database'] = 'gitlabhq_production'
+        gitlab_rails['auto_migrate'] = true
+        gitlab_rails['install_db'] = true
+        gitlab_rails['db_initialize'] = true
+    networks:
+      - dinner1-cicd-network
+    command: >
+      /bin/bash -c "
+        echo 'Waiting for database...'
+        until PGPASSWORD=${ADMIN_PASSWORD:-Dinner1CI4dm1n!} psql -h gitlab_db -U gitlab -d gitlabhq_production -c 'SELECT 1'; do
+          echo 'Waiting for GitLab database to be available...'
+          sleep 5
+        done
+        echo 'Database is available, starting GitLab'
+        /assets/wrapper"
+
+  gitlab-runner:
+    image: gitlab/gitlab-runner:latest
+    restart: always
+    depends_on:
+      - gitlab
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./gitlab-runner-config:/etc/gitlab-runner
+    environment:
+      - REGISTRATION_TOKEN=${GITLAB_RUNNER_TOKEN:-}
+      - CI_SERVER_URL=http://gitlab
+      - RUNNER_NAME=docker-runner
+      - RUNNER_EXECUTOR=docker
+      - DOCKER_IMAGE=docker:stable
+    entrypoint: |
+      /bin/sh -c '
+      mkdir -p /etc/gitlab-runner
+      if [ ! -f /etc/gitlab-runner/config.toml ]; then
+        while ! curl -s http://gitlab/-/health > /dev/null; do
+          echo "Waiting for GitLab to be available..."
+          sleep 10
+        done
+        gitlab-runner register \
+          --non-interactive \
+          --url "http://gitlab" \
+          --registration-token "${REGISTRATION_TOKEN}" \
+          --executor "docker" \
+          --docker-image docker:stable \
+          --description "docker-runner" \
+          --tag-list "docker" \
+          --run-untagged="true" \
+          --locked="false"
+      fi
+      exec gitlab-runner run --user=gitlab-runner --working-directory=/home/gitlab-runner'
+    networks:
+      - dinner1-cicd-network
+
+networks:
+  dinner1-cicd-network:
+    external: true
+    name: dinner1-cicd-network
+
+volumes:
+  gitlab-config:
+    name: gitlab-config
+  gitlab-db-data:
+    name: gitlab-db-data

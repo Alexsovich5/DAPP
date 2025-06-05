@@ -1,0 +1,1 @@
+{"Modules":[{"Key":"","Source":"","Dir":"."},{"Key":"docker","Source":"./modules/docker/scripts","Dir":"modules/docker/scripts"},{"Key":"gitlab","Source":"./modules/gitlab/scripts","Dir":"modules/gitlab/scripts"},{"Key":"sonarqube","Source":"./modules/sonarqube/scripts","Dir":"modules/sonarqube/scripts"}]}
