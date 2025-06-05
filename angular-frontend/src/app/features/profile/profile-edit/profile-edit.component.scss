@@ -1,0 +1,348 @@
+.profile-edit-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  
+  .profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    
+    h1 {
+      margin: 0;
+      color: #333;
+      font-weight: 500;
+    }
+  }
+
+  .loading-container {
+    text-align: center;
+    padding: 40px 20px;
+    
+    mat-progress-spinner {
+      margin-bottom: 16px;
+    }
+    
+    p {
+      color: #666;
+      margin: 16px 0 0 0;
+    }
+  }
+
+  .error-card {
+    margin-bottom: 20px;
+    
+    mat-card-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      
+      mat-icon {
+        font-size: 24px;
+      }
+      
+      p {
+        flex: 1;
+        margin: 0;
+      }
+    }
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+
+    .form-section {
+      mat-card-header {
+        margin-bottom: 16px;
+        
+        mat-card-title {
+          color: #333;
+          font-size: 18px;
+          font-weight: 500;
+        }
+        
+        mat-card-subtitle {
+          color: #666;
+          font-size: 14px;
+          margin-top: 4px;
+        }
+      }
+
+      mat-card-content {
+        .form-row {
+          display: flex;
+          gap: 16px;
+          margin-bottom: 16px;
+          
+          mat-form-field {
+            flex: 1;
+          }
+        }
+
+        .full-width {
+          width: 100%;
+          margin-bottom: 16px;
+        }
+
+        // File upload section
+        .file-upload-section {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          flex-wrap: wrap;
+
+          button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+
+          .upload-progress {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+          }
+
+          .upload-error {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #f44336;
+            font-size: 14px;
+          }
+        }
+
+        // Interest management section
+        .interest-input-section {
+          display: flex;
+          gap: 12px;
+          align-items: flex-start;
+          margin-bottom: 20px;
+
+          .interest-input {
+            flex: 1;
+          }
+
+          button {
+            margin-top: 8px;
+          }
+        }
+
+        .suggested-interests {
+          margin-bottom: 20px;
+
+          h4 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+          }
+
+          .interest-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+
+            button[mat-chip-option] {
+              border: 1px solid #e0e0e0;
+              background-color: #fafafa;
+              color: #666;
+              font-size: 12px;
+              padding: 8px 12px;
+              border-radius: 16px;
+              transition: all 0.2s ease;
+
+              &:hover:not(:disabled) {
+                background-color: #e3f2fd;
+                color: #1976d2;
+                border-color: #1976d2;
+              }
+
+              &:disabled {
+                opacity: 0.5;
+                background-color: #f5f5f5;
+                color: #999;
+              }
+            }
+          }
+        }
+
+        .selected-interests {
+          h4 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+          }
+
+          mat-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+
+            mat-chip {
+              background-color: #e3f2fd;
+              color: #1976d2;
+              font-size: 12px;
+
+              mat-icon {
+                font-size: 16px;
+                width: 16px;
+                height: 16px;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+      padding: 20px 0;
+      border-top: 1px solid #e0e0e0;
+      margin-top: 20px;
+
+      button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 120px;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+
+        mat-progress-spinner {
+          margin-right: 4px;
+        }
+      }
+    }
+  }
+}
+
+// Custom styling for form fields
+mat-form-field {
+  &.mat-mdc-form-field {
+    .mat-mdc-form-field-error-wrapper {
+      padding: 0;
+      margin-top: 4px;
+    }
+
+    .mat-mdc-form-field-hint-wrapper {
+      padding: 0;
+      margin-top: 4px;
+    }
+  }
+}
+
+// Date picker styling
+.mat-datepicker-popup {
+  .mat-calendar {
+    max-width: 300px;
+  }
+}
+
+// Chips styling
+mat-chip-row {
+  .mat-mdc-chip-row {
+    margin: 4px;
+  }
+}
+
+// Progress spinner in buttons
+button {
+  mat-progress-spinner {
+    ::ng-deep .mat-progress-spinner svg {
+      width: 18px !important;
+      height: 18px !important;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .profile-edit-container {
+    padding: 16px;
+    
+    .profile-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+      
+      h1 {
+        font-size: 24px;
+      }
+    }
+
+    form {
+      .form-section {
+        mat-card-content {
+          .form-row {
+            flex-direction: column;
+            gap: 0;
+          }
+
+          .interest-input-section {
+            flex-direction: column;
+            gap: 8px;
+
+            button {
+              align-self: flex-start;
+              margin-top: 0;
+            }
+          }
+
+          .suggested-interests {
+            .interest-chips {
+              justify-content: flex-start;
+            }
+          }
+        }
+      }
+
+      .form-actions {
+        flex-direction: column-reverse;
+        gap: 12px;
+        
+        button {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-edit-container {
+    padding: 12px;
+
+    form {
+      .form-section {
+        mat-card-content {
+          .file-upload-section {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .suggested-interests {
+            .interest-chips {
+              button[mat-chip-option] {
+                font-size: 11px;
+                padding: 6px 10px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

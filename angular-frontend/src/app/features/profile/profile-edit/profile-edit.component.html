@@ -1,0 +1,253 @@
+<div class="profile-edit-container">
+  <!-- Header -->
+  <div class="profile-header">
+    <h1>Edit Profile</h1>
+    <button mat-stroked-button (click)="cancel()">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Profile
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+    <p>Loading your profile...</p>
+  </div>
+
+  <!-- Error State -->
+  <mat-card *ngIf="error && !isLoading" class="error-card">
+    <mat-card-content>
+      <mat-icon color="warn">error</mat-icon>
+      <p>{{ error }}</p>
+      <button mat-button color="primary" (click)="loadProfile()">Try Again</button>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Profile Edit Form -->
+  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" *ngIf="!isLoading && !error">
+    
+    <!-- Basic Information -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>Basic Information</mat-card-title>
+        <mat-card-subtitle>Tell us about yourself</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>First Name</mat-label>
+            <input matInput formControlName="first_name" required>
+            <mat-error *ngIf="profileForm.get('first_name')?.hasError('required')">
+              First name is required
+            </mat-error>
+            <mat-error *ngIf="profileForm.get('first_name')?.hasError('minlength')">
+              First name must be at least 2 characters
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Last Name</mat-label>
+            <input matInput formControlName="last_name" required>
+            <mat-error *ngIf="profileForm.get('last_name')?.hasError('required')">
+              Last name is required
+            </mat-error>
+            <mat-error *ngIf="profileForm.get('last_name')?.hasError('minlength')">
+              Last name must be at least 2 characters
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Date of Birth</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="date_of_birth" required>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-error *ngIf="profileForm.get('date_of_birth')?.hasError('required')">
+              Date of birth is required
+            </mat-error>
+            <mat-error *ngIf="profileForm.get('date_of_birth')?.hasError('underage')">
+              You must be at least 18 years old
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Gender</mat-label>
+            <mat-select formControlName="gender" required>
+              <mat-option *ngFor="let option of genderOptions" [value]="option">
+                {{ option | titlecase }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="profileForm.get('gender')?.hasError('required')">
+              Gender is required
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Location</mat-label>
+          <input matInput formControlName="location" placeholder="City, State" required>
+          <mat-icon matSuffix>location_on</mat-icon>
+          <mat-error *ngIf="profileForm.get('location')?.hasError('required')">
+            Location is required
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Bio</mat-label>
+          <textarea 
+            matInput 
+            formControlName="bio" 
+            rows="4" 
+            placeholder="Tell potential matches about yourself...">
+          </textarea>
+          <mat-hint align="end">
+            {{ profileForm.get('bio')?.value?.length || 0 }}/500 characters
+          </mat-hint>
+          <mat-error *ngIf="profileForm.get('bio')?.hasError('maxlength')">
+            Bio must be 500 characters or less
+          </mat-error>
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Profile Picture -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>Profile Picture</mat-card-title>
+        <mat-card-subtitle>Upload a photo to complete your profile</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="file-upload-section">
+          <button 
+            mat-raised-button 
+            color="primary" 
+            type="button" 
+            (click)="fileInput.click()"
+            [disabled]="isUploading">
+            <mat-icon>photo_camera</mat-icon>
+            <span *ngIf="!isUploading">Upload Photo</span>
+            <span *ngIf="isUploading">Uploading...</span>
+          </button>
+          
+          <input 
+            #fileInput 
+            type="file" 
+            accept="image/*" 
+            (change)="onFileChange($event)"
+            style="display: none">
+          
+          <div *ngIf="isUploading" class="upload-progress">
+            <mat-progress-spinner diameter="20" mode="indeterminate"></mat-progress-spinner>
+          </div>
+          
+          <div *ngIf="uploadError" class="upload-error">
+            <mat-icon color="warn">error</mat-icon>
+            <span>{{ uploadError }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Interests -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>Interests</mat-card-title>
+        <mat-card-subtitle>What do you enjoy? This helps us find compatible matches</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <!-- Custom Interest Input -->
+        <div class="interest-input-section">
+          <mat-form-field appearance="outline" class="interest-input">
+            <mat-label>Add Interest</mat-label>
+            <input matInput #interestInput placeholder="e.g., cooking, wine tasting">
+            <mat-icon matSuffix>add</mat-icon>
+          </mat-form-field>
+          <button 
+            mat-mini-fab 
+            color="primary" 
+            type="button"
+            (click)="addInterest(interestInput.value); interestInput.value = ''">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+
+        <!-- Suggested Interests -->
+        <div class="suggested-interests">
+          <h4>Suggested Interests:</h4>
+          <div class="interest-chips">
+            <button 
+              *ngFor="let interest of availableInterests" 
+              mat-chip-option
+              type="button"
+              (click)="addInterestFromList(interest)"
+              [disabled]="profileForm.get('interests')?.value?.includes(interest)">
+              {{ interest | titlecase }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Selected Interests -->
+        <div class="selected-interests" *ngIf="profileForm.get('interests')?.value?.length > 0">
+          <h4>Your Interests:</h4>
+          <mat-chip-row>
+            <mat-chip 
+              *ngFor="let interest of profileForm.get('interests')?.value" 
+              [removable]="true" 
+              (removed)="removeInterest(interest)">
+              {{ interest | titlecase }}
+              <mat-icon matChipRemove>cancel</mat-icon>
+            </mat-chip>
+          </mat-chip-row>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Dietary Preferences -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>Dietary Preferences</mat-card-title>
+        <mat-card-subtitle>Help us suggest restaurants that match your dietary needs</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Dietary Preferences</mat-label>
+          <mat-select formControlName="dietary_preferences" multiple>
+            <mat-option *ngFor="let option of dietaryOptions" [value]="option">
+              {{ option | titlecase }}
+            </mat-option>
+          </mat-select>
+          <mat-hint>Select all that apply</mat-hint>
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button 
+        mat-stroked-button 
+        type="button" 
+        (click)="cancel()"
+        [disabled]="isSaving">
+        Cancel
+      </button>
+      
+      <button 
+        mat-raised-button 
+        color="primary" 
+        type="submit"
+        [disabled]="!profileForm.valid || isSaving">
+        <mat-icon *ngIf="isSaving">
+          <mat-progress-spinner diameter="18" mode="indeterminate"></mat-progress-spinner>
+        </mat-icon>
+        <mat-icon *ngIf="!isSaving">save</mat-icon>
+        {{ isSaving ? 'Saving...' : 'Save Changes' }}
+      </button>
+    </div>
+
+  </form>
+</div>

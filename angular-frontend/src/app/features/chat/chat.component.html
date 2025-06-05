@@ -1,0 +1,81 @@
+<div class="chat-container">
+  <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+
+  <!-- Chat Header -->
+  <mat-toolbar color="primary" *ngIf="chatPartner">
+    <button mat-icon-button (click)="navigateToMatches()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="chat-header-content">
+      <img [src]="chatPartner.profilePicture" [alt]="chatPartner.firstName + '\'s avatar'"
+        title="Chat partner's profile picture" [title]="chatPartner.firstName + '\'s avatar'" />
+      <div class="user-info">
+        <h2>{{chatPartner.firstName}} {{chatPartner.lastName}}</h2>
+        <span class="online-status">
+          {{chatPartner.lastActive ? 'Online' : 'Offline'}}
+        </span>
+      </div>
+    </div>
+    <button mat-icon-button (click)="navigateToPreferences()" matTooltip="Suggest a restaurant">
+      <mat-icon>restaurant</mat-icon>
+    </button>
+  </mat-toolbar>
+
+  <!-- Error Alert -->
+  <mat-card *ngIf="error" class="error-alert">
+    <mat-card-content>
+      <mat-icon>error</mat-icon>
+      {{error}}
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Messages -->
+  <div class="messages-container" #messageContainer>
+    <div *ngIf="messages.length === 0" class="no-messages">
+      <p>No messages yet. Say hello!</p>
+    </div>
+
+    <ng-container *ngFor="let message of messages; let i = index">
+      <!-- Date Separator -->
+      <mat-divider *ngIf="i === 0 ||
+                (messages[i-1]?.timestamp | date) !== (message.timestamp | date)" [inset]="true">
+        <span class="date-separator">
+          {{message.timestamp | date}}
+        </span>
+      </mat-divider>
+
+      <!-- Message Bubble -->
+      <div class="message" [ngClass]="{'sent': message.senderId === 'currentUser',
+                'received': message.senderId !== 'currentUser'}">
+        <div class="message-content">
+          <p>{{message.content}}</p>
+          <span class="timestamp">{{formatTime(message.timestamp)}}</span>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- Message Input -->
+  <form [formGroup]="chatForm" (ngSubmit)="onSendMessage()" class="message-input">
+    <button mat-icon-button type="button" aria-label="Add emoji">
+      <mat-icon>emoji_emotions</mat-icon>
+    </button>
+
+    <mat-form-field appearance="outline">
+      <input matInput formControlName="message" placeholder="Type a message..." [disabled]="isSending"
+        aria-label="Message input" (keydown.enter)="$event.preventDefault(); onSendMessage()"
+        [attr.aria-describedby]="isSending ? 'sending-status' : null">
+      <mat-hint *ngIf="isSending" id="sending-status">Sending message...</mat-hint>
+    </mat-form-field>
+
+    <button mat-icon-button type="button" aria-label="Attach file">
+      <mat-icon>attach_file</mat-icon>
+    </button>
+
+    <button mat-icon-button color="primary" type="submit" [disabled]="!chatForm.valid || isSending"
+      aria-label="Send message">
+      <mat-icon *ngIf="!isSending">send</mat-icon>
+      <mat-spinner diameter="20" *ngIf="isSending"></mat-spinner>
+    </button>
+  </form>
+</div>

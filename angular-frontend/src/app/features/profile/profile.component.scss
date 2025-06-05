@@ -1,0 +1,25 @@
+.profile-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: left;
+}
+
+mat-form-field {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.file-upload {
+  margin-bottom: 1rem;
+}
+
+.success {
+  color: green;
+  margin-top: 1rem;
+}
+
+.error {
+  color: red;
+  margin-top: 1rem;
+}
