@@ -1,0 +1,101 @@
+<div class="discover-container">
+  <mat-progress-bar *ngIf="isLoading" mode="indeterminate" class="loading-bar"></mat-progress-bar>
+
+  <div *ngIf="error" class="error-message" role="alert">
+    <mat-icon>error</mat-icon>
+    <span>{{ error }}</span>
+  </div>
+
+  <output *ngIf="!isLoading && !currentMatch" class="no-matches">
+    <mat-card>
+      <mat-card-content>
+        <mat-icon class="no-matches-icon">search_off</mat-icon>
+        <h2>No More Matches</h2>
+        <p>We're looking for more people that match your preferences.</p>
+        <button mat-raised-button color="primary" (click)="loadProfiles()" type="button" aria-label="Refresh matches">
+          <mat-icon>refresh</mat-icon>
+          Refresh Matches
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </output>
+
+  <div *ngIf="currentMatch" class="match-card-container">
+    <mat-card [@cardAnimation]="animationState" (touchstart)="onSwipeStart($event)" (touchend)="onSwipeEnd($event)"
+      (touchmove)="onSwipeMove($event)" (keydown.arrowright)="onLike(currentMatch._id)"
+      (keydown.arrowleft)="onDislike(currentMatch._id)" class="match-card" role="region"
+      aria-label="Potential match profile" tabindex="0">
+
+      <div class="profile-images">
+        <img [src]="currentMatch.profilePictures[0]" [alt]="currentMatch.firstName" title="Profile picture"
+          [title]="currentMatch.firstName">
+        <div class="match-percentage" *ngIf="currentMatch.matchPercentage" aria-live="polite">
+          <mat-icon>favorite</mat-icon>
+          {{ currentMatch.matchPercentage }}% Match
+        </div>
+      </div>
+
+      <mat-card-content>
+        <div class="profile-header">
+          <h2>{{ currentMatch.firstName }} {{ currentMatch.lastName }}</h2>
+          <span class="age">{{ calculateAge(currentMatch.dateOfBirth) }}</span>
+          <span class="online-status" *ngIf="currentMatch.lastActive">
+            <mat-icon [class.online]="isRecentlyActive(currentMatch.lastActive)">
+              fiber_manual_record
+            </mat-icon>
+            {{ getLastActiveText(currentMatch.lastActive) }}
+          </span>
+        </div>
+
+        <p *ngIf="currentMatch.bio" class="bio">{{ currentMatch.bio }}</p>
+
+        <mat-divider></mat-divider>
+
+        <section class="interests-section">
+          <h3>
+            <mat-icon>local_dining</mat-icon>
+            Food Interests
+          </h3>
+          <mat-chip-row *ngIf="currentMatch.interests?.length">
+            @for (interest of currentMatch.interests; track interest) {
+            <mat-chip color="accent" selected>{{ interest }}</mat-chip>
+            }
+          </mat-chip-row>
+        </section>
+
+        <section class="dietary-section">
+          <h3>
+            <mat-icon>restaurant_menu</mat-icon>
+            Dietary Preferences
+          </h3>
+          <mat-chip-row *ngIf="currentMatch.dietaryPreferences?.length">
+            @for (pref of currentMatch.dietaryPreferences; track pref) {
+            <mat-chip>{{ pref }}</mat-chip>
+            }
+          </mat-chip-row>
+        </section>
+
+        <div class="location-info" *ngIf="currentMatch.distance">
+          <mat-icon>place</mat-icon>
+          <span>{{ currentMatch.distance }} miles away</span>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-fab color="warn" (click)="onDislike(currentMatch._id)" type="button" matTooltip="Pass"
+          aria-label="Pass on this match">
+          <mat-icon>close</mat-icon>
+        </button>
+        <button mat-fab color="primary" (click)="onLike(currentMatch._id)" type="button" matTooltip="Like"
+          aria-label="Like this match">
+          <mat-icon>favorite</mat-icon>
+        </button>
+      </mat-card-actions>
+
+      <div class="swipe-hint" *ngIf="showSwipeHint" aria-label="Usage instructions">
+        <mat-icon>swipe</mat-icon>
+        Swipe or use arrow keys: right to like, left to pass
+      </div>
+    </mat-card>
+  </div>
+</div>

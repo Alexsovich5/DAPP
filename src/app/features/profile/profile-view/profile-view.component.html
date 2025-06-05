@@ -1,0 +1,177 @@
+<div class="profile-view-container">
+  <!-- Header -->
+  <div class="profile-header">
+    <h1>My Profile</h1>
+    <button mat-raised-button color="primary" (click)="editProfile()">
+      <mat-icon>edit</mat-icon>
+      Edit Profile
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    <p>Loading your profile...</p>
+  </div>
+
+  <!-- Error State -->
+  <mat-card *ngIf="error && !isLoading" class="error-card">
+    <mat-card-content>
+      <mat-icon color="warn">error</mat-icon>
+      <p>{{ error }}</p>
+      <button mat-button color="primary" (click)="loadProfile()">Try Again</button>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Profile Content -->
+  <div *ngIf="profileData && !isLoading" class="profile-content">
+    
+    <!-- Profile Completion Card -->
+    <mat-card class="completion-card">
+      <mat-card-header>
+        <mat-card-title>Profile Completion</mat-card-title>
+        <mat-card-subtitle>{{ getCompletionMessage() }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="completion-progress">
+          <mat-progress-bar 
+            mode="determinate" 
+            [value]="profileCompletion"
+            [color]="getCompletionColor()">
+          </mat-progress-bar>
+          <span class="completion-percentage">{{ profileCompletion }}%</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Basic Information Card -->
+    <mat-card class="info-card">
+      <mat-card-header>
+        <div class="profile-avatar">
+          <img 
+            *ngIf="profileData.profile_picture; else defaultAvatar"
+            [src]="profileData.profile_picture" 
+            [alt]="profileData.first_name + ' ' + profileData.last_name"
+            class="profile-image">
+          <ng-template #defaultAvatar>
+            <mat-icon class="default-avatar">account_circle</mat-icon>
+          </ng-template>
+        </div>
+        <div class="profile-info">
+          <mat-card-title>
+            {{ profileData.first_name }} {{ profileData.last_name }}
+            <mat-icon *ngIf="profileData.is_profile_complete" 
+                      color="primary" 
+                      matTooltip="Profile Complete">
+              verified
+            </mat-icon>
+          </mat-card-title>
+          <mat-card-subtitle>{{ "@" + profileData.username }}</mat-card-subtitle>
+        </div>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="profile-details">
+          
+          <!-- Age and Gender -->
+          <div class="detail-row" *ngIf="profileData.date_of_birth || profileData.gender">
+            <mat-icon>person</mat-icon>
+            <span>
+              <ng-container *ngIf="getAgeFromBirthDate(profileData.date_of_birth!) as age">
+                {{ age }} years old
+              </ng-container>
+              <ng-container *ngIf="profileData.gender && getAgeFromBirthDate(profileData.date_of_birth!)">
+                 • 
+              </ng-container>
+              <ng-container *ngIf="profileData.gender">
+                {{ profileData.gender | titlecase }}
+              </ng-container>
+            </span>
+          </div>
+
+          <!-- Location -->
+          <div class="detail-row" *ngIf="profileData.location">
+            <mat-icon>location_on</mat-icon>
+            <span>{{ profileData.location }}</span>
+          </div>
+
+          <!-- Email -->
+          <div class="detail-row">
+            <mat-icon>email</mat-icon>
+            <span>{{ profileData.email }}</span>
+          </div>
+
+          <!-- Member Since -->
+          <div class="detail-row" *ngIf="profileData.created_at">
+            <mat-icon>schedule</mat-icon>
+            <span>Member since {{ profileData.created_at | date:'MMMM yyyy' }}</span>
+          </div>
+        </div>
+
+        <!-- Bio Section -->
+        <div class="bio-section" *ngIf="profileData.bio">
+          <h3>About Me</h3>
+          <p class="bio-text">{{ profileData.bio }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Interests and Preferences -->
+    <mat-card class="preferences-card" *ngIf="profileData.interests?.length || profileData.dietary_preferences?.length">
+      <mat-card-header>
+        <mat-card-title>Interests & Preferences</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <!-- Interests -->
+        <div class="preference-section" *ngIf="profileData.interests?.length">
+          <h4><mat-icon>favorite</mat-icon> Interests</h4>
+          <mat-chip-row>
+            <mat-chip 
+              *ngFor="let interest of profileData.interests" 
+              class="interest-chip">
+              {{ interest }}
+            </mat-chip>
+          </mat-chip-row>
+        </div>
+
+        <mat-divider *ngIf="profileData.interests?.length && profileData.dietary_preferences?.length"></mat-divider>
+
+        <!-- Dietary Preferences -->
+        <div class="preference-section" *ngIf="profileData.dietary_preferences?.length">
+          <h4><mat-icon>restaurant</mat-icon> Dietary Preferences</h4>
+          <mat-chip-row>
+            <mat-chip 
+              *ngFor="let preference of profileData.dietary_preferences" 
+              class="diet-chip">
+              {{ preference | titlecase }}
+            </mat-chip>
+          </mat-chip-row>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Actions Card -->
+    <mat-card class="actions-card">
+      <mat-card-content>
+        <div class="action-buttons">
+          <button mat-raised-button color="primary" (click)="editProfile()">
+            <mat-icon>edit</mat-icon>
+            Edit Profile
+          </button>
+          
+          <button mat-stroked-button routerLink="/preferences">
+            <mat-icon>tune</mat-icon>
+            Preferences
+          </button>
+          
+          <button mat-stroked-button routerLink="/discover">
+            <mat-icon>explore</mat-icon>
+            Find Matches
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+  </div>
+</div>

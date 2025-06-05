@@ -1,0 +1,233 @@
+<div class="register-container">
+  <mat-card>
+    <mat-card-content>
+      <div class="header">
+        <mat-icon class="avatar-icon">person_add</mat-icon>
+        <h1>Create Account</h1>
+        <p class="subtitle">Join Dinner1 to connect with dinner companions based on your preferences</p>
+      </div>
+
+      <mat-error *ngIf="error" class="error-alert">
+        <mat-icon>error</mat-icon>
+        {{error}}
+        <button mat-icon-button (click)="error = null">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-error>
+
+      <div class="progress-section">
+        <mat-progress-bar mode="determinate" [value]="getProgressValue(stepper.selectedIndex)"></mat-progress-bar>
+        <p class="progress-text">Step {{stepper.selectedIndex + 1}} of 3</p>
+      </div>
+
+      <mat-stepper linear #stepper (selectionChange)="onStepChange($event)">
+        <!-- Account Details Step -->
+        <mat-step [stepControl]="accountForm" label="Account Details">
+          <form [formGroup]="accountForm">
+            <mat-form-field appearance="outline">
+              <mat-label>Email Address</mat-label>
+              <input matInput formControlName="email" type="email" required autocomplete="email">
+              <mat-error *ngIf="accountForm.get('email')?.hasError('required')">
+                Email is required
+              </mat-error>
+              <mat-error *ngIf="accountForm.get('email')?.hasError('email')">
+                Enter a valid email
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Username</mat-label>
+              <input matInput formControlName="username" required autocomplete="username">
+              <mat-hint>Choose a unique username for your profile</mat-hint>
+              <mat-error *ngIf="accountForm.get('username')?.hasError('required')">
+                Username is required
+              </mat-error>
+              <mat-error *ngIf="accountForm.get('username')?.hasError('minlength')">
+                Username must be at least 3 characters
+              </mat-error>
+              <mat-error *ngIf="accountForm.get('username')?.hasError('pattern')">
+                Username can only contain letters, numbers, and underscores
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Password</mat-label>
+              <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" required
+                autocomplete="new-password">
+              <button mat-icon-button matSuffix (click)="togglePasswordVisibility('password')"
+                [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hidePassword">
+                <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+              </button>
+              <mat-error *ngIf="accountForm.get('password')?.hasError('required')">
+                Password is required
+              </mat-error>
+              <mat-error *ngIf="accountForm.get('password')?.hasError('minlength')">
+                Password must be at least 8 characters
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Confirm Password</mat-label>
+              <input matInput [type]="hideConfirmPassword ? 'password' : 'text'" formControlName="confirmPassword"
+                required autocomplete="new-password">
+              <button mat-icon-button matSuffix (click)="togglePasswordVisibility('confirmPassword')"
+                [attr.aria-label]="'Hide confirm password'" [attr.aria-pressed]="hideConfirmPassword">
+                <mat-icon>{{hideConfirmPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+              </button>
+              <mat-error *ngIf="accountForm.get('confirmPassword')?.hasError('required')">
+                Please confirm your password
+              </mat-error>
+              <mat-error *ngIf="accountForm.get('confirmPassword')?.hasError('mismatch')">
+                Passwords must match
+              </mat-error>
+            </mat-form-field>
+
+            <div class="step-actions">
+              <button mat-stroked-button (click)="navigateToLogin()">Back to Login</button>
+              <button mat-raised-button color="primary" matStepperNext [disabled]="!accountForm.valid">Next</button>
+            </div>
+
+            <mat-divider>or register with</mat-divider>
+
+            <div class="social-buttons">
+              <button mat-stroked-button disabled class="google-btn">
+                <mat-icon svgIcon="google"></mat-icon>
+                Google
+              </button>
+              <button mat-stroked-button disabled class="facebook-btn">
+                <mat-icon svgIcon="facebook"></mat-icon>
+                Facebook
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Personal Information Step -->
+        <mat-step [stepControl]="personalForm" label="Personal Information">
+          <form [formGroup]="personalForm">
+            <div class="name-fields">
+              <mat-form-field appearance="outline">
+                <mat-label>First Name</mat-label>
+                <input matInput formControlName="firstName" required autocomplete="given-name">
+                <mat-error *ngIf="personalForm.get('firstName')?.hasError('required')">
+                  First name is required
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Last Name</mat-label>
+                <input matInput formControlName="lastName" required autocomplete="family-name">
+                <mat-error *ngIf="personalForm.get('lastName')?.hasError('required')">
+                  Last name is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Date of Birth</mat-label>
+              <input matInput [matDatepicker]="picker" formControlName="birthdate" required>
+              <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+              <mat-error *ngIf="personalForm.get('birthdate')?.hasError('required')">
+                Date of birth is required
+              </mat-error>
+              <mat-error *ngIf="personalForm.get('birthdate')?.hasError('underage')">
+                Must be at least 18 years old
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Gender</mat-label>
+              <mat-select formControlName="gender" required>
+                <mat-option *ngFor="let option of genderOptions" [value]="option">
+                  {{option | titlecase}}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="personalForm.get('gender')?.hasError('required')">
+                Gender is required
+              </mat-error>
+            </mat-form-field>
+
+            <div class="step-actions">
+              <button mat-stroked-button matStepperPrevious>Back</button>
+              <button mat-raised-button color="primary" matStepperNext [disabled]="!personalForm.valid">Next</button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Preferences Step -->
+        <mat-step [stepControl]="preferencesForm" label="Preferences">
+          <form [formGroup]="preferencesForm" (ngSubmit)="onSubmit()">
+            <mat-form-field appearance="outline">
+              <mat-label>Dietary Preferences</mat-label>
+              <mat-select formControlName="dietaryPreferences" multiple required>
+                <mat-option *ngFor="let option of dietaryOptions" [value]="option">
+                  {{option | titlecase}}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="preferencesForm.get('dietaryPreferences')?.hasError('required')">
+                Please select at least one dietary preference
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Favorite Cuisine</mat-label>
+              <mat-select formControlName="cuisinePreferences" required>
+                <mat-option *ngFor="let option of cuisineOptions" [value]="option">
+                  {{option | titlecase}}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="preferencesForm.get('cuisinePreferences')?.hasError('required')">
+                Please select your favorite cuisine
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Location (City)</mat-label>
+              <input matInput formControlName="location" required autocomplete="address-level2">
+              <mat-error *ngIf="preferencesForm.get('location')?.hasError('required')">
+                Location is required
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Looking For</mat-label>
+              <mat-select formControlName="lookingFor" required>
+                <mat-option *ngFor="let option of lookingForOptions" [value]="option">
+                  {{option | titlecase}}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="preferencesForm.get('lookingFor')?.hasError('required')">
+                Please select who you're looking to meet
+              </mat-error>
+            </mat-form-field>
+
+            <div class="terms-checkbox">
+              <mat-checkbox formControlName="agreeTerms" required>
+                I agree to the <a routerLink="/terms" target="_blank">Terms of Service</a>
+                and <a routerLink="/privacy" target="_blank">Privacy Policy</a>
+              </mat-checkbox>
+              <mat-error
+                *ngIf="preferencesForm.get('agreeTerms')?.hasError('required') && preferencesForm.get('agreeTerms')?.touched">
+                You must accept the terms and conditions
+              </mat-error>
+            </div>
+
+            <div class="step-actions">
+              <button mat-stroked-button matStepperPrevious type="button" [disabled]="isLoading">Back</button>
+              <button mat-raised-button color="primary" type="submit" [disabled]="!preferencesForm.valid || isLoading">
+                <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+                <span *ngIf="!isLoading">Create Account</span>
+              </button>
+            </div>
+          </form>
+        </mat-step>
+      </mat-stepper>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="footer">
+    <p>Already have an account? <a mat-button color="primary" (click)="navigateToLogin()">Sign in</a></p>
+    <p class="copyright">&copy; {{currentYear}} Dinner1. All rights reserved.</p>
+  </div>
+</div>

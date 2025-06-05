@@ -1,0 +1,161 @@
+<div class="profile-container">
+  <h1>Manage Your Profile</h1>
+
+  <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+
+  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+    <!-- Basic Information -->
+    <h2>Basic Information</h2>
+    <mat-form-field appearance="fill">
+      <mat-label>First Name</mat-label>
+      <input matInput formControlName="firstName" placeholder="Enter your first name" [attr.aria-label]="'First name'"
+        title="First name" />
+      <mat-error *ngIf="profileForm.get('firstName')?.invalid">First name is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Last Name</mat-label>
+      <input matInput formControlName="lastName" placeholder="Enter your last name" [attr.aria-label]="'Last name'"
+        title="Last name" />
+      <mat-error *ngIf="profileForm.get('lastName')?.invalid">Last name is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Email</mat-label>
+      <input matInput formControlName="email" type="email" placeholder="Enter your email"
+        [attr.aria-label]="'Email address'" title="Email address" />
+      <mat-error *ngIf="profileForm.get('email')?.invalid">Valid email is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Bio</mat-label>
+      <textarea matInput formControlName="bio" rows="4" placeholder="Tell us about yourself"
+        [attr.aria-label]="'Biography'" title="Biography"></textarea>
+      <mat-hint>{{profileForm.get('bio')?.value?.length || 0}}/500 characters</mat-hint>
+      <mat-error *ngIf="profileForm.get('bio')?.errors?.['maxlength']">Bio must be 500 characters or less</mat-error>
+    </mat-form-field>
+
+    <!-- Profile Picture -->
+    <section class="profile-picture-section" aria-labelledby="profile-picture-heading">
+      <h2 id="profile-picture-heading">Profile Picture</h2>
+      <div class="file-upload">
+        <label for="profile-picture-input" class="visually-hidden">Profile picture</label>
+        <button mat-raised-button type="button" color="primary" (click)="fileInput.click()"
+          [attr.aria-busy]="isUploading" aria-label="Upload profile picture">
+          <mat-icon>photo_camera</mat-icon>
+          {{isUploading ? 'Uploading...' : 'Upload Photo'}}
+        </button>
+        <input #fileInput id="profile-picture-input" type="file" tabindex="-1" class="visually-hidden"
+          (change)="onFileChange($event)" accept="image/*" [attr.aria-invalid]="!!uploadError"
+          title="Choose profile picture" aria-label="Choose profile picture" />
+        <mat-error *ngIf="uploadError" role="alert">
+          {{uploadError}}
+        </mat-error>
+        <mat-hint *ngIf="profileForm.get('profilePicture')?.value">
+          Current file: {{getFileName(profileForm.get('profilePicture')?.value)}}
+        </mat-hint>
+      </div>
+    </section>
+
+    <!-- Interests -->
+    <section class="interests-section" aria-labelledby="interests-heading">
+      <h2 id="interests-heading">Interests</h2>
+      <div formArrayName="interests" class="interests-section">
+        <div class="interest-input">
+          <mat-form-field appearance="fill">
+            <mat-label>Add Interest</mat-label>
+            <input matInput #interestInput placeholder="Enter an interest" [attr.aria-label]="'Enter an interest'"
+              title="Enter an interest" />
+          </mat-form-field>
+          <button mat-mini-fab type="button" color="primary"
+            (click)="addInterest(interestInput.value); interestInput.value = ''" aria-label="Add interest">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+        <mat-chip-row aria-label="Selected interests">
+          @for (interest of profileForm.get('interests')?.value; track interest) {
+          <mat-chip [removable]="true" (removed)="removeInterest(interest)">
+            {{interest}}
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip>
+          }
+        </mat-chip-row>
+      </div>
+    </section>
+
+    <!-- Dietary Preferences -->
+    <section aria-labelledby="dietary-heading">
+      <h2 id="dietary-heading">Dietary Preferences</h2>
+      <mat-form-field appearance="fill">
+        <mat-label>Dietary Preferences</mat-label>
+        <mat-select formControlName="dietaryPreferences" multiple>
+          <mat-option *ngFor="let option of dietaryOptions" [value]="option">
+            {{option | titlecase}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </section>
+
+    <!-- Location Preferences -->
+    <section formGroupName="locationPreferences" aria-labelledby="location-heading">
+      <h2 id="location-heading">Location</h2>
+      <mat-form-field appearance="fill">
+        <mat-label>City</mat-label>
+        <input matInput formControlName="city" placeholder="Enter your city" [attr.aria-label]="'City'" title="City" />
+      </mat-form-field>
+
+      <div class="slider-section">
+        <label for="distance-slider">Maximum Distance</label>
+        <output>{{profileForm.get('locationPreferences.maxDistance')?.value}} miles</output>
+        <mat-slider min="5" max="100" step="5" discrete>
+          <input matSliderThumb id="distance-slider" formControlName="maxDistance" title="Maximum distance in miles">
+        </mat-slider>
+      </div>
+    </section>
+
+    <!-- Match Preferences -->
+    <section formGroupName="matchPreferences" aria-labelledby="match-heading">
+      <h2 id="match-heading">Match Preferences</h2>
+      <mat-form-field appearance="fill">
+        <mat-label>Interested In</mat-label>
+        <mat-select formControlName="genders" multiple>
+          <mat-option *ngFor="let gender of genderOptions" [value]="gender">
+            {{gender | titlecase}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div formGroupName="ageRange" class="age-range-section">
+        <h3>Age Range</h3>
+        <div class="age-inputs">
+          <mat-form-field appearance="fill">
+            <mat-label>Min Age</mat-label>
+            <input matInput type="number" formControlName="min" min="18" max="99" placeholder="Minimum age"
+              [attr.aria-label]="'Minimum age'" title="Minimum age" />
+            <mat-error *ngIf="profileForm.get('matchPreferences.ageRange.min')?.errors?.['min']">
+              Minimum age must be at least 18
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="fill">
+            <mat-label>Max Age</mat-label>
+            <input matInput type="number" formControlName="max" min="18" max="99" placeholder="Maximum age"
+              [attr.aria-label]="'Maximum age'" title="Maximum age" />
+            <mat-error *ngIf="profileForm.get('matchPreferences.ageRange.max')?.errors?.['max']">
+              Maximum age must be 99 or less
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+    </section>
+
+    <div class="form-actions">
+      <button mat-raised-button color="primary" type="submit" [disabled]="!profileForm.valid || isLoading">
+        Save Changes
+      </button>
+    </div>
+  </form>
+
+  <mat-error *ngIf="error" class="error-message" role="alert">{{error}}</mat-error>
+  <output *ngIf="successMessage" class="success-message">{{successMessage}}</output>
+</div>

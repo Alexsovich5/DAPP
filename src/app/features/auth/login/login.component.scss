@@ -1,0 +1,149 @@
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  background-color: #f5f5f5;
+
+  mat-card {
+    width: 100%;
+    max-width: 400px;
+    margin-top: 2rem;
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+
+  .avatar-icon {
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 500;
+  }
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0.5rem 0;
+}
+
+.error-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+
+  mat-icon {
+    font-size: 20px;
+    height: 20px;
+    width: 20px;
+  }
+}
+
+.submit-button {
+  height: 48px;
+
+  mat-spinner {
+    margin: 0 auto;
+  }
+}
+
+.divider {
+  margin: 2rem 0;
+  position: relative;
+  text-align: center;
+
+  &::after {
+    content: attr(class);
+    display: inline-block;
+    position: relative;
+    top: -0.7em;
+    padding: 0 1em;
+    background: white;
+    color: rgba(0, 0, 0, 0.54);
+  }
+}
+
+.social-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 40px;
+  }
+
+  .google-btn {
+    color: rgba(0, 0, 0, 0.87);
+    border-color: rgba(0, 0, 0, 0.12);
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+  }
+
+  .facebook-btn {
+    color: #1877F2;
+    border-color: #1877F2;
+
+    &:hover {
+      background-color: rgba(24, 119, 242, 0.04);
+    }
+  }
+
+  .social-icon {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.register-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  text-align: center;
+
+  span {
+    color: rgba(0, 0, 0, 0.54);
+  }
+}
+
+.footer {
+  margin-top: 2rem;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.54);
+}

@@ -1,0 +1,129 @@
+<div class="landing-container">
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <mat-toolbar>
+      <span class="app-logo">Dinner1</span>
+      <span class="spacer"></span>
+      <button mat-stroked-button color="secondary" (click)="navigateToLogin()">Sign In</button>
+    </mat-toolbar>
+
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1>Find Your Perfect Dinner Date</h1>
+        <p>Connect with people who share your culinary interests and discover new restaurants together.</p>
+        <div class="hero-buttons">
+          <button mat-raised-button color="secondary" (click)="navigateToRegister()">Join Now</button>
+          <button mat-stroked-button color="secondary" (click)="navigateToLogin()">Sign In</button>
+        </div>
+      </div>
+      <div class="hero-image">
+        <img src="assets/images/hero-image.jpg" alt="Couple enjoying dinner">
+      </div>
+    </div>
+    <div class="wave-divider">
+      <svg preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 74">
+        <path
+          d="M456.464 0.0433865C277.158 -1.70575 0 50.0141 0 50.0141V74H1440V50.0141C1440 50.0141 1320.4 31.1925 1243.09 27.0276C1099.33 19.2816 1019.08 53.1981 875.138 50.0141C710.527 46.3727 621.108 1.64949 456.464 0.0433865Z">
+        </path>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Features Section -->
+  <div class="features-section">
+    <h2>How It Works</h2>
+    <div class="features-grid">
+      <mat-card class="feature-card">
+        <mat-card-content>
+          <mat-icon color="primary">favorite</mat-icon>
+          <h3>Match with Foodies</h3>
+          <p>Create a profile and match with people who share your culinary preferences and dietary restrictions.</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="feature-card">
+        <mat-card-content>
+          <mat-icon color="primary">chat</mat-icon>
+          <h3>Chat & Plan</h3>
+          <p>Message your matches and discover new restaurants together or plan a dinner date at your favorite spot.</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="feature-card">
+        <mat-card-content>
+          <mat-icon color="primary">restaurant</mat-icon>
+          <h3>Dine Together</h3>
+          <p>Meet up for a memorable dining experience with someone who appreciates good food just as much as you do.
+          </p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Testimonials Section -->
+  <div class="testimonials-section">
+    <h2>Success Stories</h2>
+    <div class="testimonials-grid">
+      <mat-card class="testimonial-card">
+        <mat-card-content>
+          <p>"I never thought I'd meet someone who loves Thai food as much as I do! We now have weekly date nights
+            trying new restaurants around the city."</p>
+          <p class="testimonial-author">- Sarah & Michael</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="testimonial-card">
+        <mat-card-content>
+          <p>"Being a vegan, it was hard to find someone who understood my dietary choices. Thanks to Dinner1, I found
+            my perfect match!"</p>
+          <p class="testimonial-author">- James & Emily</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- CTA Section -->
+  <div class="cta-section">
+    <h2>Join thousands of food lovers already connecting through Dinner1</h2>
+    <button mat-raised-button color="secondary" (click)="navigateToRegister()">
+      Create Your Free Profile
+    </button>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>Dinner1</h3>
+        <p>Connecting food lovers one table at a time. Find your perfect dinner date today!</p>
+      </div>
+
+      <div class="footer-section">
+        <h3>Quick Links</h3>
+        <a mat-button (click)="navigateToLink('/about')">About Us</a>
+        <a mat-button (click)="navigateToLink('/privacy')">Privacy Policy</a>
+        <a mat-button (click)="navigateToLink('/terms')">Terms of Service</a>
+        <a mat-button (click)="navigateToLink('/contact')">Contact Us</a>
+      </div>
+
+      <div class="footer-section">
+        <h3>Connect With Us</h3>
+        <div class="social-links">
+          <a mat-icon-button href="#" target="_blank" title="Visit our Facebook page" aria-label="Facebook">
+            <mat-icon svgIcon="facebook"></mat-icon>
+          </a>
+          <a mat-icon-button href="#" target="_blank" title="Follow us on Twitter" aria-label="Twitter">
+            <mat-icon svgIcon="twitter"></mat-icon>
+          </a>
+          <a mat-icon-button href="#" target="_blank" title="Follow us on Instagram" aria-label="Instagram">
+            <mat-icon svgIcon="instagram"></mat-icon>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; {{currentYear}} Dinner1. All rights reserved.</p>
+    </div>
+  </footer>
+</div>
