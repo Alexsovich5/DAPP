@@ -1,0 +1,47 @@
+name: dinner1-cicd-sonarqube
+
+services:
+  sonarqube_db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonar
+    volumes:
+      - sonarqube-db-data:/var/lib/postgresql/data
+    networks:
+      - dinner1-cicd-network
+
+  sonarqube:
+    image: sonarqube:lts
+    restart: always
+    depends_on:
+      - sonarqube_db
+    ports:
+      - "${SONARQUBE_PORT:-9000}:9000"
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonarqube_db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+      - sonarqube-extensions:/opt/sonarqube/extensions
+      - sonarqube-logs:/opt/sonarqube/logs
+    networks:
+      - dinner1-cicd-network
+
+networks:
+  dinner1-cicd-network:
+    external: true
+    name: dinner1-cicd-network
+
+volumes:
+  sonarqube-data:
+    name: sonarqube-data
+  sonarqube-extensions:
+    name: sonarqube-extensions
+  sonarqube-logs:
+    name: sonarqube-logs
+  sonarqube-db-data:
+    name: sonarqube-db-data

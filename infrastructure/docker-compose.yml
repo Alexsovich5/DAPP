@@ -1,0 +1,122 @@
+name: dinner1-cicd
+
+services:
+  gitlab_db:
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_USER: gitlab
+      POSTGRES_PASSWORD: ${ADMIN_PASSWORD:-Dinner1CI4dm1n!}
+      POSTGRES_DB: gitlabhq_production
+    volumes:
+      - gitlab-db-data:/var/lib/postgresql/data
+    networks:
+      - dinner1-cicd-network
+
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    restart: always
+    hostname: ${GITLAB_DOMAIN:-gitlab.local}
+    depends_on:
+      - gitlab_db
+    ports:
+      - "${GITLAB_PORT:-8080}:80"
+      - "${GITLAB_SSH_PORT:-2222}:22"
+    volumes:
+      - gitlab-config:/etc/gitlab
+      - ./gitlab-logs:/var/log/gitlab
+      - ./gitlab-data:/var/opt/gitlab
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://${GITLAB_DOMAIN:-gitlab.local}'
+        gitlab_rails['initial_root_password'] = '${ADMIN_PASSWORD:-Dinner1CI4dm1n!}'
+        postgresql['enable'] = false
+        gitlab_rails['db_adapter'] = 'postgresql'
+        gitlab_rails['db_host'] = 'gitlab_db'
+        gitlab_rails['db_username'] = 'gitlab'
+        gitlab_rails['db_password'] = '${ADMIN_PASSWORD:-Dinner1CI4dm1n!}'
+        gitlab_rails['db_database'] = 'gitlabhq_production'
+    networks:
+      - dinner1-cicd-network
+
+  sonarqube_db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonar
+    volumes:
+      - sonarqube-db-data:/var/lib/postgresql/data
+    networks:
+      - dinner1-cicd-network
+
+  sonarqube:
+    image: sonarqube:lts
+    restart: always
+    depends_on:
+      - sonarqube_db
+    ports:
+      - "${SONARQUBE_PORT:-9000}:9000"
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonarqube_db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+      - sonarqube-extensions:/opt/sonarqube/extensions
+      - sonarqube-logs:/opt/sonarqube/logs
+    networks:
+      - dinner1-cicd-network
+
+  gitlab-runner:
+    image: gitlab/gitlab-runner:latest
+    restart: always
+    depends_on:
+      - gitlab
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./gitlab-runner-config:/etc/gitlab-runner
+    environment:
+      - REGISTRATION_TOKEN=${GITLAB_RUNNER_TOKEN:-}
+      - CI_SERVER_URL=http://gitlab
+      - RUNNER_NAME=docker-runner
+      - RUNNER_EXECUTOR=docker
+      - DOCKER_IMAGE=docker:stable
+    entrypoint: |
+      /bin/sh -c '
+      mkdir -p /etc/gitlab-runner
+      if [ ! -f /etc/gitlab-runner/config.toml ]; then
+        gitlab-runner register \
+          --non-interactive \
+          --url "http://gitlab" \
+          --registration-token "${REGISTRATION_TOKEN}" \
+          --executor "docker" \
+          --docker-image docker:stable \
+          --description "docker-runner" \
+          --tag-list "docker" \
+          --run-untagged="true" \
+          --locked="false"
+      fi
+      exec gitlab-runner run --user=gitlab-runner --working-directory=/home/gitlab-runner'
+    networks:
+      - dinner1-cicd-network
+
+networks:
+  dinner1-cicd-network:
+    external: true
+    name: dinner1-cicd-network
+
+volumes:
+  gitlab-config:
+    name: gitlab-config
+  gitlab-db-data:
+    name: gitlab-db-data
+  sonarqube-data:
+    name: sonarqube-data
+  sonarqube-extensions:
+    name: sonarqube-extensions
+  sonarqube-logs:
+    name: sonarqube-logs
+  sonarqube-db-data:
+    name: sonarqube-db-data
