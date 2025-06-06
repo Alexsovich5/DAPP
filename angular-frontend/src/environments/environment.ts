@@ -1,8 +1,8 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8000/api/v1',
+  apiUrl: 'http://localhost:3001/api/v1',
   tokenKey: 'dinner1_auth_token',
-  socketUrl: 'ws://localhost:8000',
+  socketUrl: 'ws://localhost:3001',
   
   // Soul Before Skin configuration
   soulBeforeSkin: {
