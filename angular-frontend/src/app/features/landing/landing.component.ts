@@ -5,7 +5,6 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
-import { IconsModule } from '../../shared/icons/icons.module';
 
 @Component({
   selector: 'app-landing',
@@ -17,8 +16,7 @@ import { IconsModule } from '../../shared/icons/icons.module';
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
-    MatCardModule,
-    IconsModule
+    MatCardModule
   ]
 })
 export class LandingComponent {

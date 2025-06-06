@@ -6,49 +6,39 @@ export const routes: Routes = [
   { path: '', component: LandingComponent },
   {
     path: 'login',
-    loadChildren: () => import('./features/auth/login/login.module').then(m => m.LoginModule)
+    loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
   },
   {
     path: 'register',
-    loadChildren: () => import('./features/auth/register/register.module').then(m => m.RegisterModule)
+    loadComponent: () => import('./features/auth/register/register.component').then(m => m.RegisterComponent)
   },
   {
     path: 'forgot-password',
-    loadChildren: () => import('./features/auth/forgot-password/forgot-password.module').then(m => m.ForgotPasswordModule)
+    loadComponent: () => import('./features/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent)
   },
   {
     path: 'onboarding',
-    loadChildren: () => import('./features/onboarding/onboarding.module').then(m => m.OnboardingModule),
+    loadComponent: () => import('./features/onboarding/onboarding.component').then(m => m.OnboardingComponent),
     canActivate: [AuthGuard]
   },
   {
     path: 'profile',
-    loadChildren: () => import('./features/profile/profile.module').then(m => m.ProfileModule),
+    loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent),
     canActivate: [AuthGuard]
   },
   {
     path: 'discover',
-    loadChildren: () => import('./features/discover/discover.module').then(m => m.DiscoverModule),
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'connections',
-    loadChildren: () => import('./features/connections/connections.module').then(m => m.ConnectionsModule),
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'revelations',
-    loadChildren: () => import('./features/revelations/revelations.module').then(m => m.RevelationsModule),
+    loadComponent: () => import('./features/discover/discover.component').then(m => m.DiscoverComponent),
     canActivate: [AuthGuard]
   },
   {
     path: 'chat',
-    loadChildren: () => import('./features/chat/chat.module').then(m => m.ChatModule),
+    loadComponent: () => import('./features/chat/chat.component').then(m => m.ChatComponent),
     canActivate: [AuthGuard]
   },
   {
     path: 'preferences',
-    loadChildren: () => import('./features/preferences/preferences.module').then(m => m.PreferencesModule),
+    loadComponent: () => import('./features/preferences/preferences.component').then(m => m.PreferencesComponent),
     canActivate: [AuthGuard]
   },
   { path: '**', redirectTo: '' }

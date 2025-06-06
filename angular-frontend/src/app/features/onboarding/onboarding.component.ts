@@ -1,17 +1,20 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { RevelationService } from '../../core/services/revelation.service';
 import { User } from '../../core/interfaces/auth.interfaces';
 
 @Component({
   selector: 'app-onboarding',
+  standalone: true,
+  imports: [CommonModule, RouterOutlet],
   template: `
     <div class="onboarding-container">
       <div class="onboarding-header">
         <h1>Soul Before Skin Journey</h1>
         <p class="tagline">"If someone enters your life, they should make it better."</p>
-        
+
         <div class="progress-bar">
           <div class="progress-fill" [style.width.%]="progressPercentage"></div>
         </div>
@@ -23,17 +26,17 @@ import { User } from '../../core/interfaces/auth.interfaces';
       </div>
 
       <div class="onboarding-navigation" *ngIf="showNavigation">
-        <button 
-          type="button" 
-          class="btn btn-outline" 
+        <button
+          type="button"
+          class="btn btn-outline"
           (click)="goBack()"
           [disabled]="currentStep === 1">
           Previous
         </button>
-        
-        <button 
-          type="button" 
-          class="btn btn-primary" 
+
+        <button
+          type="button"
+          class="btn btn-primary"
           (click)="goNext()"
           [disabled]="!canProceed">
           {{ currentStep === totalSteps ? 'Complete' : 'Next' }}
@@ -145,7 +148,7 @@ export class OnboardingComponent implements OnInit {
 
   private steps = [
     'emotional-questions',
-    'personality-assessment', 
+    'personality-assessment',
     'interest-selection',
     'complete'
   ];
@@ -159,7 +162,7 @@ export class OnboardingComponent implements OnInit {
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
-      
+
       // Check if user has already completed onboarding
       if (user?.emotional_onboarding_completed) {
         this.router.navigate(['/discover']);
@@ -174,7 +177,7 @@ export class OnboardingComponent implements OnInit {
   private updateProgress(): void {
     const currentPath = this.router.url.split('/').pop();
     const stepIndex = this.steps.indexOf(currentPath || '');
-    
+
     if (stepIndex !== -1) {
       this.currentStep = stepIndex + 1;
       this.progressPercentage = (this.currentStep / this.totalSteps) * 100;
