@@ -13,7 +13,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { ProfileService } from '../../core/services/profile.service';
 
 interface ProfilePictureResponse {
-  url: string;
+  message: string;
+  profile_picture_url: string;
 }
 
 @Component({
@@ -116,16 +117,20 @@ export class ProfileComponent implements OnInit {
       this.error = null;
       this.successMessage = null;
 
-      const formData = new FormData();
-      Object.entries(this.profileForm.value).forEach(([key, value]) => {
-        if (key === 'locationPreferences' || key === 'matchPreferences') {
-          formData.append(key, JSON.stringify(value));
-        } else {
-          formData.append(key, value as string | Blob);
-        }
-      });
+      // Convert form data to ProfileUpdateData format
+      const formValue = this.profileForm.value;
+      const profileData = {
+        first_name: formValue.firstName,
+        last_name: formValue.lastName,
+        bio: formValue.bio,
+        location: formValue.locationPreferences?.city,
+        interests: formValue.interests || [],
+        dietary_preferences: formValue.dietaryPreferences || [],
+        gender: formValue.gender,
+        date_of_birth: formValue.dateOfBirth
+      };
 
-      this.profileService.updateProfile(formData).subscribe({
+      this.profileService.updateProfile(profileData).subscribe({
         next: () => {
           this.successMessage = 'Profile updated successfully';
         },
@@ -153,7 +158,7 @@ export class ProfileComponent implements OnInit {
 
       this.profileService.uploadProfilePicture(file).subscribe({
         next: (response: ProfilePictureResponse) => {
-          this.profileForm.patchValue({ profilePicture: response.url });
+          this.profileForm.patchValue({ profilePicture: response.profile_picture_url });
           this.isUploading = false;
         },
         error: (error: Error) => {
