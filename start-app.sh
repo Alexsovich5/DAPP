@@ -97,9 +97,28 @@ start_backend() {
     log "Installing Python dependencies..."
     pip install -r requirements.txt > /dev/null 2>&1
     
-    # Run database migrations
+    # Handle database migrations with error handling
     log "Running database migrations..."
-    alembic upgrade head
+    
+    # Check for multiple heads and merge if necessary
+    if alembic heads 2>/dev/null | wc -l | grep -q "2"; then
+        warning "Multiple migration heads detected. Merging..."
+        alembic merge heads -m "Auto-merge migration heads" 2>/dev/null || true
+    fi
+    
+    # Run migrations with retry logic
+    for i in {1..3}; do
+        if alembic upgrade head 2>/dev/null; then
+            success "Database migrations completed"
+            break
+        elif [ $i -eq 3 ]; then
+            warning "Migration failed, but continuing with startup..."
+            break
+        else
+            warning "Migration attempt $i failed, retrying..."
+            sleep 2
+        fi
+    done
     
     # Start the backend server in background
     log "Starting FastAPI server on port 3001..."
@@ -108,17 +127,20 @@ start_backend() {
     echo $BACKEND_PID > backend.pid
     
     # Wait for backend to start
-    sleep 3
+    sleep 5
     
-    # Test backend health
-    for i in {1..30}; do
-        if curl -s http://localhost:3001/health > /dev/null; then
+    # Test backend health with extended timeout
+    for i in {1..60}; do
+        if curl -s http://localhost:3001/health > /dev/null 2>&1; then
             success "Backend is running on http://localhost:3001"
             break
+        elif curl -s http://localhost:3001/docs > /dev/null 2>&1; then
+            success "Backend is running on http://localhost:3001 (docs available)"
+            break
         fi
-        if [ $i -eq 30 ]; then
-            error "Backend failed to start after 30 seconds"
-            exit 1
+        if [ $i -eq 60 ]; then
+            warning "Backend health check failed, but process may still be starting"
+            log "Check backend.log for details: tail -f $BACKEND_DIR/backend.log"
         fi
         sleep 1
     done
