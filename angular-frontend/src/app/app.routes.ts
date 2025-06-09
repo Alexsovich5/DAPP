@@ -41,5 +41,30 @@ export const routes: Routes = [
     loadComponent: () => import('./features/preferences/preferences.component').then(m => m.PreferencesComponent),
     canActivate: [AuthGuard]
   },
+  {
+    path: 'matches',
+    loadComponent: () => import('./features/matches/matches.component').then(m => m.MatchesComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'messages',
+    loadComponent: () => import('./features/messages/messages.component').then(m => m.MessagesComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'revelations',
+    loadComponent: () => import('./features/revelations/revelations.component').then(m => m.RevelationsComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'notifications',
+    loadComponent: () => import('./features/notifications/notifications.component').then(m => m.NotificationsComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'settings',
+    loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent),
+    canActivate: [AuthGuard]
+  },
   { path: '**', redirectTo: '' }
 ];
