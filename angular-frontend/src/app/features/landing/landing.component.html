@@ -2,22 +2,26 @@
   <!-- Hero Section -->
   <div class="hero-section">
     <mat-toolbar>
-      <span class="app-logo">Dinner1</span>
+      <span class="app-logo">💫 Dinner1: Soul Before Skin</span>
       <span class="spacer"></span>
       <button mat-stroked-button color="secondary" (click)="navigateToLogin()">Sign In</button>
     </mat-toolbar>
 
     <div class="hero-content">
       <div class="hero-text">
-        <h1>Find Your Perfect Dinner Date</h1>
-        <p>Connect with people who share your culinary interests and discover new restaurants together.</p>
+        <h1>Soul Before Skin Dating</h1>
+        <p>Experience deep emotional connections through progressive revelation before photos. Discover your perfect soul match through meaningful conversations and shared values.</p>
         <div class="hero-buttons">
-          <button mat-raised-button color="secondary" (click)="navigateToRegister()">Join Now</button>
-          <button mat-stroked-button color="secondary" (click)="navigateToLogin()">Sign In</button>
+          <button mat-raised-button color="secondary" (click)="navigateToRegister()">Begin Soul Discovery</button>
+          <button mat-stroked-button color="secondary" (click)="navigateToLogin()">Continue Journey</button>
         </div>
       </div>
       <div class="hero-image">
-        <img src="assets/images/hero-image.jpg" alt="Couple enjoying dinner">
+        <div class="soul-connection-visual">
+          <div class="soul-orb">✨</div>
+          <div class="connection-lines"></div>
+          <div class="soul-orb">💫</div>
+        </div>
       </div>
     </div>
     <div class="wave-divider">
@@ -31,30 +35,37 @@
 
   <!-- Features Section -->
   <div class="features-section">
-    <h2>How It Works</h2>
+    <h2>How Soul Before Skin Works</h2>
     <div class="features-grid">
       <mat-card class="feature-card">
         <mat-card-content>
-          <mat-icon color="primary">favorite</mat-icon>
-          <h3>Match with Foodies</h3>
-          <p>Create a profile and match with people who share your culinary preferences and dietary restrictions.</p>
+          <div class="feature-icon">✨</div>
+          <h3>Emotional Onboarding</h3>
+          <p>Share your values, dreams, and what makes you feel truly understood through thoughtful questions designed to reveal your authentic self.</p>
         </mat-card-content>
       </mat-card>
 
       <mat-card class="feature-card">
         <mat-card-content>
-          <mat-icon color="primary">chat</mat-icon>
-          <h3>Chat & Plan</h3>
-          <p>Message your matches and discover new restaurants together or plan a dinner date at your favorite spot.</p>
+          <div class="feature-icon">💫</div>
+          <h3>Soul-Based Matching</h3>
+          <p>Our local algorithms match you based on compatibility of values, interests, and emotional depth - not just physical appearance.</p>
         </mat-card-content>
       </mat-card>
 
       <mat-card class="feature-card">
         <mat-card-content>
-          <mat-icon color="primary">restaurant</mat-icon>
-          <h3>Dine Together</h3>
-          <p>Meet up for a memorable dining experience with someone who appreciates good food just as much as you do.
-          </p>
+          <div class="feature-icon">📝</div>
+          <h3>7-Day Revelation Cycle</h3>
+          <p>Share meaningful revelations with your matches over 7 days, building deep emotional connection before photo reveals.</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="feature-card">
+        <mat-card-content>
+          <div class="feature-icon">🎉</div>
+          <h3>Photo Reveal & Beyond</h3>
+          <p>After building soul connection, mutually consent to photo reveals and plan your first dinner date with someone who truly knows you.</p>
         </mat-card-content>
       </mat-card>
     </div>
@@ -62,21 +73,26 @@
 
   <!-- Testimonials Section -->
   <div class="testimonials-section">
-    <h2>Success Stories</h2>
+    <h2>Soul Connection Success Stories</h2>
     <div class="testimonials-grid">
       <mat-card class="testimonial-card">
         <mat-card-content>
-          <p>"I never thought I'd meet someone who loves Thai food as much as I do! We now have weekly date nights
-            trying new restaurants around the city."</p>
-          <p class="testimonial-author">- Sarah & Michael</p>
+          <p>"Through 7 days of sharing our deepest thoughts, we built an incredible connection before ever seeing each other. When we finally met for dinner, it felt like reconnecting with my soulmate."</p>
+          <p class="testimonial-author">- Sarah & Michael ✨</p>
         </mat-card-content>
       </mat-card>
 
       <mat-card class="testimonial-card">
         <mat-card-content>
-          <p>"Being a vegan, it was hard to find someone who understood my dietary choices. Thanks to Dinner1, I found
-            my perfect match!"</p>
-          <p class="testimonial-author">- James & Emily</p>
+          <p>"The Soul Before Skin approach changed everything for me. I found someone who truly understands my values and dreams. Our emotional connection was so strong that physical attraction followed naturally."</p>
+          <p class="testimonial-author">- James & Emily 💫</p>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="testimonial-card">
+        <mat-card-content>
+          <p>"I was skeptical about not seeing photos first, but the revelation process helped me discover what really matters. We're planning our third dinner date and I've never felt more emotionally connected."</p>
+          <p class="testimonial-author">- Alex & Jordan 💝</p>
         </mat-card-content>
       </mat-card>
     </div>
@@ -84,9 +100,10 @@
 
   <!-- CTA Section -->
   <div class="cta-section">
-    <h2>Join thousands of food lovers already connecting through Dinner1</h2>
+    <h2>Join thousands discovering authentic soul connections</h2>
+    <p class="cta-subtitle">Experience dating that prioritizes emotional depth and meaningful connection</p>
     <button mat-raised-button color="secondary" (click)="navigateToRegister()">
-      Create Your Free Profile
+      ✨ Start Your Soul Journey
     </button>
   </div>
 
@@ -94,28 +111,28 @@
   <footer>
     <div class="footer-content">
       <div class="footer-section">
-        <h3>Dinner1</h3>
-        <p>Connecting food lovers one table at a time. Find your perfect dinner date today!</p>
+        <h3>💫 Dinner1: Soul Before Skin</h3>
+        <p>Connecting souls through meaningful conversation, leading to authentic dinner dates. Experience dating that values emotional depth over superficial attraction.</p>
       </div>
 
       <div class="footer-section">
-        <h3>Quick Links</h3>
-        <a mat-button (click)="navigateToLink('/about')">About Us</a>
-        <a mat-button (click)="navigateToLink('/privacy')">Privacy Policy</a>
+        <h3>Soul Journey</h3>
+        <a mat-button (click)="navigateToLink('/about')">Our Philosophy</a>
+        <a mat-button (click)="navigateToLink('/privacy')">Privacy & Safety</a>
         <a mat-button (click)="navigateToLink('/terms')">Terms of Service</a>
-        <a mat-button (click)="navigateToLink('/contact')">Contact Us</a>
+        <a mat-button (click)="navigateToLink('/contact')">Soul Support</a>
       </div>
 
       <div class="footer-section">
-        <h3>Connect With Us</h3>
+        <h3>Join the Movement</h3>
         <div class="social-links">
-          <a mat-icon-button href="#" target="_blank" title="Visit our Facebook page" aria-label="Facebook">
+          <a mat-icon-button href="#" target="_blank" title="Share our soul-first philosophy" aria-label="Facebook">
             <mat-icon svgIcon="facebook"></mat-icon>
           </a>
-          <a mat-icon-button href="#" target="_blank" title="Follow us on Twitter" aria-label="Twitter">
+          <a mat-icon-button href="#" target="_blank" title="Follow soul connection stories" aria-label="Twitter">
             <mat-icon svgIcon="twitter"></mat-icon>
           </a>
-          <a mat-icon-button href="#" target="_blank" title="Follow us on Instagram" aria-label="Instagram">
+          <a mat-icon-button href="#" target="_blank" title="Soul before skin inspiration" aria-label="Instagram">
             <mat-icon svgIcon="instagram"></mat-icon>
           </a>
         </div>
@@ -123,7 +140,7 @@
     </div>
 
     <div class="footer-bottom">
-      <p>&copy; {{currentYear}} Dinner1. All rights reserved.</p>
+      <p>&copy; {{currentYear}} Dinner1: Soul Before Skin. Revolutionizing authentic connections.</p>
     </div>
   </footer>
 </div>

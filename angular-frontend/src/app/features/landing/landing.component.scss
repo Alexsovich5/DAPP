@@ -55,12 +55,61 @@
 }
 
 .hero-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
   img {
     width: 100%;
     border-radius: 16px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.15);
     transform: rotate(2deg);
   }
+}
+
+.soul-connection-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  position: relative;
+  padding: 2rem;
+  
+  .soul-orb {
+    font-size: 4rem;
+    animation: pulse 2s infinite;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+  }
+  
+  .connection-lines {
+    position: relative;
+    width: 100px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #ffd700, transparent);
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 20px;
+      background: radial-gradient(circle, #ffd700, transparent);
+      border-radius: 50%;
+      animation: float 3s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-5px); }
 }
 
 .wave-divider {
@@ -101,6 +150,13 @@
 
   &:hover { transform: translateY(-8px); }
 
+  .feature-icon {
+    font-size: 3.5rem;
+    margin-bottom: 16px;
+    display: block;
+    filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.3));
+  }
+
   mat-icon {
     font-size: 60px;
     height: 60px;
@@ -108,8 +164,17 @@
     margin-bottom: 16px;
   }
 
-  h3 { font-size: 1.5rem; margin-bottom: 16px; }
-  p { color: rgba(0,0,0,0.6); }
+  h3 { 
+    font-size: 1.5rem; 
+    margin-bottom: 16px;
+    color: #2d3748;
+    font-weight: 600;
+  }
+  
+  p { 
+    color: rgba(0,0,0,0.6);
+    line-height: 1.6;
+  }
 }
 
 .testimonials-section {
@@ -151,8 +216,33 @@
   max-width: 800px;
   margin: 0 auto;
 
-  h2 { font-size: 2.5rem; margin-bottom: 32px; }
-  button { padding: 16px 48px; font-size: 1.2rem; }
+  h2 { 
+    font-size: 2.5rem; 
+    margin-bottom: 16px;
+    color: #2d3748;
+  }
+  
+  .cta-subtitle {
+    font-size: 1.2rem;
+    color: #718096;
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+  
+  button { 
+    padding: 16px 48px; 
+    font-size: 1.2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    transition: transform 0.2s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
 }
 
 footer {
