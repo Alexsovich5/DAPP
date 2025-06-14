@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
+from datetime import datetime
 
 
 class Token(BaseModel):
@@ -47,11 +48,11 @@ class User(UserBase):
     dietary_preferences: Optional[List[str]] = None
     location: Optional[str] = None
     profile_picture: Optional[str] = None
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class UserLogin(BaseModel):

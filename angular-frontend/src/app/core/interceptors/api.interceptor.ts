@@ -30,8 +30,8 @@ export const ApiInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, nex
         'Accept': 'application/json'
       };
 
-      // Only add Content-Type for requests that have a body
-      if (req.body !== null && req.method !== 'GET' && req.method !== 'DELETE') {
+      // Only add Content-Type for requests that have a body and aren't FormData
+      if (req.body !== null && req.method !== 'GET' && req.method !== 'DELETE' && !(req.body instanceof FormData)) {
         headers['Content-Type'] = 'application/json';
       }
 

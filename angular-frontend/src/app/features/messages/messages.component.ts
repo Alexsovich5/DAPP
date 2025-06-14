@@ -13,7 +13,7 @@ interface MessagePreview {
   unreadCount: number;
   connectionStage: string;
   revelationDay: number;
-  compatibilityScore: number;
+  compatibilityScore: number | undefined;
   isOnline?: boolean;
 }
 
@@ -559,36 +559,37 @@ export class MessagesComponent implements OnInit {
     this.loadMessages();
   }
 
-  async loadMessages() {
-    try {
-      this.loading = true;
-      
-      // Get active connections and their latest messages
-      const connections = await this.soulConnectionService.getActiveConnections();
-      
-      this.messagesPreviews = connections.map(connection => ({
-        connectionId: connection.id,
-        partnerName: this.getPartnerName(connection),
-        lastMessage: this.getLastMessage(connection),
-        lastMessageTime: new Date(connection.updated_at || connection.created_at),
-        unreadCount: Math.floor(Math.random() * 3), // Mock unread count
-        connectionStage: connection.connection_stage,
-        revelationDay: connection.reveal_day,
-        compatibilityScore: connection.compatibility_score,
-        isOnline: Math.random() > 0.5 // Mock online status
-      }));
+  loadMessages() {
+    this.loading = true;
+    
+    // Get active connections and their latest messages
+    this.soulConnectionService.getActiveConnections().subscribe({
+      next: (connections) => {
+        this.messagesPreviews = connections.map(connection => ({
+          connectionId: connection.id,
+          partnerName: this.getPartnerName(connection),
+          lastMessage: this.getLastMessage(connection),
+          lastMessageTime: new Date(connection.updated_at || connection.created_at),
+          unreadCount: Math.floor(Math.random() * 3), // Mock unread count
+          connectionStage: connection.connection_stage,
+          revelationDay: connection.reveal_day,
+          compatibilityScore: connection.compatibility_score,
+          isOnline: Math.random() > 0.5 // Mock online status
+        }));
 
-      // Sort by last message time
-      this.messagesPreviews.sort((a, b) => 
-        b.lastMessageTime.getTime() - a.lastMessageTime.getTime()
-      );
+        // Sort by last message time
+        this.messagesPreviews.sort((a, b) => 
+          b.lastMessageTime.getTime() - a.lastMessageTime.getTime()
+        );
 
-      this.applyFilter();
-    } catch (error) {
-      console.error('Error loading messages:', error);
-    } finally {
-      this.loading = false;
-    }
+        this.applyFilter();
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading messages:', error);
+        this.loading = false;
+      }
+    });
   }
 
   setFilter(filter: 'all' | 'unread' | 'revealing') {

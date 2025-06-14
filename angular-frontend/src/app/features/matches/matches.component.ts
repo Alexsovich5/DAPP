@@ -3,20 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SoulConnectionService } from '../../core/services/soul-connection.service';
 import { RevelationService } from '../../core/services/revelation.service';
-
-interface SoulConnection {
-  id: number;
-  user1_id: number;
-  user2_id: number;
-  compatibility_score: number;
-  compatibility_breakdown: any;
-  connection_stage: string;
-  reveal_day: number;
-  status: string;
-  user1_profile?: any;
-  user2_profile?: any;
-  created_at: string;
-}
+import { SoulConnection } from '../../core/interfaces/soul-connection.interfaces';
 
 @Component({
   selector: 'app-matches',
@@ -85,15 +72,15 @@ interface SoulConnection {
               <div class="breakdown-items">
                 <div class="breakdown-item">
                   <span class="category">Interests</span>
-                  <span class="score">{{connection.compatibility_breakdown.breakdown?.interests || 0}}%</span>
+                  <span class="score">{{connection.compatibility_breakdown.interests || 0}}%</span>
                 </div>
                 <div class="breakdown-item">
                   <span class="category">Values</span>
-                  <span class="score">{{connection.compatibility_breakdown.breakdown?.values || 0}}%</span>
+                  <span class="score">{{connection.compatibility_breakdown.values || 0}}%</span>
                 </div>
                 <div class="breakdown-item">
                   <span class="category">Lifestyle</span>
-                  <span class="score">{{connection.compatibility_breakdown.breakdown?.demographics || 0}}%</span>
+                  <span class="score">{{connection.compatibility_breakdown.demographics || 0}}%</span>
                 </div>
               </div>
             </div>
@@ -459,15 +446,18 @@ export class MatchesComponent implements OnInit {
     this.loadConnections();
   }
 
-  async loadConnections() {
-    try {
-      this.loading = true;
-      this.connections = await this.soulConnectionService.getActiveConnections();
-    } catch (error) {
-      console.error('Error loading connections:', error);
-    } finally {
-      this.loading = false;
-    }
+  loadConnections() {
+    this.loading = true;
+    this.soulConnectionService.getActiveConnections().subscribe({
+      next: (connections) => {
+        this.connections = connections;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading connections:', error);
+        this.loading = false;
+      }
+    });
   }
 
   get activeConnections(): number {
@@ -476,7 +466,7 @@ export class MatchesComponent implements OnInit {
 
   get averageCompatibility(): number {
     if (this.connections.length === 0) return 0;
-    const total = this.connections.reduce((sum, c) => sum + c.compatibility_score, 0);
+    const total = this.connections.reduce((sum, c) => sum + (c.compatibility_score ?? 0), 0);
     return Math.round(total / this.connections.length);
   }
 
@@ -505,7 +495,7 @@ export class MatchesComponent implements OnInit {
 
   shouldHighlight(connection: SoulConnection): boolean {
     // Highlight connections with high compatibility or at photo reveal stage
-    return connection.compatibility_score >= 80 || connection.connection_stage === 'photo_reveal';
+    return (connection.compatibility_score ?? 0) >= 80 || connection.connection_stage === 'photo_reveal';
   }
 
   viewConnection(connection: SoulConnection) {

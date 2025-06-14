@@ -4,33 +4,12 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ActivatedRoute, Router } from '@angular/router';
 import { RevelationService } from '../../core/services/revelation.service';
 import { SoulConnectionService } from '../../core/services/soul-connection.service';
-
-interface RevelationPrompt {
-  day_number: number;
-  revelation_type: string;
-  prompt_text: string;
-  example_response: string;
-}
-
-interface DailyRevelation {
-  id: number;
-  connection_id: number;
-  sender_id: number;
-  sender_name: string;
-  day_number: number;
-  revelation_type: string;
-  content: string;
-  created_at: string;
-  is_read?: boolean;
-}
-
-interface RevelationTimeline {
-  connection_id: number;
-  current_day: number;
-  revelations: DailyRevelation[];
-  next_revelation_type: string;
-  is_cycle_complete: boolean;
-}
+import { 
+  RevelationPrompt, 
+  DailyRevelation, 
+  RevelationTimelineResponse as RevelationTimeline,
+  RevelationType 
+} from '../../core/interfaces/revelation.interfaces';
 
 @Component({
   selector: 'app-revelations',
@@ -137,7 +116,7 @@ interface RevelationTimeline {
             <div class="revelation-meta">
               <div class="day-badge">Day {{revelation.day_number}}</div>
               <div class="sender-info">
-                <span class="sender-name">{{revelation.sender_name}}</span>
+                <span class="sender-name">{{revelation.sender_name || 'Unknown'}}</span>
                 <span class="revelation-type">{{formatRevelationType(revelation.revelation_type)}}</span>
               </div>
               <span class="timestamp">{{formatDate(revelation.created_at)}}</span>
@@ -785,36 +764,44 @@ export class RevelationsComponent implements OnInit {
     });
   }
 
-  async loadRevelationData() {
+  loadRevelationData() {
     if (!this.connectionId) return;
 
-    try {
-      this.loading = true;
-      
-      // Load timeline and current prompt
-      const [timeline, prompts] = await Promise.all([
-        this.revelationService.getRevelationTimeline(this.connectionId),
-        this.revelationService.getRevelationPrompts()
-      ]);
+    this.loading = true;
+    
+    // Load timeline and current prompt
+    const timeline$ = this.revelationService.getRevelationTimeline(this.connectionId);
+    const prompts$ = this.revelationService.getRevelationPrompts();
+    
+    timeline$.subscribe({
+      next: (timeline) => {
+        this.timeline = timeline;
+        
+        if (!timeline.is_cycle_complete && timeline.current_day <= 7) {
+          prompts$.subscribe({
+            next: (prompts) => {
+              this.currentPrompt = prompts.find(p => p.day_number === timeline.current_day) || null;
+            },
+            error: (error) => {
+              console.error('Error loading revelation prompts:', error);
+            }
+          });
+        }
 
-      this.timeline = timeline;
-      
-      if (!timeline.is_cycle_complete && timeline.current_day <= 7) {
-        this.currentPrompt = prompts.find(p => p.day_number === timeline.current_day) || null;
+        // Mock photo reveal status for day 7
+        if (timeline.current_day === 7 || timeline.is_cycle_complete) {
+          this.userConsent = Math.random() > 0.5;
+          this.partnerConsent = Math.random() > 0.5;
+          this.photoRevealed = this.userConsent && this.partnerConsent;
+        }
+
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading revelation data:', error);
+        this.loading = false;
       }
-
-      // Mock photo reveal status for day 7
-      if (timeline.current_day === 7 || timeline.is_cycle_complete) {
-        this.userConsent = Math.random() > 0.5;
-        this.partnerConsent = Math.random() > 0.5;
-        this.photoRevealed = this.userConsent && this.partnerConsent;
-      }
-
-    } catch (error) {
-      console.error('Error loading revelation data:', error);
-    } finally {
-      this.loading = false;
-    }
+    });
   }
 
   get sortedRevelations(): DailyRevelation[] {
@@ -853,41 +840,43 @@ export class RevelationsComponent implements OnInit {
     });
   }
 
-  async shareRevelation() {
+  shareRevelation() {
     if (this.revelationForm.invalid || !this.connectionId || !this.currentPrompt) {
       return;
     }
 
-    try {
-      this.submitting = true;
-      
-      const revelationData = {
-        connection_id: this.connectionId,
-        day_number: this.currentPrompt.day_number,
-        revelation_type: this.currentPrompt.revelation_type,
-        content: this.revelationForm.get('content')?.value
-      };
+    this.submitting = true;
+    
+    const revelationData = {
+      connection_id: this.connectionId,
+      day_number: this.currentPrompt.day_number,
+      revelation_type: this.currentPrompt.revelation_type as RevelationType,
+      content: this.revelationForm.get('content')?.value
+    };
 
-      await this.revelationService.createRevelation(revelationData);
-      
-      // Reset form and reload data
-      this.revelationForm.reset();
-      await this.loadRevelationData();
-      
-    } catch (error) {
-      console.error('Error sharing revelation:', error);
-    } finally {
-      this.submitting = false;
-    }
+    this.revelationService.createRevelation(revelationData).subscribe({
+      next: () => {
+        // Reset form and reload data
+        this.revelationForm.reset();
+        this.loadRevelationData();
+        this.submitting = false;
+      },
+      error: (error) => {
+        console.error('Error sharing revelation:', error);
+        this.submitting = false;
+      }
+    });
   }
 
-  async markAsRead(revelation: DailyRevelation) {
-    try {
-      await this.revelationService.updateRevelation(revelation.id, { is_read: true });
-      revelation.is_read = true;
-    } catch (error) {
-      console.error('Error marking revelation as read:', error);
-    }
+  markAsRead(revelation: DailyRevelation) {
+    this.revelationService.updateRevelation(revelation.id, { is_read: true }).subscribe({
+      next: () => {
+        revelation.is_read = true;
+      },
+      error: (error) => {
+        console.error('Error marking revelation as read:', error);
+      }
+    });
   }
 
   async reactToRevelation(revelation: DailyRevelation) {
