@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { ThemeService } from './core/services/theme.service';
+import { ToastComponent } from './shared/components/toast/toast.component';
 
 @Component({
   selector: 'app-root',
@@ -16,7 +17,8 @@ import { ThemeService } from './core/services/theme.service';
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
-    MatSidenavModule
+    MatSidenavModule,
+    ToastComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'

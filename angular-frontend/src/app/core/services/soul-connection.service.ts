@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { BaseService } from './base.service';
 import {
   SoulConnection,
   SoulConnectionCreate,
@@ -15,12 +16,14 @@ import {
 @Injectable({
   providedIn: 'root'
 })
-export class SoulConnectionService {
+export class SoulConnectionService extends BaseService {
   private readonly apiUrl = environment.apiUrl;
   private activeConnectionsSubject = new BehaviorSubject<SoulConnection[]>([]);
   readonly activeConnections$ = this.activeConnectionsSubject.asObservable();
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {
+    super();
+  }
 
   /**
    * Discover potential soul connections using local compatibility algorithms
@@ -44,7 +47,9 @@ export class SoulConnectionService {
       params = params.set('age_range_max', request.age_range_max.toString());
     }
 
-    return this.http.get<DiscoveryResponse[]>(`${this.apiUrl}/soul-connections/discover`, { params });
+    return this.http.get<DiscoveryResponse[]>(`${this.apiUrl}/soul-connections/discover`, { params }).pipe(
+      catchError(this.handleError<DiscoveryResponse[]>('discover soul connections', []))
+    );
   }
 
   /**
@@ -53,7 +58,9 @@ export class SoulConnectionService {
   initiateSoulConnection(connectionData: SoulConnectionCreate): Observable<SoulConnection> {
     return this.http.post<SoulConnection>(`${this.apiUrl}/soul-connections/initiate`, connectionData)
       .pipe(
-        tap(() => this.refreshActiveConnections())
+        tap(() => this.refreshActiveConnections()),
+        tap(this.handleSuccess('Soul connection initiated', true)),
+        catchError(this.handleError<SoulConnection>('initiate soul connection'))
       );
   }
 

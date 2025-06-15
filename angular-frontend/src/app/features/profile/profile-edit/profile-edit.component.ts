@@ -13,7 +13,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ProfileService, UserProfileData, ProfileUpdateData } from '../../../core/services/profile.service';
 
@@ -78,8 +78,7 @@ export class ProfileEditComponent implements OnInit {
   constructor(
     private readonly fb: FormBuilder,
     private readonly profileService: ProfileService,
-    private readonly router: Router,
-    private readonly snackBar: MatSnackBar
+    private readonly router: Router
   ) {
     this.initializeForm();
   }
@@ -124,11 +123,13 @@ export class ProfileEditComponent implements OnInit {
 
     this.profileService.getProfile().subscribe({
       next: (profileData) => {
-        this.populateForm(profileData);
+        if (profileData) {
+          this.populateForm(profileData);
+        }
         this.isLoading = false;
       },
-      error: (err) => {
-        this.error = err.message || 'Failed to load profile';
+      error: () => {
+        // Error handling is now done by BaseService
         this.isLoading = false;
       }
     });
@@ -195,15 +196,14 @@ export class ProfileEditComponent implements OnInit {
       };
 
       this.profileService.updateProfile(updateData).subscribe({
-        next: () => {
-          this.snackBar.open('Profile updated successfully!', 'Close', {
-            duration: 3000,
-            panelClass: ['success-snackbar']
-          });
-          this.router.navigate(['/profile']);
+        next: (result) => {
+          if (result) {
+            this.router.navigate(['/profile']);
+          }
+          this.isSaving = false;
         },
-        error: (err) => {
-          this.error = err.message || 'Failed to update profile';
+        error: () => {
+          // Error handling is now done by BaseService
           this.isSaving = false;
         }
       });
@@ -241,14 +241,13 @@ export class ProfileEditComponent implements OnInit {
 
       this.profileService.uploadProfilePicture(file).subscribe({
         next: (response) => {
-          this.snackBar.open('Profile picture uploaded successfully!', 'Close', {
-            duration: 3000,
-            panelClass: ['success-snackbar']
-          });
-          this.isUploading = false;
+          if (response) {
+            // Success notification is handled by BaseService
+            this.isUploading = false;
+          }
         },
-        error: (err) => {
-          this.uploadError = err.message || 'Failed to upload image';
+        error: () => {
+          // Error handling is now done by BaseService
           this.isUploading = false;
         }
       });

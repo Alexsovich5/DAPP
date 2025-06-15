@@ -11,9 +11,11 @@ import { catchError } from 'rxjs/operators';
 import { inject } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../services/auth.service';
+import { NotificationService } from '../services/notification.service';
 
 export const ApiInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> => {
   const authService = inject(AuthService);
+  const notificationService = inject(NotificationService);
 
   // Check if the request is going to our API
   if (req.url.includes(environment.apiUrl)) {
@@ -81,6 +83,7 @@ export const ApiInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, nex
 
         // Handle authentication errors
         if (error.status === 401) {
+          notificationService.showError('Your session has expired. Please log in again.');
           authService.logout();
         }
       }

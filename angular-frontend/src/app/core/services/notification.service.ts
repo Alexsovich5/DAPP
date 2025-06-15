@@ -3,13 +3,15 @@ import { BehaviorSubject, Observable } from 'rxjs';
 
 export interface Notification {
   id: string;
-  type: 'revelation' | 'message' | 'match' | 'photo_reveal' | 'system';
+  type: 'revelation' | 'message' | 'match' | 'photo_reveal' | 'system' | 'error' | 'success' | 'warning' | 'info';
   title: string;
   message: string;
   timestamp: Date;
   isRead: boolean;
   actionUrl?: string;
   metadata?: any;
+  autoHide?: boolean;
+  duration?: number;
 }
 
 @Injectable({
@@ -74,6 +76,47 @@ export class NotificationService {
   clearAll(): void {
     this.notifications$.next([]);
     this.updateUnreadCount();
+  }
+
+  // Convenience methods for different notification types
+  showError(message: string, title = 'Error', duration = 5000): void {
+    this.addNotification({
+      type: 'error',
+      title,
+      message,
+      autoHide: true,
+      duration
+    });
+  }
+
+  showSuccess(message: string, title = 'Success', duration = 3000): void {
+    this.addNotification({
+      type: 'success',
+      title,
+      message,
+      autoHide: true,
+      duration
+    });
+  }
+
+  showWarning(message: string, title = 'Warning', duration = 4000): void {
+    this.addNotification({
+      type: 'warning',
+      title,
+      message,
+      autoHide: true,
+      duration
+    });
+  }
+
+  showInfo(message: string, title = 'Info', duration = 3000): void {
+    this.addNotification({
+      type: 'info',
+      title,
+      message,
+      autoHide: true,
+      duration
+    });
   }
 
   private updateUnreadCount(): void {

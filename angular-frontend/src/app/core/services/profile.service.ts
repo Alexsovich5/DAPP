@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, switchMap } from 'rxjs';
+import { Observable, map, switchMap, catchError, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { User } from '../interfaces/auth.interfaces';
 import { AuthService } from './auth.service';
+import { BaseService } from './base.service';
 
 export interface UserProfileData {
   id: number;
@@ -42,17 +43,21 @@ export interface ProfilePictureResponse {
 @Injectable({
   providedIn: 'root'
 })
-export class ProfileService {
+export class ProfileService extends BaseService {
   private readonly apiUrl = environment.apiUrl;
 
   constructor(
     private readonly http: HttpClient,
     private readonly authService: AuthService
-  ) {}
+  ) {
+    super();
+  }
 
   // Get current user's profile data from the user endpoint
   getProfile(): Observable<UserProfileData> {
-    return this.http.get<User>(`${this.apiUrl}/users/me`);
+    return this.http.get<User>(`${this.apiUrl}/users/me`).pipe(
+      catchError(this.handleError<UserProfileData>('get profile'))
+    );
   }
 
   // Update user profile information
@@ -62,7 +67,9 @@ export class ProfileService {
         // Update the auth service's current user
         this.authService.updateCurrentUser(updatedUser);
         return updatedUser;
-      })
+      }),
+      tap(this.handleSuccess('Profile updated', true)),
+      catchError(this.handleError<UserProfileData>('update profile'))
     );
   }
 
@@ -70,7 +77,10 @@ export class ProfileService {
   uploadProfilePicture(file: File): Observable<ProfilePictureResponse> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<ProfilePictureResponse>(`${this.apiUrl}/users/me/profile-picture`, formData);
+    return this.http.post<ProfilePictureResponse>(`${this.apiUrl}/users/me/profile-picture`, formData).pipe(
+      tap(this.handleSuccess('Profile picture uploaded', true)),
+      catchError(this.handleError<ProfilePictureResponse>('upload profile picture'))
+    );
   }
 
   // Calculate profile completion percentage

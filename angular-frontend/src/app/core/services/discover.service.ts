@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { BaseService } from './base.service';
 
 export interface PotentialMatch {
   id: number;
@@ -21,10 +22,12 @@ export interface PotentialMatch {
 @Injectable({
   providedIn: 'root'
 })
-export class DiscoverService {
+export class DiscoverService extends BaseService {
   private apiUrl = `${environment.apiUrl}/users`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    super();
+  }
 
   getProfiles(): Observable<PotentialMatch[]> {
     return this.http.get<PotentialMatch[]>(`${this.apiUrl}/potential-matches`).pipe(
@@ -32,23 +35,18 @@ export class DiscoverService {
         ...profile,
         lastActive: profile.lastActive ? new Date(profile.lastActive) : undefined
       }))),
-      catchError(error => {
-        console.error('Error fetching profiles:', error);
-        throw new Error('Failed to load potential matches');
-      })
+      catchError(this.handleError<PotentialMatch[]>('load potential matches', []))
     );
   }
 
   likeProfile(profileId: string): Observable<void> {
     return this.http.post<void>(`${environment.apiUrl}/matches`, {
-      recipient_id: parseInt(profileId),
+      receiver_id: parseInt(profileId),
       restaurant_preference: '',
       proposed_date: null
     }).pipe(
-      catchError(error => {
-        console.error('Error liking profile:', error);
-        throw new Error('Failed to like profile');
-      })
+      tap(() => this.notificationService.showSuccess('Profile liked successfully!')),
+      catchError(this.handleError<void>('like profile'))
     );
   }
 
