@@ -75,8 +75,8 @@ export class RevelationService {
   /**
    * Complete emotional onboarding
    */
-  completeEmotionalOnboarding(onboardingData: EmotionalOnboarding): Observable<OnboardingResponse> {
-    return this.http.post<OnboardingResponse>(`${this.apiUrl}/onboarding/complete`, onboardingData);
+  completeEmotionalOnboarding(onboardingData: EmotionalOnboarding): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/onboarding/complete`, onboardingData);
   }
 
   /**

@@ -28,12 +28,16 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
-    // Create form data for OAuth2 compatibility
-    const formData = new FormData();
-    formData.append('username', email); // OAuth2 uses 'username' field for email
-    formData.append('password', password);
+    // OAuth2PasswordRequestForm expects form data with 'username' and 'password' fields
+    const body = new URLSearchParams();
+    body.set('username', email); // Backend accepts email as username
+    body.set('password', password);
 
-    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, formData).pipe(
+    const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    };
+
+    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, body.toString(), { headers }).pipe(
       tap(response => {
         if (response.user) {
           localStorage.setItem('user', JSON.stringify(response.user));

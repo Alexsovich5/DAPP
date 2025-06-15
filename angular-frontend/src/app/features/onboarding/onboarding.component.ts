@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Subject, takeUntil, filter } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { RevelationService } from '../../core/services/revelation.service';
 import { User } from '../../core/interfaces/auth.interfaces';
@@ -138,13 +139,14 @@ import { User } from '../../core/interfaces/auth.interfaces';
     }
   `]
 })
-export class OnboardingComponent implements OnInit {
+export class OnboardingComponent implements OnInit, OnDestroy {
   currentStep = 1;
   totalSteps = 4;
   progressPercentage = 25;
   canProceed = false;
   showNavigation = true;
   currentUser: User | null = null;
+  private destroy$ = new Subject<void>();
 
   private steps = [
     'emotional-questions',
@@ -160,7 +162,9 @@ export class OnboardingComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(user => {
       this.currentUser = user;
 
       // Check if user has already completed onboarding
@@ -170,8 +174,22 @@ export class OnboardingComponent implements OnInit {
       }
     });
 
-    // Update progress based on current route
+    // Subscribe to router events to track progress
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.updateProgress();
+      this.checkStepCompletion();
+    });
+
+    // Initial progress update
     this.updateProgress();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private updateProgress(): void {
@@ -203,5 +221,27 @@ export class OnboardingComponent implements OnInit {
 
   onStepCompleted(): void {
     this.canProceed = true;
+  }
+
+  private checkStepCompletion(): void {
+    const currentPath = this.router.url.split('/').pop();
+    
+    // Check if current step has saved data
+    switch (currentPath) {
+      case 'emotional-questions':
+        this.canProceed = !!localStorage.getItem('onboarding_emotional');
+        break;
+      case 'personality-assessment':
+        this.canProceed = !!localStorage.getItem('onboarding_personality');
+        break;
+      case 'interest-selection':
+        this.canProceed = !!localStorage.getItem('onboarding_interests');
+        break;
+      case 'complete':
+        this.canProceed = false; // No navigation from complete step
+        break;
+      default:
+        this.canProceed = false;
+    }
   }
 }

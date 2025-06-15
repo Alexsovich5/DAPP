@@ -1,12 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
+import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { RevelationService } from '../../../core/services/revelation.service';
 import { EmotionalOnboarding } from '../../../core/interfaces/revelation.interfaces';
 
 @Component({
   selector: 'app-onboarding-complete',
+  standalone: true,
+  imports: [CommonModule],
   template: `
     <div class="onboarding-complete">
       <div class="completion-content" *ngIf="!isSubmitting">
@@ -383,23 +386,14 @@ export class OnboardingCompleteComponent implements OnInit {
         finalize(() => this.isSubmitting = false)
       )
       .subscribe({
-        next: (response) => {
+        next: (updatedUser) => {
           // Clear stored onboarding data
           this.clearOnboardingData();
           
-          // Update current user
-          this.authService.currentUser$.subscribe(user => {
-            if (user) {
-              const updatedUser = { 
-                ...user, 
-                emotional_onboarding_completed: true,
-                emotional_depth_score: response.emotional_depth_score
-              };
-              this.authService.updateCurrentUser(updatedUser);
-            }
-          });
+          // Update current user with backend response
+          this.authService.updateCurrentUser(updatedUser);
 
-          // Navigate to discovery
+          // Navigate to discovery after a short delay
           setTimeout(() => {
             this.router.navigate(['/discover']);
           }, 1000);
