@@ -2,7 +2,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
-  background: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 100%);
+  background: linear-gradient(135deg, var(--background-color) 0%, var(--surface-color) 100%);
   min-height: 100vh;
 }
 
@@ -11,18 +11,18 @@
   margin-bottom: 2rem;
 
   h1 {
-    color: #1f2937;
+    color: var(--text-primary);
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
-    background: linear-gradient(90deg, #ec4899, #8b5cf6);
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .tagline {
-    color: #6b7280;
+    color: var(--text-secondary);
     font-size: 1.125rem;
     margin-bottom: 2rem;
     font-style: italic;
@@ -30,9 +30,9 @@
 }
 
 .discovery-filters {
-  background: white;
+  background: var(--card-background);
   border-radius: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px var(--shadow-color);
   overflow: hidden;
   margin-bottom: 2rem;
 

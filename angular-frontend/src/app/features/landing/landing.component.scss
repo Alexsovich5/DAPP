@@ -4,16 +4,26 @@
 }
 
 .hero-section {
-  background-color: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
   color: white;
   position: relative;
   
   mat-toolbar {
     background: transparent;
+    
+    .app-logo { 
+      font-size: 1.5rem; 
+      font-weight: bold; 
+    }
+    
+    .spacer { 
+      flex: 1; 
+    }
+    
+    app-theme-toggle {
+      margin-right: 1rem;
+    }
   }
-  
-  .app-logo { font-size: 1.5rem; font-weight: bold; }
-  .spacer { flex: 1; }
 }
 
 .hero-content {
@@ -129,10 +139,12 @@
   max-width: 1200px;
   margin: 0 auto;
   text-align: center;
+  background-color: var(--background-color);
 
   h2 {
     font-size: 2.5rem;
     margin-bottom: 64px;
+    color: var(--text-primary);
   }
 }
 
@@ -147,8 +159,14 @@
   padding: 32px;
   text-align: center;
   transition: transform 0.2s;
+  background-color: var(--card-background);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px var(--shadow-color);
 
-  &:hover { transform: translateY(-8px); }
+  &:hover { 
+    transform: translateY(-8px); 
+    box-shadow: 0 8px 30px var(--shadow-color);
+  }
 
   .feature-icon {
     font-size: 3.5rem;
@@ -162,29 +180,31 @@
     height: 60px;
     width: 60px;
     margin-bottom: 16px;
+    color: var(--primary-color);
   }
 
   h3 { 
     font-size: 1.5rem; 
     margin-bottom: 16px;
-    color: #2d3748;
+    color: var(--text-primary);
     font-weight: 600;
   }
   
   p { 
-    color: rgba(0,0,0,0.6);
+    color: var(--text-secondary);
     line-height: 1.6;
   }
 }
 
 .testimonials-section {
-  background-color: #f5f5f5;
+  background-color: var(--surface-color);
   padding: 96px 24px;
   text-align: center;
 
   h2 {
     font-size: 2.5rem;
     margin-bottom: 64px;
+    color: var(--text-primary);
   }
 }
 
@@ -198,14 +218,18 @@
 
 .testimonial-card {
   padding: 32px;
+  background-color: var(--card-background);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px var(--shadow-color);
 
   p {
     font-style: italic;
     margin-bottom: 16px;
+    color: var(--text-secondary);
     
     &.testimonial-author {
       font-weight: bold;
-      color: rgba(0,0,0,0.8);
+      color: var(--text-primary);
     }
   }
 }
@@ -215,16 +239,17 @@
   padding: 96px 24px;
   max-width: 800px;
   margin: 0 auto;
+  background-color: var(--background-color);
 
   h2 { 
     font-size: 2.5rem; 
     margin-bottom: 16px;
-    color: #2d3748;
+    color: var(--text-primary);
   }
   
   .cta-subtitle {
     font-size: 1.2rem;
-    color: #718096;
+    color: var(--text-secondary);
     margin-bottom: 32px;
     line-height: 1.6;
   }
@@ -232,7 +257,7 @@
   button { 
     padding: 16px 48px; 
     font-size: 1.2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
     border: none;
     border-radius: 8px;
     color: white;
@@ -246,9 +271,10 @@
 }
 
 footer {
-  background-color: #212121;
-  color: #bdbdbd;
+  background-color: var(--surface-color);
+  color: var(--text-secondary);
   padding: 48px 24px 24px;
+  border-top: 1px solid var(--border-color);
 
   .footer-content {
     max-width: 1200px;
@@ -259,13 +285,20 @@ footer {
   }
 
   .footer-section {
-    h3 { color: white; margin-bottom: 16px; }
+    h3 { 
+      color: var(--text-primary); 
+      margin-bottom: 16px; 
+    }
     
     a {
       display: block;
       color: inherit;
       margin: 8px 0;
-      &:hover { color: white; }
+      transition: color 0.2s ease;
+      
+      &:hover { 
+        color: var(--primary-color); 
+      }
     }
   }
 
@@ -275,8 +308,12 @@ footer {
     margin-top: 16px;
     
     a {
-      color: #bdbdbd;
-      &:hover { color: white; }
+      color: var(--text-secondary);
+      transition: color 0.2s ease;
+      
+      &:hover { 
+        color: var(--primary-color); 
+      }
     }
   }
 
@@ -284,6 +321,7 @@ footer {
     text-align: center;
     margin-top: 64px;
     padding-top: 24px;
-    border-top: 1px solid rgba(255,255,255,0.1);
+    border-top: 1px solid var(--border-color);
+    color: var(--text-secondary);
   }
 }

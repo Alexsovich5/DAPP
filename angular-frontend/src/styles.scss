@@ -1,4 +1,104 @@
-/* You can add global styles to this file, and also import other style files */
+/* Import Angular Material themes */
+@import '@angular/material/prebuilt-themes/pink-bluegrey.css';
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+/* Dark theme override for Material components */
+.dark-theme {
+  
+  // Override Material colors for dark mode
+  .mat-toolbar {
+    background-color: var(--header-background) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  .mat-card {
+    background-color: var(--card-background) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  .mat-button, .mat-raised-button, .mat-stroked-button {
+    color: var(--text-primary) !important;
+  }
+  
+  .mat-form-field {
+    color: var(--text-primary) !important;
+    
+    .mat-form-field-label {
+      color: var(--text-secondary) !important;
+    }
+    
+    .mat-input-element {
+      color: var(--text-primary) !important;
+    }
+  }
+  
+  .mat-icon {
+    color: var(--text-primary) !important;
+  }
+}
+
+// Global styles
+html, body { 
+  height: 100%; 
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body { 
+  margin: 0; 
+  font-family: Roboto, "Helvetica Neue", sans-serif; 
+}
+
+// CSS Custom Properties for theming
+:root {
+  // Light theme colors
+  --primary-color: #ec4899;
+  --accent-color: #8b5cf6;
+  --background-color: #ffffff;
+  --surface-color: #f8fafc;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+  --card-background: #ffffff;
+  --header-background: #ffffff;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+.dark-theme {
+  // Dark theme colors
+  --primary-color: #f472b6;
+  --accent-color: #a78bfa;
+  --background-color: #111827;
+  --surface-color: #1f2937;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --border-color: #374151;
+  --card-background: #1f2937;
+  --header-background: #111827;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+// Apply theme colors to body
+body {
+  background-color: var(--background-color);
+  color: var(--text-primary);
+}
+
+// Global dark mode styles
+.dark-theme {
+  // Scrollbar styling for dark mode
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--surface-color);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+  }
+}
