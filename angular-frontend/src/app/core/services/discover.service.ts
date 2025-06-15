@@ -5,15 +5,15 @@ import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface PotentialMatch {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
+  id: number;
+  first_name: string;
+  last_name: string;
+  date_of_birth: string;
   bio: string;
-  profilePictures: string[];
+  profile_picture: string;
   interests: string[];
-  dietaryPreferences: string[];
-  distance: number;
+  dietary_preferences: string[];
+  location: string;
   matchPercentage?: number;
   lastActive?: Date;
 }
@@ -22,12 +22,12 @@ export interface PotentialMatch {
   providedIn: 'root'
 })
 export class DiscoverService {
-  private apiUrl = `${environment.apiUrl}/discover`;
+  private apiUrl = `${environment.apiUrl}/users`;
 
   constructor(private http: HttpClient) {}
 
   getProfiles(): Observable<PotentialMatch[]> {
-    return this.http.get<PotentialMatch[]>(`${this.apiUrl}/profiles`).pipe(
+    return this.http.get<PotentialMatch[]>(`${this.apiUrl}/potential-matches`).pipe(
       map(profiles => profiles.map(profile => ({
         ...profile,
         lastActive: profile.lastActive ? new Date(profile.lastActive) : undefined
@@ -40,7 +40,11 @@ export class DiscoverService {
   }
 
   likeProfile(profileId: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/like/${profileId}`, {}).pipe(
+    return this.http.post<void>(`${environment.apiUrl}/matches`, {
+      recipient_id: parseInt(profileId),
+      restaurant_preference: '',
+      proposed_date: null
+    }).pipe(
       catchError(error => {
         console.error('Error liking profile:', error);
         throw new Error('Failed to like profile');
@@ -49,24 +53,23 @@ export class DiscoverService {
   }
 
   dislikeProfile(profileId: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/dislike/${profileId}`, {}).pipe(
-      catchError(error => {
-        console.error('Error disliking profile:', error);
-        throw new Error('Failed to pass on profile');
-      })
-    );
+    // No backend endpoint for dislike - just return success
+    // This could be enhanced to track dislikes locally or add backend support
+    return of(undefined);
   }
 
   // Additional methods for future implementation
   getMatches(): Observable<PotentialMatch[]> {
-    return this.http.get<PotentialMatch[]>(`${this.apiUrl}/matches`);
+    return this.http.get<PotentialMatch[]>(`${environment.apiUrl}/matches/sent`);
   }
 
   getMutualInterests(profileId: string): Observable<string[]> {
-    return this.http.get<string[]>(`${this.apiUrl}/mutual-interests/${profileId}`);
+    // TODO: Implement backend endpoint for mutual interests
+    return of([]);
   }
 
   getMatchPercentage(profileId: string): Observable<number> {
-    return this.http.get<number>(`${this.apiUrl}/match-percentage/${profileId}`);
+    // TODO: Implement backend endpoint for match percentage calculation
+    return of(0);
   }
 }
