@@ -76,6 +76,11 @@ def discover_soul_connections(
         }
         
         for user in potential_matches:
+            # Quick compatibility pre-check: skip users with no common interests
+            if current_user.interests and user.interests:
+                common_interests = set(current_user.interests).intersection(set(user.interests))
+                if not common_interests and min_compatibility > 30:
+                    continue  # Skip detailed calculation if no common interests and high threshold
             user_data = {
                 'interests': user.interests or [],
                 'core_values': user.core_values or {},
@@ -212,31 +217,47 @@ def get_active_connections(
     Get all active soul connections for the current user.
     """
     try:
-        connections = db.query(SoulConnection).filter(
+        # Get user's active connections with related user data using joins (fixes N+1 query problem)
+        from sqlalchemy.orm import aliased
+        
+        # Create aliases for user tables to join both users in the connection
+        User1 = aliased(User)
+        User2 = aliased(User)
+        
+        connections_query = db.query(
+            SoulConnection,
+            User1.first_name.label('user1_first_name'),
+            User1.profile_picture.label('user1_profile_picture'),
+            User2.first_name.label('user2_first_name'),
+            User2.profile_picture.label('user2_profile_picture')
+        ).join(
+            User1, SoulConnection.user1_id == User1.id
+        ).join(
+            User2, SoulConnection.user2_id == User2.id
+        ).filter(
             ((SoulConnection.user1_id == current_user.id) | (SoulConnection.user2_id == current_user.id)),
             SoulConnection.status == "active"
-        ).all()
+        )
         
-        # Enhance with user profile data
+        connection_results = connections_query.all()
+        
+        # Build enhanced connections from joined data (no additional queries needed)
         enhanced_connections = []
-        for conn in connections:
+        for conn_data in connection_results:
+            conn = conn_data[0]  # SoulConnection object
             conn_dict = conn.__dict__.copy()
             
-            # Get other user's profile info
-            other_user_id = conn.user2_id if conn.user1_id == current_user.id else conn.user1_id
-            other_user = db.query(User).filter(User.id == other_user_id).first()
-            
-            if other_user:
-                conn_dict['user1_profile'] = {
-                    'id': conn.user1_id,
-                    'first_name': current_user.first_name if conn.user1_id == current_user.id else other_user.first_name,
-                    'profile_picture': current_user.profile_picture if conn.user1_id == current_user.id else other_user.profile_picture
-                }
-                conn_dict['user2_profile'] = {
-                    'id': conn.user2_id,
-                    'first_name': other_user.first_name if conn.user2_id == other_user.id else current_user.first_name,
-                    'profile_picture': other_user.profile_picture if conn.user2_id == other_user.id else current_user.profile_picture
-                }
+            # Add user profile data from join results
+            conn_dict['user1_profile'] = {
+                'id': conn.user1_id,
+                'first_name': conn_data.user1_first_name,
+                'profile_picture': conn_data.user1_profile_picture
+            }
+            conn_dict['user2_profile'] = {
+                'id': conn.user2_id,
+                'first_name': conn_data.user2_first_name,
+                'profile_picture': conn_data.user2_profile_picture
+            }
             
             enhanced_connections.append(SoulConnectionResponse(**conn_dict))
         

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { StorageService } from '@core/services/storage.service';
 
 export type Theme = 'light' | 'dark';
 
@@ -12,7 +13,7 @@ export class ThemeService {
   
   readonly currentTheme$ = this.themeSubject.asObservable();
 
-  constructor() {
+  constructor(private readonly storage: StorageService) {
     // Apply initial theme on service creation
     this.applyTheme(this.themeSubject.value);
     
@@ -35,7 +36,7 @@ export class ThemeService {
   }
 
   setTheme(theme: Theme): void {
-    localStorage.setItem(this.storageKey, theme);
+    this.storage.setItem(this.storageKey, theme);
     this.themeSubject.next(theme);
     this.applyTheme(theme);
   }
@@ -47,7 +48,7 @@ export class ThemeService {
 
   private getInitialTheme(): Theme {
     // Check localStorage first
-    const storedTheme = localStorage.getItem(this.storageKey) as Theme;
+    const storedTheme = this.storage.getItem(this.storageKey) as Theme;
     if (storedTheme === 'light' || storedTheme === 'dark') {
       return storedTheme;
     }
@@ -62,7 +63,7 @@ export class ThemeService {
   }
 
   private hasStoredTheme(): boolean {
-    return localStorage.getItem(this.storageKey) !== null;
+    return this.storage.getItem(this.storageKey) !== null;
   }
 
   private applyTheme(theme: Theme): void {

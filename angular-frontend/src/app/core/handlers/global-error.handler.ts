@@ -1,11 +1,20 @@
 import { ErrorHandler, Injectable, inject } from '@angular/core';
 import { NotificationService } from '../services/notification.service';
+import { ErrorLoggingService } from '../services/error-logging.service';
 
 @Injectable()
 export class GlobalErrorHandler implements ErrorHandler {
   private notificationService = inject(NotificationService);
+  private errorLoggingService = inject(ErrorLoggingService);
 
   handleError(error: unknown): void {
+    // Log all errors for debugging and monitoring
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    this.errorLoggingService.logError(error instanceof Error ? error : errorMessage, {
+      type: 'global_error',
+      source: 'global_error_handler'
+    });
+
     console.error('Global error caught:', error);
 
     // Don't show notifications for HTTP errors - those are handled by services

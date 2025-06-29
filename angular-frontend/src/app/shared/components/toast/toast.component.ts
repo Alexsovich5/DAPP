@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { Subscription } from 'rxjs';
-import { NotificationService, Notification } from '../../../core/services/notification.service';
+import { NotificationService, Notification } from '@core/services/notification.service';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-toast',
@@ -15,7 +16,6 @@ import { NotificationService, Notification } from '../../../core/services/notifi
         *ngFor="let notification of displayedNotifications" 
         class="toast"
         [ngClass]="'toast-' + notification.type"
-        [@slideIn]
       >
         <div class="toast-content">
           <mat-icon class="toast-icon">{{ getIcon(notification.type) }}</mat-icon>
@@ -48,7 +48,7 @@ import { NotificationService, Notification } from '../../../core/services/notifi
       border-radius: 8px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
       overflow: hidden;
-      animation: slideIn 0.3s ease-out;
+      animation: slideIn ${environment.ui.animationDuration}ms ease-out;
     }
 
     @keyframes slideIn {
@@ -186,7 +186,7 @@ export class ToastComponent implements OnInit, OnDestroy {
           const timeoutId = window.setTimeout(() => {
             this.closeToast(notification.id);
             this.timeouts.delete(notification.id);
-          }, notification.duration || 5000);
+          }, notification.duration || environment.ui.toastDuration);
           
           this.timeouts.set(notification.id, timeoutId);
         }

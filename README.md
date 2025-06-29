@@ -1,35 +1,62 @@
-# Dinner1 Dating App
+# Dinner1 "Soul Before Skin" Dating App
 
-A unique dating application that connects people over their shared love of food and dining experiences.
+A revolutionary dating application that prioritizes emotional connection through progressive revelation before physical attraction. The platform uses local algorithms to match users based on emotional compatibility, values alignment, and shared interests.
 
 ## Project Structure
 
-The application is divided into two main components:
+The application consists of two main components:
 
-- **Backend**: Python/FastAPI with SQLAlchemy ORM and PostgreSQL
-- **Frontend**: React/TypeScript with Material-UI for responsive design
-  - Mobile-first responsive design using MUI's Grid and Box components
-  - Responsive navigation with mobile menu support
-  - Touch-friendly interface elements
-  - Adaptive layouts for different screen sizes
+- **Backend** (`backend_py/`): FastAPI REST API with SQLAlchemy ORM, JWT authentication, and PostgreSQL
+- **Frontend** (`angular-frontend/`): Angular 19+ with standalone components, TypeScript path mapping, and comprehensive error handling
 
-## Backend Architecture
+## Key Features
 
-The backend follows a modular architecture with:
+- **Soul Before Skin Philosophy**: Progressive revelation over 7-day cycles
+- **Local Compatibility Algorithms**: Sophisticated matching without external AI dependencies
+- **Emotional Onboarding**: Deep personality and values assessment
+- **Error Boundaries**: Comprehensive error handling and logging
+- **TypeScript Path Mapping**: Clean import paths with aliases (@core, @shared, etc.)
+- **Standalone Architecture**: Modern Angular components with consistent patterns
 
-- FastAPI REST endpoints for authentication, user profiles, and match management
-- SQLAlchemy ORM for database interactions
-- JWT-based authentication
-- CORS middleware for security
-- Alembic for database migrations
+## Quick Start
 
-### Key Features
+**Prerequisites**: Node.js 18+, Python 3.11+, PostgreSQL 13+
 
-- User authentication (signup, login, password reset)
-- Profile management (photos, bio, interests, dietary preferences)
-- Location-based matching
-- Preference-based filtering (age, gender, dietary preferences)
-- Match management
+```bash
+# Database setup
+createdb dinner1
+
+# Backend
+cd backend_py && python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt && alembic upgrade head
+python run.py  # Runs on http://localhost:5000
+
+# Frontend (new terminal)
+cd angular-frontend && npm install
+ng serve --port 5001  # Must use port 5001 for CORS
+```
+
+Access: http://localhost:5001
+
+## Architecture Overview
+
+### Backend (`backend_py/`)
+- **FastAPI**: REST API with automatic OpenAPI documentation
+- **SQLAlchemy**: ORM with emotional profiling models
+- **Alembic**: Database migrations
+- **Local Algorithms**: Compatibility scoring without external dependencies
+
+### Frontend (`angular-frontend/`)
+- **Angular 19+**: Standalone components with SSR support
+- **TypeScript**: Path mapping for clean imports
+- **Error Boundaries**: Comprehensive error handling
+- **Material Design**: Consistent UI components
+
+### Core Features
+- **Soul Connection Discovery**: Local algorithm-based matching
+- **Progressive Revelations**: 7-day emotional disclosure cycle
+- **Emotional Onboarding**: Personality and values assessment
+- **Real-time Messaging**: WebSocket-based communication
 
 ## Development Setup
 
@@ -97,9 +124,47 @@ CORS_ORIGINS=http://localhost:3000
 - `npm run lint` - Lint code
 - `npm run format` - Format code with Prettier
 
-## API Documentation
+## Documentation
 
-API documentation is automatically generated and available at `/docs` when the FastAPI server is running.
+- **[CLAUDE.md](./CLAUDE.md)**: Complete project instructions and architecture details
+- **[DEVELOPMENT_GUIDE.md](./DEVELOPMENT_GUIDE.md)**: Comprehensive development standards and best practices
+- **[REMEDIATION.md](./REMEDIATION.md)**: Complete record of all bug fixes and improvements
+- **API Documentation**: Available at http://localhost:5000/docs when backend is running
+
+## Development Standards
+
+### Code Quality
+- **TypeScript Path Mapping**: Use `@core/*`, `@shared/*`, `@features/*` aliases
+- **Error Boundaries**: Wrap complex components for graceful error handling
+- **Standalone Components**: Modern Angular architecture without modules
+- **Comprehensive Logging**: Error tracking and debugging support
+
+### Testing
+```bash
+# Frontend testing
+ng test
+ng build
+
+# Backend testing
+pytest
+python -m pytest tests/
+```
+
+### Database Management
+```bash
+# Create migration
+alembic revision --autogenerate -m "Description"
+
+# Apply migrations
+alembic upgrade head
+```
+
+## Contributing
+
+1. Follow the [Development Guide](./DEVELOPMENT_GUIDE.md)
+2. Use established code patterns and error handling
+3. Write tests for new features
+4. Update documentation as needed
 
 ## License
 

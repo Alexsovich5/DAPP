@@ -12,19 +12,25 @@ import { MatSliderModule } from '@angular/material/slider';
 import { FormsModule } from '@angular/forms';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { Router } from '@angular/router';
-import { SoulConnectionService } from '../../core/services/soul-connection.service';
-import { AuthService } from '../../core/services/auth.service';
+import { SoulConnectionService } from '@core/services/soul-connection.service';
+import { AuthService } from '@core/services/auth.service';
+import { ErrorLoggingService } from '@core/services/error-logging.service';
+import { ErrorBoundaryComponent } from '@shared/components/error-boundary/error-boundary.component';
 import { DiscoveryResponse, DiscoveryRequest, SoulConnectionCreate } from '../../core/interfaces/soul-connection.interfaces';
 import { User } from '../../core/interfaces/auth.interfaces';
 
 @Component({
   selector: 'app-discover',
   template: `
-    <div class="discover-container">
-      <!-- Soul Discovery Header -->
-      <div class="discovery-header">
-        <h1>Soul Discovery</h1>
-        <p class="tagline">Discover connections based on emotional compatibility, not just photos</p>
+    <app-error-boundary 
+      [retryCallback]="retryDiscovery" 
+      errorTitle="Discovery Error"
+      errorMessage="Unable to load soul connections. Please try again.">
+      <div class="discover-container">
+        <!-- Soul Discovery Header -->
+        <div class="discovery-header">
+          <h1>Soul Discovery</h1>
+          <p class="tagline">Discover connections based on emotional compatibility, not just photos</p>
         
         <!-- Discovery Filters -->
         <div class="discovery-filters" [class.expanded]="showFilters">
@@ -212,7 +218,7 @@ import { User } from '../../core/interfaces/auth.interfaces';
           </div>
         </div>
       </div>
-    </div>
+    </app-error-boundary>
   `,
   styleUrls: ['./discover.component.scss'],
   standalone: true,
@@ -227,7 +233,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
     MatChipsModule,
     MatTooltipModule,
     MatSlideToggleModule,
-    MatSliderModule
+    MatSliderModule,
+    ErrorBoundaryComponent
   ],
   animations: [
     trigger('cardAnimation', [
@@ -269,7 +276,8 @@ export class DiscoverComponent implements OnInit {
   constructor(
     private router: Router,
     private soulConnectionService: SoulConnectionService,
-    private authService: AuthService
+    private authService: AuthService,
+    private errorLoggingService: ErrorLoggingService
   ) {}
 
   ngOnInit(): void {
@@ -305,6 +313,11 @@ export class DiscoverComponent implements OnInit {
       },
       error: (err) => {
         this.error = err.message || 'Failed to load soul connections';
+        this.errorLoggingService.logError(err, {
+          component: 'discover',
+          action: 'load_discoveries',
+          filters: this.discoveryFilters
+        });
       },
       complete: () => {
         this.isLoading = false;
@@ -406,5 +419,12 @@ export class DiscoverComponent implements OnInit {
 
   trackByUserId(index: number, discovery: DiscoveryResponse): number {
     return discovery.user_id;
+  }
+
+  /**
+   * Retry callback for error boundary
+   */
+  retryDiscovery = (): void => {
+    this.loadDiscoveries();
   }
 }

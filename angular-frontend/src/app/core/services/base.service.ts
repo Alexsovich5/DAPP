@@ -2,10 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { NotificationService } from './notification.service';
+import { ErrorLoggingService } from './error-logging.service';
 
 @Injectable()
 export abstract class BaseService {
   protected notificationService = inject(NotificationService);
+  protected errorLoggingService = inject(ErrorLoggingService);
 
   /**
    * Handle Http operation that failed.
@@ -15,6 +17,18 @@ export abstract class BaseService {
    */
   protected handleError<T>(operation = 'operation', result?: T) {
     return (error: HttpErrorResponse): Observable<T> => {
+      // Log error with full context for debugging and monitoring
+      this.errorLoggingService.logApiError(
+        error.url || 'unknown',
+        error.status,
+        error.error || error.message,
+        {
+          operation,
+          headers: error.headers?.keys(),
+          params: error.url ? new URL(error.url).searchParams.toString() : undefined
+        }
+      );
+
       // Log error for debugging
       console.error(`${operation} failed:`, error);
 

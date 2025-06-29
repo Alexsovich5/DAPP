@@ -1,9 +1,30 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError, catchError, tap, map } from 'rxjs';
-import { RegisterData, User, LoginResponse, ApiErrorResponse } from '../interfaces/auth.interfaces';
-import { environment } from '../../../environments/environment';
+import { RegisterData, User, LoginResponse, ApiErrorResponse } from '@core/interfaces/auth.interfaces';
+import { environment } from '@environments/environment';
+import { StorageService } from '@core/services/storage.service';
 
+/**
+ * Authentication service for the Dinner1 "Soul Before Skin" dating application.
+ * 
+ * Handles user authentication, registration, and session management with:
+ * - JWT token-based authentication
+ * - Secure local storage of user data
+ * - Reactive user state management
+ * - Comprehensive error handling
+ * 
+ * @example
+ * ```typescript
+ * constructor(private authService: AuthService) {
+ *   this.authService.currentUser$.subscribe(user => {
+ *     if (user) {
+ *       console.log('User logged in:', user.email);
+ *     }
+ *   });
+ * }
+ * ```
+ */
 @Injectable({
   providedIn: 'root'
 })
@@ -12,21 +33,38 @@ export class AuthService {
   private readonly currentUserSubject = new BehaviorSubject<User | null>(null);
   readonly currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private readonly http: HttpClient) {
+  constructor(
+    private readonly http: HttpClient,
+    private readonly storage: StorageService
+  ) {
     this.loadStoredUser();
   }
 
   private loadStoredUser(): void {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = this.storage.getJson<User>('user');
     if (storedUser) {
-      try {
-        this.currentUserSubject.next(JSON.parse(storedUser));
-      } catch {
-        localStorage.removeItem('user');
-      }
+      this.currentUserSubject.next(storedUser);
     }
   }
 
+  /**
+   * Authenticates a user with email and password.
+   * 
+   * Uses OAuth2PasswordRequestForm format expected by FastAPI backend.
+   * On successful login, stores user data and JWT token in local storage.
+   * 
+   * @param email - User's email address
+   * @param password - User's password
+   * @returns Observable<LoginResponse> containing user data and access token
+   * 
+   * @example
+   * ```typescript
+   * this.authService.login('user@example.com', 'password123').subscribe({
+   *   next: (response) => console.log('Login successful', response.user),
+   *   error: (error) => console.error('Login failed', error)
+   * });
+   * ```
+   */
   login(email: string, password: string): Observable<LoginResponse> {
     // OAuth2PasswordRequestForm expects form data with 'username' and 'password' fields
     const body = new URLSearchParams();
@@ -40,8 +78,8 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, body.toString(), { headers }).pipe(
       tap(response => {
         if (response.user) {
-          localStorage.setItem('user', JSON.stringify(response.user));
-          localStorage.setItem('token', response.access_token);
+          this.storage.setJson('user', response.user);
+          this.storage.setItem('token', response.access_token);
           this.currentUserSubject.next(response.user);
         }
       }),
@@ -70,13 +108,13 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    this.storage.removeItem('user');
+    this.storage.removeItem('token');
     this.currentUserSubject.next(null);
   }
 
   getToken(): string | null {
-    return localStorage.getItem('token');
+    return this.storage.getItem('token');
   }
 
   isAuthenticated(): boolean {
@@ -90,7 +128,7 @@ export class AuthService {
   }
 
   updateCurrentUser(user: User): void {
-    localStorage.setItem('user', JSON.stringify(user));
+    this.storage.setJson('user', user);
     this.currentUserSubject.next(user);
   }
 
