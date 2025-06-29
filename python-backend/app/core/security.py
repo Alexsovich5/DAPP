@@ -25,12 +25,12 @@ ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 # Default to 24 hours
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
 
-# Create password context for hashing with optimized rounds
+# Create password context for hashing with secure rounds
 pwd_context = CryptContext(
     schemes=["bcrypt"],
     deprecated="auto",
-    # Reduced from default 12 for faster hashing in development
-    bcrypt__rounds=4,
+    # Use secure bcrypt rounds for production (12 is industry standard)
+    bcrypt__rounds=12,
 )
 
 # OAuth2 scheme for token authentication

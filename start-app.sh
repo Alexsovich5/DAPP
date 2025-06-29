@@ -121,7 +121,7 @@ start_backend() {
     done
     
     # Start the backend server in background
-    log "Starting FastAPI server on port 3001..."
+    log "Starting FastAPI server on port 5000..."
     nohup python run.py > backend.log 2>&1 &
     BACKEND_PID=$!
     echo $BACKEND_PID > backend.pid
@@ -131,11 +131,11 @@ start_backend() {
     
     # Test backend health with extended timeout
     for i in {1..60}; do
-        if curl -s http://localhost:3001/health > /dev/null 2>&1; then
-            success "Backend is running on http://localhost:3001"
+        if curl -s http://localhost:5000/health > /dev/null 2>&1; then
+            success "Backend is running on http://localhost:5000"
             break
-        elif curl -s http://localhost:3001/docs > /dev/null 2>&1; then
-            success "Backend is running on http://localhost:3001 (docs available)"
+        elif curl -s http://localhost:5000/docs > /dev/null 2>&1; then
+            success "Backend is running on http://localhost:5000 (docs available)"
             break
         fi
         if [ $i -eq 60 ]; then
@@ -159,7 +159,7 @@ start_frontend() {
     fi
     
     # Start the frontend server in background
-    log "Starting Angular development server on port 4200..."
+    log "Starting Angular development server on port 5001..."
     nohup npm run start > frontend.log 2>&1 &
     FRONTEND_PID=$!
     echo $FRONTEND_PID > frontend.pid
@@ -169,8 +169,8 @@ start_frontend() {
     
     # Test frontend
     for i in {1..60}; do
-        if curl -s http://localhost:4200 > /dev/null; then
-            success "Frontend is running on http://localhost:4200"
+        if curl -s http://localhost:5001 > /dev/null; then
+            success "Frontend is running on http://localhost:5001"
             break
         fi
         if [ $i -eq 60 ]; then
@@ -229,9 +229,9 @@ main() {
     success "All services are running!"
     echo ""
     echo "🚀 Application URLs:"
-    echo "   Frontend: http://localhost:4200"
-    echo "   Backend API: http://localhost:3001"
-    echo "   API Docs: http://localhost:3001/docs"
+    echo "   Frontend: http://localhost:5001"
+    echo "   Backend API: http://localhost:5000"
+    echo "   API Docs: http://localhost:5000/docs"
     echo "   Database: localhost:5432 (dinner1)"
     echo ""
     echo "📝 Logs:"

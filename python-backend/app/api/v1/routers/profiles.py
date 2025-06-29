@@ -227,9 +227,9 @@ async def request_verification(
     current_user.profile.verification_method = verification.verification_method
 
     if verification.verification_document:
-        current_user.profile.verification_document_url = (
-            verification.verification_document
-        )
+        # Store verification document in verification_method field for now
+        # TODO: Add verification_document_url field to Profile model
+        current_user.profile.verification_method = f"{verification.verification_method}:{verification.verification_document}"
 
     db.commit()
     db.refresh(current_user.profile)
@@ -244,8 +244,15 @@ async def approve_verification(
     current_user: User = Depends(get_current_user),
 ) -> Any:
     """Approve a user's verification request (admin only)."""
-    # Admin check should be implemented here
-    # For now, allowing any authenticated user to approve verification
+    # Simple admin check - only allow specific admin emails for now
+    # TODO: Implement proper role-based access control
+    ADMIN_EMAILS = ["admin@dinner1.com", "support@dinner1.com"]
+    
+    if current_user.email not in ADMIN_EMAILS:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="Admin access required"
+        )
 
     profile = db.query(Profile).filter(Profile.user_id == user_id).first()
     if not profile:

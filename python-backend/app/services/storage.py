@@ -24,8 +24,8 @@ async def upload_file(file: UploadFile, path: str) -> str:
         file_extension = os.path.splitext(file.filename)[1]
         filename = f"{path}/{os.urandom(16).hex()}{file_extension}"
 
-        # Upload file
-        await s3_client.upload_fileobj(
+        # Upload file (boto3 S3 client methods are synchronous)
+        s3_client.upload_fileobj(
             file.file, BUCKET_NAME, filename, ExtraArgs={"ACL": "public-read"}
         )
 
@@ -42,8 +42,8 @@ async def delete_file(file_url: str) -> bool:
         # Extract key from URL
         key = file_url.split(f"{BUCKET_NAME}.s3.amazonaws.com/")[1]
 
-        # Delete file
-        await s3_client.delete_object(Bucket=BUCKET_NAME, Key=key)
+        # Delete file (boto3 S3 client methods are synchronous)
+        s3_client.delete_object(Bucket=BUCKET_NAME, Key=key)
         return True
     except ClientError as e:
         logger.error(f"Error deleting file: {e}")

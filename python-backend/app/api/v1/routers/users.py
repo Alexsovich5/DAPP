@@ -4,6 +4,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi.responses import FileResponse
 from sqlalchemy import and_, not_, or_
 from sqlalchemy.orm import Session
 
@@ -276,3 +277,36 @@ def get_user(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
     return user
+
+
+@router.get("/uploads/{filename}")
+async def get_uploaded_file(
+    filename: str,
+    current_user: User = Depends(get_current_user),
+) -> FileResponse:
+    """Get uploaded file with authentication."""
+    # Security: Only allow access to files that belong to the current user
+    # Extract user_id from filename (format: {user_id}_{uuid}.{ext})
+    try:
+        file_user_id = int(filename.split('_')[0])
+    except (ValueError, IndexError):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="File not found"
+        )
+    
+    # Check if user owns the file
+    if file_user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied"
+        )
+    
+    file_path = Path("uploads/profile_pictures") / filename
+    if not file_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="File not found"
+        )
+    
+    return FileResponse(file_path)

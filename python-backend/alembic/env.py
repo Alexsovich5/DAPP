@@ -13,6 +13,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 # Now imports can find 'app'
 from app.core.database import SQLALCHEMY_DATABASE_URL  # noqa: E402
 from app.models.user import Base  # noqa: E402
+# Import all models so Alembic can detect schema changes
+from app.models import User, Profile, Match, SoulConnection, DailyRevelation, Message  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

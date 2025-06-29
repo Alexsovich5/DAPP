@@ -103,10 +103,10 @@ app.middleware("http")(log_requests_middleware)
 app.add_exception_handler(ValidationError, validation_error_handler)
 app.add_exception_handler(RequestValidationError, validation_error_handler)
 
-# Create uploads directory and mount static files
+# Create uploads directory (but do NOT mount as static files for security)
 uploads_dir = Path("uploads")
 uploads_dir.mkdir(exist_ok=True)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+# File access will be handled through authenticated endpoints in users router
 
 
 @app.get("/")

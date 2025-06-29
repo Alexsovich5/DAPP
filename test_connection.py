@@ -7,7 +7,7 @@ import json
 import sys
 
 # Configuration
-BACKEND_URL = "http://localhost:8000"
+BACKEND_URL = "http://localhost:5000"
 ANGULAR_EXPECTED_URL = "http://localhost:5001"
 
 def test_backend_health():
