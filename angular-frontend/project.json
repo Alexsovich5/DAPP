@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/nx/schemas/project-schema.json",
-  "name": "dinner-app",
+  "name": "dinner-app-angular",
   "projectType": "application",
   "generators": {
     "@schematics/angular:component": {
@@ -59,15 +59,15 @@
       "executor": "@angular-devkit/build-angular:dev-server",
       "configurations": {
         "production": {
-          "buildTarget": "dinner-app:build:production"
+          "buildTarget": "dinner-app-angular:build:production"
         },
         "development": {
-          "buildTarget": "dinner-app:build:development"
+          "buildTarget": "dinner-app-angular:build:development"
         }
       },
       "defaultConfiguration": "development",
       "options": {
-        "port": 4200,
+        "port": 5001,
         "host": "localhost"
       }
     },

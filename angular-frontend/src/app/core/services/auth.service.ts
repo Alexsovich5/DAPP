@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { BehaviorSubject, Observable, throwError, catchError, tap } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, catchError, tap, map } from 'rxjs';
 import { RegisterData, User, LoginResponse, ApiErrorResponse } from '../interfaces/auth.interfaces';
 import { environment } from '../../../environments/environment';
 
@@ -81,6 +81,12 @@ export class AuthService {
 
   isAuthenticated(): boolean {
     return !!this.currentUserSubject.value;
+  }
+
+  isLoggedIn(): Observable<boolean> {
+    return this.currentUser$.pipe(
+      map(user => !!user)
+    );
   }
 
   updateCurrentUser(user: User): void {

@@ -10,13 +10,15 @@ describe('AuthService', () => {
 
   // Mock user data
   const mockUser: User = {
-    id: '1',
+    id: 1,
     email: 'test@example.com',
+    username: 'testuser',
     first_name: 'Test',
     last_name: 'User',
     date_of_birth: '1990-01-01',
     gender: 'male',
-    is_profile_complete: false
+    is_profile_complete: false,
+    is_active: true
   };
 
   const mockLoginResponse: LoginResponse = {
@@ -118,6 +120,7 @@ describe('AuthService', () => {
     it('should register a new user successfully', () => {
       const registerData: RegisterData = {
         email: 'new@example.com',
+        username: 'newuser',
         password: 'password123',
         first_name: 'New',
         last_name: 'User',
@@ -138,6 +141,7 @@ describe('AuthService', () => {
     it('should handle registration errors', () => {
       const registerData: RegisterData = {
         email: 'existing@example.com',
+        username: 'existinguser',
         password: 'password123',
         first_name: 'New',
         last_name: 'User',
