@@ -41,8 +41,26 @@ export class OnboardingStepGuard implements CanActivate {
 
     // Check if onboarding is already completed
     const isOnboardingComplete = this.storage.getItem('onboarding_completed') === 'true';
-    if (isOnboardingComplete && targetStep !== 'complete') {
-      // If onboarding is complete, redirect to discover
+    
+    // Debug: Check what data we have
+    const hasEmotionalData = !!this.storage.getItem('onboarding_emotional');
+    const hasPersonalityData = !!this.storage.getItem('onboarding_personality');
+    const hasInterestData = !!this.storage.getItem('onboarding_interests');
+    
+    console.log('Onboarding guard debug:', {
+      targetStep,
+      emotionalData: hasEmotionalData,
+      personalityData: hasPersonalityData,
+      interestData: hasInterestData,
+      isComplete: isOnboardingComplete
+    });
+
+    // If onboarding is marked complete but we don't have the step data, clear the completion flag
+    if (isOnboardingComplete && (!hasEmotionalData || !hasPersonalityData || !hasInterestData)) {
+      console.log('Onboarding marked complete but missing step data. Clearing completion flag.');
+      this.storage.removeItem('onboarding_completed');
+    } else if (isOnboardingComplete) {
+      // If onboarding is complete and we have all data, redirect to discover
       this.router.navigate(['/discover']);
       return false;
     }
@@ -64,6 +82,7 @@ export class OnboardingStepGuard implements CanActivate {
         redirectStep = 'interest-selection';
       }
       
+      console.log('Redirecting to step:', redirectStep, 'Missing:', missingRequirements);
       this.router.navigate(['/onboarding', redirectStep]);
       return false;
     }

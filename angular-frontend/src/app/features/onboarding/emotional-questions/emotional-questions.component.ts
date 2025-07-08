@@ -225,7 +225,12 @@ export class EmotionalQuestionsComponent implements OnInit {
     if (this.emotionalForm.valid) {
       // Store form data for later submission
       const emotionalData = this.emotionalForm.value;
+      console.log('Saving emotional data:', emotionalData);
       this.storage.setJson('onboarding_emotional', emotionalData);
+      
+      // Verify data was saved
+      const savedData = this.storage.getJson('onboarding_emotional');
+      console.log('Verified saved emotional data:', savedData);
       
       // Navigate to next step
       this.router.navigate(['/onboarding/personality-assessment']);

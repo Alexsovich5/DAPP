@@ -369,12 +369,21 @@ export class InterestSelectionComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeForm();
+    this.loadExistingData();
   }
 
   private initializeForm(): void {
     this.interestForm = this.fb.group({
       interests: [[], [Validators.required, Validators.minLength(5)]]
     });
+  }
+
+  private loadExistingData(): void {
+    const existingData = this.storage.getJson<{interests: string[]}>('onboarding_interests');
+    if (existingData && existingData.interests) {
+      this.selectedInterests = [...existingData.interests];
+      this.updateFormValue();
+    }
   }
 
   toggleInterest(interest: string): void {

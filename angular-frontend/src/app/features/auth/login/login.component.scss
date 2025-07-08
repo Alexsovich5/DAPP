@@ -4,12 +4,14 @@
   align-items: center;
   min-height: 100vh;
   padding: 2rem 1rem;
-  background-color: #f5f5f5;
+  background-color: var(--background-color);
 
   mat-card {
     width: 100%;
     max-width: 400px;
     margin-top: 2rem;
+    background-color: var(--card-background);
+    color: var(--text-primary);
   }
 }
 
@@ -33,6 +35,7 @@
     margin: 0;
     font-size: 1.5rem;
     font-weight: 500;
+    color: var(--text-primary);
   }
 }
 
@@ -56,20 +59,30 @@ form {
 .error-alert {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
   padding: 1rem;
   margin-bottom: 1rem;
   border-radius: 4px;
+  background-color: var(--error-background);
+  border: 1px solid var(--error-border);
+  color: var(--error-text);
 
   mat-icon {
     font-size: 20px;
     height: 20px;
     width: 20px;
   }
+
+  button {
+    margin-left: auto;
+    color: var(--error-text);
+  }
 }
 
 .submit-button {
   height: 48px;
+  margin-top: 1rem;
 
   mat-spinner {
     margin: 0 auto;
@@ -82,13 +95,14 @@ form {
   text-align: center;
 
   &::after {
-    content: attr(class);
+    content: "or sign in with";
     display: inline-block;
     position: relative;
     top: -0.7em;
     padding: 0 1em;
-    background: white;
-    color: rgba(0, 0, 0, 0.54);
+    background: var(--card-background);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
   }
 }
 
@@ -103,14 +117,21 @@ form {
     justify-content: center;
     gap: 0.5rem;
     height: 40px;
+    color: var(--text-primary);
+    border-color: var(--border-color);
+
+    &:hover {
+      background-color: var(--surface-color);
+    }
   }
 
   .google-btn {
-    color: rgba(0, 0, 0, 0.87);
-    border-color: rgba(0, 0, 0, 0.12);
+    // Use theme colors but maintain Google branding
+    color: var(--text-primary);
+    border-color: var(--border-color);
 
     &:hover {
-      background-color: rgba(0, 0, 0, 0.04);
+      background-color: var(--surface-color);
     }
   }
 
@@ -123,9 +144,10 @@ form {
     }
   }
 
-  .social-icon {
+  mat-icon {
     width: 18px;
     height: 18px;
+    font-size: 18px;
   }
 }
 
@@ -138,12 +160,12 @@ form {
   text-align: center;
 
   span {
-    color: rgba(0, 0, 0, 0.54);
+    color: var(--text-secondary);
   }
 }
 
 .footer {
   margin-top: 2rem;
   text-align: center;
-  color: rgba(0, 0, 0, 0.54);
+  color: var(--text-secondary);
 }

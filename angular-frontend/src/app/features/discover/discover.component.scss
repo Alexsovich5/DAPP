@@ -144,6 +144,107 @@
     justify-content: center;
     min-height: 50vh;
     text-align: center;
+    padding: 2rem;
+
+    .no-matches-content {
+      max-width: 800px;
+      width: 100%;
+    }
+
+    .no-matches-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+
+    h3 {
+      color: #1f2937;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: #6b7280;
+      margin-bottom: 2rem;
+    }
+
+    .suggestions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .suggestion-card {
+      background: white;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+      }
+
+      .suggestion-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      h4 {
+        color: #1f2937;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      p {
+        color: #6b7280;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+      }
+    }
+
+    .platform-features {
+      background: rgba(102, 126, 234, 0.05);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      
+      h4 {
+        color: #1f2937;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        text-align: center;
+      }
+
+      .features-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+      }
+
+      .feature-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: white;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        color: #374151;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: #f3f4f6;
+          color: #667eea;
+        }
+
+        .feature-icon {
+          font-size: 1.2rem;
+        }
+      }
+    }
 
     mat-icon {
       font-size: 4rem;
@@ -154,17 +255,6 @@
 
     .error-icon {
       color: #ef4444;
-    }
-
-    .no-matches-icon {
-      color: #6b7280;
-    }
-
-    h3 {
-      color: #1f2937;
-      font-size: 1.5rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
     }
 
     p {

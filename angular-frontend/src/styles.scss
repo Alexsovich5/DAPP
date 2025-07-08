@@ -60,6 +60,9 @@ body {
   --card-background: #ffffff;
   --header-background: #ffffff;
   --shadow-color: rgba(0, 0, 0, 0.1);
+  --error-background: #fef2f2;
+  --error-border: #fecaca;
+  --error-text: #dc2626;
 }
 
 .dark-theme {
@@ -74,6 +77,9 @@ body {
   --card-background: #1f2937;
   --header-background: #111827;
   --shadow-color: rgba(0, 0, 0, 0.3);
+  --error-background: #3f1f1f;
+  --error-border: #7f1d1d;
+  --error-text: #f87171;
 }
 
 // Apply theme colors to body

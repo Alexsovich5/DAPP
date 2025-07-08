@@ -57,15 +57,15 @@
           <span *ngIf="!isLoading">Sign In</span>
         </button>
 
-        <mat-divider class="divider">or sign in with</mat-divider>
+        <mat-divider class="divider"></mat-divider>
 
         <div class="social-buttons">
           <button mat-stroked-button (click)="loginWithGoogle()" type="button" class="google-btn">
-            <img src="assets/icons/google.svg" alt="Google logo" class="social-icon">
+            <mat-icon>account_circle</mat-icon>
             Google
           </button>
           <button mat-stroked-button (click)="loginWithFacebook()" type="button" class="facebook-btn">
-            <img src="assets/icons/facebook.svg" alt="Facebook logo" class="social-icon">
+            <mat-icon>share</mat-icon>
             Facebook
           </button>
         </div>

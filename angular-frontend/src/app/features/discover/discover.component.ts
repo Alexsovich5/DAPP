@@ -43,6 +43,7 @@ import { User } from '../../core/interfaces/auth.interfaces';
             <div class="filter-group">
               <label>Hide Photos Initially</label>
               <mat-slide-toggle 
+                name="hide_photos"
                 [(ngModel)]="discoveryFilters.hide_photos"
                 (change)="onFiltersChange()">
               </mat-slide-toggle>
@@ -51,6 +52,7 @@ import { User } from '../../core/interfaces/auth.interfaces';
             <div class="filter-group">
               <label>Minimum Compatibility: {{ discoveryFilters.min_compatibility }}%</label>
               <mat-slider 
+                name="min_compatibility"
                 min="30" 
                 max="95" 
                 step="5"
@@ -62,6 +64,7 @@ import { User } from '../../core/interfaces/auth.interfaces';
             <div class="filter-group">
               <label>Max Results</label>
               <mat-slider 
+                name="max_results"
                 min="5" 
                 max="20" 
                 step="1"
@@ -104,10 +107,52 @@ import { User } from '../../core/interfaces/auth.interfaces';
 
         <!-- No Matches State -->
         <div class="no-matches-container" *ngIf="!isLoading && !error && discoveries.length === 0">
-          <mat-icon class="no-matches-icon">search_off</mat-icon>
-          <h3>No soul connections found</h3>
-          <p>Try adjusting your filters or check back later for new members.</p>
-          <button mat-button (click)="resetFilters()">Reset Filters</button>
+          <div class="no-matches-content">
+            <div class="no-matches-icon">🔍</div>
+            <h3>No soul connections found right now</h3>
+            <p>Don't worry! Here are some ways to improve your discovery experience:</p>
+            
+            <div class="suggestions-grid">
+              <div class="suggestion-card">
+                <div class="suggestion-icon">🎯</div>
+                <h4>Adjust Your Filters</h4>
+                <p>Try lowering your compatibility threshold or expanding your age range</p>
+                <button mat-button color="primary" (click)="resetFilters()">Reset Filters</button>
+              </div>
+              
+              <div class="suggestion-card">
+                <div class="suggestion-icon">✨</div>
+                <h4>Complete Your Profile</h4>
+                <p>Make sure your profile is complete to improve matching accuracy</p>
+                <button mat-button color="primary" routerLink="/profile">View Profile</button>
+              </div>
+              
+              <div class="suggestion-card">
+                <div class="suggestion-icon">🔄</div>
+                <h4>Check Back Later</h4>
+                <p>New members join regularly. Check back in a few hours or tomorrow</p>
+                <button mat-button color="primary" (click)="loadDiscoveries()">Refresh Now</button>
+              </div>
+            </div>
+            
+            <div class="platform-features">
+              <h4>Meanwhile, explore other features:</h4>
+              <div class="features-list">
+                <a routerLink="/revelations" class="feature-link">
+                  <span class="feature-icon">📝</span>
+                  <span>Write Daily Revelations</span>
+                </a>
+                <a routerLink="/profile" class="feature-link">
+                  <span class="feature-icon">👤</span>
+                  <span>Update Your Profile</span>
+                </a>
+                <a routerLink="/settings" class="feature-link">
+                  <span class="feature-icon">⚙️</span>
+                  <span>Customize Preferences</span>
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Discovery Cards -->
@@ -304,8 +349,11 @@ export class DiscoverComponent implements OnInit {
     this.isLoading = true;
     this.error = null;
     
+    console.log('Loading discoveries with filters:', this.discoveryFilters);
+    
     this.soulConnectionService.discoverSoulConnections(this.discoveryFilters).subscribe({
       next: (discoveries) => {
+        console.log('Discoveries received:', discoveries);
         this.discoveries = discoveries;
         // Initialize card animations
         discoveries.forEach(d => {
@@ -313,6 +361,7 @@ export class DiscoverComponent implements OnInit {
         });
       },
       error: (err) => {
+        console.error('Discovery error:', err);
         this.error = err.message || 'Failed to load soul connections';
         this.errorLoggingService.logError(err, {
           component: 'discover',
@@ -322,6 +371,7 @@ export class DiscoverComponent implements OnInit {
       },
       complete: () => {
         this.isLoading = false;
+        console.log('Discovery loading completed. Total discoveries:', this.discoveries.length);
       }
     });
   }

@@ -370,6 +370,7 @@ export class PersonalityAssessmentComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeForm();
+    this.loadExistingData();
   }
 
   private initializeForm(): void {
@@ -379,6 +380,15 @@ export class PersonalityAssessmentComponent implements OnInit {
       relationship_values: [[], Validators.required],
       personality_traits: [[], Validators.required]
     });
+  }
+
+  private loadExistingData(): void {
+    const existingData = this.storage.getJson<any>('onboarding_personality');
+    if (existingData) {
+      this.personalityForm.patchValue(existingData);
+      this.selectedValues = existingData.relationship_values || [];
+      this.selectedTraits = existingData.personality_traits || [];
+    }
   }
 
   onValueChange(event: any): void {

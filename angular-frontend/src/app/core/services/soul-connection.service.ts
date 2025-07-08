@@ -4,6 +4,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { BaseService } from './base.service';
+import { StorageService } from './storage.service';
 import {
   SoulConnection,
   SoulConnectionCreate,
@@ -21,7 +22,10 @@ export class SoulConnectionService extends BaseService {
   private activeConnectionsSubject = new BehaviorSubject<SoulConnection[]>([]);
   readonly activeConnections$ = this.activeConnectionsSubject.asObservable();
 
-  constructor(private readonly http: HttpClient) {
+  constructor(
+    private readonly http: HttpClient,
+    private readonly storage: StorageService
+  ) {
     super();
   }
 
@@ -47,8 +51,15 @@ export class SoulConnectionService extends BaseService {
       params = params.set('age_range_max', request.age_range_max.toString());
     }
 
-    return this.http.get<DiscoveryResponse[]>(`${this.apiUrl}/soul-connections/discover`, { params }).pipe(
-      catchError(this.handleError<DiscoveryResponse[]>('discover soul connections', []))
+    const url = `${this.apiUrl}/soul-connections/discover`;
+    console.log('Making discovery API call to:', url, 'with params:', params.toString());
+
+    return this.http.get<DiscoveryResponse[]>(url, { params }).pipe(
+      tap(response => console.log('Discovery API response:', response)),
+      catchError(err => {
+        console.error('Discovery API error:', err);
+        return this.handleError<DiscoveryResponse[]>('discover soul connections', [])(err);
+      })
     );
   }
 
@@ -153,8 +164,27 @@ export class SoulConnectionService extends BaseService {
    * Check if user needs emotional onboarding
    */
   needsEmotionalOnboarding(user: any): boolean {
-    return !user?.emotional_onboarding_completed || 
-           !user?.core_values || 
-           !user?.interests?.length;
+    // Check if onboarding is completed according to localStorage
+    const isOnboardingComplete = this.storage.getItem('onboarding_completed') === 'true';
+    
+    // If localStorage says it's complete, trust that (but also check user object)
+    if (isOnboardingComplete) {
+      console.log('Onboarding marked as complete in localStorage');
+      return false;
+    }
+    
+    // Otherwise, check the user object
+    const needsOnboarding = !user?.emotional_onboarding_completed || 
+                           !user?.core_values || 
+                           !user?.interests?.length;
+                           
+    console.log('Checking if needs onboarding:', {
+      emotional_onboarding_completed: user?.emotional_onboarding_completed,
+      has_core_values: !!user?.core_values,
+      has_interests: !!user?.interests?.length,
+      needsOnboarding
+    });
+    
+    return needsOnboarding;
   }
 }
