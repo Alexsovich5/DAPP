@@ -2,6 +2,7 @@ import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { StorageService } from '../../../core/services/storage.service';
 
 @Component({
   selector: 'app-personality-assessment',
@@ -363,7 +364,8 @@ export class PersonalityAssessmentComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private storage: StorageService
   ) {}
 
   ngOnInit(): void {
@@ -411,7 +413,7 @@ export class PersonalityAssessmentComponent implements OnInit {
     if (this.personalityForm.valid && this.selectedTraits.length >= 3) {
       // Store form data for later submission
       const personalityData = this.personalityForm.value;
-      localStorage.setItem('onboarding_personality', JSON.stringify(personalityData));
+      this.storage.setJson('onboarding_personality', personalityData);
       
       // Navigate to next step
       this.router.navigate(['/onboarding/interest-selection']);

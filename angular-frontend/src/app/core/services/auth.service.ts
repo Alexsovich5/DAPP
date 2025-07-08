@@ -41,9 +41,18 @@ export class AuthService {
   }
 
   private loadStoredUser(): void {
-    const storedUser = this.storage.getJson<User>('user');
-    if (storedUser) {
-      this.currentUserSubject.next(storedUser);
+    try {
+      if (!this.storage) {
+        console.warn('StorageService not available during user load');
+        return;
+      }
+      
+      const storedUser = this.storage.getJson<User>('user');
+      if (storedUser) {
+        this.currentUserSubject.next(storedUser);
+      }
+    } catch (error) {
+      console.warn('Failed to load stored user:', error);
     }
   }
 
@@ -77,7 +86,7 @@ export class AuthService {
 
     return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, body.toString(), { headers }).pipe(
       tap(response => {
-        if (response.user) {
+        if (response.user && this.storage) {
           this.storage.setJson('user', response.user);
           this.storage.setItem('token', response.access_token);
           this.currentUserSubject.next(response.user);
@@ -91,7 +100,7 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.apiUrl}/auth/register`, userData).pipe(
       tap(response => {
         // Registration now returns LoginResponse, so automatically log the user in
-        if (response.user && response.access_token) {
+        if (response.user && response.access_token && this.storage) {
           this.storage.setJson('user', response.user);
           this.storage.setItem('token', response.access_token);
           this.currentUserSubject.next(response.user);
@@ -108,12 +117,18 @@ export class AuthService {
   }
 
   logout(): void {
-    this.storage.removeItem('user');
-    this.storage.removeItem('token');
+    if (this.storage) {
+      this.storage.removeItem('user');
+      this.storage.removeItem('token');
+    }
     this.currentUserSubject.next(null);
   }
 
   getToken(): string | null {
+    if (!this.storage) {
+      console.warn('StorageService not available for token retrieval');
+      return null;
+    }
     return this.storage.getItem('token');
   }
 
@@ -128,7 +143,9 @@ export class AuthService {
   }
 
   updateCurrentUser(user: User): void {
-    this.storage.setJson('user', user);
+    if (this.storage) {
+      this.storage.setJson('user', user);
+    }
     this.currentUserSubject.next(user);
   }
 

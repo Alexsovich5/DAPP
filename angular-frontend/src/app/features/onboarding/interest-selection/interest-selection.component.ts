@@ -2,6 +2,7 @@ import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { StorageService } from '../../../core/services/storage.service';
 
 interface InterestCategory {
   name: string;
@@ -362,7 +363,8 @@ export class InterestSelectionComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private storage: StorageService
   ) {}
 
   ngOnInit(): void {
@@ -413,7 +415,7 @@ export class InterestSelectionComponent implements OnInit {
     if (this.interestForm.valid && this.selectedInterests.length >= 5) {
       // Store form data for final submission
       const interestData = this.interestForm.value;
-      localStorage.setItem('onboarding_interests', JSON.stringify(interestData));
+      this.storage.setJson('onboarding_interests', interestData);
       
       // Navigate to completion step
       this.router.navigate(['/onboarding/complete']);

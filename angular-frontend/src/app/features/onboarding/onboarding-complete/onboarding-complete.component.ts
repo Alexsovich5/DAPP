@@ -4,6 +4,7 @@ import { finalize } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { RevelationService } from '../../../core/services/revelation.service';
+import { StorageService } from '../../../core/services/storage.service';
 import { EmotionalOnboarding } from '../../../core/interfaces/revelation.interfaces';
 
 @Component({
@@ -332,7 +333,8 @@ export class OnboardingCompleteComponent implements OnInit {
   constructor(
     private router: Router,
     private authService: AuthService,
-    private revelationService: RevelationService
+    private revelationService: RevelationService,
+    private storage: StorageService
   ) {}
 
   ngOnInit(): void {
@@ -341,9 +343,8 @@ export class OnboardingCompleteComponent implements OnInit {
 
   private calculateProfileStats(): void {
     // Get interest count from stored data
-    const interestData = localStorage.getItem('onboarding_interests');
-    if (interestData) {
-      const interests = JSON.parse(interestData);
+    const interests = this.storage.getJson<{interests: string[]}>('onboarding_interests');
+    if (interests) {
       this.totalInterests = interests.interests?.length || 0;
     }
   }
@@ -353,9 +354,9 @@ export class OnboardingCompleteComponent implements OnInit {
     this.hasError = false;
 
     // Collect all onboarding data
-    const emotionalData = this.getStoredData('onboarding_emotional');
-    const personalityData = this.getStoredData('onboarding_personality');
-    const interestData = this.getStoredData('onboarding_interests');
+    const emotionalData = this.storage.getJson<any>('onboarding_emotional');
+    const personalityData = this.storage.getJson<any>('onboarding_personality');
+    const interestData = this.storage.getJson<{interests: string[]}>('onboarding_interests');
 
     // Combine into emotional onboarding payload
     const onboardingPayload: EmotionalOnboarding = {
@@ -390,6 +391,9 @@ export class OnboardingCompleteComponent implements OnInit {
           // Clear stored onboarding data
           this.clearOnboardingData();
           
+          // Set onboarding completion flag
+          this.storage.setItem('onboarding_completed', 'true');
+          
           // Update current user with backend response
           this.authService.updateCurrentUser(updatedUser);
 
@@ -410,14 +414,9 @@ export class OnboardingCompleteComponent implements OnInit {
     this.completeOnboarding();
   }
 
-  private getStoredData(key: string): any {
-    const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : null;
-  }
-
   private clearOnboardingData(): void {
-    localStorage.removeItem('onboarding_emotional');
-    localStorage.removeItem('onboarding_personality');
-    localStorage.removeItem('onboarding_interests');
+    this.storage.removeItem('onboarding_emotional');
+    this.storage.removeItem('onboarding_personality');
+    this.storage.removeItem('onboarding_interests');
   }
 }

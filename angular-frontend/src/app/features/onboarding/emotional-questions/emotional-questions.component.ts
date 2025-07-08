@@ -2,6 +2,7 @@ import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { StorageService } from '../../../core/services/storage.service';
 
 @Component({
   selector: 'app-emotional-questions',
@@ -189,11 +190,13 @@ export class EmotionalQuestionsComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private storage: StorageService
   ) {}
 
   ngOnInit(): void {
     this.initializeForm();
+    this.loadExistingData();
   }
 
   private initializeForm(): void {
@@ -211,11 +214,18 @@ export class EmotionalQuestionsComponent implements OnInit {
     });
   }
 
+  private loadExistingData(): void {
+    const existingData = this.storage.getJson<any>('onboarding_emotional');
+    if (existingData) {
+      this.emotionalForm.patchValue(existingData);
+    }
+  }
+
   onSubmit(): void {
     if (this.emotionalForm.valid) {
       // Store form data for later submission
       const emotionalData = this.emotionalForm.value;
-      localStorage.setItem('onboarding_emotional', JSON.stringify(emotionalData));
+      this.storage.setJson('onboarding_emotional', emotionalData);
       
       // Navigate to next step
       this.router.navigate(['/onboarding/personality-assessment']);

@@ -43,7 +43,9 @@ export class ThemeService {
   }
 
   setTheme(theme: Theme): void {
-    this.storage.setItem(this.storageKey, theme);
+    if (this.storage) {
+      this.storage.setItem(this.storageKey, theme);
+    }
     this.themeSubject.next(theme);
     this.applyTheme(theme);
   }
@@ -54,10 +56,12 @@ export class ThemeService {
   }
 
   private getInitialTheme(): Theme {
-    // Check localStorage first
-    const storedTheme = this.storage.getItem(this.storageKey) as Theme;
-    if (storedTheme === 'light' || storedTheme === 'dark') {
-      return storedTheme;
+    // Check localStorage first (if storage is available)
+    if (this.storage) {
+      const storedTheme = this.storage.getItem(this.storageKey) as Theme;
+      if (storedTheme === 'light' || storedTheme === 'dark') {
+        return storedTheme;
+      }
     }
 
     // Fall back to system preference (browser only)
@@ -70,7 +74,7 @@ export class ThemeService {
   }
 
   private hasStoredTheme(): boolean {
-    return this.storage.getItem(this.storageKey) !== null;
+    return this.storage ? this.storage.getItem(this.storageKey) !== null : false;
   }
 
   private applyTheme(theme: Theme): void {
