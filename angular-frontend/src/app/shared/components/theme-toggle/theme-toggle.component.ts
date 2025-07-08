@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ThemeService } from '../../../core/services/theme.service';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-theme-toggle',
@@ -40,11 +41,9 @@ export class ThemeToggleComponent {
   isDarkMode$: Observable<boolean>;
 
   constructor(private themeService: ThemeService) {
-    this.isDarkMode$ = new Observable(subscriber => {
-      this.themeService.currentTheme$.subscribe(theme => {
-        subscriber.next(theme === 'dark');
-      });
-    });
+    this.isDarkMode$ = this.themeService.currentTheme$.pipe(
+      map(theme => theme === 'dark')
+    );
   }
 
   toggleTheme(): void {

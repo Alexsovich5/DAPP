@@ -1,14 +1,24 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StorageService {
+  private isBrowser: boolean;
+  
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
   
   /**
    * Safely get an item from localStorage with error handling
    */
   getItem(key: string): string | null {
+    if (!this.isBrowser) {
+      return null;
+    }
+    
     try {
       return localStorage.getItem(key);
     } catch (error) {
@@ -21,6 +31,10 @@ export class StorageService {
    * Safely set an item in localStorage with error handling
    */
   setItem(key: string, value: string): boolean {
+    if (!this.isBrowser) {
+      return false;
+    }
+    
     try {
       localStorage.setItem(key, value);
       return true;
@@ -34,6 +48,10 @@ export class StorageService {
    * Safely remove an item from localStorage with error handling
    */
   removeItem(key: string): boolean {
+    if (!this.isBrowser) {
+      return false;
+    }
+    
     try {
       localStorage.removeItem(key);
       return true;
@@ -47,6 +65,10 @@ export class StorageService {
    * Safely clear all localStorage with error handling
    */
   clear(): boolean {
+    if (!this.isBrowser) {
+      return false;
+    }
+    
     try {
       localStorage.clear();
       return true;
@@ -60,6 +82,10 @@ export class StorageService {
    * Check if localStorage is available
    */
   isAvailable(): boolean {
+    if (!this.isBrowser) {
+      return false;
+    }
+    
     try {
       const test = '__localStorage_test__';
       localStorage.setItem(test, 'test');

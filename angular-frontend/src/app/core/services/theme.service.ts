@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { StorageService } from '@core/services/storage.service';
 
@@ -10,15 +11,21 @@ export type Theme = 'light' | 'dark';
 export class ThemeService {
   private readonly storageKey = 'dinner-app-theme';
   private readonly themeSubject = new BehaviorSubject<Theme>(this.getInitialTheme());
+  private readonly isBrowser: boolean;
   
   readonly currentTheme$ = this.themeSubject.asObservable();
 
-  constructor(private readonly storage: StorageService) {
+  constructor(
+    private readonly storage: StorageService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+    
     // Apply initial theme on service creation
     this.applyTheme(this.themeSubject.value);
     
-    // Listen for system theme changes
-    if (window.matchMedia) {
+    // Listen for system theme changes (browser only)
+    if (this.isBrowser && typeof window !== 'undefined' && window.matchMedia) {
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
         if (!this.hasStoredTheme()) {
           this.setTheme(e.matches ? 'dark' : 'light');
@@ -53,8 +60,8 @@ export class ThemeService {
       return storedTheme;
     }
 
-    // Fall back to system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    // Fall back to system preference (browser only)
+    if (this.isBrowser && typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return 'dark';
     }
 
@@ -67,6 +74,10 @@ export class ThemeService {
   }
 
   private applyTheme(theme: Theme): void {
+    if (!this.isBrowser || typeof document === 'undefined') {
+      return;
+    }
+    
     const body = document.body;
     const htmlElement = document.documentElement;
     
@@ -84,6 +95,10 @@ export class ThemeService {
   }
 
   private updateMetaThemeColor(theme: Theme): void {
+    if (!this.isBrowser || typeof document === 'undefined') {
+      return;
+    }
+    
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     const color = theme === 'dark' ? '#111827' : '#ffffff';
     

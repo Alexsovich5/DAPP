@@ -218,6 +218,7 @@ import { User } from '../../core/interfaces/auth.interfaces';
           </div>
         </div>
       </div>
+    </div>
     </app-error-boundary>
   `,
   styleUrls: ['./discover.component.scss'],

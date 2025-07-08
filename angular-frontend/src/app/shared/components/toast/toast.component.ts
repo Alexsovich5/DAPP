@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -168,8 +169,14 @@ export class ToastComponent implements OnInit, OnDestroy {
   displayedNotifications: Notification[] = [];
   private subscription?: Subscription;
   private timeouts: Map<string, number> = new Map();
+  private isBrowser: boolean;
 
-  constructor(private notificationService: NotificationService) {}
+  constructor(
+    private notificationService: NotificationService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   ngOnInit(): void {
     this.subscription = this.notificationService.getNotifications().subscribe(notifications => {
@@ -180,17 +187,19 @@ export class ToastComponent implements OnInit, OnDestroy {
       
       this.displayedNotifications = toastNotifications;
       
-      // Auto-hide notifications that have autoHide enabled
-      toastNotifications.forEach(notification => {
-        if (notification.autoHide && !this.timeouts.has(notification.id)) {
-          const timeoutId = window.setTimeout(() => {
-            this.closeToast(notification.id);
-            this.timeouts.delete(notification.id);
-          }, notification.duration || environment.ui.toastDuration);
-          
-          this.timeouts.set(notification.id, timeoutId);
-        }
-      });
+      // Auto-hide notifications that have autoHide enabled (browser only)
+      if (this.isBrowser) {
+        toastNotifications.forEach(notification => {
+          if (notification.autoHide && !this.timeouts.has(notification.id)) {
+            const timeoutId = window.setTimeout(() => {
+              this.closeToast(notification.id);
+              this.timeouts.delete(notification.id);
+            }, notification.duration || environment.ui.toastDuration);
+            
+            this.timeouts.set(notification.id, timeoutId);
+          }
+        });
+      }
     });
   }
 
@@ -199,19 +208,23 @@ export class ToastComponent implements OnInit, OnDestroy {
       this.subscription.unsubscribe();
     }
     
-    // Clear all timeouts
-    this.timeouts.forEach(timeoutId => {
-      clearTimeout(timeoutId);
-    });
-    this.timeouts.clear();
+    // Clear all timeouts (browser only)
+    if (this.isBrowser) {
+      this.timeouts.forEach(timeoutId => {
+        clearTimeout(timeoutId);
+      });
+      this.timeouts.clear();
+    }
   }
 
   closeToast(notificationId: string): void {
-    // Clear timeout if exists
-    const timeoutId = this.timeouts.get(notificationId);
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      this.timeouts.delete(notificationId);
+    // Clear timeout if exists (browser only)
+    if (this.isBrowser) {
+      const timeoutId = this.timeouts.get(notificationId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        this.timeouts.delete(notificationId);
+      }
     }
     
     // Mark as read (removes from display)

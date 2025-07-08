@@ -92,8 +92,8 @@ export class AuthService {
       tap(response => {
         // Registration now returns LoginResponse, so automatically log the user in
         if (response.user && response.access_token) {
-          localStorage.setItem('user', JSON.stringify(response.user));
-          localStorage.setItem('token', response.access_token);
+          this.storage.setJson('user', response.user);
+          this.storage.setItem('token', response.access_token);
           this.currentUserSubject.next(response.user);
         }
       }),
