@@ -1,0 +1,523 @@
+# Dinner1 CI/CD Pipeline
+# Comprehensive continuous integration and deployment for dating platform
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop, staging]
+    tags: ['v*']
+  pull_request:
+    branches: [main, develop]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME_BACKEND: dinner1/backend
+  IMAGE_NAME_FRONTEND: dinner1/frontend
+  
+jobs:
+  # Code Quality and Security Checks
+  quality-checks:
+    runs-on: ubuntu-latest
+    name: Code Quality & Security
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: angular-frontend/package-lock.json
+
+      - name: Install Python dependencies
+        run: |
+          cd python-backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install black flake8 mypy bandit safety
+
+      - name: Install Node dependencies
+        run: |
+          cd angular-frontend
+          npm ci
+
+      - name: Python code formatting check
+        run: |
+          cd python-backend
+          black --check --diff .
+
+      - name: Python linting
+        run: |
+          cd python-backend
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Python type checking
+        run: |
+          cd python-backend
+          mypy . --ignore-missing-imports
+
+      - name: Python security scan
+        run: |
+          cd python-backend
+          bandit -r . -f json -o bandit-report.json || true
+          safety check --json --output safety-report.json || true
+
+      - name: Angular linting
+        run: |
+          cd angular-frontend
+          npm run lint
+
+      - name: Angular type checking
+        run: |
+          cd angular-frontend
+          npx tsc --noEmit
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            python-backend/bandit-report.json
+            python-backend/safety-report.json
+
+  # Backend Testing
+  backend-tests:
+    runs-on: ubuntu-latest
+    name: Backend Tests
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: dinner1_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('python-backend/requirements.txt') }}
+
+      - name: Install dependencies
+        run: |
+          cd python-backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-asyncio
+
+      - name: Set up test environment
+        run: |
+          cd python-backend
+          cp .env.test.example .env.test
+          
+      - name: Run database migrations
+        run: |
+          cd python-backend
+          export DATABASE_URL=postgresql://postgres:test_password@localhost:5432/dinner1_test
+          alembic upgrade head
+
+      - name: Run unit tests
+        run: |
+          cd python-backend
+          pytest tests/ -v --cov=app --cov-report=xml --cov-report=html
+
+      - name: Run integration tests
+        run: |
+          cd python-backend
+          pytest tests/integration/ -v --tb=short
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: python-backend/coverage.xml
+          flags: backend
+          name: backend-coverage
+
+  # Frontend Testing
+  frontend-tests:
+    runs-on: ubuntu-latest
+    name: Frontend Tests
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: angular-frontend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd angular-frontend
+          npm ci
+
+      - name: Run unit tests
+        run: |
+          cd angular-frontend
+          npm run test:ci
+
+      - name: Run e2e tests
+        run: |
+          cd angular-frontend
+          npm run e2e:ci
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: frontend-test-results
+          path: |
+            angular-frontend/coverage/
+            angular-frontend/e2e-results/
+
+  # Security Scanning
+  security-scan:
+    runs-on: ubuntu-latest
+    name: Security Scan
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Docker Scout vulnerability scan
+        if: github.event_name == 'push'
+        run: |
+          echo "Docker Scout scan would run here for container images"
+
+  # Build and Push Images
+  build-images:
+    runs-on: ubuntu-latest
+    name: Build & Push Images
+    needs: [quality-checks, backend-tests, frontend-tests]
+    if: github.event_name == 'push'
+    
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for backend
+        id: backend-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+
+      - name: Extract metadata for frontend
+        id: frontend-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: python-backend
+          file: python-backend/Dockerfile
+          push: true
+          tags: ${{ steps.backend-meta.outputs.tags }}
+          labels: ${{ steps.backend-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: angular-frontend
+          file: angular-frontend/Dockerfile
+          push: true
+          tags: ${{ steps.frontend-meta.outputs.tags }}
+          labels: ${{ steps.frontend-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Deploy to Staging
+  deploy-staging:
+    runs-on: ubuntu-latest
+    name: Deploy to Staging
+    needs: [build-images]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --region us-east-1 --name dinner1-staging
+
+      - name: Deploy to staging
+        run: |
+          # Update image tags in deployment files
+          sed -i "s|IMAGE_TAG|${{ github.sha }}|g" k8s/staging/
+          
+          # Apply Kubernetes manifests
+          kubectl apply -f k8s/staging/
+
+      - name: Wait for deployment
+        run: |
+          kubectl rollout status deployment/dinner1-backend -n dinner1-staging --timeout=600s
+          kubectl rollout status deployment/dinner1-frontend -n dinner1-staging --timeout=600s
+
+      - name: Run smoke tests
+        run: |
+          # Wait for services to be ready
+          sleep 30
+          
+          # Run basic health checks
+          curl -f https://staging-api.dinner1.com/health
+          curl -f https://staging.dinner1.com/health
+
+      - name: Notify team
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          message: "Staging deployment: ${{ job.status }}"
+
+  # Deploy to Production
+  deploy-production:
+    runs-on: ubuntu-latest
+    name: Deploy to Production
+    needs: [build-images]
+    if: github.ref == 'refs/heads/main' && startsWith(github.ref, 'refs/tags/v')
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+          aws-region: us-east-1
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --region us-east-1 --name dinner1-production
+
+      - name: Database backup before deployment
+        run: |
+          # Create database backup before deployment
+          kubectl create job --from=cronjob/database-backup manual-backup-$(date +%Y%m%d-%H%M%S) -n dinner1-production
+
+      - name: Blue-green deployment
+        run: |
+          # Implement blue-green deployment strategy
+          ./scripts/blue-green-deploy.sh ${{ github.sha }}
+
+      - name: Run production health checks
+        run: |
+          # Comprehensive health checks
+          ./scripts/production-health-check.sh
+
+      - name: Update monitoring alerts
+        run: |
+          # Update Prometheus alert rules if needed
+          kubectl apply -f monitoring/alert-rules.yml
+
+      - name: Create deployment record
+        run: |
+          # Record deployment in monitoring system
+          curl -X POST https://api.dinner1.com/api/v1/deployments \
+            -H "Authorization: Bearer ${{ secrets.DEPLOYMENT_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"version": "${{ github.ref_name }}", "commit": "${{ github.sha }}", "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+
+      - name: Notify team
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          message: "Production deployment: ${{ job.status }} - Version: ${{ github.ref_name }}"
+
+  # Performance Testing
+  performance-tests:
+    runs-on: ubuntu-latest
+    name: Performance Tests
+    needs: [deploy-staging]
+    if: github.ref == 'refs/heads/develop'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Run load tests
+        run: |
+          cd performance-tests
+          k6 run --out json=results.json load-test.js
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results
+          path: performance-tests/results.json
+
+  # Rollback capability
+  rollback:
+    runs-on: ubuntu-latest
+    name: Rollback Production
+    if: github.event_name == 'workflow_dispatch'
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+          aws-region: us-east-1
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --region us-east-1 --name dinner1-production
+
+      - name: Rollback deployment
+        run: |
+          kubectl rollout undo deployment/dinner1-backend -n dinner1-production
+          kubectl rollout undo deployment/dinner1-frontend -n dinner1-production
+
+      - name: Wait for rollback
+        run: |
+          kubectl rollout status deployment/dinner1-backend -n dinner1-production --timeout=600s
+          kubectl rollout status deployment/dinner1-frontend -n dinner1-production --timeout=600s
+
+      - name: Verify rollback
+        run: |
+          ./scripts/production-health-check.sh
+
+      - name: Notify team
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          message: "Production rollback completed: ${{ job.status }}"

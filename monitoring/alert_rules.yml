@@ -1,0 +1,326 @@
+# Prometheus Alert Rules for Dinner1
+# Comprehensive alerting for dating platform monitoring
+
+groups:
+  # Application Health Alerts
+  - name: dinner1.application
+    rules:
+      - alert: ApplicationDown
+        expr: up{job="dinner1-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: backend
+        annotations:
+          summary: "Dinner1 backend application is down"
+          description: "The Dinner1 backend application has been down for more than 1 minute"
+          runbook_url: "https://docs.dinner1.com/runbooks/application-down"
+
+      - alert: HighErrorRate
+        expr: rate(dinner1_errors_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes"
+          runbook_url: "https://docs.dinner1.com/runbooks/high-error-rate"
+
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(dinner1_request_duration_seconds_bucket[5m])) > 2
+        for: 3m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}s over the last 5 minutes"
+          runbook_url: "https://docs.dinner1.com/runbooks/high-response-time"
+
+      - alert: LowActiveUsers
+        expr: dinner1_active_users < 10
+        for: 5m
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "Low number of active users"
+          description: "Only {{ $value }} active users detected, which is below normal levels"
+
+  # Database Alerts
+  - name: dinner1.database
+    rules:
+      - alert: DatabaseDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "The PostgreSQL database has been unreachable for more than 1 minute"
+          runbook_url: "https://docs.dinner1.com/runbooks/database-down"
+
+      - alert: DatabaseHighConnections
+        expr: pg_stat_database_numbackends / pg_settings_max_connections * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "High database connection usage"
+          description: "Database connection usage is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.dinner1.com/runbooks/high-db-connections"
+
+      - alert: DatabaseSlowQueries
+        expr: rate(pg_stat_database_tup_fetched[5m]) / rate(pg_stat_database_tup_returned[5m]) < 0.1
+        for: 10m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "Database slow queries detected"
+          description: "Query efficiency is {{ $value | humanizePercentage }}"
+
+      - alert: DatabaseDiskSpace
+        expr: (node_filesystem_size_bytes{mountpoint="/var/lib/postgresql"} - node_filesystem_free_bytes{mountpoint="/var/lib/postgresql"}) / node_filesystem_size_bytes{mountpoint="/var/lib/postgresql"} * 100 > 85
+        for: 2m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "Database disk space running low"
+          description: "Database disk usage is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.dinner1.com/runbooks/disk-space-low"
+
+  # Redis Alerts
+  - name: dinner1.redis
+    rules:
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: cache
+        annotations:
+          summary: "Redis cache is down"
+          description: "Redis has been unreachable for more than 1 minute"
+          runbook_url: "https://docs.dinner1.com/runbooks/redis-down"
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          service: cache
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.dinner1.com/runbooks/redis-memory-high"
+
+      - alert: RedisHighConnections
+        expr: redis_connected_clients > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: cache
+        annotations:
+          summary: "High number of Redis connections"
+          description: "Redis has {{ $value }} connected clients"
+
+  # System Resource Alerts
+  - name: dinner1.system
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.dinner1.com/runbooks/high-cpu"
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.dinner1.com/runbooks/high-memory"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes * 100 > 85
+        for: 2m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "Disk space running low"
+          description: "Disk usage is {{ $value | humanizePercentage }} on {{ $labels.instance }} ({{ $labels.mountpoint }})"
+          runbook_url: "https://docs.dinner1.com/runbooks/disk-space-low"
+
+      - alert: HighDiskIOWait
+        expr: irate(node_cpu_seconds_total{mode="iowait"}[5m]) * 100 > 20
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High disk I/O wait time"
+          description: "I/O wait time is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+  # Network and External Services
+  - name: dinner1.external
+    rules:
+      - alert: WebsiteDown
+        expr: probe_success{job="blackbox"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: website
+        annotations:
+          summary: "Website is unreachable"
+          description: "{{ $labels.instance }} is unreachable from external monitoring"
+          runbook_url: "https://docs.dinner1.com/runbooks/website-down"
+
+      - alert: SSLCertificateExpiry
+        expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 30
+        for: 1h
+        labels:
+          severity: warning
+          service: ssl
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value }} days"
+          runbook_url: "https://docs.dinner1.com/runbooks/ssl-expiry"
+
+      - alert: HighNetworkLatency
+        expr: probe_http_duration_seconds{phase="connect"} > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: network
+        annotations:
+          summary: "High network latency detected"
+          description: "Connection time to {{ $labels.instance }} is {{ $value }}s"
+
+  # Business Logic Alerts
+  - name: dinner1.business
+    rules:
+      - alert: HighUserReports
+        expr: rate(dinner1_user_reports_total[1h]) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          service: safety
+        annotations:
+          summary: "High number of user reports"
+          description: "User report rate is {{ $value }} per hour, which is above normal"
+          runbook_url: "https://docs.dinner1.com/runbooks/high-user-reports"
+
+      - alert: LowMatchSuccessRate
+        expr: dinner1_match_success_rate < 0.15
+        for: 30m
+        labels:
+          severity: warning
+          service: matching
+        annotations:
+          summary: "Low match success rate"
+          description: "Match success rate is {{ $value | humanizePercentage }}, below normal levels"
+          runbook_url: "https://docs.dinner1.com/runbooks/low-match-rate"
+
+      - alert: HighContentModerationActions
+        expr: rate(dinner1_content_moderation_actions_total[1h]) > 10
+        for: 15m
+        labels:
+          severity: warning
+          service: moderation
+        annotations:
+          summary: "High content moderation activity"
+          description: "Content moderation actions per hour: {{ $value }}"
+          runbook_url: "https://docs.dinner1.com/runbooks/high-moderation"
+
+      - alert: MessageDeliveryFailure
+        expr: rate(dinner1_message_delivery_failures_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          service: messaging
+        annotations:
+          summary: "High message delivery failure rate"
+          description: "Message delivery failure rate: {{ $value | humanizePercentage }}"
+
+      - alert: PhotoUploadFailures
+        expr: rate(dinner1_photo_upload_failures_total[5m]) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+          service: uploads
+        annotations:
+          summary: "High photo upload failure rate"
+          description: "Photo upload failure rate: {{ $value | humanizePercentage }}"
+
+  # Security Alerts
+  - name: dinner1.security
+    rules:
+      - alert: HighLoginFailures
+        expr: rate(dinner1_login_failures_total[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "High login failure rate detected"
+          description: "Login failure rate: {{ $value }} per minute"
+          runbook_url: "https://docs.dinner1.com/runbooks/high-login-failures"
+
+      - alert: SuspiciousActivity
+        expr: dinner1_suspicious_activity_score > 0.8
+        for: 1m
+        labels:
+          severity: critical
+          service: security
+        annotations:
+          summary: "Suspicious activity detected"
+          description: "Suspicious activity score: {{ $value }}"
+          runbook_url: "https://docs.dinner1.com/runbooks/suspicious-activity"
+
+      - alert: RateLimitingTriggered
+        expr: rate(dinner1_rate_limit_exceeded_total[1m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "High rate limiting activity"
+          description: "Rate limiting triggered {{ $value }} times per minute"
+
+  # Privacy and Compliance
+  - name: dinner1.privacy
+    rules:
+      - alert: HighDataExportRequests
+        expr: rate(dinner1_data_export_requests_total[1h]) > 5
+        for: 30m
+        labels:
+          severity: info
+          service: privacy
+        annotations:
+          summary: "High number of data export requests"
+          description: "{{ $value }} data export requests per hour"
+
+      - alert: FailedDataDeletion
+        expr: rate(dinner1_data_deletion_failures_total[1h]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          service: privacy
+        annotations:
+          summary: "Data deletion failures detected"
+          description: "{{ $value }} data deletion failures per hour"
+          runbook_url: "https://docs.dinner1.com/runbooks/data-deletion-failure"
