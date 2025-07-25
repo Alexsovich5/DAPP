@@ -1,0 +1,161 @@
+{
+  "name": "Dinner1: Soul Before Skin",
+  "short_name": "Dinner1",
+  "description": "Revolutionary dating platform that prioritizes emotional connection through progressive revelation before physical attraction",
+  "theme_color": "#6366f1",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "orientation": "portrait-primary",
+  "lang": "en-US",
+  "categories": ["lifestyle", "social", "dating"],
+  "icons": [
+    {
+      "src": "assets/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Discover Connections",
+      "short_name": "Discover",
+      "description": "Find new soul connections",
+      "url": "/discover",
+      "icons": [
+        {
+          "src": "assets/icons/shortcut-discover.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "short_name": "Messages",
+      "description": "View your conversations",
+      "url": "/messages",
+      "icons": [
+        {
+          "src": "assets/icons/shortcut-messages.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Revelations",
+      "short_name": "Revelations",
+      "description": "Share daily revelations",
+      "url": "/revelations",
+      "icons": [
+        {
+          "src": "assets/icons/shortcut-revelations.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "assets/screenshots/mobile-discover.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Soul discovery interface"
+    },
+    {
+      "src": "assets/screenshots/mobile-chat.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Progressive revelation chat"
+    },
+    {
+      "src": "assets/screenshots/desktop-overview.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Desktop dashboard overview"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.dinner1.app",
+      "id": "com.dinner1.app"
+    },
+    {
+      "platform": "itunes",
+      "url": "https://apps.apple.com/app/dinner1-soul-before-skin/id123456789"
+    }
+  ],
+  "prefer_related_applications": false,
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "photos",
+          "accept": ["image/*"]
+        }
+      ]
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+dinner1",
+      "url": "/connect?id=%s"
+    }
+  ],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}
