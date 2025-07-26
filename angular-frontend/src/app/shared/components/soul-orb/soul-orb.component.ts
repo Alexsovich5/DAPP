@@ -6,8 +6,18 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="soul-orb-container" [ngClass]="[size, type, state]">
-      <svg class="soul-orb-svg" [attr.width]="svgSize" [attr.height]="svgSize" viewBox="0 0 120 120">
+    <div 
+      class="soul-orb-container" 
+      [ngClass]="[size, type, state]"
+      role="img"
+      [attr.aria-label]="getSoulOrbAriaLabel()"
+      [attr.aria-describedby]="ariaDescribedBy">
+      <svg 
+        class="soul-orb-svg" 
+        [attr.width]="svgSize" 
+        [attr.height]="svgSize" 
+        viewBox="0 0 120 120"
+        aria-hidden="true">
         <!-- Outer aura glow -->
         <defs>
           <radialGradient [id]="'aura-gradient-' + orbId" cx="50%" cy="50%" r="50%">
@@ -100,9 +110,18 @@ import { CommonModule } from '@angular/common';
       </svg>
 
       <!-- Compatibility percentage overlay -->
-      <div class="compatibility-display" *ngIf="showCompatibility && compatibilityScore > 0">
-        <span class="compatibility-text">{{compatibilityScore}}%</span>
-        <span class="compatibility-label">Soul Match</span>
+      <div 
+        class="compatibility-display" 
+        *ngIf="showCompatibility && compatibilityScore > 0"
+        role="status"
+        [attr.aria-label]="getCompatibilityAriaLabel()"
+        aria-live="polite">
+        <span 
+          class="compatibility-text"
+          aria-hidden="true">{{compatibilityScore}}%</span>
+        <span 
+          class="compatibility-label"
+          aria-hidden="true">Soul Match</span>
       </div>
     </div>
   `,
@@ -282,6 +301,10 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
   @Input() showCompatibility: boolean = false;
   @Input() showParticles: boolean = true;
   @Input() showSparkles: boolean = true;
+  
+  // Accessibility inputs
+  @Input() ariaLabel?: string;
+  @Input() ariaDescribedBy?: string;
 
   orbId: string = Math.random().toString(36).substr(2, 9);
   particles: any[] = [];
@@ -440,5 +463,35 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
 
   trackSparkle(index: number, sparkle: any): any {
     return sparkle.id;
+  }
+
+  getSoulOrbAriaLabel(): string {
+    if (this.ariaLabel) {
+      return this.ariaLabel;
+    }
+
+    const typeLabels = {
+      primary: 'Soul energy orb',
+      secondary: 'Connection energy orb', 
+      neutral: 'Energy orb'
+    };
+
+    const stateLabels = {
+      active: 'actively pulsing',
+      connecting: 'connecting with another soul',
+      matched: 'celebrating a soul connection',
+      dormant: 'in peaceful dormant state'
+    };
+
+    const energyLabel = this.energyLevel > 0 ? ` with energy level ${this.energyLevel} out of 5` : '';
+    const compatibilityLabel = this.showCompatibility && this.compatibilityScore > 0 
+      ? ` showing ${this.compatibilityScore}% soul compatibility match` 
+      : '';
+
+    return `${typeLabels[this.type]} ${stateLabels[this.state]}${energyLabel}${compatibilityLabel}`;
+  }
+
+  getCompatibilityAriaLabel(): string {
+    return `Soul compatibility match: ${this.compatibilityScore} percent`;
   }
 }

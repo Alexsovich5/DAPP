@@ -7,12 +7,25 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
   standalone: true,
   imports: [CommonModule, SoulOrbComponent],
   template: `
-    <div class="empty-state-container" [ngClass]="[theme, size]">
+    <div 
+      class="empty-state-container" 
+      [ngClass]="[theme, size]"
+      role="region"
+      [attr.aria-label]="getAriaLabel()"
+      [attr.aria-describedby]="descriptionId">
       
       <!-- Animated illustration -->
-      <div class="empty-state-illustration">
+      <div 
+        class="empty-state-illustration"
+        role="img"
+        [attr.aria-label]="getIllustrationAriaLabel()"
+        aria-hidden="false">
         <!-- Soul orb animation for some states -->
-        <div *ngIf="showSoulOrb" class="soul-orb-display">
+        <div 
+          *ngIf="showSoulOrb" 
+          class="soul-orb-display"
+          role="img"
+          aria-label="Soul energy visualization">
           <app-soul-orb
             [type]="soulOrbType"
             [size]="soulOrbSize"
@@ -24,8 +37,17 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
         </div>
 
         <!-- SVG illustrations for different states -->
-        <div *ngIf="illustration" class="svg-illustration">
-          <svg [attr.width]="illustrationSize" [attr.height]="illustrationSize" viewBox="0 0 200 200">
+        <div 
+          *ngIf="illustration" 
+          class="svg-illustration"
+          role="img"
+          [attr.aria-label]="getIllustrationAriaLabel()">
+          <svg 
+            [attr.width]="illustrationSize" 
+            [attr.height]="illustrationSize" 
+            viewBox="0 0 200 200"
+            role="img"
+            [attr.aria-label]="getIllustrationAriaLabel()">
             
             <!-- Discovery illustration -->
             <g *ngIf="illustration === 'discovery'">
@@ -38,7 +60,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
               <circle cx="100" cy="100" r="80" fill="url(#search-gradient)" class="search-pulse"/>
               <circle cx="100" cy="100" r="40" fill="#ffffff" stroke="#ff6b9d" stroke-width="3"/>
               <path d="M 120 120 L 140 140" stroke="#ff6b9d" stroke-width="4" stroke-linecap="round" class="search-handle"/>
-              <text x="100" y="106" text-anchor="middle" font-size="24" fill="#ff6b9d">🔍</text>
+              <text x="100" y="106" text-anchor="middle" font-size="24" fill="#ff6b9d" aria-hidden="true">🔍</text>
             </g>
 
             <!-- Conversations illustration -->
@@ -54,7 +76,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
               <line x1="80" y1="60" x2="160" y2="60" stroke="#60a5fa" stroke-width="2"/>
               <line x1="80" y1="80" x2="140" y2="80" stroke="#60a5fa" stroke-width="2"/>
               <line x1="80" y1="100" x2="120" y2="100" stroke="#60a5fa" stroke-width="2"/>
-              <text x="190" y="50" text-anchor="middle" font-size="16" fill="#34d399">💬</text>
+              <text x="190" y="50" text-anchor="middle" font-size="16" fill="#34d399" aria-hidden="true">💬</text>
             </g>
 
             <!-- Revelations illustration -->
@@ -69,7 +91,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
               <circle cx="100" cy="100" r="90" fill="url(#revelation-gradient)" class="revelation-glow"/>
               <path d="M 100 40 L 110 70 L 140 70 L 118 90 L 128 120 L 100 105 L 72 120 L 82 90 L 60 70 L 90 70 Z" 
                     fill="#ffd700" stroke="#ffffff" stroke-width="2" class="star-sparkle"/>
-              <text x="100" y="170" text-anchor="middle" font-size="20" fill="#c084fc">✨</text>
+              <text x="100" y="170" text-anchor="middle" font-size="20" fill="#c084fc" aria-hidden="true">✨</text>
             </g>
 
             <!-- Profile illustration -->
@@ -83,7 +105,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
               <circle cx="100" cy="80" r="35" fill="url(#profile-gradient)" opacity="0.8"/>
               <path d="M 60 140 Q 100 120 140 140 L 140 180 L 60 180 Z" fill="url(#profile-gradient)" opacity="0.8"/>
               <circle cx="100" cy="80" r="30" fill="#ffffff" stroke="#ec4899" stroke-width="3"/>
-              <text x="100" y="88" text-anchor="middle" font-size="24" fill="#ec4899">👤</text>
+              <text x="100" y="88" text-anchor="middle" font-size="24" fill="#ec4899" aria-hidden="true">👤</text>
             </g>
 
           </svg>
@@ -97,45 +119,115 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 
       <!-- Content -->
       <div class="empty-state-content">
-        <h2 class="empty-state-title">{{title}}</h2>
-        <p class="empty-state-description">{{description}}</p>
+        <h2 
+          class="empty-state-title"
+          [id]="titleId">
+          {{title}}
+        </h2>
+        <p 
+          class="empty-state-description"
+          [id]="descriptionId">
+          {{description}}
+        </p>
         
         <!-- Tips or additional info -->
-        <div *ngIf="tips?.length" class="empty-state-tips">
-          <h3 class="tips-title">{{tipsTitle || 'Tips to get started:'}}</h3>
-          <ul class="tips-list">
-            <li *ngFor="let tip of tips; trackBy: trackTip" class="tip-item">
-              <span class="tip-icon">{{tip.icon || '💡'}}</span>
+        <div 
+          *ngIf="tips?.length" 
+          class="empty-state-tips"
+          role="region"
+          [attr.aria-labelledby]="tipsHeaderId">
+          <h3 
+            class="tips-title"
+            [id]="tipsHeaderId">
+            {{tipsTitle || 'Tips to get started:'}}
+          </h3>
+          <ul 
+            class="tips-list"
+            role="list"
+            [attr.aria-describedby]="tipsHeaderId">
+            <li 
+              *ngFor="let tip of tips; trackBy: trackTip; let i = index" 
+              class="tip-item"
+              role="listitem"
+              [attr.aria-label]="getTipAriaLabel(tip, i)">
+              <span 
+                class="tip-icon" 
+                aria-hidden="true">
+                {{tip.icon || '💡'}}
+              </span>
               <span class="tip-text">{{tip.text}}</span>
             </li>
           </ul>
         </div>
 
         <!-- Progress indicator -->
-        <div *ngIf="showProgress" class="progress-section">
-          <div class="progress-bar">
-            <div class="progress-fill" [style.width.%]="progressValue"></div>
+        <div 
+          *ngIf="showProgress" 
+          class="progress-section"
+          role="region"
+          aria-label="Progress information">
+          <div 
+            class="progress-bar"
+            role="progressbar"
+            [attr.aria-valuenow]="progressValue"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            [attr.aria-valuetext]="getProgressAriaText()">
+            <div 
+              class="progress-fill" 
+              [style.width.%]="progressValue"
+              aria-hidden="true">
+            </div>
           </div>
-          <p class="progress-text">{{progressText}}</p>
+          <p 
+            class="progress-text"
+            [id]="progressTextId"
+            aria-live="polite">
+            {{progressText}}
+          </p>
         </div>
 
         <!-- Action buttons -->
-        <div class="empty-state-actions" *ngIf="primaryAction || secondaryAction">
+        <div 
+          class="empty-state-actions" 
+          *ngIf="primaryAction || secondaryAction"
+          role="group"
+          aria-label="Available actions">
           <button 
             *ngIf="primaryAction"
+            type="button"
             class="action-btn primary"
+            [attr.aria-describedby]="primaryAction.description ? primaryActionDescId : null"
+            [attr.aria-label]="getPrimaryActionAriaLabel()"
             (click)="onPrimaryAction()"
+            (keydown.enter)="onPrimaryAction()"
+            (keydown.space)="onPrimaryAction(); $event.preventDefault()"
             [disabled]="primaryActionDisabled">
-            <span *ngIf="primaryAction.icon" class="btn-icon">{{primaryAction.icon}}</span>
+            <span 
+              *ngIf="primaryAction.icon" 
+              class="btn-icon"
+              aria-hidden="true">
+              {{primaryAction.icon}}
+            </span>
             <span class="btn-text">{{primaryAction.text}}</span>
           </button>
           
           <button 
             *ngIf="secondaryAction"
+            type="button"
             class="action-btn secondary"
+            [attr.aria-describedby]="secondaryAction.description ? secondaryActionDescId : null"
+            [attr.aria-label]="getSecondaryActionAriaLabel()"
             (click)="onSecondaryAction()"
+            (keydown.enter)="onSecondaryAction()"
+            (keydown.space)="onSecondaryAction(); $event.preventDefault()"
             [disabled]="secondaryActionDisabled">
-            <span *ngIf="secondaryAction.icon" class="btn-icon">{{secondaryAction.icon}}</span>
+            <span 
+              *ngIf="secondaryAction.icon" 
+              class="btn-icon"
+              aria-hidden="true">
+              {{secondaryAction.icon}}
+            </span>
             <span class="btn-text">{{secondaryAction.text}}</span>
           </button>
         </div>
@@ -475,6 +567,10 @@ export class EmptyStateComponent {
   @Input() title: string = 'Nothing here yet';
   @Input() description: string = 'Content will appear here when available.';
   
+  // Accessibility inputs
+  @Input() ariaLabel?: string;
+  @Input() headingLevel: 2 | 3 | 4 = 2;
+  
   // Illustration options
   @Input() illustration?: 'discovery' | 'conversations' | 'revelations' | 'profile';
   @Input() customIcon?: string;
@@ -499,17 +595,55 @@ export class EmptyStateComponent {
   @Input() progressText: string = '';
   
   // Actions
-  @Input() primaryAction?: {text: string, icon?: string};
-  @Input() secondaryAction?: {text: string, icon?: string};
+  @Input() primaryAction?: {text: string, icon?: string, ariaLabel?: string, description?: string};
+  @Input() secondaryAction?: {text: string, icon?: string, ariaLabel?: string, description?: string};
   @Input() primaryActionDisabled: boolean = false;
   @Input() secondaryActionDisabled: boolean = false;
   
   @Output() primaryActionClick = new EventEmitter<void>();
   @Output() secondaryActionClick = new EventEmitter<void>();
 
+  // Generated IDs for accessibility
+  readonly titleId = this.generateId('title');
+  readonly descriptionId = this.generateId('description');
+  readonly tipsHeaderId = this.generateId('tips-header');
+  readonly progressTextId = this.generateId('progress-text');
+  readonly primaryActionDescId = this.generateId('primary-action-desc');
+  readonly secondaryActionDescId = this.generateId('secondary-action-desc');
+
   get illustrationSize(): number {
     const sizes = { small: 120, medium: 160, large: 200 };
     return sizes[this.size];
+  }
+
+  getAriaLabel(): string {
+    return this.ariaLabel || `${this.title} - ${this.theme} empty state`;
+  }
+
+  getIllustrationAriaLabel(): string {
+    const labels = {
+      discovery: 'Search icon with magnifying glass indicating discovery of soul connections',
+      conversations: 'Message bubbles indicating conversation and communication',
+      revelations: 'Sparkling star indicating revelations and soul sharing',
+      profile: 'User profile icon indicating personal profile information'
+    };
+    return this.illustration ? labels[this.illustration] : 'Decorative illustration';
+  }
+
+  getTipAriaLabel(tip: any, index: number): string {
+    return `Tip ${index + 1}: ${tip.text}`;
+  }
+
+  getProgressAriaText(): string {
+    return `${this.progressValue} percent complete. ${this.progressText}`;
+  }
+
+  getPrimaryActionAriaLabel(): string {
+    return this.primaryAction?.ariaLabel || this.primaryAction?.text || 'Primary action';
+  }
+
+  getSecondaryActionAriaLabel(): string {
+    return this.secondaryAction?.ariaLabel || this.secondaryAction?.text || 'Secondary action';
   }
 
   onPrimaryAction() {
@@ -522,5 +656,9 @@ export class EmptyStateComponent {
 
   trackTip(index: number, tip: any): string {
     return tip.text;
+  }
+
+  private generateId(prefix: string): string {
+    return `${prefix}-${Math.random().toString(36).substr(2, 9)}`;
   }
 }

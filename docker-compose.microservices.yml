@@ -1,0 +1,592 @@
+# Microservices Architecture for Dinner First Dating Platform
+# Phase 5: Advanced Features & Scale
+
+version: '3.8'
+
+services:
+  # API Gateway (Nginx)
+  api-gateway:
+    image: nginx:alpine
+    container_name: dinner-first-gateway
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./microservices/gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./microservices/gateway/ssl:/etc/ssl:ro
+      - ./logs/gateway:/var/log/nginx
+    depends_on:
+      - auth-service
+      - matching-service
+      - messaging-service
+      - notification-service
+      - safety-service
+      - analytics-service
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Authentication Service
+  auth-service:
+    build: 
+      context: ./microservices/auth
+      dockerfile: Dockerfile
+    container_name: dinner-first-auth
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres-auth:5432/dinner_first_auth
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - REFRESH_TOKEN_EXPIRE_DAYS=7
+      - REDIS_URL=redis://redis:6379/0
+      - CORS_ORIGINS=http://localhost:4200,http://localhost:5001
+      - SERVICE_NAME=auth-service
+      - SERVICE_VERSION=1.0.0
+      - LOG_LEVEL=INFO
+    ports:
+      - "8001:8000"
+    depends_on:
+      - postgres-auth
+      - redis
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./logs/auth:/app/logs
+
+  # AI Matching Service
+  matching-service:
+    build: 
+      context: ./microservices/matching
+      dockerfile: Dockerfile
+    container_name: dinner-first-matching
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres-matching:5432/dinner_first_matching
+      - ML_MODEL_PATH=/app/models
+      - REDIS_URL=redis://redis:6379/1
+      - AUTH_SERVICE_URL=http://auth-service:8000
+      - HUGGINGFACE_CACHE_DIR=/app/cache
+      - SERVICE_NAME=matching-service
+      - SERVICE_VERSION=1.0.0
+      - LOG_LEVEL=INFO
+      - AI_MODELS_ENABLED=true
+      - PRIVACY_MODE=true
+    ports:
+      - "8002:8000"
+    volumes:
+      - ./ml-models:/app/models:ro
+      - ./cache/huggingface:/app/cache
+      - ./logs/matching:/app/logs
+    depends_on:
+      - postgres-matching
+      - redis
+      - auth-service
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 60s
+      timeout: 20s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+  # Messaging Service
+  messaging-service:
+    build: 
+      context: ./microservices/messaging
+      dockerfile: Dockerfile
+    container_name: dinner-first-messaging
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres-messaging:5432/dinner_first_messaging
+      - WEBSOCKET_REDIS_URL=redis://redis:6379/2
+      - AUTH_SERVICE_URL=http://auth-service:8000
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8000
+      - SAFETY_SERVICE_URL=http://safety-service:8000
+      - MESSAGE_ENCRYPTION_KEY=${MESSAGE_ENCRYPTION_KEY}
+      - SERVICE_NAME=messaging-service
+      - SERVICE_VERSION=1.0.0
+      - LOG_LEVEL=INFO
+    ports:
+      - "8003:8000"
+    depends_on:
+      - postgres-messaging
+      - redis
+      - auth-service
+      - safety-service
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./logs/messaging:/app/logs
+
+  # Notification Service
+  notification-service:
+    build: 
+      context: ./microservices/notifications
+      dockerfile: Dockerfile
+    container_name: dinner-first-notifications
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres-notifications:5432/dinner_first_notifications
+      - PUSH_SERVICE_KEY=${PUSH_SERVICE_KEY}
+      - EMAIL_SERVICE_URL=${EMAIL_SERVICE_URL}
+      - EMAIL_API_KEY=${EMAIL_API_KEY}
+      - SMS_SERVICE_URL=${SMS_SERVICE_URL}
+      - SMS_API_KEY=${SMS_API_KEY}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+      - VAPID_SUBJECT=mailto:admin@dinner-first.app
+      - AUTH_SERVICE_URL=http://auth-service:8000
+      - SERVICE_NAME=notification-service
+      - SERVICE_VERSION=1.0.0
+      - LOG_LEVEL=INFO
+    ports:
+      - "8004:8000"
+    depends_on:
+      - postgres-notifications
+      - auth-service
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./logs/notifications:/app/logs
+
+  # User Safety Service
+  safety-service:
+    build: 
+      context: ./microservices/safety
+      dockerfile: Dockerfile
+    container_name: dinner-first-safety
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres-safety:5432/dinner_first_safety
+      - ML_MODERATION_ENDPOINT=${ML_MODERATION_ENDPOINT}
+      - CONTENT_MODERATION_API_KEY=${CONTENT_MODERATION_API_KEY}
+      - AUTH_SERVICE_URL=http://auth-service:8000
+      - ANALYTICS_SERVICE_URL=http://analytics-service:8000
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - SERVICE_NAME=safety-service
+      - SERVICE_VERSION=1.0.0
+      - LOG_LEVEL=INFO
+      - ENABLE_AUTO_MODERATION=true
+      - ENABLE_HUMAN_REVIEW=true
+    ports:
+      - "8005:8000"
+    depends_on:
+      - postgres-safety
+      - auth-service
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./logs/safety:/app/logs
+
+  # Analytics Service
+  analytics-service:
+    build: 
+      context: ./microservices/analytics
+      dockerfile: Dockerfile
+    container_name: dinner-first-analytics
+    environment:
+      - CLICKHOUSE_URL=http://clickhouse:8123
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+      - CLICKHOUSE_DATABASE=dinner_first_analytics
+      - REDIS_URL=redis://redis:6379/3
+      - AUTH_SERVICE_URL=http://auth-service:8000
+      - PROMETHEUS_GATEWAY=${PROMETHEUS_GATEWAY}
+      - SERVICE_NAME=analytics-service
+      - SERVICE_VERSION=1.0.0
+      - LOG_LEVEL=INFO
+      - ENABLE_REAL_TIME_ANALYTICS=true
+    ports:
+      - "8006:8000"
+    depends_on:
+      - clickhouse
+      - redis
+      - auth-service
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./logs/analytics:/app/logs
+
+  # User Profile Service
+  profile-service:
+    build: 
+      context: ./microservices/profiles
+      dockerfile: Dockerfile
+    container_name: dinner-first-profiles
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres-profiles:5432/dinner_first_profiles
+      - AUTH_SERVICE_URL=http://auth-service:8000
+      - MATCHING_SERVICE_URL=http://matching-service:8000
+      - SAFETY_SERVICE_URL=http://safety-service:8000
+      - PHOTO_STORAGE_URL=${PHOTO_STORAGE_URL}
+      - PHOTO_ENCRYPTION_KEY=${PHOTO_ENCRYPTION_KEY}
+      - SERVICE_NAME=profile-service
+      - SERVICE_VERSION=1.0.0
+      - LOG_LEVEL=INFO
+    ports:
+      - "8007:8000"
+    depends_on:
+      - postgres-profiles
+      - auth-service
+      - safety-service
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - dinner_first_uploads:/app/uploads
+      - ./logs/profiles:/app/logs
+
+  # Databases
+  postgres-auth:
+    image: postgres:15-alpine
+    container_name: dinner-first-postgres-auth
+    environment:
+      POSTGRES_DB: dinner_first_auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data
+      - ./microservices/auth/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dinner_first_auth"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres-matching:
+    image: postgres:15-alpine
+    container_name: dinner-first-postgres-matching
+    environment:
+      POSTGRES_DB: dinner_first_matching
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_matching_data:/var/lib/postgresql/data
+      - ./microservices/matching/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dinner_first_matching"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres-messaging:
+    image: postgres:15-alpine
+    container_name: dinner-first-postgres-messaging
+    environment:
+      POSTGRES_DB: dinner_first_messaging
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_messaging_data:/var/lib/postgresql/data
+      - ./microservices/messaging/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dinner_first_messaging"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres-notifications:
+    image: postgres:15-alpine
+    container_name: dinner-first-postgres-notifications
+    environment:
+      POSTGRES_DB: dinner_first_notifications
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_notifications_data:/var/lib/postgresql/data
+      - ./microservices/notifications/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dinner_first_notifications"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres-safety:
+    image: postgres:15-alpine
+    container_name: dinner-first-postgres-safety
+    environment:
+      POSTGRES_DB: dinner_first_safety
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_safety_data:/var/lib/postgresql/data
+      - ./microservices/safety/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dinner_first_safety"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres-profiles:
+    image: postgres:15-alpine
+    container_name: dinner-first-postgres-profiles
+    environment:
+      POSTGRES_DB: dinner_first_profiles
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_profiles_data:/var/lib/postgresql/data
+      - ./microservices/profiles/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dinner_first_profiles"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Caching and Message Queue
+  redis:
+    image: redis:7-alpine
+    container_name: dinner-first-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./microservices/redis/redis.conf:/etc/redis/redis.conf:ro
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Analytics Database
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: dinner-first-clickhouse
+    environment:
+      CLICKHOUSE_DB: dinner_first_analytics
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./microservices/clickhouse/config.xml:/etc/clickhouse-server/config.xml:ro
+      - ./microservices/clickhouse/users.xml:/etc/clickhouse-server/users.xml:ro
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8123/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Message Queue
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: dinner-first-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: dinner_first
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Service Discovery (Consul)
+  consul:
+    image: consul:1.15
+    container_name: dinner-first-consul
+    command: consul agent -dev -ui -client=0.0.0.0 -log-level=INFO
+    ports:
+      - "8500:8500"
+    volumes:
+      - consul_data:/consul/data
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "consul", "kv", "get", "consul"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: dinner-first-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus-microservices.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    depends_on:
+      - auth-service
+      - matching-service
+      - messaging-service
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: dinner-first-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  # Log Aggregation
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: dinner-first-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: dinner-first-logstash
+    volumes:
+      - ./monitoring/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./logs:/usr/share/logstash/logs:ro
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: dinner-first-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - dinner-first-network
+    restart: unless-stopped
+    depends_on:
+      - elasticsearch
+
+# Networks
+networks:
+  dinner-first-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Volumes
+volumes:
+  postgres_auth_data:
+  postgres_matching_data:
+  postgres_messaging_data:
+  postgres_notifications_data:
+  postgres_safety_data:
+  postgres_profiles_data:
+  redis_data:
+  clickhouse_data:
+  rabbitmq_data:
+  consul_data:
+  prometheus_data:
+  grafana_data:
+  elasticsearch_data:
+  dinner_first_uploads:

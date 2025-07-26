@@ -29,85 +29,149 @@ import { User } from '../../core/interfaces/auth.interfaces';
       errorMessage="Unable to load soul connections. Please try again.">
       <div class="discover-container">
         <!-- Soul Discovery Header -->
-        <div class="discovery-header">
-          <h1>Soul Discovery</h1>
-          <p class="tagline">Discover connections based on emotional compatibility, not just photos</p>
+        <div class="discovery-header" role="banner">
+          <h1 id="discovery-title">Soul Discovery</h1>
+          <p class="tagline" aria-describedby="discovery-title">Discover connections based on emotional compatibility, not just photos</p>
         
         <!-- Discovery Filters -->
-        <div class="discovery-filters" [class.expanded]="showFilters">
-          <button class="filter-toggle" (click)="toggleFilters()">
-            <mat-icon>tune</mat-icon>
-            Filters
+        <div 
+          class="discovery-filters" 
+          [class.expanded]="showFilters"
+          role="region"
+          aria-labelledby="filters-title">
+          <button 
+            class="filter-toggle" 
+            type="button"
+            [attr.aria-expanded]="showFilters"
+            aria-controls="filter-content"
+            aria-label="Toggle discovery filters"
+            (click)="toggleFilters()"
+            (keydown.enter)="toggleFilters()"
+            (keydown.space)="toggleFilters(); $event.preventDefault()">
+            <mat-icon aria-hidden="true">tune</mat-icon>
+            <span id="filters-title">Filters</span>
           </button>
           
-          <div class="filter-content" *ngIf="showFilters">
-            <div class="filter-group">
-              <label>Hide Photos Initially</label>
+          <div 
+            class="filter-content" 
+            *ngIf="showFilters"
+            id="filter-content"
+            role="group"
+            aria-label="Discovery filter options">
+            <div class="filter-group" role="group" aria-labelledby="hide-photos-label">
+              <label id="hide-photos-label" for="hide-photos-toggle">Hide Photos Initially</label>
               <mat-slide-toggle 
+                id="hide-photos-toggle"
                 name="hide_photos"
                 [(ngModel)]="discoveryFilters.hide_photos"
+                [attr.aria-describedby]="'hide-photos-desc'"
                 (change)="onFiltersChange()">
               </mat-slide-toggle>
+              <div id="hide-photos-desc" class="sr-only">
+                When enabled, profile photos will be hidden until you connect with someone
+              </div>
             </div>
             
-            <div class="filter-group">
-              <label>Minimum Compatibility: {{ discoveryFilters.min_compatibility }}%</label>
+            <div class="filter-group" role="group" aria-labelledby="min-compatibility-label">
+              <label id="min-compatibility-label" for="min-compatibility-slider">
+                Minimum Compatibility: {{ discoveryFilters.min_compatibility }}%
+              </label>
               <mat-slider 
+                id="min-compatibility-slider"
                 name="min_compatibility"
                 min="30" 
                 max="95" 
                 step="5"
                 [(ngModel)]="discoveryFilters.min_compatibility"
+                [attr.aria-valuetext]="discoveryFilters.min_compatibility + ' percent minimum compatibility'"
+                aria-label="Minimum compatibility percentage"
                 (input)="onFiltersChange()">
               </mat-slider>
             </div>
             
-            <div class="filter-group">
-              <label>Max Results</label>
+            <div class="filter-group" role="group" aria-labelledby="max-results-label">
+              <label id="max-results-label" for="max-results-slider">Max Results</label>
               <mat-slider 
+                id="max-results-slider"
                 name="max_results"
                 min="5" 
                 max="20" 
                 step="1"
                 [(ngModel)]="discoveryFilters.max_results"
+                [attr.aria-valuetext]="discoveryFilters.max_results + ' profiles maximum'"
+                aria-label="Maximum number of profiles to show"
                 (input)="onFiltersChange()">
               </mat-slider>
-              <small>{{ discoveryFilters.max_results }} profiles</small>
+              <small aria-live="polite">{{ discoveryFilters.max_results }} profiles</small>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Onboarding Check -->
-      <div class="onboarding-required" *ngIf="needsOnboarding">
+      <div 
+        class="onboarding-required" 
+        *ngIf="needsOnboarding"
+        role="main"
+        aria-labelledby="onboarding-title">
         <div class="onboarding-card">
-          <mat-icon class="onboarding-icon">psychology</mat-icon>
-          <h2>Complete Your Soul Profile</h2>
+          <mat-icon class="onboarding-icon" aria-hidden="true">psychology</mat-icon>
+          <h2 id="onboarding-title">Complete Your Soul Profile</h2>
           <p>Before discovering connections, please complete your emotional onboarding to enable our compatibility algorithms.</p>
-          <button mat-raised-button color="primary" (click)="goToOnboarding()">
+          <button 
+            mat-raised-button 
+            color="primary"
+            type="button"
+            aria-label="Complete soul profile to start discovering connections"
+            (click)="goToOnboarding()"
+            (keydown.enter)="goToOnboarding()">
             Complete Soul Profile
           </button>
         </div>
       </div>
 
       <!-- Discovery Content -->
-      <div class="discovery-content" *ngIf="!needsOnboarding">
+      <div 
+        class="discovery-content" 
+        *ngIf="!needsOnboarding"
+        role="main"
+        aria-label="Soul connection discovery results">
         <!-- Loading State -->
-        <div class="loading-container" *ngIf="isLoading">
-          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        <div 
+          class="loading-container" 
+          *ngIf="isLoading"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading soul connections">
+          <mat-progress-bar mode="indeterminate" aria-label="Loading progress"></mat-progress-bar>
           <p>Finding your soul connections...</p>
         </div>
 
         <!-- Error State -->
-        <div class="error-container" *ngIf="error">
-          <mat-icon class="error-icon">error</mat-icon>
+        <div 
+          class="error-container" 
+          *ngIf="error"
+          role="alert"
+          aria-live="assertive">
+          <mat-icon class="error-icon" aria-hidden="true">error</mat-icon>
           <h3>Something went wrong</h3>
           <p>{{ error }}</p>
-          <button mat-button (click)="loadDiscoveries()">Try Again</button>
+          <button 
+            mat-button 
+            type="button"
+            aria-label="Retry loading soul connections"
+            (click)="loadDiscoveries()"
+            (keydown.enter)="loadDiscoveries()">
+            Try Again
+          </button>
         </div>
 
         <!-- No Matches State -->
-        <div class="no-matches-container" *ngIf="!isLoading && !error && discoveries.length === 0">
+        <div 
+          class="no-matches-container" 
+          *ngIf="!isLoading && !error && discoveries.length === 0"
+          role="region"
+          aria-label="No matches found">
           <app-discover-empty-state
             (refreshMatches)="loadDiscoveries()"
             (updateProfile)="goToProfile()">
@@ -115,68 +179,131 @@ import { User } from '../../core/interfaces/auth.interfaces';
         </div>
 
         <!-- Discovery Cards -->
-        <div class="discovery-cards" *ngIf="!isLoading && !error && discoveries.length > 0">
-          <div 
-            *ngFor="let discovery of discoveries; trackBy: trackByUserId"
+        <div 
+          class="discovery-cards" 
+          *ngIf="!isLoading && !error && discoveries.length > 0"
+          role="list"
+          [attr.aria-label]="discoveries.length + ' soul connection matches found'">
+          <article 
+            *ngFor="let discovery of discoveries; trackBy: trackByUserId; let i = index"
             class="soul-card"
-            [@cardAnimation]="getCardAnimation(discovery.user_id)">
+            role="listitem"
+            [attr.aria-labelledby]="'card-title-' + discovery.user_id"
+            [attr.aria-describedby]="'card-desc-' + discovery.user_id"
+            [@cardAnimation]="getCardAnimation(discovery.user_id)"
+            tabindex="0">
             
             <!-- Compatibility Score -->
-            <div class="compatibility-header">
-              <div class="compatibility-score" [style.color]="getCompatibilityColor(discovery.compatibility.total_compatibility)">
-                <span class="score">{{ discovery.compatibility.total_compatibility }}%</span>
-                <span class="quality">{{ discovery.compatibility.match_quality }}</span>
+            <div 
+              class="compatibility-header"
+              role="group"
+              [attr.aria-label]="getCompatibilityHeaderAriaLabel(discovery)">
+              <div 
+                class="compatibility-score" 
+                [style.color]="getCompatibilityColor(discovery.compatibility.total_compatibility)"
+                role="meter"
+                [attr.aria-valuenow]="discovery.compatibility.total_compatibility"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                [attr.aria-label]="discovery.compatibility.total_compatibility + '% compatibility score'">
+                <span class="score" aria-hidden="true">{{ discovery.compatibility.total_compatibility }}%</span>
+                <span class="quality" aria-hidden="true">{{ discovery.compatibility.match_quality }}</span>
               </div>
-              <div class="soul-icon">✨</div>
+              <div class="soul-icon" aria-hidden="true">✨</div>
             </div>
 
             <!-- Profile Preview -->
-            <div class="profile-preview">
+            <div 
+              class="profile-preview"
+              role="group"
+              [attr.aria-labelledby]="'card-title-' + discovery.user_id">
               <div class="profile-header">
-                <h3>{{ discovery.profile_preview.first_name }}</h3>
-                <span class="age">{{ discovery.profile_preview.age }}</span>
-                <span class="location" *ngIf="discovery.profile_preview.location">
-                  <mat-icon>location_on</mat-icon>
+                <h3 [id]="'card-title-' + discovery.user_id">{{ discovery.profile_preview.first_name }}</h3>
+                <span 
+                  class="age"
+                  [attr.aria-label]="discovery.profile_preview.age + ' years old'">
+                  {{ discovery.profile_preview.age }}
+                </span>
+                <span 
+                  class="location" 
+                  *ngIf="discovery.profile_preview.location"
+                  [attr.aria-label]="'Located in ' + discovery.profile_preview.location">
+                  <mat-icon aria-hidden="true">location_on</mat-icon>
                   {{ discovery.profile_preview.location }}
                 </span>
               </div>
 
               <!-- Photo Placeholder (if hidden) -->
-              <div class="photo-placeholder" *ngIf="discovery.is_photo_hidden">
-                <mat-icon>psychology</mat-icon>
+              <div 
+                class="photo-placeholder" 
+                *ngIf="discovery.is_photo_hidden"
+                role="img"
+                aria-label="Photo will be revealed after connecting">
+                <mat-icon aria-hidden="true">psychology</mat-icon>
                 <p>Photo revealed after connection</p>
               </div>
 
               <!-- Bio Preview -->
-              <div class="bio-preview" *ngIf="discovery.profile_preview.bio">
+              <div 
+                class="bio-preview" 
+                *ngIf="discovery.profile_preview.bio"
+                role="region"
+                aria-label="Profile bio">
                 <p>{{ discovery.profile_preview.bio }}</p>
               </div>
 
               <!-- Interests Preview -->
-              <div class="interests-preview" *ngIf="discovery.profile_preview.interests?.length">
-                <h4>Shared Interests</h4>
-                <div class="interest-chips">
+              <div 
+                class="interests-preview" 
+                *ngIf="discovery.profile_preview.interests?.length"
+                role="region"
+                aria-labelledby="interests-heading-{{ discovery.user_id }}">
+                <h4 id="interests-heading-{{ discovery.user_id }}">Shared Interests</h4>
+                <div 
+                  class="interest-chips"
+                  role="list"
+                  [attr.aria-label]="discovery.profile_preview.interests.length + ' shared interests'">
                   <mat-chip 
                     *ngFor="let interest of discovery.profile_preview.interests.slice(0, 3)"
-                    class="interest-chip">
+                    class="interest-chip"
+                    role="listitem"
+                    [attr.aria-label]="'Shared interest: ' + interest">
                     {{ interest }}
                   </mat-chip>
-                  <span *ngIf="discovery.profile_preview.interests.length > 3" class="more-interests">
+                  <span 
+                    *ngIf="discovery.profile_preview.interests.length > 3" 
+                    class="more-interests"
+                    [attr.aria-label]="'Plus ' + (discovery.profile_preview.interests.length - 3) + ' more shared interests'">
                     +{{ discovery.profile_preview.interests.length - 3 }} more
                   </span>
                 </div>
               </div>
 
               <!-- Emotional Depth Score -->
-              <div class="emotional-depth" *ngIf="discovery.profile_preview.emotional_depth_score">
-                <span class="depth-label">Emotional Depth:</span>
-                <div class="depth-bar">
+              <div 
+                class="emotional-depth" 
+                *ngIf="discovery.profile_preview.emotional_depth_score"
+                role="group"
+                [attr.aria-labelledby]="'depth-label-' + discovery.user_id">
+                <span 
+                  class="depth-label"
+                  [id]="'depth-label-' + discovery.user_id">Emotional Depth:</span>
+                <div 
+                  class="depth-bar"
+                  role="progressbar"
+                  [attr.aria-valuenow]="discovery.profile_preview.emotional_depth_score"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  [attr.aria-label]="'Emotional depth score: ' + discovery.profile_preview.emotional_depth_score + ' out of 100'">
                   <div 
                     class="depth-fill" 
-                    [style.width.%]="discovery.profile_preview.emotional_depth_score">
+                    [style.width.%]="discovery.profile_preview.emotional_depth_score"
+                    aria-hidden="true">
                   </div>
                 </div>
-                <span class="depth-score">{{ discovery.profile_preview.emotional_depth_score }}/100</span>
+                <span 
+                  class="depth-score"
+                  aria-hidden="true">{{ discovery.profile_preview.emotional_depth_score }}/100</span>
               </div>
             </div>
 
@@ -200,24 +327,44 @@ import { User } from '../../core/interfaces/auth.interfaces';
             </div>
 
             <!-- Action Buttons -->
-            <div class="card-actions">
+            <div 
+              class="card-actions"
+              role="group"
+              [attr.aria-label]="'Actions for ' + discovery.profile_preview.first_name + ' profile'">
               <button 
                 mat-fab 
                 class="pass-btn"
+                type="button"
+                [attr.aria-label]="'Pass on ' + discovery.profile_preview.first_name + ' profile'"
+                [attr.aria-describedby]="'card-desc-' + discovery.user_id"
                 (click)="onPass(discovery.user_id)"
+                (keydown.enter)="onPass(discovery.user_id)"
                 [disabled]="isActing"
-                matTooltip="Pass">
-                <mat-icon>close</mat-icon>
+                matTooltip="Pass on this connection">
+                <mat-icon aria-hidden="true">close</mat-icon>
+                <span class="sr-only">Pass</span>
               </button>
               
               <button 
                 mat-fab 
                 class="connect-btn"
+                type="button"
+                [attr.aria-label]="'Start soul connection with ' + discovery.profile_preview.first_name + ', ' + discovery.compatibility.total_compatibility + '% compatibility'"
+                [attr.aria-describedby]="'card-desc-' + discovery.user_id"
                 (click)="onConnect(discovery)"
+                (keydown.enter)="onConnect(discovery)"
                 [disabled]="isActing"
-                matTooltip="Start Soul Connection">
-                <mat-icon>favorite</mat-icon>
+                matTooltip="Start soul connection">
+                <mat-icon aria-hidden="true">favorite</mat-icon>
+                <span class="sr-only">Connect</span>
               </button>
+            </div>
+            
+            <!-- Hidden description for screen readers -->
+            <div 
+              [id]="'card-desc-' + discovery.user_id" 
+              class="sr-only">
+              {{ getCardDescriptionForScreenReader(discovery) }}
             </div>
           </div>
         </div>
@@ -441,5 +588,33 @@ export class DiscoverComponent implements OnInit {
    */
   retryDiscovery = (): void => {
     this.loadDiscoveries();
+  }
+
+  /**
+   * Get aria label for compatibility header
+   */
+  getCompatibilityHeaderAriaLabel(discovery: DiscoveryResponse): string {
+    return `${discovery.compatibility.total_compatibility}% compatibility score, ${discovery.compatibility.match_quality} match quality`;
+  }
+
+  /**
+   * Get comprehensive card description for screen readers
+   */
+  getCardDescriptionForScreenReader(discovery: DiscoveryResponse): string {
+    const age = discovery.profile_preview.age;
+    const location = discovery.profile_preview.location ? `, located in ${discovery.profile_preview.location}` : '';
+    const bio = discovery.profile_preview.bio ? `. ${discovery.profile_preview.bio}` : '';
+    const interests = discovery.profile_preview.interests?.length 
+      ? `. Shared interests include: ${discovery.profile_preview.interests.slice(0, 3).join(', ')}` 
+      : '';
+    const moreInterests = discovery.profile_preview.interests && discovery.profile_preview.interests.length > 3
+      ? ` and ${discovery.profile_preview.interests.length - 3} more`
+      : '';
+    const emotionalDepth = discovery.profile_preview.emotional_depth_score
+      ? `. Emotional depth score: ${discovery.profile_preview.emotional_depth_score} out of 100`
+      : '';
+    const explanation = discovery.compatibility.explanation ? `. ${discovery.compatibility.explanation}` : '';
+
+    return `${age} years old${location}${bio}${interests}${moreInterests}${emotionalDepth}${explanation}`;
   }
 }
