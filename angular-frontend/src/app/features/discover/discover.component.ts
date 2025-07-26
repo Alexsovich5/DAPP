@@ -16,6 +16,7 @@ import { SoulConnectionService } from '@core/services/soul-connection.service';
 import { AuthService } from '@core/services/auth.service';
 import { ErrorLoggingService } from '@core/services/error-logging.service';
 import { ErrorBoundaryComponent } from '@shared/components/error-boundary/error-boundary.component';
+import { DiscoverEmptyStateComponent } from './discover-empty-state.component';
 import { DiscoveryResponse, DiscoveryRequest, SoulConnectionCreate } from '../../core/interfaces/soul-connection.interfaces';
 import { User } from '../../core/interfaces/auth.interfaces';
 
@@ -107,52 +108,10 @@ import { User } from '../../core/interfaces/auth.interfaces';
 
         <!-- No Matches State -->
         <div class="no-matches-container" *ngIf="!isLoading && !error && discoveries.length === 0">
-          <div class="no-matches-content">
-            <div class="no-matches-icon">🔍</div>
-            <h3>No soul connections found right now</h3>
-            <p>Don't worry! Here are some ways to improve your discovery experience:</p>
-            
-            <div class="suggestions-grid">
-              <div class="suggestion-card">
-                <div class="suggestion-icon">🎯</div>
-                <h4>Adjust Your Filters</h4>
-                <p>Try lowering your compatibility threshold or expanding your age range</p>
-                <button mat-button color="primary" (click)="resetFilters()">Reset Filters</button>
-              </div>
-              
-              <div class="suggestion-card">
-                <div class="suggestion-icon">✨</div>
-                <h4>Complete Your Profile</h4>
-                <p>Make sure your profile is complete to improve matching accuracy</p>
-                <button mat-button color="primary" routerLink="/profile">View Profile</button>
-              </div>
-              
-              <div class="suggestion-card">
-                <div class="suggestion-icon">🔄</div>
-                <h4>Check Back Later</h4>
-                <p>New members join regularly. Check back in a few hours or tomorrow</p>
-                <button mat-button color="primary" (click)="loadDiscoveries()">Refresh Now</button>
-              </div>
-            </div>
-            
-            <div class="platform-features">
-              <h4>Meanwhile, explore other features:</h4>
-              <div class="features-list">
-                <a routerLink="/revelations" class="feature-link">
-                  <span class="feature-icon">📝</span>
-                  <span>Write Daily Revelations</span>
-                </a>
-                <a routerLink="/profile" class="feature-link">
-                  <span class="feature-icon">👤</span>
-                  <span>Update Your Profile</span>
-                </a>
-                <a routerLink="/settings" class="feature-link">
-                  <span class="feature-icon">⚙️</span>
-                  <span>Customize Preferences</span>
-                </a>
-              </div>
-            </div>
-          </div>
+          <app-discover-empty-state
+            (refreshMatches)="loadDiscoveries()"
+            (updateProfile)="goToProfile()">
+          </app-discover-empty-state>
         </div>
 
         <!-- Discovery Cards -->
@@ -280,7 +239,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
     MatTooltipModule,
     MatSlideToggleModule,
     MatSliderModule,
-    ErrorBoundaryComponent
+    ErrorBoundaryComponent,
+    DiscoverEmptyStateComponent
   ],
   animations: [
     trigger('cardAnimation', [
@@ -400,6 +360,10 @@ export class DiscoverComponent implements OnInit {
 
   goToOnboarding(): void {
     this.router.navigate(['/onboarding']);
+  }
+
+  goToProfile(): void {
+    this.router.navigate(['/profile']);
   }
 
   onConnect(discovery: DiscoveryResponse): void {

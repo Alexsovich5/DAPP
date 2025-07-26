@@ -1,3 +1,6 @@
+/* Import WCAG 2.1 AA Compliant Color System */
+@import 'app/shared/styles/accessibility-colors';
+
 /* Import Angular Material themes */
 @import '@angular/material/prebuilt-themes/pink-bluegrey.css';
 
@@ -96,45 +99,237 @@ body {
   }
 }
 
-// CSS Custom Properties for theming
+// Legacy color mappings for backward compatibility
 :root {
-  // Light theme colors
-  --primary-color: #ec4899;
-  --accent-color: #8b5cf6;
-  --background-color: #ffffff;
-  --surface-color: #f8fafc;
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --border-color: #e5e7eb;
-  --card-background: #ffffff;
-  --header-background: #ffffff;
+  // Map legacy colors to accessible variants
+  --primary-color: var(--interactive-primary);
+  --accent-color: var(--interactive-accent);
+  --background-color: var(--background-primary);
+  --surface-color: var(--background-secondary);
+  --card-background: var(--background-primary);
+  --header-background: var(--background-primary);
   --shadow-color: rgba(0, 0, 0, 0.1);
-  --error-background: #fef2f2;
-  --error-border: #fecaca;
-  --error-text: #dc2626;
+  --error-background: var(--color-error-50);
+  --error-border: var(--color-error-200);
+  --error-text: var(--status-error);
 }
 
 .dark-theme {
-  // Dark theme colors
-  --primary-color: #f472b6;
-  --accent-color: #a78bfa;
-  --background-color: #111827;
-  --surface-color: #1f2937;
-  --text-primary: #f9fafb;
-  --text-secondary: #d1d5db;
-  --border-color: #374151;
-  --card-background: #1f2937;
-  --header-background: #111827;
+  // Dark theme legacy mappings
+  --primary-color: var(--interactive-primary);
+  --accent-color: var(--interactive-accent);
+  --background-color: var(--background-primary);
+  --surface-color: var(--background-secondary);
+  --card-background: var(--background-primary);
+  --header-background: var(--background-primary);
   --shadow-color: rgba(0, 0, 0, 0.3);
-  --error-background: #3f1f1f;
-  --error-border: #7f1d1d;
-  --error-text: #f87171;
+  --error-background: rgba(220, 38, 38, 0.1);
+  --error-border: rgba(220, 38, 38, 0.2);
+  --error-text: var(--status-error);
 }
 
 // Apply theme colors to body
 body {
   background-color: var(--background-color);
   color: var(--text-primary);
+}
+
+// Enhanced Accessibility Features
+
+// Focus management and keyboard navigation
+*:focus {
+  outline: 2px solid var(--focus-ring-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+// High contrast theme support
+@media (prefers-contrast: high) {
+  *:focus {
+    outline: 3px solid currentColor;
+    outline-offset: 2px;
+  }
+  
+  button, a, input, textarea, select {
+    border: 2px solid currentColor !important;
+  }
+}
+
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+// Color scheme preference
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+  }
+}
+
+// Enhanced button accessibility
+button {
+  cursor: pointer;
+  min-height: 44px;
+  min-width: 44px;
+  
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
+  &:focus {
+    @include focus-ring-primary;
+  }
+}
+
+// Form control accessibility
+input, textarea, select {
+  font-size: 16px; // Prevents zoom on iOS
+  min-height: 44px;
+  
+  &:focus {
+    @include focus-ring-primary;
+  }
+  
+  &:invalid {
+    border-color: var(--status-error);
+    box-shadow: 0 0 0 1px var(--status-error);
+  }
+}
+
+// Link accessibility
+a {
+  color: var(--interactive-primary);
+  text-decoration: underline;
+  text-decoration-skip-ink: auto;
+  
+  &:hover {
+    color: var(--interactive-primary-hover);
+  }
+  
+  &:focus {
+    @include focus-ring-primary;
+  }
+  
+  // Skip link for screen readers
+  &.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: var(--background-primary);
+    color: var(--text-primary);
+    padding: 8px;
+    z-index: 9999;
+    text-decoration: none;
+    border-radius: 4px;
+    border: 2px solid var(--interactive-primary);
+    
+    &:focus {
+      top: 6px;
+    }
+  }
+}
+
+// Ensure text has sufficient line height for readability
+p, li, td, th {
+  line-height: 1.6;
+}
+
+// Improve spacing for better readability
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.3;
+  margin-bottom: 0.75em;
+  
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+// Lists accessibility
+ul, ol {
+  padding-left: 1.5em;
+  
+  li {
+    margin-bottom: 0.25em;
+  }
+}
+
+// Table accessibility
+table {
+  border-collapse: collapse;
+  width: 100%;
+  
+  th, td {
+    padding: 0.75rem;
+    text-align: left;
+    border: 1px solid var(--border-medium);
+  }
+  
+  th {
+    background-color: var(--background-secondary);
+    font-weight: 600;
+  }
+  
+  caption {
+    @include text-primary;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    text-align: left;
+  }
+}
+
+// Angular Material overrides for accessibility
+.mat-button, .mat-raised-button, .mat-stroked-button, .mat-flat-button {
+  min-height: 44px !important;
+  @include text-primary;
+  
+  &:focus {
+    @include focus-ring-primary;
+  }
+  
+  &.mat-primary {
+    @include interactive-primary;
+  }
+  
+  &.mat-accent {
+    @include interactive-accent;
+  }
+}
+
+.mat-form-field {
+  .mat-form-field-label {
+    @include text-secondary;
+  }
+  
+  .mat-input-element {
+    @include text-primary;
+    
+    &:focus {
+      @include focus-ring-primary;
+    }
+  }
+  
+  &.mat-focused .mat-form-field-label {
+    color: var(--interactive-primary) !important;
+  }
+}
+
+.mat-error {
+  color: var(--status-error) !important;
+}
+
+.mat-card {
+  background-color: var(--background-primary) !important;
+  @include text-primary;
+  border: 1px solid var(--border-light);
 }
 
 // Global dark mode styles
@@ -145,15 +340,15 @@ body {
   }
   
   ::-webkit-scrollbar-track {
-    background: var(--surface-color);
+    background: var(--background-secondary);
   }
   
   ::-webkit-scrollbar-thumb {
-    background: var(--border-color);
+    background: var(--border-medium);
     border-radius: 4px;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary);
+    background: var(--border-strong);
   }
 }

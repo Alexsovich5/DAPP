@@ -33,6 +33,10 @@ export class NotificationService {
     return this.unreadCount$.asObservable();
   }
 
+  getCurrentUnreadCount(): number {
+    return this.unreadCount$.value;
+  }
+
   markAsRead(notificationId: string): void {
     const notifications = this.notifications$.value;
     const notification = notifications.find(n => n.id === notificationId);

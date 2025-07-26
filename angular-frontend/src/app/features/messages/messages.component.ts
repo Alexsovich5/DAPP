@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SoulConnectionService } from '../../core/services/soul-connection.service';
 import { ChatService } from '../../core/services/chat.service';
+import { ConversationsEmptyStateComponent } from './conversations-empty-state.component';
 
 interface MessagePreview {
   connectionId: number;
@@ -20,7 +21,7 @@ interface MessagePreview {
 @Component({
   selector: 'app-messages',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ConversationsEmptyStateComponent],
   template: `
     <div class="messages-container">
       <header class="messages-header">
@@ -114,16 +115,10 @@ interface MessagePreview {
       </div>
 
       <ng-template #noMessages>
-        <div class="empty-state">
-          <div class="empty-icon">💌</div>
-          <h2>No Messages Yet</h2>
-          <p *ngIf="filter === 'all'">Start conversations with your soul connections</p>
-          <p *ngIf="filter === 'unread'">No unread messages</p>
-          <p *ngIf="filter === 'revealing'">No active revelation conversations</p>
-          <button class="cta-button" (click)="goToMatches()" *ngIf="filter === 'all'">
-            <span>💫</span> View Your Connections
-          </button>
-        </div>
+        <app-conversations-empty-state
+          (discoverMatches)="goToDiscover()"
+          (learnConversationTips)="showConversationTips()">
+        </app-conversations-empty-state>
       </ng-template>
 
       <div class="floating-action">
@@ -696,6 +691,15 @@ export class MessagesComponent implements OnInit {
 
   goToMatches() {
     this.router.navigate(['/matches']);
+  }
+
+  goToDiscover() {
+    this.router.navigate(['/discover']);
+  }
+
+  showConversationTips() {
+    // Navigate to a tips/help page or show modal
+    this.router.navigate(['/help/conversations']);
   }
 
   newMessage() {

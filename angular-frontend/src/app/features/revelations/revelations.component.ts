@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ActivatedRoute, Router } from '@angular/router';
 import { RevelationService } from '../../core/services/revelation.service';
 import { SoulConnectionService } from '../../core/services/soul-connection.service';
+import { RevelationsEmptyStateComponent } from './revelations-empty-state.component';
 import { 
   RevelationPrompt, 
   DailyRevelation, 
@@ -14,7 +15,7 @@ import {
 @Component({
   selector: 'app-revelations',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RevelationsEmptyStateComponent],
   template: `
     <div class="revelations-container">
       <header class="revelations-header">
@@ -180,6 +181,14 @@ import {
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- Empty State for No Connections -->
+      <div class="empty-revelations" *ngIf="!loading && !connectionId">
+        <app-revelations-empty-state
+          (startJourney)="startRevelationJourney()"
+          (learnAboutRevelations)="learnAboutRevelations()">
+        </app-revelations-empty-state>
       </div>
 
       <div class="loading-spinner" *ngIf="loading">
@@ -898,6 +907,14 @@ export class RevelationsComponent implements OnInit {
     this.router.navigate(['/profile'], {
       queryParams: { userId: 'partner' }
     });
+  }
+
+  startRevelationJourney() {
+    this.router.navigate(['/discover']);
+  }
+
+  learnAboutRevelations() {
+    this.router.navigate(['/help/revelations']);
   }
 
   goBack() {
