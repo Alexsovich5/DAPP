@@ -170,7 +170,7 @@ export interface MobileUIConfig {
           <mat-icon>get_app</mat-icon>
         </div>
         <div class="install-text">
-          <h4>Install Dinner1 App</h4>
+          <h4>Install Dinner First App</h4>
           <p>Get the full experience with our app</p>
         </div>
         <div class="install-actions">
@@ -191,7 +191,7 @@ export class MobileUIComponent implements OnInit, OnDestroy {
     hideTopBar: false
   };
 
-  @Input() title: string = 'Dinner1';
+  @Input() title: string = 'Dinner First';
   @Input() subtitle?: string;
   @Input() showHeader: boolean = true;
   @Input() showBackButton: boolean = false;

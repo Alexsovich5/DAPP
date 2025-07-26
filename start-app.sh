@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Dinner1 Application Startup Script
+# Dinner First Application Startup Script
 # Starts PostgreSQL database, Python backend, and Angular frontend
 
 set -e  # Exit on any error
@@ -47,14 +47,14 @@ start_database() {
     log "Starting PostgreSQL database..."
     
     # Check if container already exists
-    if docker ps -a --format 'table {{.Names}}' | grep -q "dinner1-postgres"; then
+    if docker ps -a --format 'table {{.Names}}' | grep -q "dinner_first-postgres"; then
         log "PostgreSQL container already exists. Starting it..."
-        docker start dinner1-postgres
+        docker start dinner_first-postgres
     else
         log "Creating new PostgreSQL container..."
         docker run -d \
-            --name dinner1-postgres \
-            -e POSTGRES_DB=dinner1 \
+            --name dinner_first-postgres \
+            -e POSTGRES_DB=dinner_first \
             -e POSTGRES_USER=postgres \
             -e POSTGRES_PASSWORD=postgres \
             -p 5432:5432 \
@@ -67,7 +67,7 @@ start_database() {
     
     # Test database connection
     for i in {1..30}; do
-        if docker exec dinner1-postgres pg_isready -U postgres > /dev/null 2>&1; then
+        if docker exec dinner_first-postgres pg_isready -U postgres > /dev/null 2>&1; then
             success "PostgreSQL is ready"
             break
         fi
@@ -206,8 +206,8 @@ cleanup() {
     fi
     
     # Stop database container
-    if docker ps --format 'table {{.Names}}' | grep -q "dinner1-postgres"; then
-        docker stop dinner1-postgres
+    if docker ps --format 'table {{.Names}}' | grep -q "dinner_first-postgres"; then
+        docker stop dinner_first-postgres
         success "Database stopped"
     fi
     
@@ -219,7 +219,7 @@ trap cleanup EXIT
 
 # Main execution
 main() {
-    log "Starting Dinner1 Application..."
+    log "Starting Dinner First Application..."
     
     check_docker
     start_database
@@ -232,7 +232,7 @@ main() {
     echo "   Frontend: http://localhost:5001"
     echo "   Backend API: http://localhost:5000"
     echo "   API Docs: http://localhost:5000/docs"
-    echo "   Database: localhost:5432 (dinner1)"
+    echo "   Database: localhost:5432 (dinner_first)"
     echo ""
     echo "📝 Logs:"
     echo "   Backend: $BACKEND_DIR/backend.log"

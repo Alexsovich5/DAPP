@@ -257,7 +257,7 @@ export class RegisterComponent implements OnInit {
           this.isLoading = false;
           // The backend now returns LoginResponse, so user is automatically logged in
           this.router.navigate(['/dashboard'], {
-            state: { message: 'Registration successful! Welcome to Dinner1!' }
+            state: { message: 'Registration successful! Welcome to Dinner First!' }
           });
         },
         error: (err: Error) => {

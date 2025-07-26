@@ -1,4 +1,4 @@
-# Mobile API Optimization Service for Dinner1
+# Mobile API Optimization Service for Dinner First
 # Optimized responses, compression, and mobile-specific caching for dating platform
 
 from typing import Dict, List, Optional, Any, Union
@@ -129,9 +129,9 @@ class MobileAPIService:
             
             # Extract app version
             app_version = None
-            if 'dinner1/' in user_agent_lower:
+            if 'dinner_first/' in user_agent_lower:
                 try:
-                    app_version = user_agent_lower.split('dinner1/')[1].split()[0]
+                    app_version = user_agent_lower.split('dinner_first/')[1].split()[0]
                 except IndexError:
                     pass
             

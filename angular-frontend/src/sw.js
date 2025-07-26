@@ -1,8 +1,8 @@
-// Custom Service Worker for Dinner1 Dating App
+// Custom Service Worker for Dinner First Dating App
 // Enhanced offline functionality and background sync
 
-const CACHE_NAME = 'dinner1-v1.0.0';
-const DATA_CACHE_NAME = 'dinner1-data-v1.0.0';
+const CACHE_NAME = 'dinner_first-v1.0.0';
+const DATA_CACHE_NAME = 'dinner_first-data-v1.0.0';
 const BACKGROUND_SYNC_TAG = 'background-sync';
 
 // Files to cache for offline use
@@ -326,12 +326,12 @@ self.addEventListener('push', (event) => {
     try {
       data = event.data.json();
     } catch (error) {
-      data = { title: 'Dinner1', body: event.data.text() };
+      data = { title: 'Dinner First', body: event.data.text() };
     }
   }
   
   const options = {
-    title: data.title || 'Dinner1',
+    title: data.title || 'Dinner First',
     body: data.body || 'You have a new notification',
     icon: '/assets/icons/icon-192x192.png',
     badge: '/assets/icons/badge-72x72.png',
@@ -439,7 +439,7 @@ function getVibrationPattern(type) {
 // IndexedDB helper functions for persistent storage
 async function storeRequestInDB(requestData) {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('dinner1-sync', 1);
+    const request = indexedDB.open('dinner_first-sync', 1);
     
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
@@ -460,7 +460,7 @@ async function storeRequestInDB(requestData) {
 
 async function getQueuedRequests() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('dinner1-sync', 1);
+    const request = indexedDB.open('dinner_first-sync', 1);
     
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
@@ -476,7 +476,7 @@ async function getQueuedRequests() {
 
 async function removeRequestFromDB(timestamp) {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('dinner1-sync', 1);
+    const request = indexedDB.open('dinner_first-sync', 1);
     
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {

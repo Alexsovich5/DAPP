@@ -1,4 +1,4 @@
-# Advanced Search Service for Dinner1
+# Advanced Search Service for Dinner First
 # Elasticsearch-powered search with intelligent matching and recommendation algorithms
 
 from typing import Dict, List, Optional, Any, Tuple
@@ -77,9 +77,9 @@ class ElasticsearchService:
         
         # Index configurations
         self.indexes = {
-            'users': 'dinner1_users',
-            'profiles': 'dinner1_profiles',
-            'activities': 'dinner1_activities'
+            'users': 'dinner_first_users',
+            'profiles': 'dinner_first_profiles',
+            'activities': 'dinner_first_activities'
         }
         
         # Search configurations for dating platform

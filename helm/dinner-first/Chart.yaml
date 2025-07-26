@@ -1,0 +1,33 @@
+apiVersion: v2
+name: dinner-first
+description: Dinner First Dating Platform - Soul Before Skin Helm Chart
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+home: https://dinner-first.app
+sources:
+  - https://gitlab.com/dinner-first/dating-platform
+keywords:
+  - dating
+  - social
+  - pwa
+  - mobile
+  - microservices
+maintainers:
+  - name: Dinner First Team
+    email: devops@dinner-first.app
+    url: https://dinner-first.app
+icon: https://dinner-first.app/assets/icons/icon-192x192.png
+deprecated: false
+annotations:
+  category: Application
+  licenses: Proprietary
+  images: |
+    - name: frontend
+      image: nginx:alpine
+    - name: backend
+      image: python:3.11-alpine
+    - name: database
+      image: postgres:15-alpine
+    - name: redis
+      image: redis:7-alpine

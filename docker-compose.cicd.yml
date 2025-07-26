@@ -1,0 +1,345 @@
+# Docker Compose override for CI/CD integration
+# Extends the existing CI/CD environment with Dinner First application services
+
+version: '3.8'
+
+services:
+  # Dinner First Frontend Service
+  dinner-first-frontend:
+    build:
+      context: .
+      dockerfile: angular-frontend/Dockerfile
+      target: production
+    container_name: dinner-first-frontend
+    restart: unless-stopped
+    ports:
+      - "4200:80"
+    environment:
+      - NODE_ENV=production
+      - API_URL=http://dinner-first-backend:8000/api
+      - ENABLE_PWA=true
+      - ENABLE_ANALYTICS=true
+    volumes:
+      - ./monitoring/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - dinner_first_uploads:/usr/share/nginx/html/uploads:ro
+    networks:
+      - cicd_network
+    depends_on:
+      - dinner-first-backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dinner-first-frontend.rule=Host(`dinner-first.local`)"
+      - "traefik.http.routers.dinner-first-frontend.entrypoints=web"
+      - "traefik.http.services.dinner-first-frontend.loadbalancer.server.port=80"
+      # Prometheus monitoring
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/port=80"
+      - "prometheus.io/path=/metrics"
+
+  # Dinner First Backend Service
+  dinner-first-backend:
+    build:
+      context: .
+      dockerfile: python-backend/Dockerfile
+      target: production
+    container_name: dinner-first-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+      - "8080:8080"  # Metrics port
+    environment:
+      # Database configuration
+      - DATABASE_URL=postgresql://dinner_first_user:${DB_PASSWORD:-dinner_first_pass}@dinner-first-postgres:5432/dinner_first
+      - DB_HOST=dinner-first-postgres
+      - DB_PORT=5432
+      - DB_NAME=dinner_first
+      - DB_USER=dinner_first_user
+      - DB_PASSWORD=${DB_PASSWORD:-dinner_first_pass}
+      
+      # Redis configuration
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-}@redis-cache:6379/1
+      - REDIS_HOST=redis-cache
+      - REDIS_PORT=6379
+      - REDIS_DB=1
+      
+      # MinIO configuration
+      - MINIO_ENDPOINT=minio-storage:9000
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-dinner_first_minio}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-dinner_first_minio_secret}
+      - MINIO_BUCKET=dinner-first-uploads
+      
+      # Application settings
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - JWT_SECRET=${JWT_SECRET:-your-jwt-secret-here}
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+      - CORS_ORIGINS=http://dinner-first.local,https://dinner-first.app
+      
+      # External services
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+      - VAPID_SUBJECT=mailto:admin@dinner-first.app
+      
+      # Monitoring
+      - PROMETHEUS_ENABLED=true
+      - METRICS_PORT=8080
+    volumes:
+      - dinner_first_uploads:/app/uploads
+      - ./monitoring/app-config:/app/config:ro
+    networks:
+      - cicd_network
+    depends_on:
+      - dinner-first-postgres
+      - redis-cache
+      - minio-storage
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dinner-first-backend.rule=Host(`dinner-first.local`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.dinner-first-backend.entrypoints=web"
+      - "traefik.http.services.dinner-first-backend.loadbalancer.server.port=8000"
+      # Prometheus monitoring
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/port=8080"
+      - "prometheus.io/path=/metrics"
+
+  # Dinner First Database
+  dinner-first-postgres:
+    image: postgres:15-alpine
+    container_name: dinner-first-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=dinner_first
+      - POSTGRES_USER=dinner_first_user
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-dinner_first_pass}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - dinner_first_postgres_data:/var/lib/postgresql/data
+      - ./database/init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - cicd_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dinner_first_user -d dinner_first"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      # Prometheus monitoring via postgres_exporter
+      - "prometheus.io/scrape=false"
+
+  # PostgreSQL Exporter for Dinner First DB
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: postgres-exporter
+    restart: unless-stopped
+    environment:
+      - DATA_SOURCE_NAME=postgresql://dinner_first_user:${DB_PASSWORD:-dinner_first_pass}@dinner-first-postgres:5432/dinner_first?sslmode=disable
+    ports:
+      - "9187:9187"
+    networks:
+      - cicd_network
+    depends_on:
+      - dinner-first-postgres
+    labels:
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/port=9187"
+      - "prometheus.io/path=/metrics"
+
+  # Blackbox Exporter for endpoint monitoring
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: blackbox-exporter
+    restart: unless-stopped
+    ports:
+      - "9115:9115"
+    volumes:
+      - ./monitoring/blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+    networks:
+      - cicd_network
+    labels:
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/port=9115"
+      - "prometheus.io/path=/metrics"
+
+  # Node Exporter for host metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - cicd_network
+    labels:
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/port=9100"
+      - "prometheus.io/path=/metrics"
+
+  # cAdvisor for container metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg
+    networks:
+      - cicd_network
+    labels:
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/port=8080"
+      - "prometheus.io/path=/metrics"
+
+  # Pipeline Metrics Exporter (custom)
+  pipeline-metrics-exporter:
+    build:
+      context: ./monitoring/pipeline-exporter
+      dockerfile: Dockerfile
+    container_name: pipeline-metrics-exporter
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    environment:
+      - GITLAB_URL=http://gitlab-ce:8090
+      - GITLAB_TOKEN=${GITLAB_TOKEN}
+      - JENKINS_URL=http://jenkins-master:8084
+      - JENKINS_USER=${JENKINS_USER}
+      - JENKINS_TOKEN=${JENKINS_TOKEN}
+      - SONARQUBE_URL=http://sonarqube-ce:9000
+      - SONARQUBE_TOKEN=${SONAR_TOKEN}
+    networks:
+      - cicd_network
+    depends_on:
+      - gitlab-ce
+      - jenkins-master
+      - sonarqube-ce
+    labels:
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/port=8080"
+      - "prometheus.io/path=/metrics"
+
+  # Alertmanager for Prometheus alerts
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+      - '--web.route-prefix=/'
+    networks:
+      - cicd_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.alertmanager.rule=Host(`alertmanager.local`)"
+      - "traefik.http.routers.alertmanager.entrypoints=web"
+      - "traefik.http.services.alertmanager.loadbalancer.server.port=9093"
+
+  # Jaeger for distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    restart: unless-stopped
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+    networks:
+      - cicd_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jaeger.rule=Host(`jaeger.local`)"
+      - "traefik.http.routers.jaeger.entrypoints=web"
+      - "traefik.http.services.jaeger.loadbalancer.server.port=16686"
+
+# Enhanced network configuration
+networks:
+  cicd_network:
+    external: true
+    name: cicd_network
+
+# Additional volumes for Dinner First
+volumes:
+  dinner_first_postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/postgres
+  
+  dinner_first_uploads:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/uploads
+  
+  alertmanager_data:
+    driver: local
+
+# Update existing services with monitoring labels
+# This would be applied to the existing docker-compose.yml services
+
+# Example service updates:
+x-monitoring-labels: &monitoring-labels
+  labels:
+    - "prometheus.io/scrape=true"
+    - "prometheus.io/port=9090"
+    - "prometheus.io/path=/metrics"
+
+# Override existing Prometheus configuration
+x-prometheus-override:
+  prometheus-metrics:
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--storage.tsdb.retention.size=50GB'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    <<: *monitoring-labels
+
+# Override existing Grafana configuration
+x-grafana-override:
+  grafana-monitoring:
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana-dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/dinner-first-cicd-overview.json

@@ -1,8 +1,8 @@
-# Dinner 1: Soul Before Skin - MVP Prototype
+# Dinner First: Soul Before Skin - MVP Prototype
 
 ## Project Overview
 
-**Dinner1** is a revolutionary "Soul Before Skin" dating platform that prioritizes emotional connection through progressive revelation before physical attraction. The MVP demonstrates core emotional connection concepts without photos initially.
+**Dinner First** is a revolutionary "Soul Before Skin" dating platform that prioritizes emotional connection through progressive revelation before physical attraction. The MVP demonstrates core emotional connection concepts without photos initially.
 
 **Core Philosophy**: "If someone enters your life, they should make it better."
 
@@ -13,7 +13,7 @@
 ### Core Components
 - **backend_py/** - FastAPI REST API with SQLAlchemy ORM, JWT auth, Alembic migrations
 - **interface/Angular/** - Angular 19+ frontend with standalone components and SSR
-- **dinner1-cicd-test/** - GitLab CI/CD infrastructure with Docker and Terraform
+- **dinner-first-cicd-test/** - GitLab CI/CD infrastructure with Docker and Terraform
 
 ### Technology Stack (MVP)
 
@@ -395,7 +395,7 @@ ng generate service core/services/soul-connection  # Generate services
 
 ### Required Backend Environment (.env in backend_py/)
 ```
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/dinner1
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/dinner_first
 SECRET_KEY=your_jwt_secret_here
 CORS_ORIGINS=http://localhost:4200,http://localhost:5001
 
@@ -440,8 +440,8 @@ sudo apt-get install postgresql  # Ubuntu
 docker run --name postgres-local -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres  # Docker
 
 # Database initialization
-createdb dinner1
-psql dinner1 < schema.sql
+createdb dinner_first
+psql dinner_first < schema.sql
 ```
 
 ## Development Workflow

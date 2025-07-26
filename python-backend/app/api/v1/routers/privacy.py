@@ -238,7 +238,7 @@ async def download_data_export(
         
         return FileResponse(
             path=file_path,
-            filename=f"dinner1_data_export_{current_user.id}_{request_id}.zip",
+            filename=f"dinner_first_data_export_{current_user.id}_{request_id}.zip",
             media_type="application/zip"
         )
         
@@ -424,9 +424,9 @@ async def get_privacy_policy():
             "version": "1.0",
             "effective_date": "2024-01-01",
             "last_updated": "2024-01-01",
-            "policy_url": "https://dinner1.com/privacy-policy",
-            "contact_email": "privacy@dinner1.com",
-            "dpo_contact": "dpo@dinner1.com",
+            "policy_url": "https://dinner_first.com/privacy-policy",
+            "contact_email": "privacy@dinner_first.com",
+            "dpo_contact": "dpo@dinner_first.com",
             "key_points": [
                 "We process your data to provide matching services",
                 "Your data is encrypted and securely stored",

@@ -246,7 +246,7 @@ async def approve_verification(
     """Approve a user's verification request (admin only)."""
     # Simple admin check - only allow specific admin emails for now
     # TODO: Implement proper role-based access control
-    ADMIN_EMAILS = ["admin@dinner1.com", "support@dinner1.com"]
+    ADMIN_EMAILS = ["admin@dinner_first.com", "support@dinner_first.com"]
     
     if current_user.email not in ADMIN_EMAILS:
         raise HTTPException(

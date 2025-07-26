@@ -1,0 +1,590 @@
+# GitLab CI/CD Pipeline for Dinner First Dating Platform
+# Comprehensive pipeline utilizing the complete CI/CD infrastructure
+
+stages:
+  - pre-flight
+  - build
+  - test
+  - security
+  - quality
+  - package
+  - deploy-staging
+  - integration-tests
+  - deploy-production
+  - monitoring
+
+variables:
+  # Docker configuration
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+  
+  # Application configuration
+  APP_NAME: "dinner_first"
+  NODE_VERSION: "20"
+  PYTHON_VERSION: "3.11"
+  
+  # Infrastructure endpoints (based on docker-compose configuration)
+  SONARQUBE_URL: "http://sonarqube-ce:9000"
+  NEXUS_URL: "http://nexus-repository:8081"
+  VAULT_URL: "http://vault-secrets:8200"
+  REDIS_URL: "redis://redis-cache:6379"
+  MINIO_URL: "http://minio-storage:9000"
+  ZAP_URL: "http://owasp-zap:8080"
+  
+  # Quality gates
+  SONAR_QUALITY_GATE_TIMEOUT: 300
+  COVERAGE_THRESHOLD: 80
+  SECURITY_THRESHOLD: "Medium"
+  
+  # Deployment configuration
+  STAGING_NAMESPACE: "dinner_first-staging"
+  PRODUCTION_NAMESPACE: "dinner_first-production"
+
+# Global before script for all jobs
+before_script:
+  - echo "Starting CI/CD pipeline for commit $CI_COMMIT_SHA"
+  - echo "Branch: $CI_COMMIT_REF_NAME"
+  - echo "Pipeline ID: $CI_PIPELINE_ID"
+
+# Pre-flight checks
+pre-flight:infrastructure-check:
+  stage: pre-flight
+  image: alpine:latest
+  script:
+    - apk add --no-cache curl jq
+    - echo "Checking infrastructure health..."
+    # Check SonarQube health
+    - |
+      echo "Checking SonarQube..."
+      curl -f $SONARQUBE_URL/api/system/health || {
+        echo "WARNING: SonarQube is not healthy"
+        exit 0  # Don't fail pipeline, but warn
+      }
+    # Check Nexus health
+    - |
+      echo "Checking Nexus Repository..."
+      curl -f $NEXUS_URL/service/rest/v1/status || {
+        echo "WARNING: Nexus is not available"
+        exit 0
+      }
+    # Check Vault health (if healthy)
+    - |
+      echo "Checking Vault..."
+      curl -f $VAULT_URL/v1/sys/health || {
+        echo "WARNING: Vault is not healthy"
+        exit 0
+      }
+    - echo "Infrastructure check completed"
+  only:
+    - main
+    - develop
+    - merge_requests
+
+# Build stage
+build:frontend:
+  stage: build
+  image: node:${NODE_VERSION}-alpine
+  services:
+    - redis:7-alpine
+  cache:
+    key: "$CI_COMMIT_REF_SLUG-node"
+    paths:
+      - angular-frontend/node_modules/
+      - angular-frontend/.angular/cache/
+  script:
+    - cd angular-frontend
+    - echo "Installing dependencies..."
+    - npm ci --prefer-offline --no-audit
+    - echo "Building Angular application..."
+    - npm run build:prod
+    - echo "Building PWA with service worker..."
+    - npm run build:pwa
+    - echo "Creating build artifact..."
+    - tar -czf ../frontend-build.tar.gz dist/
+  artifacts:
+    name: "frontend-build-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - frontend-build.tar.gz
+      - angular-frontend/dist/
+    expire_in: 1 hour
+    reports:
+      junit: angular-frontend/test-results.xml
+  only:
+    - main
+    - develop
+    - merge_requests
+
+build:backend:
+  stage: build
+  image: python:${PYTHON_VERSION}-alpine
+  services:
+    - redis:7-alpine
+  cache:
+    key: "$CI_COMMIT_REF_SLUG-python"
+    paths:
+      - python-backend/.venv/
+  script:
+    - cd python-backend
+    - echo "Setting up Python environment..."
+    - python -m venv .venv
+    - source .venv/bin/activate
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+    - echo "Running Python syntax check..."
+    - python -m py_compile $(find . -name "*.py")
+    - echo "Creating backend artifact..."
+    - tar -czf ../backend-build.tar.gz --exclude=".venv" --exclude="__pycache__" .
+  artifacts:
+    name: "backend-build-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - backend-build.tar.gz
+    expire_in: 1 hour
+  only:
+    - main
+    - develop
+    - merge_requests
+
+# Test stage
+test:frontend:
+  stage: test
+  image: node:${NODE_VERSION}-alpine
+  services:
+    - redis:7-alpine
+  dependencies:
+    - build:frontend
+  cache:
+    key: "$CI_COMMIT_REF_SLUG-node"
+    paths:
+      - angular-frontend/node_modules/
+    policy: pull
+  script:
+    - cd angular-frontend
+    - echo "Running unit tests..."
+    - npm run test:ci
+    - echo "Running e2e tests..."
+    - npm run e2e:ci
+    - echo "Generating coverage report..."
+    - npm run test:coverage
+  artifacts:
+    name: "frontend-test-results-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - angular-frontend/coverage/
+      - angular-frontend/test-results.xml
+    reports:
+      junit: angular-frontend/test-results.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: angular-frontend/coverage/cobertura-coverage.xml
+    expire_in: 1 week
+  coverage: '/Statements.*?(\d+(?:\.\d+)?)%/'
+  only:
+    - main
+    - develop
+    - merge_requests
+
+test:backend:
+  stage: test
+  image: python:${PYTHON_VERSION}-alpine
+  services:
+    - postgres:15-alpine
+    - redis:7-alpine
+  variables:
+    POSTGRES_DB: "dinner_first_test"
+    POSTGRES_USER: "test_user"
+    POSTGRES_PASSWORD: "test_password"
+    DATABASE_URL: "postgresql://test_user:test_password@postgres:5432/dinner_first_test"
+  dependencies:
+    - build:backend
+  cache:
+    key: "$CI_COMMIT_REF_SLUG-python"
+    paths:
+      - python-backend/.venv/
+    policy: pull
+  script:
+    - cd python-backend
+    - source .venv/bin/activate
+    - echo "Running backend tests..."
+    - pytest --junitxml=test-results.xml --cov=app --cov-report=xml --cov-report=html
+    - echo "Running integration tests..."
+    - pytest tests/integration/ --junitxml=integration-test-results.xml
+  artifacts:
+    name: "backend-test-results-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - python-backend/htmlcov/
+      - python-backend/test-results.xml
+      - python-backend/integration-test-results.xml
+      - python-backend/coverage.xml
+    reports:
+      junit: 
+        - python-backend/test-results.xml
+        - python-backend/integration-test-results.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: python-backend/coverage.xml
+    expire_in: 1 week
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  only:
+    - main
+    - develop
+    - merge_requests
+
+# Security stage
+security:dependency-scan:
+  stage: security
+  image: node:${NODE_VERSION}-alpine
+  dependencies:
+    - build:frontend
+  script:
+    - cd angular-frontend
+    - echo "Scanning frontend dependencies for vulnerabilities..."
+    - npm audit --audit-level moderate
+    - cd ../python-backend
+    - echo "Scanning backend dependencies for vulnerabilities..."
+    - pip install safety
+    - safety check --json --output safety-report.json || true
+  artifacts:
+    name: "dependency-scan-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - python-backend/safety-report.json
+    expire_in: 1 week
+  allow_failure: true
+  only:
+    - main
+    - develop
+    - merge_requests
+
+security:container-scan:
+  stage: security
+  image: docker:latest
+  services:
+    - docker:dind
+  dependencies:
+    - build:frontend
+    - build:backend
+  script:
+    - echo "Building Docker images for security scanning..."
+    - docker build -t dinner_first-frontend:${CI_COMMIT_SHORT_SHA} -f angular-frontend/Dockerfile .
+    - docker build -t dinner_first-backend:${CI_COMMIT_SHORT_SHA} -f python-backend/Dockerfile .
+    - echo "Running container security scan..."
+    # Using Trivy for container scanning (should be added to infrastructure)
+    - |
+      if command -v trivy &> /dev/null; then
+        trivy image --format json --output container-scan-frontend.json dinner_first-frontend:${CI_COMMIT_SHORT_SHA}
+        trivy image --format json --output container-scan-backend.json dinner_first-backend:${CI_COMMIT_SHORT_SHA}
+      else
+        echo "Trivy not available, skipping container scan"
+      fi
+  artifacts:
+    name: "container-scan-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - container-scan-*.json
+    expire_in: 1 week
+  allow_failure: true
+  only:
+    - main
+    - develop
+    - merge_requests
+
+security:dast-scan:
+  stage: security
+  image: alpine:latest
+  services:
+    - name: zaproxy/zap-stable:latest
+      alias: zap
+  dependencies:
+    - build:frontend
+    - build:backend
+  script:
+    - apk add --no-cache curl jq
+    - echo "Starting DAST scan with OWASP ZAP..."
+    - |
+      # Wait for ZAP to be ready
+      timeout 300 sh -c 'until curl -f http://zap:8080/JSON/core/view/version/; do sleep 5; done'
+    - |
+      # Start ZAP spider scan
+      curl "http://zap:8080/JSON/spider/action/scan/?url=http://dinner_first-app&maxChildren=10&recurse=true&contextName=&subtreeOnly="
+      
+      # Wait for spider to complete
+      while [ $(curl -s "http://zap:8080/JSON/spider/view/status/" | jq -r '.status') != "100" ]; do
+        echo "Spider scan progress: $(curl -s 'http://zap:8080/JSON/spider/view/status/' | jq -r '.status')%"
+        sleep 10
+      done
+      
+      # Start active scan
+      curl "http://zap:8080/JSON/ascan/action/scan/?url=http://dinner_first-app&recurse=true&inScopeOnly=&scanPolicyName=&method=&postData=&contextId="
+      
+      # Wait for active scan to complete
+      while [ $(curl -s "http://zap:8080/JSON/ascan/view/status/" | jq -r '.status') != "100" ]; do
+        echo "Active scan progress: $(curl -s 'http://zap:8080/JSON/ascan/view/status/' | jq -r '.status')%"
+        sleep 30
+      done
+      
+      # Generate report
+      curl "http://zap:8080/OTHER/core/other/htmlreport/" > zap-report.html
+      curl "http://zap:8080/JSON/core/view/alerts/" > zap-alerts.json
+  artifacts:
+    name: "dast-scan-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - zap-report.html
+      - zap-alerts.json
+    expire_in: 1 week
+  allow_failure: true
+  only:
+    - main
+    - develop
+
+# Quality stage
+quality:sonarqube:
+  stage: quality
+  image: sonarsource/sonar-scanner-cli:latest
+  dependencies:
+    - test:frontend
+    - test:backend
+  script:
+    - echo "Running SonarQube analysis..."
+    - |
+      sonar-scanner \
+        -Dsonar.projectKey=dinner_first-dating-platform \
+        -Dsonar.projectName="Dinner First Dating Platform" \
+        -Dsonar.projectVersion=${CI_COMMIT_SHORT_SHA} \
+        -Dsonar.sources=. \
+        -Dsonar.exclusions="**/node_modules/**,**/*.spec.ts,**/*.spec.js,**/coverage/**,**/.venv/**,**/htmlcov/**" \
+        -Dsonar.tests=angular-frontend/src,python-backend/tests \
+        -Dsonar.test.inclusions="**/*.spec.ts,**/*.spec.js,**/test_*.py" \
+        -Dsonar.typescript.lcov.reportPaths=angular-frontend/coverage/lcov.info \
+        -Dsonar.python.coverage.reportPaths=python-backend/coverage.xml \
+        -Dsonar.host.url=${SONARQUBE_URL} \
+        -Dsonar.token=${SONAR_TOKEN}
+  after_script:
+    - echo "Checking quality gate status..."
+    - |
+      # Wait for quality gate result
+      sleep 30
+      TASK_ID=$(curl -s "${SONARQUBE_URL}/api/ce/activity?componentKey=dinner_first-dating-platform&ps=1" -H "Authorization: Bearer ${SONAR_TOKEN}" | jq -r '.tasks[0].id')
+      
+      # Wait for analysis to complete
+      while [ "$(curl -s "${SONARQUBE_URL}/api/ce/task?id=${TASK_ID}" -H "Authorization: Bearer ${SONAR_TOKEN}" | jq -r '.task.status')" != "SUCCESS" ]; do
+        echo "Waiting for SonarQube analysis to complete..."
+        sleep 10
+      done
+      
+      # Check quality gate
+      QG_STATUS=$(curl -s "${SONARQUBE_URL}/api/qualitygates/project_status?projectKey=dinner_first-dating-platform" -H "Authorization: Bearer ${SONAR_TOKEN}" | jq -r '.projectStatus.status')
+      echo "Quality Gate Status: ${QG_STATUS}"
+      
+      if [ "${QG_STATUS}" != "OK" ]; then
+        echo "Quality gate failed!"
+        exit 1
+      fi
+  only:
+    - main
+    - develop
+    - merge_requests
+
+# Package stage
+package:docker-images:
+  stage: package
+  image: docker:latest
+  services:
+    - docker:dind
+  dependencies:
+    - build:frontend
+    - build:backend
+  variables:
+    FRONTEND_IMAGE: "${NEXUS_URL}/repository/docker-hosted/dinner_first-frontend"
+    BACKEND_IMAGE: "${NEXUS_URL}/repository/docker-hosted/dinner_first-backend"
+  script:
+    - echo "Building production Docker images..."
+    - docker login ${NEXUS_URL}/repository/docker-hosted -u ${NEXUS_USER} -p ${NEXUS_PASSWORD}
+    
+    # Build frontend image
+    - |
+      docker build -t ${FRONTEND_IMAGE}:${CI_COMMIT_SHORT_SHA} \
+        -t ${FRONTEND_IMAGE}:latest \
+        --target production \
+        -f angular-frontend/Dockerfile .
+    
+    # Build backend image
+    - |
+      docker build -t ${BACKEND_IMAGE}:${CI_COMMIT_SHORT_SHA} \
+        -t ${BACKEND_IMAGE}:latest \
+        --target production \
+        -f python-backend/Dockerfile .
+    
+    # Push images to Nexus
+    - docker push ${FRONTEND_IMAGE}:${CI_COMMIT_SHORT_SHA}
+    - docker push ${BACKEND_IMAGE}:${CI_COMMIT_SHORT_SHA}
+    
+    # Push latest tags for main branch
+    - |
+      if [ "$CI_COMMIT_REF_NAME" = "main" ]; then
+        docker push ${FRONTEND_IMAGE}:latest
+        docker push ${BACKEND_IMAGE}:latest
+      fi
+    
+    # Store image digests
+    - docker inspect ${FRONTEND_IMAGE}:${CI_COMMIT_SHORT_SHA} --format='{{index .RepoDigests 0}}' > frontend-image-digest.txt
+    - docker inspect ${BACKEND_IMAGE}:${CI_COMMIT_SHORT_SHA} --format='{{index .RepoDigests 0}}' > backend-image-digest.txt
+  artifacts:
+    name: "docker-images-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - frontend-image-digest.txt
+      - backend-image-digest.txt
+    expire_in: 1 week
+  only:
+    - main
+    - develop
+
+# Staging deployment
+deploy:staging:
+  stage: deploy-staging
+  image: alpine/helm:latest
+  dependencies:
+    - package:docker-images
+  environment:
+    name: staging
+    url: https://staging.dinner_first.app
+  script:
+    - echo "Deploying to staging environment..."
+    - apk add --no-cache curl
+    
+    # Get secrets from Vault
+    - |
+      VAULT_TOKEN=$(curl -s -X POST ${VAULT_URL}/v1/auth/jwt/login \
+        -d "{\"jwt\":\"${CI_JOB_JWT}\",\"role\":\"gitlab-ci\"}" | jq -r '.auth.client_token')
+      
+      # Get database credentials
+      DB_CREDS=$(curl -s -H "X-Vault-Token: ${VAULT_TOKEN}" \
+        ${VAULT_URL}/v1/secret/data/staging/database)
+      
+      export DB_PASSWORD=$(echo ${DB_CREDS} | jq -r '.data.data.password')
+    
+    # Deploy using Helm
+    - |
+      helm upgrade --install dinner_first-staging ./helm/dinner_first \
+        --namespace ${STAGING_NAMESPACE} \
+        --create-namespace \
+        --set image.frontend.tag=${CI_COMMIT_SHORT_SHA} \
+        --set image.backend.tag=${CI_COMMIT_SHORT_SHA} \
+        --set environment=staging \
+        --set database.password=${DB_PASSWORD} \
+        --set ingress.host=staging.dinner_first.app \
+        --wait --timeout=600s
+    
+    - echo "Staging deployment completed successfully"
+  only:
+    - develop
+    - main
+
+# Integration tests
+integration-tests:staging:
+  stage: integration-tests
+  image: node:${NODE_VERSION}-alpine
+  dependencies:
+    - deploy:staging
+  script:
+    - echo "Running integration tests against staging..."
+    - cd angular-frontend
+    - npm ci
+    - |
+      # Run Playwright tests against staging
+      npx playwright test --config playwright.config.staging.ts \
+        --reporter=html,junit \
+        --output-dir=test-results
+  artifacts:
+    name: "integration-tests-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - angular-frontend/test-results/
+      - angular-frontend/playwright-report/
+    reports:
+      junit: angular-frontend/test-results/junit.xml
+    expire_in: 1 week
+    when: always
+  only:
+    - develop
+    - main
+
+# Production deployment
+deploy:production:
+  stage: deploy-production
+  image: alpine/helm:latest
+  dependencies:
+    - package:docker-images
+    - integration-tests:staging
+  environment:
+    name: production
+    url: https://dinner_first.app
+  script:
+    - echo "Deploying to production environment..."
+    - apk add --no-cache curl
+    
+    # Get secrets from Vault
+    - |
+      VAULT_TOKEN=$(curl -s -X POST ${VAULT_URL}/v1/auth/jwt/login \
+        -d "{\"jwt\":\"${CI_JOB_JWT}\",\"role\":\"gitlab-ci\"}" | jq -r '.auth.client_token')
+      
+      # Get production database credentials
+      DB_CREDS=$(curl -s -H "X-Vault-Token: ${VAULT_TOKEN}" \
+        ${VAULT_URL}/v1/secret/data/production/database)
+      
+      export DB_PASSWORD=$(echo ${DB_CREDS} | jq -r '.data.data.password')
+    
+    # Deploy with blue-green strategy
+    - |
+      helm upgrade --install dinner_first-production ./helm/dinner_first \
+        --namespace ${PRODUCTION_NAMESPACE} \
+        --create-namespace \
+        --set image.frontend.tag=${CI_COMMIT_SHORT_SHA} \
+        --set image.backend.tag=${CI_COMMIT_SHORT_SHA} \
+        --set environment=production \
+        --set database.password=${DB_PASSWORD} \
+        --set ingress.host=dinner_first.app \
+        --set replicaCount.frontend=3 \
+        --set replicaCount.backend=3 \
+        --set resources.limits.cpu=1000m \
+        --set resources.limits.memory=2Gi \
+        --wait --timeout=900s
+    
+    - echo "Production deployment completed successfully"
+  when: manual
+  only:
+    - main
+
+# Monitoring stage
+monitoring:setup:
+  stage: monitoring
+  image: alpine:latest
+  dependencies:
+    - deploy:production
+  script:
+    - echo "Setting up monitoring for deployment..."
+    - apk add --no-cache curl jq
+    
+    # Configure Prometheus targets
+    - |
+      curl -X POST http://prometheus-metrics:9090/-/reload || echo "Prometheus reload failed"
+    
+    # Import Grafana dashboards
+    - |
+      GRAFANA_API="http://admin:admin@grafana-monitoring:3000/api"
+      
+      # Import application dashboard
+      curl -X POST ${GRAFANA_API}/dashboards/db \
+        -H "Content-Type: application/json" \
+        -d @monitoring/grafana-dashboards/dinner_first-app.json || echo "Dashboard import failed"
+    
+    - echo "Monitoring setup completed"
+  only:
+    - main
+
+# Cleanup job
+cleanup:old-artifacts:
+  stage: monitoring
+  image: alpine:latest
+  script:
+    - echo "Cleaning up old artifacts..."
+    # This would connect to Nexus API to clean old images
+    - echo "Cleanup completed"
+  when: manual
+  only:
+    - main

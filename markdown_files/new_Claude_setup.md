@@ -758,14 +758,14 @@ sudo apt-get install postgresql  # Ubuntu
 docker run --name postgres-local -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres  # Docker
 
 # Database initialization
-createdb dinner1_local
-psql dinner1_local < schema.sql
+createdb dinner_first_local
+psql dinner_first_local < schema.sql
 ```
 
 **Environment Configuration**:
 ```python
 # config.py - Local development settings
-DATABASE_URL = "postgresql://username:password@localhost:5432/dinner1_local"
+DATABASE_URL = "postgresql://username:password@localhost:5432/dinner_first_local"
 SECRET_KEY = "local-development-secret-key"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60

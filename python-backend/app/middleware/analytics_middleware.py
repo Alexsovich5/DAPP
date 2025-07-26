@@ -1,4 +1,4 @@
-# Analytics Middleware for Dinner1
+# Analytics Middleware for Dinner First
 # Automatic event tracking for user behavior analysis
 
 from fastapi import Request, Response

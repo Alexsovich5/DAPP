@@ -1,4 +1,4 @@
-# A/B Testing Framework for Dinner1
+# A/B Testing Framework for Dinner First
 # Feature optimization and experimentation platform
 
 from typing import Dict, List, Optional, Any, Tuple

@@ -1,4 +1,4 @@
-# Real-Time Data Pipeline for Dinner1 Analytics
+# Real-Time Data Pipeline for Dinner First Analytics
 # Stream processing and data transformation for analytics and ML
 
 from typing import Dict, List, Optional, Any, Callable

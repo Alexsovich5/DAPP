@@ -15,7 +15,7 @@ import { Observable } from 'rxjs';
         <div class="nav-brand">
           <a routerLink="/" class="brand-link">
             <span class="brand-icon">💫</span>
-            <span class="brand-text">Dinner1</span>
+            <span class="brand-text">Dinner First</span>
           </a>
         </div>
 

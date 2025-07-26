@@ -1,6 +1,6 @@
 {
-  "name": "Dinner1: Soul Before Skin",
-  "short_name": "Dinner1",
+  "name": "Dinner First: Soul Before Skin",
+  "short_name": "Dinner First",
   "description": "Revolutionary dating platform that prioritizes emotional connection through progressive revelation before physical attraction",
   "theme_color": "#6366f1",
   "background_color": "#ffffff",
@@ -124,12 +124,12 @@
   "related_applications": [
     {
       "platform": "play",
-      "url": "https://play.google.com/store/apps/details?id=com.dinner1.app",
-      "id": "com.dinner1.app"
+      "url": "https://play.google.com/store/apps/details?id=com.dinner_first.app",
+      "id": "com.dinner_first.app"
     },
     {
       "platform": "itunes",
-      "url": "https://apps.apple.com/app/dinner1-soul-before-skin/id123456789"
+      "url": "https://apps.apple.com/app/dinner-first-soul-before-skin/id123456789"
     }
   ],
   "prefer_related_applications": false,
@@ -151,7 +151,7 @@
   },
   "protocol_handlers": [
     {
-      "protocol": "web+dinner1",
+      "protocol": "web+dinner_first",
       "url": "/connect?id=%s"
     }
   ],

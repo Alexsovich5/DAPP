@@ -36,9 +36,9 @@ export interface OfflineData {
   providedIn: 'root'
 })
 export class OfflineSyncService {
-  private readonly OFFLINE_ACTIONS_KEY = 'dinner1_offline_actions';
-  private readonly OFFLINE_DATA_KEY = 'dinner1_offline_data';
-  private readonly SYNC_STATUS_KEY = 'dinner1_sync_status';
+  private readonly OFFLINE_ACTIONS_KEY = 'dinner_first_offline_actions';
+  private readonly OFFLINE_DATA_KEY = 'dinner_first_offline_data';
+  private readonly SYNC_STATUS_KEY = 'dinner_first_sync_status';
   
   private syncStatusSubject = new BehaviorSubject<SyncStatus>({
     isOnline: navigator.onLine,

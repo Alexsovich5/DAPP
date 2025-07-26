@@ -1,0 +1,244 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dinner-first.fullname" . }}-backend
+  labels:
+    {{- include "dinner-first.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount.backend }}
+  {{- end }}
+  strategy:
+    {{- toYaml .Values.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "dinner-first.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "dinner-first.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: backend
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "dinner-first.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.initContainers.dbMigration.enabled }}
+      initContainers:
+        - name: db-migration
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.initContainers.dbMigration.image.repository }}:{{ .Values.initContainers.dbMigration.image.tag | default .Chart.AppVersion }}"
+          command:
+            {{- toYaml .Values.initContainers.dbMigration.command | nindent 12 }}
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.database.password }}
+                  key: database-url
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.redis.password }}
+                  key: redis-url
+          volumeMounts:
+            - name: app-config
+              mountPath: /app/config
+              readOnly: true
+      {{- end }}
+      containers:
+        - name: backend
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.backend.repository }}:{{ .Values.image.backend.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.backend.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.backend.targetPort }}
+              protocol: TCP
+            - name: metrics
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: PYTHONPATH
+              value: {{ .Values.env.backend.PYTHONPATH | quote }}
+            - name: ENVIRONMENT
+              value: {{ .Values.env.backend.ENVIRONMENT | quote }}
+            - name: DEBUG
+              value: {{ .Values.env.backend.DEBUG | quote }}
+            - name: LOG_LEVEL
+              value: {{ .Values.env.backend.LOG_LEVEL | quote }}
+            - name: CORS_ORIGINS
+              value: {{ .Values.env.backend.CORS_ORIGINS | quote }}
+            - name: SESSION_TIMEOUT
+              value: {{ .Values.env.backend.SESSION_TIMEOUT | quote }}
+            - name: MAX_UPLOAD_SIZE
+              value: {{ .Values.env.backend.MAX_UPLOAD_SIZE | quote }}
+            # Database configuration
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.database.password }}
+                  key: database-url
+            - name: DB_HOST
+              value: {{ .Values.database.host | quote }}
+            - name: DB_PORT
+              value: {{ .Values.database.port | quote }}
+            - name: DB_NAME
+              value: {{ .Values.database.name | quote }}
+            - name: DB_USER
+              value: {{ .Values.database.username | quote }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.database.password }}
+                  key: password
+            # Redis configuration
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.redis.password }}
+                  key: redis-url
+            - name: REDIS_HOST
+              value: {{ .Values.redis.host | quote }}
+            - name: REDIS_PORT
+              value: {{ .Values.redis.port | quote }}
+            {{- if .Values.redis.password }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.redis.password }}
+                  key: password
+            {{- end }}
+            # MinIO configuration
+            {{- if .Values.minio.enabled }}
+            - name: MINIO_ENDPOINT
+              value: "{{ .Values.minio.host }}:{{ .Values.minio.port }}"
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.minio.accessKey }}
+                  key: access-key
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.minio.secretKey }}
+                  key: secret-key
+            - name: MINIO_BUCKET
+              value: {{ .Values.minio.bucket | quote }}
+            {{- end }}
+            # Application secrets
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.app.secretKey }}
+                  key: secret-key
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.app.jwtSecret }}
+                  key: jwt-secret
+            # External service API keys
+            {{- if .Values.externalServices.vault.enabled }}
+            - name: GOOGLE_MAPS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.external.googleMapsApiKey }}
+                  key: api-key
+            - name: SENDGRID_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.external.sendgridApiKey }}
+                  key: api-key
+            - name: VAPID_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.external.vapidKeys }}
+                  key: public-key
+            - name: VAPID_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.external.vapidKeys }}
+                  key: private-key
+            {{- end }}
+          {{- if .Values.healthChecks.backend.livenessProbe }}
+          livenessProbe:
+            {{- toYaml .Values.healthChecks.backend.livenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.healthChecks.backend.readinessProbe }}
+          readinessProbe:
+            {{- toYaml .Values.healthChecks.backend.readinessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources.backend | nindent 12 }}
+          volumeMounts:
+            - name: app-config
+              mountPath: /app/config
+              readOnly: true
+            {{- if .Values.persistence.enabled }}
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+            {{- end }}
+            - name: tmp
+              mountPath: /tmp
+            - name: uploads
+              mountPath: /app/uploads
+        {{- if .Values.sidecars.logShipper.enabled }}
+        - name: log-shipper
+          image: {{ .Values.sidecars.logShipper.image }}
+          resources:
+            {{- toYaml .Values.sidecars.logShipper.resources | nindent 12 }}
+          volumeMounts:
+            - name: log-config
+              mountPath: /fluent-bit/etc/fluent-bit.conf
+              subPath: fluent-bit.conf
+            - name: varlog
+              mountPath: /var/log
+              readOnly: true
+        {{- end }}
+      volumes:
+        - name: app-config
+          configMap:
+            name: {{ include "dinner-first.fullname" . }}-app-config
+        {{- if .Values.sidecars.logShipper.enabled }}
+        - name: log-config
+          configMap:
+            name: {{ include "dinner-first.fullname" . }}-log-config
+        - name: varlog
+          hostPath:
+            path: /var/log
+        {{- end }}
+        {{- if .Values.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "dinner-first.fullname" . }}-data
+        {{- end }}
+        - name: tmp
+          emptyDir: {}
+        - name: uploads
+          emptyDir:
+            sizeLimit: 1Gi
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,4 +1,4 @@
-# Analytics API Router for Dinner1
+# Analytics API Router for Dinner First
 # Business intelligence dashboard and metrics endpoints
 
 from fastapi import APIRouter, Depends, HTTPException, Query

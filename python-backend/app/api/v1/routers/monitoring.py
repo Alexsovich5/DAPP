@@ -197,39 +197,39 @@ async def get_prometheus_metrics():
         metrics_lines = []
         
         # Application metrics
-        metrics_lines.append(f"# HELP dinner1_requests_total Total number of requests")
-        metrics_lines.append(f"# TYPE dinner1_requests_total counter")
-        metrics_lines.append(f"dinner1_requests_total {metrics_store['requests_total']}")
+        metrics_lines.append(f"# HELP dinner_first_requests_total Total number of requests")
+        metrics_lines.append(f"# TYPE dinner_first_requests_total counter")
+        metrics_lines.append(f"dinner_first_requests_total {metrics_store['requests_total']}")
         
-        metrics_lines.append(f"# HELP dinner1_errors_total Total number of errors")
-        metrics_lines.append(f"# TYPE dinner1_errors_total counter")
-        metrics_lines.append(f"dinner1_errors_total {metrics_store['errors_total']}")
+        metrics_lines.append(f"# HELP dinner_first_errors_total Total number of errors")
+        metrics_lines.append(f"# TYPE dinner_first_errors_total counter")
+        metrics_lines.append(f"dinner_first_errors_total {metrics_store['errors_total']}")
         
-        metrics_lines.append(f"# HELP dinner1_active_users Number of active users")
-        metrics_lines.append(f"# TYPE dinner1_active_users gauge")
-        metrics_lines.append(f"dinner1_active_users {metrics_store['active_users']}")
+        metrics_lines.append(f"# HELP dinner_first_active_users Number of active users")
+        metrics_lines.append(f"# TYPE dinner_first_active_users gauge")
+        metrics_lines.append(f"dinner_first_active_users {metrics_store['active_users']}")
         
         # System metrics
-        metrics_lines.append(f"# HELP dinner1_cpu_usage_percent CPU usage percentage")
-        metrics_lines.append(f"# TYPE dinner1_cpu_usage_percent gauge")
-        metrics_lines.append(f"dinner1_cpu_usage_percent {psutil.cpu_percent()}")
+        metrics_lines.append(f"# HELP dinner_first_cpu_usage_percent CPU usage percentage")
+        metrics_lines.append(f"# TYPE dinner_first_cpu_usage_percent gauge")
+        metrics_lines.append(f"dinner_first_cpu_usage_percent {psutil.cpu_percent()}")
         
-        metrics_lines.append(f"# HELP dinner1_memory_usage_percent Memory usage percentage")
-        metrics_lines.append(f"# TYPE dinner1_memory_usage_percent gauge")
-        metrics_lines.append(f"dinner1_memory_usage_percent {psutil.virtual_memory().percent}")
+        metrics_lines.append(f"# HELP dinner_first_memory_usage_percent Memory usage percentage")
+        metrics_lines.append(f"# TYPE dinner_first_memory_usage_percent gauge")
+        metrics_lines.append(f"dinner_first_memory_usage_percent {psutil.virtual_memory().percent}")
         
         # Database metrics
         db_metrics = await get_database_metrics()
-        metrics_lines.append(f"# HELP dinner1_db_connections Database connections")
-        metrics_lines.append(f"# TYPE dinner1_db_connections gauge")
-        metrics_lines.append(f"dinner1_db_connections {db_metrics.get('active_connections', 0)}")
+        metrics_lines.append(f"# HELP dinner_first_db_connections Database connections")
+        metrics_lines.append(f"# TYPE dinner_first_db_connections gauge")
+        metrics_lines.append(f"dinner_first_db_connections {db_metrics.get('active_connections', 0)}")
         
         # Custom business metrics
         custom_metrics = await get_custom_metrics()
         for metric_name, value in custom_metrics.items():
-            metrics_lines.append(f"# HELP dinner1_{metric_name} {metric_name.replace('_', ' ').title()}")
-            metrics_lines.append(f"# TYPE dinner1_{metric_name} gauge")
-            metrics_lines.append(f"dinner1_{metric_name} {value}")
+            metrics_lines.append(f"# HELP dinner_first_{metric_name} {metric_name.replace('_', ' ').title()}")
+            metrics_lines.append(f"# TYPE dinner_first_{metric_name} gauge")
+            metrics_lines.append(f"dinner_first_{metric_name} {value}")
         
         return "\n".join(metrics_lines)
         
@@ -246,7 +246,7 @@ async def get_system_status():
         status = {
             "timestamp": datetime.utcnow(),
             "application": {
-                "name": "Dinner1 API",
+                "name": "Dinner First API",
                 "version": "1.0.0",
                 "environment": "production",  # This should come from config
                 "uptime": time.time() - startup_time,

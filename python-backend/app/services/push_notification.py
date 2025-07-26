@@ -1,4 +1,4 @@
-# Push Notification Service for Dinner1 Dating Platform
+# Push Notification Service for Dinner First Dating Platform
 # Comprehensive push notification system with dating-specific features
 
 from typing import Dict, List, Optional, Any, Union
@@ -343,7 +343,7 @@ class PushNotificationService:
         template = self.notification_templates.get(notification_type, {})
         
         # Format title and body with context
-        title = template.get("title", "Dinner1").format(**context)
+        title = template.get("title", "Dinner First").format(**context)
         body = template.get("body", "You have a new notification").format(**context)
         
         # Create payload
@@ -497,7 +497,7 @@ class PushNotificationService:
             user_id=user_id,
             notification_type=NotificationType.SYSTEM_ANNOUNCEMENT,
             context={
-                "title": "Welcome to Dinner1! 🌟",
+                "title": "Welcome to Dinner First! 🌟",
                 "body": "You'll now receive notifications for soul connections, revelations, and messages"
             },
             db=db

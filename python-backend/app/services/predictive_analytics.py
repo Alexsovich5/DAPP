@@ -1,4 +1,4 @@
-# Predictive Analytics Service for Dinner1
+# Predictive Analytics Service for Dinner First
 # Machine learning models for user behavior prediction and optimization
 
 from typing import Dict, List, Optional, Any, Tuple

@@ -1,0 +1,382 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Dinner First CI/CD Infrastructure Overview",
+    "tags": ["cicd", "dinner_first", "infrastructure"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "CI/CD Pipeline Success Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(gitlab_ci_pipeline_success_total[5m]) / rate(gitlab_ci_pipeline_total[5m]) * 100",
+            "legendFormat": "Success Rate %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 80},
+                {"color": "green", "value": 95}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Active Deployments",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(up{job=~\"dinner_first-.*\"})",
+            "legendFormat": "Active Services"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 1},
+                {"color": "green", "value": 2}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Infrastructure Health",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "avg(up{job!~\"dinner_first-.*\"})",
+            "legendFormat": "Infrastructure Uptime"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1,
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 0.95},
+                {"color": "green", "value": 0.99}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "Build Queue Length",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "gitlab_ci_pipeline_queue_size",
+            "legendFormat": "Queued Builds"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 5},
+                {"color": "red", "value": 10}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0}
+      },
+      {
+        "id": 5,
+        "title": "Pipeline Execution Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(gitlab_ci_pipeline_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.50, rate(gitlab_ci_pipeline_duration_seconds_bucket[5m]))",
+            "legendFormat": "50th percentile"
+          }
+        ],
+        "yAxes": [
+          {
+            "unit": "s",
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 6,
+        "title": "Resource Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(container_cpu_usage_seconds_total{name=~\"gitlab.*|jenkins.*|sonarqube.*\"}[5m]) * 100",
+            "legendFormat": "{{name}} CPU %"
+          }
+        ],
+        "yAxes": [
+          {
+            "unit": "percent",
+            "min": 0,
+            "max": 100
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      },
+      {
+        "id": 7,
+        "title": "GitLab CI/CD Metrics",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "gitlab_ci_pipeline_total",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "__name__": true,
+                "job": true,
+                "instance": true
+              }
+            }
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 16}
+      },
+      {
+        "id": 8,
+        "title": "SonarQube Quality Gates",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "sonarqube_quality_gate_status",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 16}
+      },
+      {
+        "id": 9,
+        "title": "Security Scan Results",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "owasp_zap_scan_results",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 16}
+      },
+      {
+        "id": 10,
+        "title": "Container Memory Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "container_memory_usage_bytes{name=~\"gitlab.*|jenkins.*|sonarqube.*|nexus.*\"} / 1024 / 1024",
+            "legendFormat": "{{name}} Memory MB"
+          }
+        ],
+        "yAxes": [
+          {
+            "unit": "MB",
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24}
+      },
+      {
+        "id": 11,
+        "title": "Network Traffic",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(container_network_receive_bytes_total{name=~\"gitlab.*|jenkins.*\"}[5m])",
+            "legendFormat": "{{name}} RX bytes/s"
+          },
+          {
+            "expr": "rate(container_network_transmit_bytes_total{name=~\"gitlab.*|jenkins.*\"}[5m])",
+            "legendFormat": "{{name}} TX bytes/s"
+          }
+        ],
+        "yAxes": [
+          {
+            "unit": "Bps",
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24}
+      },
+      {
+        "id": 12,
+        "title": "Disk Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "container_fs_usage_bytes{name=~\"gitlab.*|nexus.*|minio.*\"} / container_fs_limit_bytes{name=~\"gitlab.*|nexus.*|minio.*\"} * 100",
+            "legendFormat": "{{name}} Disk Usage %"
+          }
+        ],
+        "yAxes": [
+          {
+            "unit": "percent",
+            "min": 0,
+            "max": 100
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 32}
+      },
+      {
+        "id": 13,
+        "title": "Database Connections",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "postgresql_connections{datname=\"sonarqube\"}",
+            "legendFormat": "SonarQube DB Connections"
+          }
+        ],
+        "yAxes": [
+          {
+            "unit": "short",
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 40}
+      },
+      {
+        "id": 14,
+        "title": "Redis Operations",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(redis_commands_processed_total[5m])",
+            "legendFormat": "Commands/sec"
+          }
+        ],
+        "yAxes": [
+          {
+            "unit": "ops",
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 40}
+      },
+      {
+        "id": 15,
+        "title": "Alert Status",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "ALERTS{alertstate=\"firing\"}",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "__name__": true,
+                "job": true,
+                "instance": true
+              }
+            }
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 48}
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {},
+    "templating": {
+      "list": [
+        {
+          "name": "environment",
+          "type": "custom",
+          "options": [
+            {"text": "All", "value": "$__all"},
+            {"text": "Production", "value": "production"},
+            {"text": "Staging", "value": "staging"},
+            {"text": "Development", "value": "development"}
+          ],
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          }
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": "Prometheus",
+          "expr": "changes(dinner_first_deployment_timestamp[1d])",
+          "textFormat": "Deployment: {{version}}",
+          "iconColor": "green"
+        }
+      ]
+    },
+    "refresh": "30s",
+    "schemaVersion": 27,
+    "version": 1,
+    "links": [
+      {
+        "title": "GitLab",
+        "url": "http://gitlab-ce:8090",
+        "type": "link"
+      },
+      {
+        "title": "Jenkins",
+        "url": "http://jenkins-master:8084",
+        "type": "link"
+      },
+      {
+        "title": "SonarQube",
+        "url": "http://sonarqube-ce:9000",
+        "type": "link"
+      },
+      {
+        "title": "Nexus",
+        "url": "http://nexus-repository:8081",
+        "type": "link"
+      }
+    ]
+  }
+}

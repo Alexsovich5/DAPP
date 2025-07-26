@@ -1,4 +1,4 @@
-# Dinner1 "Soul Before Skin" Dating App
+# Dinner First "Soul Before Skin" Dating App
 
 A revolutionary dating application that prioritizes emotional connection through progressive revelation before physical attraction. The platform uses local algorithms to match users based on emotional compatibility, values alignment, and shared interests.
 
@@ -24,7 +24,7 @@ The application consists of two main components:
 
 ```bash
 # Database setup
-createdb dinner1
+createdb dinner_first
 
 # Backend
 cd backend_py && python -m venv venv && source venv/bin/activate
@@ -73,7 +73,7 @@ Access: http://localhost:5001
 Create a `.env` file in the backend_py directory with:
 
 ```
-DATABASE_URL=postgresql://user:password@localhost:5432/dinner1
+DATABASE_URL=postgresql://user:password@localhost:5432/dinner_first
 SECRET_KEY=your_jwt_secret_here
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 CORS_ORIGINS=http://localhost:3000
@@ -168,4 +168,4 @@ alembic upgrade head
 
 ## License
 
-This project is proprietary and owned by Dinner1.
+This project is proprietary and owned by Dinner First.

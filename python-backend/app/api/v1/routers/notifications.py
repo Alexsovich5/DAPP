@@ -1,4 +1,4 @@
-# Push Notification API Router for Dinner1
+# Push Notification API Router for Dinner First
 # RESTful endpoints for managing push notifications
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks

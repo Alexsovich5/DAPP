@@ -1,4 +1,4 @@
-# Dinner1 CI/CD Pipeline
+# Dinner First CI/CD Pipeline
 # Comprehensive continuous integration and deployment for dating platform
 
 name: CI/CD Pipeline
@@ -12,8 +12,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME_BACKEND: dinner1/backend
-  IMAGE_NAME_FRONTEND: dinner1/frontend
+  IMAGE_NAME_BACKEND: dinner_first/backend
+  IMAGE_NAME_FRONTEND: dinner_first/frontend
   
 jobs:
   # Code Quality and Security Checks
@@ -108,7 +108,7 @@ jobs:
         image: postgres:15
         env:
           POSTGRES_PASSWORD: test_password
-          POSTGRES_DB: dinner1_test
+          POSTGRES_DB: dinner_first_test
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -157,7 +157,7 @@ jobs:
       - name: Run database migrations
         run: |
           cd python-backend
-          export DATABASE_URL=postgresql://postgres:test_password@localhost:5432/dinner1_test
+          export DATABASE_URL=postgresql://postgres:test_password@localhost:5432/dinner_first_test
           alembic upgrade head
 
       - name: Run unit tests
@@ -342,7 +342,7 @@ jobs:
 
       - name: Update kubeconfig
         run: |
-          aws eks update-kubeconfig --region us-east-1 --name dinner1-staging
+          aws eks update-kubeconfig --region us-east-1 --name dinner_first-staging
 
       - name: Deploy to staging
         run: |
@@ -354,8 +354,8 @@ jobs:
 
       - name: Wait for deployment
         run: |
-          kubectl rollout status deployment/dinner1-backend -n dinner1-staging --timeout=600s
-          kubectl rollout status deployment/dinner1-frontend -n dinner1-staging --timeout=600s
+          kubectl rollout status deployment/dinner_first-backend -n dinner_first-staging --timeout=600s
+          kubectl rollout status deployment/dinner_first-frontend -n dinner_first-staging --timeout=600s
 
       - name: Run smoke tests
         run: |
@@ -363,8 +363,8 @@ jobs:
           sleep 30
           
           # Run basic health checks
-          curl -f https://staging-api.dinner1.com/health
-          curl -f https://staging.dinner1.com/health
+          curl -f https://staging-api.dinner_first.com/health
+          curl -f https://staging.dinner_first.com/health
 
       - name: Notify team
         if: always()
@@ -401,12 +401,12 @@ jobs:
 
       - name: Update kubeconfig
         run: |
-          aws eks update-kubeconfig --region us-east-1 --name dinner1-production
+          aws eks update-kubeconfig --region us-east-1 --name dinner_first-production
 
       - name: Database backup before deployment
         run: |
           # Create database backup before deployment
-          kubectl create job --from=cronjob/database-backup manual-backup-$(date +%Y%m%d-%H%M%S) -n dinner1-production
+          kubectl create job --from=cronjob/database-backup manual-backup-$(date +%Y%m%d-%H%M%S) -n dinner_first-production
 
       - name: Blue-green deployment
         run: |
@@ -426,7 +426,7 @@ jobs:
       - name: Create deployment record
         run: |
           # Record deployment in monitoring system
-          curl -X POST https://api.dinner1.com/api/v1/deployments \
+          curl -X POST https://api.dinner_first.com/api/v1/deployments \
             -H "Authorization: Bearer ${{ secrets.DEPLOYMENT_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d '{"version": "${{ github.ref_name }}", "commit": "${{ github.sha }}", "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
@@ -498,17 +498,17 @@ jobs:
 
       - name: Update kubeconfig
         run: |
-          aws eks update-kubeconfig --region us-east-1 --name dinner1-production
+          aws eks update-kubeconfig --region us-east-1 --name dinner_first-production
 
       - name: Rollback deployment
         run: |
-          kubectl rollout undo deployment/dinner1-backend -n dinner1-production
-          kubectl rollout undo deployment/dinner1-frontend -n dinner1-production
+          kubectl rollout undo deployment/dinner_first-backend -n dinner_first-production
+          kubectl rollout undo deployment/dinner_first-frontend -n dinner_first-production
 
       - name: Wait for rollback
         run: |
-          kubectl rollout status deployment/dinner1-backend -n dinner1-production --timeout=600s
-          kubectl rollout status deployment/dinner1-frontend -n dinner1-production --timeout=600s
+          kubectl rollout status deployment/dinner_first-backend -n dinner_first-production --timeout=600s
+          kubectl rollout status deployment/dinner_first-frontend -n dinner_first-production --timeout=600s
 
       - name: Verify rollback
         run: |

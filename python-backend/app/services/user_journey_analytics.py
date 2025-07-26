@@ -1,4 +1,4 @@
-# User Journey Analytics Service for Dinner1
+# User Journey Analytics Service for Dinner First
 # Comprehensive analysis of user paths, conversion funnels, and behavioral insights
 
 from typing import Dict, List, Optional, Any, Tuple

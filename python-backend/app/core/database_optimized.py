@@ -1,4 +1,4 @@
-# Optimized Database Configuration for Dinner1
+# Optimized Database Configuration for Dinner First
 # High-performance database setup with connection pooling, query optimization, and monitoring
 
 from sqlalchemy import create_engine, event, text
@@ -80,7 +80,7 @@ class DatabaseOptimizer:
             # Connection arguments for PostgreSQL optimization
             connect_args={
                 "options": "-c timezone=utc",
-                "application_name": "dinner1_backend",
+                "application_name": "dinner_first_backend",
                 "connect_timeout": 10,
                 "command_timeout": 30,
             }

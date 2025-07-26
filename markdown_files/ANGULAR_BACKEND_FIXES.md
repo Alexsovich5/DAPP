@@ -59,7 +59,7 @@ python run.py
 
 ### 2. Test Connectivity (Terminal 2):
 ```bash
-cd /Users/alexsanders.ephrem/deployment/Code_test/dinner1-app
+cd /Users/alexsanders.ephrem/deployment/Code_test/dinner_first-app
 python test_connection.py
 ```
 

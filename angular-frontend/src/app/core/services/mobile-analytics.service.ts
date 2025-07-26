@@ -92,7 +92,7 @@ export type EventCategory =
   providedIn: 'root'
 })
 export class MobileAnalyticsService {
-  private readonly SESSION_STORAGE_KEY = 'dinner1_analytics_session';
+  private readonly SESSION_STORAGE_KEY = 'dinner_first_analytics_session';
   private readonly BATCH_SIZE = 50;
   private readonly BATCH_TIMEOUT = 30000; // 30 seconds
   private readonly MAX_RETRY_ATTEMPTS = 3;

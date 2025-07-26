@@ -246,7 +246,7 @@ export class PWAService {
     if (typeof gtag !== 'undefined') {
       gtag('event', 'pwa_installed', {
         event_category: 'PWA',
-        event_label: 'dinner1_app'
+        event_label: 'dinner_first_app'
       });
     }
   }
@@ -345,7 +345,7 @@ export class PWAService {
     if ('caches' in window) {
       const cacheNames = await caches.keys();
       const oldCaches = cacheNames.filter(name => 
-        name.includes('dinner1') && !name.includes(this.getCurrentCacheVersion())
+        name.includes('dinner_first') && !name.includes(this.getCurrentCacheVersion())
       );
       
       await Promise.all(oldCaches.map(cache => caches.delete(cache)));

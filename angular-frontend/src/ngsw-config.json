@@ -86,7 +86,7 @@
     {
       "name": "user-photos",
       "urls": [
-        "https://cdn.dinner1.com/photos/**",
+        "https://cdn.dinner_first.com/photos/**",
         "/api/v1/photos/**"
       ],
       "cacheConfig": {

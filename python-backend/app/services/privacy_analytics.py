@@ -1,4 +1,4 @@
-# Privacy-Compliant Analytics Service for Dinner1
+# Privacy-Compliant Analytics Service for Dinner First
 # GDPR/CCPA compliant analytics with data protection and user consent management
 
 from typing import Dict, List, Optional, Any, Set
@@ -584,7 +584,7 @@ class PrivacyCompliantAnalyticsService:
     def _generate_anonymous_id(self, user_id: int) -> str:
         """Generate consistent anonymous ID for a user"""
         # Use a hash of user ID with a secret salt for consistency
-        salt = "dinner1_anonymous_salt"  # In production, use a secure random salt
+        salt = "dinner_first_anonymous_salt"  # In production, use a secure random salt
         return hashlib.sha256(f"{user_id}_{salt}".encode()).hexdigest()[:16]
     
     async def _anonymize_data_type(self, user_id: int, anonymous_id: str, data_type: str):

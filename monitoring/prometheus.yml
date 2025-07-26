@@ -1,11 +1,11 @@
-# Prometheus Configuration for Dinner1 Monitoring
+# Prometheus Configuration for Dinner First Monitoring
 # Comprehensive monitoring setup for dating platform
 
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-    monitor: 'dinner1-production'
+    monitor: 'dinner_first-production'
     environment: 'production'
 
 # Rules for alerting
@@ -26,8 +26,8 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  # Dinner1 Backend API
-  - job_name: 'dinner1-backend'
+  # Dinner First Backend API
+  - job_name: 'dinner_first-backend'
     metrics_path: '/api/v1/metrics/prometheus'
     scrape_interval: 30s
     static_configs:
@@ -35,10 +35,10 @@ scrape_configs:
     relabel_configs:
       - source_labels: [__address__]
         target_label: instance
-        replacement: 'dinner1-backend'
+        replacement: 'dinner_first-backend'
 
-  # Dinner1 Frontend (if serving metrics)
-  - job_name: 'dinner1-frontend'
+  # Dinner First Frontend (if serving metrics)
+  - job_name: 'dinner_first-frontend'
     metrics_path: '/metrics'
     scrape_interval: 60s
     static_configs:
@@ -46,7 +46,7 @@ scrape_configs:
     relabel_configs:
       - source_labels: [__address__]
         target_label: instance
-        replacement: 'dinner1-frontend'
+        replacement: 'dinner_first-frontend'
 
   # PostgreSQL Database
   - job_name: 'postgres'
@@ -55,7 +55,7 @@ scrape_configs:
     relabel_configs:
       - source_labels: [__address__]
         target_label: instance
-        replacement: 'dinner1-postgres'
+        replacement: 'dinner_first-postgres'
 
   # Redis Cache
   - job_name: 'redis'
@@ -64,7 +64,7 @@ scrape_configs:
     relabel_configs:
       - source_labels: [__address__]
         target_label: instance
-        replacement: 'dinner1-redis'
+        replacement: 'dinner_first-redis'
 
   # Node Exporter (System Metrics)
   - job_name: 'node'
@@ -73,7 +73,7 @@ scrape_configs:
     relabel_configs:
       - source_labels: [__address__]
         target_label: instance
-        replacement: 'dinner1-server'
+        replacement: 'dinner_first-server'
 
   # Nginx Reverse Proxy
   - job_name: 'nginx'
@@ -82,7 +82,7 @@ scrape_configs:
     relabel_configs:
       - source_labels: [__address__]
         target_label: instance
-        replacement: 'dinner1-nginx'
+        replacement: 'dinner_first-nginx'
 
   # Container Metrics (cAdvisor)
   - job_name: 'cadvisor'
@@ -91,7 +91,7 @@ scrape_configs:
     relabel_configs:
       - source_labels: [__address__]
         target_label: instance
-        replacement: 'dinner1-containers'
+        replacement: 'dinner_first-containers'
 
   # Blackbox Exporter for URL monitoring
   - job_name: 'blackbox'
@@ -100,9 +100,9 @@ scrape_configs:
       module: [http_2xx]
     static_configs:
       - targets:
-        - https://dinner1.com
-        - https://api.dinner1.com/health
-        - https://api.dinner1.com/api/v1/health
+        - https://dinner_first.com
+        - https://api.dinner_first.com/health
+        - https://api.dinner_first.com/api/v1/health
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -112,20 +112,20 @@ scrape_configs:
         replacement: blackbox-exporter:9115
 
   # Custom Business Metrics
-  - job_name: 'dinner1-business-metrics'
+  - job_name: 'dinner_first-business-metrics'
     metrics_path: '/api/v1/metrics'
     scrape_interval: 60s
     static_configs:
       - targets: ['backend:8000']
     metric_relabel_configs:
       - source_labels: [__name__]
-        regex: 'dinner1_business_.*'
+        regex: 'dinner_first_business_.*'
         target_label: __name__
         replacement: '${1}'
 
 # Remote write configuration (for long-term storage)
 remote_write:
-  - url: "https://prometheus-remote-write.dinner1.com/api/v1/write"
+  - url: "https://prometheus-remote-write.dinner_first.com/api/v1/write"
     basic_auth:
       username: prometheus
       password: your_remote_write_password

@@ -1,4 +1,4 @@
-# Application Performance Monitoring (APM) Configuration for Dinner1
+# Application Performance Monitoring (APM) Configuration for Dinner First
 # Comprehensive monitoring with New Relic, DataDog, and custom metrics
 
 from typing import Dict, List, Optional, Any, Callable
@@ -293,7 +293,7 @@ class APMService:
             nr_metrics = []
             for metric in metrics_data:
                 nr_metric = {
-                    "name": f"dinner1.{metric['name']}",
+                    "name": f"dinner_first.{metric['name']}",
                     "type": metric['metric_type'],
                     "value": metric['value'],
                     "timestamp": int(datetime.fromisoformat(metric['timestamp']).timestamp() * 1000),
@@ -326,7 +326,7 @@ class APMService:
             dd_metrics = []
             for metric in metrics_data:
                 dd_metric = {
-                    "metric": f"dinner1.{metric['name']}",
+                    "metric": f"dinner_first.{metric['name']}",
                     "type": metric['metric_type'],
                     "points": [[
                         int(datetime.fromisoformat(metric['timestamp']).timestamp()),
@@ -346,10 +346,10 @@ class APMService:
         """Send metrics to custom APM endpoint"""
         try:
             # Custom internal APM system
-            apm_endpoint = "https://apm.dinner1.internal/api/metrics"
+            apm_endpoint = "https://apm.dinner_first.internal/api/metrics"
             
             payload = {
-                "service": "dinner1-backend",
+                "service": "dinner_first-backend",
                 "environment": "production",
                 "metrics": metrics_data,
                 "timestamp": datetime.utcnow().isoformat()
