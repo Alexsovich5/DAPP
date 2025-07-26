@@ -31,23 +31,16 @@ import { Observable } from 'rxjs';
           </a>
 
           <a 
-            routerLink="/matches" 
-            routerLinkActive="active"
-            class="nav-link"
-            (click)="closeMobileMenu()"
-          >
-            <span class="nav-icon">💫</span>
-            <span class="nav-text">Connections</span>
-          </a>
-
-          <a 
-            routerLink="/messages" 
+            routerLink="/conversations" 
             routerLinkActive="active"
             class="nav-link"
             (click)="closeMobileMenu()"
           >
             <span class="nav-icon">💬</span>
-            <span class="nav-text">Messages</span>
+            <span class="nav-text">Conversations</span>
+            <span class="notification-badge" *ngIf="(unreadCount$ | async) && (unreadCount$ | async)! > 0">
+              {{unreadCount$ | async}}
+            </span>
           </a>
 
           <a 
@@ -60,18 +53,6 @@ import { Observable } from 'rxjs';
             <span class="nav-text">Revelations</span>
           </a>
 
-          <a 
-            routerLink="/notifications" 
-            routerLinkActive="active"
-            class="nav-link notification-link"
-            (click)="closeMobileMenu()"
-          >
-            <span class="nav-icon">🔔</span>
-            <span class="nav-text">Notifications</span>
-            <span class="notification-badge" *ngIf="(unreadCount$ | async) > 0">
-              {{unreadCount$ | async}}
-            </span>
-          </a>
         </div>
 
         <div class="nav-actions">
@@ -191,7 +172,7 @@ import { Observable } from 'rxjs';
       background: rgba(255, 215, 0, 0.1);
     }
 
-    .notification-link {
+    .nav-link {
       position: relative;
     }
 
@@ -202,14 +183,15 @@ import { Observable } from 'rxjs';
       background: #f56565;
       color: white;
       border-radius: 50%;
-      width: 18px;
-      height: 18px;
-      font-size: 0.7rem;
+      width: 20px;
+      height: 20px;
+      font-size: 0.75rem;
       font-weight: bold;
       display: flex;
       align-items: center;
       justify-content: center;
       border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .nav-actions {
@@ -331,13 +313,14 @@ import { Observable } from 'rxjs';
         right: 0;
         background: white;
         flex-direction: column;
-        padding: 1rem;
+        padding: 1.5rem;
         border-bottom: 1px solid #e2e8f0;
         transform: translateY(-100%);
         opacity: 0;
         visibility: hidden;
         transition: all 0.3s ease;
-        gap: 1rem;
+        gap: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
 
       .nav-menu.mobile-open {
@@ -350,12 +333,23 @@ import { Observable } from 'rxjs';
         flex-direction: row;
         justify-content: flex-start;
         width: 100%;
-        padding: 1rem;
+        padding: 1.25rem 1rem;
         gap: 1rem;
+        min-height: 56px;
+        border-radius: 12px;
+        font-size: 1.1rem;
+      }
+
+      .nav-icon {
+        font-size: 1.5rem;
+        min-width: 24px;
       }
 
       .mobile-menu-btn {
         display: block;
+        padding: 0.75rem;
+        min-height: 44px;
+        min-width: 44px;
       }
 
       .brand-text {
@@ -363,17 +357,47 @@ import { Observable } from 'rxjs';
       }
 
       .nav-text {
-        font-size: 1rem;
+        font-size: 1.1rem;
+        font-weight: 500;
+      }
+
+      .notification-badge {
+        position: static;
+        margin-left: auto;
+        width: 24px;
+        height: 24px;
+        font-size: 0.85rem;
       }
     }
 
     @media (max-width: 480px) {
       .nav-container {
-        padding: 0.5rem 1rem;
+        padding: 0.75rem 1rem;
+      }
+
+      .brand-link {
+        font-size: 1.1rem;
+      }
+
+      .brand-icon {
+        font-size: 1.4rem;
       }
 
       .brand-text {
         display: none;
+      }
+
+      .nav-link {
+        padding: 1.5rem 1rem;
+        min-height: 60px;
+      }
+
+      .nav-text {
+        font-size: 1.2rem;
+      }
+
+      .nav-icon {
+        font-size: 1.6rem;
       }
     }
   `]
