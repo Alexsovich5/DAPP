@@ -6,6 +6,313 @@
   min-height: 100vh;
 }
 
+/* Emotional Micro-interactions for Discovery Cards */
+.soul-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+  will-change: transform, box-shadow, filter;
+  
+  &:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 
+      0 20px 40px rgba(0, 0, 0, 0.15),
+      0 0 30px rgba(255, 107, 157, 0.2);
+    filter: brightness(1.05);
+    
+    .compatibility-score {
+      transform: scale(1.1);
+      filter: brightness(1.2) saturate(1.3);
+    }
+    
+    .soul-icon {
+      animation: soul-sparkle 1.5s ease-in-out infinite;
+    }
+    
+    .action-btn {
+      transform: scale(1.05);
+      filter: brightness(1.1);
+    }
+  }
+  
+  &:focus-within {
+    transform: translateY(-4px);
+    box-shadow: 
+      0 12px 24px rgba(0, 0, 0, 0.12),
+      0 0 0 3px var(--focus-ring-primary);
+    outline: none;
+  }
+  
+  // High compatibility cards get special treatment
+  &.high-compatibility {
+    &:hover {
+      box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.15),
+        0 0 40px rgba(255, 215, 0, 0.4),
+        0 0 60px rgba(255, 107, 157, 0.3);
+        
+      .compatibility-score {
+        animation: heartbeat-glow 1.2s ease-in-out infinite;
+      }
+    }
+  }
+}
+
+.compatibility-score {
+  transition: all 0.3s ease;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    background: radial-gradient(circle, transparent 60%, rgba(255, 215, 0, 0.2) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    border-radius: 50%;
+  }
+  
+  &:hover::after {
+    opacity: 1;
+  }
+}
+
+.action-btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, transparent 70%);
+    transition: all 0.6s ease;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+  }
+  
+  &:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+  
+  &.connect-btn {
+    &:hover {
+      background: linear-gradient(135deg, #ff6b9d, #ffd700);
+      box-shadow: 0 8px 25px rgba(255, 107, 157, 0.4);
+      animation: connection-pulse 2s ease-in-out infinite;
+    }
+    
+    &:active {
+      animation: connection-success 0.6s ease-out;
+    }
+  }
+  
+  &.pass-btn {
+    &:hover {
+      background: linear-gradient(135deg, #94a3b8, #64748b);
+      box-shadow: 0 8px 25px rgba(148, 163, 184, 0.3);
+    }
+    
+    &:active {
+      animation: pass-gentle 0.4s ease-out;
+    }
+  }
+}
+
+/* Keyboard Navigation Help Styling */
+.keyboard-help {
+  background: var(--background-secondary);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  border: 1px solid var(--border-light);
+  
+  details {
+    padding: 1rem;
+    
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text-primary);
+      padding: 0.5rem;
+      border-radius: 8px;
+      transition: background-color 0.2s ease;
+      
+      &:hover {
+        background-color: var(--background-tertiary);
+      }
+      
+      &:focus {
+        outline: 2px solid var(--focus-ring-primary);
+        outline-offset: 2px;
+      }
+    }
+  }
+  
+  .help-content {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-light);
+    
+    h4 {
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+    
+    ul {
+      margin: 0 0 1rem 0;
+      padding-left: 1.5rem;
+      
+      li {
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+        
+        kbd {
+          background: var(--background-tertiary);
+          border: 1px solid var(--border-medium);
+          border-radius: 4px;
+          padding: 0.2rem 0.4rem;
+          font-family: monospace;
+          font-size: 0.85rem;
+          margin: 0 0.2rem;
+          color: var(--text-primary);
+        }
+      }
+    }
+  }
+}
+
+/* Emotional Animation Keyframes */
+@keyframes soul-sparkle {
+  0%, 100% { 
+    transform: scale(1) rotate(0deg); 
+    filter: brightness(1);
+  }
+  25% { 
+    transform: scale(1.1) rotate(90deg); 
+    filter: brightness(1.3);
+  }
+  50% { 
+    transform: scale(1.2) rotate(180deg); 
+    filter: brightness(1.5);
+  }
+  75% { 
+    transform: scale(1.1) rotate(270deg); 
+    filter: brightness(1.3);
+  }
+}
+
+@keyframes heartbeat-glow {
+  0%, 100% { 
+    transform: scale(1); 
+    filter: brightness(1) saturate(1);
+  }
+  15% { 
+    transform: scale(1.05); 
+    filter: brightness(1.2) saturate(1.3);
+  }
+  30% { 
+    transform: scale(1); 
+    filter: brightness(1) saturate(1);
+  }
+  45% { 
+    transform: scale(1.08); 
+    filter: brightness(1.3) saturate(1.5);
+  }
+  60% { 
+    transform: scale(1); 
+    filter: brightness(1) saturate(1);
+  }
+}
+
+@keyframes connection-pulse {
+  0%, 100% { 
+    box-shadow: 0 8px 25px rgba(255, 107, 157, 0.4);
+  }
+  50% { 
+    box-shadow: 0 8px 35px rgba(255, 107, 157, 0.6), 0 0 30px rgba(255, 215, 0, 0.4);
+  }
+}
+
+@keyframes connection-success {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes pass-gentle {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+@keyframes float-away {
+  0% { 
+    transform: translateY(0) scale(1) rotate(0deg); 
+    opacity: 1; 
+  }
+  50% { 
+    transform: translateY(-50px) scale(1.2) rotate(180deg); 
+    opacity: 0.8; 
+  }
+  100% { 
+    transform: translateY(-100px) scale(0.8) rotate(360deg); 
+    opacity: 0; 
+  }
+}
+
+@keyframes celebration-flash {
+  0% { 
+    opacity: 0; 
+    transform: scale(0.8); 
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.1); 
+  }
+  100% { 
+    opacity: 0; 
+    transform: scale(1); 
+  }
+}
+
+/* Connection Celebrating State */
+.connection-celebrating {
+  transform: scale(1.05);
+  filter: brightness(1.2) saturate(1.5);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.2),
+    0 0 50px rgba(255, 215, 0, 0.6),
+    0 0 100px rgba(255, 107, 157, 0.4);
+  animation: celebration-glow 2s ease-out;
+}
+
+@keyframes celebration-glow {
+  0% { 
+    filter: brightness(1) saturate(1); 
+  }
+  25% { 
+    filter: brightness(1.3) saturate(1.8); 
+  }
+  50% { 
+    filter: brightness(1.5) saturate(2.2); 
+  }
+  75% { 
+    filter: brightness(1.2) saturate(1.6); 
+  }
+  100% { 
+    filter: brightness(1) saturate(1); 
+  }
+}
+
 .discovery-header {
   text-align: center;
   margin-bottom: 2rem;

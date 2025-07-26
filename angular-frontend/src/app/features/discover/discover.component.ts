@@ -15,6 +15,7 @@ import { Router } from '@angular/router';
 import { SoulConnectionService } from '@core/services/soul-connection.service';
 import { AuthService } from '@core/services/auth.service';
 import { ErrorLoggingService } from '@core/services/error-logging.service';
+import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
 import { ErrorBoundaryComponent } from '@shared/components/error-boundary/error-boundary.component';
 import { DiscoverEmptyStateComponent } from './discover-empty-state.component';
 import { DiscoveryResponse, DiscoveryRequest, SoulConnectionCreate } from '../../core/interfaces/soul-connection.interfaces';
@@ -229,6 +230,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
             (keydown)="handleCardKeydown($event, discovery, i)"
             (focus)="onCardFocus(i)"
             (blur)="onCardBlur(i)"
+            (mouseenter)="onCardHover(discovery, true)"
+            (mouseleave)="onCardHover(discovery, false)">
             
             <!-- Compatibility Score -->
             <div 
@@ -458,6 +461,9 @@ export class DiscoverComponent implements OnInit {
   // Keyboard navigation state
   currentCardIndex = 0;
   isCardFocused = false;
+  
+  // Card interaction state
+  hoveredCards = new Set<number>();
 
   discoveryFilters: DiscoveryRequest = {
     max_results: 10,
@@ -471,7 +477,8 @@ export class DiscoverComponent implements OnInit {
     private router: Router,
     private soulConnectionService: SoulConnectionService,
     private authService: AuthService,
-    private errorLoggingService: ErrorLoggingService
+    private errorLoggingService: ErrorLoggingService,
+    private hapticFeedbackService: HapticFeedbackService
   ) {}
 
   ngOnInit(): void {
@@ -500,6 +507,8 @@ export class DiscoverComponent implements OnInit {
     
     console.log('Loading discoveries with filters:', this.discoveryFilters);
     this.announceAction('Loading soul connections...');
+    // Trigger loading haptic feedback
+    this.hapticFeedbackService.triggerLoadingFeedback();
     
     this.soulConnectionService.discoverSoulConnections(this.discoveryFilters).subscribe({
       next: (discoveries) => {
@@ -619,6 +628,8 @@ export class DiscoverComponent implements OnInit {
 
     this.isActing = true;
     this.cardAnimations.set(userId, 'pass');
+    // Trigger gentle pass haptic feedback
+    this.hapticFeedbackService.triggerPassFeedback();
     this.announceAction(`Passing on ${firstName}'s profile...`);
 
     // Remove from discoveries after animation
@@ -954,5 +965,205 @@ export class DiscoverComponent implements OnInit {
         }
       }, 100);
     }
+  }
+
+  /**
+   * Handle card hover interactions for emotional feedback
+   */
+  onCardHover(discovery: DiscoveryResponse, isHovering: boolean): void {
+    const userId = discovery.user_id;
+    
+    if (isHovering) {
+      this.hoveredCards.add(userId);
+      
+      // Add compatibility-based class for special hover effects
+      setTimeout(() => {
+        const cardElement = document.querySelector(`[data-card-index="${this.discoveries.findIndex(d => d.user_id === userId)}"]`);
+        if (cardElement && discovery.compatibility.total_compatibility >= 80) {
+          cardElement.classList.add('high-compatibility');
+        }
+      }, 0);
+      
+      // Announce hover for screen readers if compatibility is high
+      if (discovery.compatibility.total_compatibility >= 80) {
+        this.announceAction(`High compatibility profile: ${discovery.profile_preview.first_name}, ${discovery.compatibility.total_compatibility}% match`);
+        // Trigger haptic feedback for high compatibility
+        this.hapticFeedbackService.triggerHighCompatibilityFeedback();
+      } else {
+        // Gentle hover feedback for medium compatibility
+        this.hapticFeedbackService.triggerHoverFeedback();
+      }
+      
+      // Trigger soul orb hover effects
+      this.triggerSoulOrbInteraction(userId, 'hover');
+      
+    } else {
+      this.hoveredCards.delete(userId);
+      
+      // Remove compatibility class
+      setTimeout(() => {
+        const cardElement = document.querySelector(`[data-card-index="${this.discoveries.findIndex(d => d.user_id === userId)}"]`);
+        if (cardElement) {
+          cardElement.classList.remove('high-compatibility');
+        }
+      }, 0);
+    }
+  }
+
+  /**
+   * Trigger soul orb interactions
+   */
+  private triggerSoulOrbInteraction(userId: number, interaction: 'hover' | 'connect' | 'pass'): void {
+    // Find soul orb in the card and trigger appropriate interaction
+    const cardIndex = this.discoveries.findIndex(d => d.user_id === userId);
+    const cardElement = document.querySelector(`[data-card-index="${cardIndex}"]`);
+    const soulOrbContainer = cardElement?.querySelector('.soul-orb-display');
+    
+    if (soulOrbContainer) {
+      switch (interaction) {
+        case 'hover':
+          // Trigger hover effects on soul orb
+          soulOrbContainer.dispatchEvent(new Event('mouseenter'));
+          break;
+        case 'connect':
+          // Trigger celebration animation
+          const soulOrbComponent = soulOrbContainer.querySelector('app-soul-orb');
+          if (soulOrbComponent) {
+            // Access component instance if needed for celebration
+            this.triggerConnectionCelebration(userId);
+          }
+          break;
+      }
+    }
+  }
+
+  /**
+   * Enhanced connection method with celebration
+   */
+  onConnect(discovery: DiscoveryResponse): void {
+    if (this.isActing) return;
+
+    this.isActing = true;
+    this.cardAnimations.set(discovery.user_id, 'connect');
+    
+    // Trigger soul orb celebration before API call
+    this.triggerSoulOrbInteraction(discovery.user_id, 'connect');
+    
+    // Trigger haptic feedback for connection attempt
+    this.hapticFeedbackService.triggerCompatibilityFeedback(discovery.compatibility.total_compatibility);
+    
+    this.announceAction(`Initiating soul connection with ${discovery.profile_preview.first_name}...`);
+
+    const connectionData: SoulConnectionCreate = {
+      user2_id: discovery.user_id
+    };
+
+    this.soulConnectionService.initiateSoulConnection(connectionData).subscribe({
+      next: (connection) => {
+        // Enhanced success animation
+        setTimeout(() => {
+          // Trigger additional celebration effects
+          this.triggerConnectionSuccessEffects(discovery);
+          
+          this.discoveries = this.discoveries.filter(d => d.user_id !== discovery.user_id);
+          this.isActing = false;
+          
+          // Update navigation index if needed
+          if (this.currentCardIndex >= this.discoveries.length) {
+            this.currentCardIndex = Math.max(0, this.discoveries.length - 1);
+          }
+          
+          this.announceAction(`Successfully connected with ${discovery.profile_preview.first_name}! Navigating to your connection...`);
+          
+          // Navigate to connection or show success message
+          this.router.navigate(['/connections', connection.id]);
+        }, 300);
+      },
+      error: (err) => {
+        this.error = err.message || 'Failed to initiate connection';
+        this.cardAnimations.set(discovery.user_id, 'default');
+        this.isActing = false;
+        this.announceAction(`Failed to connect with ${discovery.profile_preview.first_name}: ${this.error}`);
+      }
+    });
+  }
+
+  /**
+   * Trigger connection celebration animation
+   */
+  private triggerConnectionCelebration(userId: number): void {
+    const cardIndex = this.discoveries.findIndex(d => d.user_id === userId);
+    const cardElement = document.querySelector(`[data-card-index="${cardIndex}"]`);
+    
+    if (cardElement) {
+      // Add celebration class
+      cardElement.classList.add('connection-celebrating');
+      
+      // Create floating hearts effect
+      this.createFloatingHearts(cardElement as HTMLElement);
+      
+      // Remove celebration class after animation
+      setTimeout(() => {
+        cardElement.classList.remove('connection-celebrating');
+      }, 2000);
+    }
+  }
+
+  /**
+   * Create floating hearts effect for connection
+   */
+  private createFloatingHearts(cardElement: HTMLElement): void {
+    const heartsCount = 8;
+    
+    for (let i = 0; i < heartsCount; i++) {
+      const heart = document.createElement('div');
+      heart.innerHTML = '💖';
+      heart.style.position = 'absolute';
+      heart.style.fontSize = '1.5rem';
+      heart.style.pointerEvents = 'none';
+      heart.style.zIndex = '1000';
+      heart.style.left = Math.random() * 100 + '%';
+      heart.style.top = Math.random() * 100 + '%';
+      heart.style.animation = `float-away 2s ease-out forwards`;
+      heart.style.animationDelay = (i * 0.2) + 's';
+      
+      cardElement.style.position = 'relative';
+      cardElement.appendChild(heart);
+      
+      // Remove heart after animation
+      setTimeout(() => {
+        if (heart.parentNode) {
+          heart.parentNode.removeChild(heart);
+        }
+      }, 2200 + (i * 200));
+    }
+  }
+
+  /**
+   * Trigger additional connection success effects
+   */
+  private triggerConnectionSuccessEffects(discovery: DiscoveryResponse): void {
+    // Create success announcement with sound for screen readers
+    this.announceAction(`🎉 Soul connection established with ${discovery.profile_preview.first_name}! Compatibility: ${discovery.compatibility.total_compatibility}%`);
+    
+    // Create page-wide celebration effect
+    const celebrationOverlay = document.createElement('div');
+    celebrationOverlay.style.position = 'fixed';
+    celebrationOverlay.style.top = '0';
+    celebrationOverlay.style.left = '0';
+    celebrationOverlay.style.width = '100%';
+    celebrationOverlay.style.height = '100%';
+    celebrationOverlay.style.pointerEvents = 'none';
+    celebrationOverlay.style.zIndex = '9999';
+    celebrationOverlay.style.background = 'radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%)';
+    celebrationOverlay.style.animation = 'celebration-flash 1s ease-out';
+    
+    document.body.appendChild(celebrationOverlay);
+    
+    setTimeout(() => {
+      if (celebrationOverlay.parentNode) {
+        document.body.removeChild(celebrationOverlay);
+      }
+    }, 1000);
   }
 }

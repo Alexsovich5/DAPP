@@ -8,10 +8,15 @@ import { CommonModule } from '@angular/common';
   template: `
     <div 
       class="soul-orb-container" 
-      [ngClass]="[size, type, state]"
+      [ngClass]="[size, type, state, getEmotionalClass()]"
       role="img"
       [attr.aria-label]="getSoulOrbAriaLabel()"
-      [attr.aria-describedby]="ariaDescribedBy">
+      [attr.aria-describedby]="ariaDescribedBy"
+      [class.soul-focused]="isFocused"
+      (mouseenter)="onHover(true)"
+      (mouseleave)="onHover(false)"
+      (focus)="onFocus(true)"
+      (blur)="onFocus(false)">
       <svg 
         class="soul-orb-svg" 
         [attr.width]="svgSize" 
@@ -191,13 +196,21 @@ import { CommonModule } from '@angular/common';
       margin-top: 2px;
     }
 
-    /* State variations */
+    /* Enhanced State Variations with Emotional Micro-interactions */
     .connecting .soul-aura {
       animation: connecting-pulse 1.5s ease-in-out infinite;
     }
+    
+    .connecting .soul-core {
+      animation: emotional-breathe 2s ease-in-out infinite;
+    }
 
     .matched .soul-core {
-      animation: matched-celebration 2s ease-out;
+      animation: connection-celebrate 3s ease-out;
+    }
+    
+    .matched .soul-aura {
+      animation: energy-flow 2s ease-out infinite;
     }
 
     .dormant .soul-aura,
@@ -206,7 +219,40 @@ import { CommonModule } from '@angular/common';
       animation: dormant-slow-pulse 8s ease-in-out infinite;
     }
 
-    /* Keyframe animations */
+    /* High Compatibility Heartbeat */
+    .high-compatibility .soul-core {
+      animation: soul-heartbeat 1.8s ease-in-out infinite;
+    }
+    
+    .high-compatibility .soul-aura {
+      animation: aura-pulse 2s ease-in-out infinite, energy-flow 4s linear infinite;
+    }
+
+    /* Medium Compatibility Gentle Breathing */
+    .medium-compatibility .soul-core {
+      animation: emotional-breathe 3s ease-in-out infinite;
+    }
+
+    /* Active Hover State */
+    .soul-orb-container:hover .soul-core {
+      animation: emotional-breathe 1.5s ease-in-out infinite;
+      filter: brightness(1.2);
+      transition: filter 0.3s ease;
+    }
+    
+    .soul-orb-container:hover .soul-aura {
+      opacity: 0.9;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Focus State for Accessibility */
+    .soul-orb-container:focus-within .soul-core {
+      animation: emotional-breathe 2s ease-in-out infinite;
+      outline: 2px solid var(--focus-ring-primary);
+      outline-offset: 4px;
+    }
+
+    /* Enhanced Emotional Keyframe Animations */
     @keyframes aura-pulse {
       0%, 100% { transform: scale(1); opacity: 0.6; }
       50% { transform: scale(1.1); opacity: 0.8; }
@@ -215,6 +261,91 @@ import { CommonModule } from '@angular/common';
     @keyframes core-breathe {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.05); }
+    }
+
+    /* New Emotional Breathing Animation */
+    @keyframes emotional-breathe {
+      0% { 
+        transform: scale(1); 
+        filter: brightness(1); 
+      }
+      25% { 
+        transform: scale(1.02); 
+        filter: brightness(1.1); 
+      }
+      50% { 
+        transform: scale(1.08); 
+        filter: brightness(1.2); 
+      }
+      75% { 
+        transform: scale(1.02); 
+        filter: brightness(1.1); 
+      }
+      100% { 
+        transform: scale(1); 
+        filter: brightness(1); 
+      }
+    }
+
+    /* Heartbeat Animation for High Compatibility */
+    @keyframes soul-heartbeat {
+      0%, 100% { transform: scale(1); }
+      10% { transform: scale(1.1); }
+      20% { transform: scale(1); }
+      30% { transform: scale(1.15); }
+      40% { transform: scale(1); }
+    }
+
+    /* Energy Flow Animation */
+    @keyframes energy-flow {
+      0% { 
+        opacity: 0; 
+        transform: scale(0.5) rotate(0deg); 
+      }
+      25% { 
+        opacity: 1; 
+        transform: scale(0.8) rotate(90deg); 
+      }
+      50% { 
+        opacity: 1; 
+        transform: scale(1.2) rotate(180deg); 
+      }
+      75% { 
+        opacity: 0.8; 
+        transform: scale(1.5) rotate(270deg); 
+      }
+      100% { 
+        opacity: 0; 
+        transform: scale(2) rotate(360deg); 
+      }
+    }
+
+    /* Connection Success Celebration */
+    @keyframes connection-celebrate {
+      0% { 
+        transform: scale(1) rotate(0deg); 
+        filter: brightness(1) saturate(1); 
+      }
+      15% { 
+        transform: scale(1.3) rotate(5deg); 
+        filter: brightness(1.5) saturate(1.5); 
+      }
+      30% { 
+        transform: scale(1.1) rotate(-3deg); 
+        filter: brightness(1.8) saturate(2); 
+      }
+      45% { 
+        transform: scale(1.4) rotate(2deg); 
+        filter: brightness(2) saturate(2.5); 
+      }
+      60% { 
+        transform: scale(1.2) rotate(-1deg); 
+        filter: brightness(1.6) saturate(2); 
+      }
+      100% { 
+        transform: scale(1) rotate(0deg); 
+        filter: brightness(1) saturate(1); 
+      }
     }
 
     @keyframes particle-float {
@@ -305,6 +436,10 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
   // Accessibility inputs
   @Input() ariaLabel?: string;
   @Input() ariaDescribedBy?: string;
+  
+  // Emotional interaction states
+  isHovered: boolean = false;
+  isFocused: boolean = false;
 
   orbId: string = Math.random().toString(36).substr(2, 9);
   particles: any[] = [];
@@ -493,5 +628,169 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
 
   getCompatibilityAriaLabel(): string {
     return `Soul compatibility match: ${this.compatibilityScore} percent`;
+  }
+
+  /**
+   * Get emotional class based on compatibility score and state
+   */
+  getEmotionalClass(): string {
+    if (this.compatibilityScore >= 80) {
+      return 'high-compatibility';
+    } else if (this.compatibilityScore >= 60) {
+      return 'medium-compatibility';
+    }
+    return '';
+  }
+
+  /**
+   * Handle hover interactions for emotional feedback
+   */
+  onHover(isHovering: boolean): void {
+    this.isHovered = isHovering;
+    
+    if (isHovering) {
+      // Trigger additional particles on hover for high compatibility
+      if (this.compatibilityScore >= 80) {
+        this.generateExtraParticles();
+      }
+      
+      // Announce hover state for screen readers
+      if (this.compatibilityScore > 0) {
+        this.announceEmotionalState(`Soul orb activated: ${this.compatibilityScore}% compatibility`);
+      }
+    }
+  }
+
+  /**
+   * Handle focus interactions for accessibility and emotional feedback
+   */
+  onFocus(isFocusing: boolean): void {
+    this.isFocused = isFocusing;
+    
+    if (isFocusing) {
+      // Enhanced focus state for emotional connection
+      this.announceEmotionalState(`Focused on soul energy: ${this.getSoulOrbAriaLabel()}`);
+    }
+  }
+
+  /**
+   * Generate extra particles for emotional moments
+   */
+  private generateExtraParticles(): void {
+    if (!this.showParticles) return;
+    
+    const extraParticles = [];
+    const particleCount = 5;
+    
+    for (let i = 0; i < particleCount; i++) {
+      extraParticles.push({
+        id: this.particles.length + i,
+        x: 30 + Math.random() * 60,
+        y: 30 + Math.random() * 60,
+        size: 0.5 + Math.random() * 1.5,
+        delay: Math.random() * 0.5,
+        duration: 2 + Math.random() * 2
+      });
+    }
+    
+    this.particles = [...this.particles, ...extraParticles];
+    
+    // Remove extra particles after animation
+    setTimeout(() => {
+      this.particles = this.particles.slice(0, -extraParticles.length);
+    }, 3000);
+  }
+
+  /**
+   * Announce emotional states to screen readers
+   */
+  private announceEmotionalState(message: string): void {
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.className = 'sr-only';
+    announcement.textContent = message;
+    
+    document.body.appendChild(announcement);
+    
+    setTimeout(() => {
+      if (announcement.parentNode) {
+        document.body.removeChild(announcement);
+      }
+    }, 1000);
+  }
+
+  /**
+   * Trigger celebration animation for successful connections
+   */
+  triggerConnectionCelebration(): void {
+    // Add celebration class temporarily
+    const container = document.querySelector(`#${this.orbId}`)?.parentElement;
+    if (container) {
+      container.classList.add('connection-celebrating');
+      
+      // Generate burst of particles
+      this.generateCelebrationParticles();
+      
+      // Announce celebration
+      this.announceEmotionalState('Soul connection successful! Celebrating your new bond.');
+      
+      // Remove celebration class after animation
+      setTimeout(() => {
+        container.classList.remove('connection-celebrating');
+      }, 3000);
+    }
+  }
+
+  /**
+   * Generate celebration particles for connection success
+   */
+  private generateCelebrationParticles(): void {
+    const celebrationParticles = [];
+    const particleCount = 12;
+    
+    for (let i = 0; i < particleCount; i++) {
+      celebrationParticles.push({
+        id: Date.now() + i,
+        x: 20 + Math.random() * 80,
+        y: 20 + Math.random() * 80,
+        size: 1 + Math.random() * 2,
+        delay: Math.random() * 0.3,
+        duration: 1.5 + Math.random() * 2
+      });
+    }
+    
+    this.particles = [...this.particles, ...celebrationParticles];
+    this.generateExtraSparkles();
+    
+    // Remove celebration particles after animation
+    setTimeout(() => {
+      this.particles = this.particles.filter(p => !celebrationParticles.find(cp => cp.id === p.id));
+    }, 4000);
+  }
+
+  /**
+   * Generate extra sparkles for celebration
+   */
+  private generateExtraSparkles(): void {
+    const extraSparkles = [];
+    const sparkleCount = 8;
+    
+    for (let i = 0; i < sparkleCount; i++) {
+      extraSparkles.push({
+        id: Date.now() + i + 1000,
+        x: 20 + Math.random() * 80,
+        y: 20 + Math.random() * 80,
+        size: 0.8 + Math.random() * 1.2,
+        delay: Math.random() * 0.5
+      });
+    }
+    
+    this.sparkles = [...this.sparkles, ...extraSparkles];
+    
+    // Remove extra sparkles after animation
+    setTimeout(() => {
+      this.sparkles = this.sparkles.filter(s => !extraSparkles.find(es => es.id === s.id));
+    }, 3000);
   }
 }
