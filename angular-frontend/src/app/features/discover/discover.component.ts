@@ -65,7 +65,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
                 name="hide_photos"
                 [(ngModel)]="discoveryFilters.hide_photos"
                 [attr.aria-describedby]="'hide-photos-desc'"
-                (change)="onFiltersChange()">
+                (change)="onFiltersChange()"
+                (keydown)="handleFilterKeydown($event, 'toggle')">
               </mat-slide-toggle>
               <div id="hide-photos-desc" class="sr-only">
                 When enabled, profile photos will be hidden until you connect with someone
@@ -85,7 +86,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
                 [(ngModel)]="discoveryFilters.min_compatibility"
                 [attr.aria-valuetext]="discoveryFilters.min_compatibility + ' percent minimum compatibility'"
                 aria-label="Minimum compatibility percentage"
-                (input)="onFiltersChange()">
+                (input)="onFiltersChange()"
+                (keydown)="handleFilterKeydown($event, 'slider')">
               </mat-slider>
             </div>
             
@@ -100,7 +102,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
                 [(ngModel)]="discoveryFilters.max_results"
                 [attr.aria-valuetext]="discoveryFilters.max_results + ' profiles maximum'"
                 aria-label="Maximum number of profiles to show"
-                (input)="onFiltersChange()">
+                (input)="onFiltersChange()"
+                (keydown)="handleFilterKeydown($event, 'slider')">
               </mat-slider>
               <small aria-live="polite">{{ discoveryFilters.max_results }} profiles</small>
             </div>
@@ -178,12 +181,42 @@ import { User } from '../../core/interfaces/auth.interfaces';
           </app-discover-empty-state>
         </div>
 
+        <!-- Keyboard Navigation Instructions -->
+        <div 
+          class="keyboard-help" 
+          *ngIf="!isLoading && !error && discoveries.length > 0"
+          role="complementary"
+          aria-label="Keyboard navigation instructions">
+          <details>
+            <summary>Keyboard Navigation Help</summary>
+            <div class="help-content">
+              <h4>Discovery Cards Navigation:</h4>
+              <ul>
+                <li><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Navigate between cards</li>
+                <li><kbd>Enter</kbd> or <kbd>Space</kbd> Focus card actions</li>
+                <li><kbd>C</kbd> Quick connect with current profile</li>
+                <li><kbd>P</kbd> Quick pass on current profile</li>
+                <li><kbd>Home</kbd> Go to first card</li>
+                <li><kbd>End</kbd> Go to last card</li>
+                <li><kbd>Esc</kbd> Return to main list</li>
+              </ul>
+              <h4>Action Buttons:</h4>
+              <ul>
+                <li><kbd>←</kbd><kbd>→</kbd> Navigate between Pass and Connect buttons</li>
+                <li><kbd>Enter</kbd> or <kbd>Space</kbd> Activate button</li>
+                <li><kbd>Esc</kbd> Return to card</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+
         <!-- Discovery Cards -->
         <div 
           class="discovery-cards" 
           *ngIf="!isLoading && !error && discoveries.length > 0"
           role="list"
-          [attr.aria-label]="discoveries.length + ' soul connection matches found'">
+          [attr.aria-label]="discoveries.length + ' soul connection matches found'"
+          tabindex="-1">
           <article 
             *ngFor="let discovery of discoveries; trackBy: trackByUserId; let i = index"
             class="soul-card"
@@ -191,7 +224,11 @@ import { User } from '../../core/interfaces/auth.interfaces';
             [attr.aria-labelledby]="'card-title-' + discovery.user_id"
             [attr.aria-describedby]="'card-desc-' + discovery.user_id"
             [@cardAnimation]="getCardAnimation(discovery.user_id)"
-            tabindex="0">
+            [attr.tabindex]="i === currentCardIndex ? 0 : -1"
+            [attr.data-card-index]="i"
+            (keydown)="handleCardKeydown($event, discovery, i)"
+            (focus)="onCardFocus(i)"
+            (blur)="onCardBlur(i)"
             
             <!-- Compatibility Score -->
             <div 
@@ -338,7 +375,7 @@ import { User } from '../../core/interfaces/auth.interfaces';
                 [attr.aria-label]="'Pass on ' + discovery.profile_preview.first_name + ' profile'"
                 [attr.aria-describedby]="'card-desc-' + discovery.user_id"
                 (click)="onPass(discovery.user_id)"
-                (keydown.enter)="onPass(discovery.user_id)"
+                (keydown)="handleActionButtonKeydown($event, 'pass', discovery)"
                 [disabled]="isActing"
                 matTooltip="Pass on this connection">
                 <mat-icon aria-hidden="true">close</mat-icon>
@@ -352,7 +389,7 @@ import { User } from '../../core/interfaces/auth.interfaces';
                 [attr.aria-label]="'Start soul connection with ' + discovery.profile_preview.first_name + ', ' + discovery.compatibility.total_compatibility + '% compatibility'"
                 [attr.aria-describedby]="'card-desc-' + discovery.user_id"
                 (click)="onConnect(discovery)"
-                (keydown.enter)="onConnect(discovery)"
+                (keydown)="handleActionButtonKeydown($event, 'connect', discovery)"
                 [disabled]="isActing"
                 matTooltip="Start soul connection">
                 <mat-icon aria-hidden="true">favorite</mat-icon>
@@ -417,6 +454,10 @@ export class DiscoverComponent implements OnInit {
   needsOnboarding = false;
   showFilters = false;
   cardAnimations: Map<number, string> = new Map();
+  
+  // Keyboard navigation state
+  currentCardIndex = 0;
+  isCardFocused = false;
 
   discoveryFilters: DiscoveryRequest = {
     max_results: 10,
@@ -455,8 +496,10 @@ export class DiscoverComponent implements OnInit {
   loadDiscoveries(): void {
     this.isLoading = true;
     this.error = null;
+    this.currentCardIndex = 0; // Reset card navigation
     
     console.log('Loading discoveries with filters:', this.discoveryFilters);
+    this.announceAction('Loading soul connections...');
     
     this.soulConnectionService.discoverSoulConnections(this.discoveryFilters).subscribe({
       next: (discoveries) => {
@@ -466,10 +509,18 @@ export class DiscoverComponent implements OnInit {
         discoveries.forEach(d => {
           this.cardAnimations.set(d.user_id, 'default');
         });
+        
+        // Announce results to screen reader
+        if (discoveries.length === 0) {
+          this.announceAction('No soul connections found. Try adjusting your filters.');
+        } else {
+          this.announceAction(`Found ${discoveries.length} soul connection${discoveries.length === 1 ? '' : 's'}. Use arrow keys to navigate between profiles.`);
+        }
       },
       error: (err) => {
         console.error('Discovery error:', err);
         this.error = err.message || 'Failed to load soul connections';
+        this.announceAction(`Error loading connections: ${this.error}`);
         this.errorLoggingService.logError(err, {
           component: 'discover',
           action: 'load_discoveries',
@@ -494,6 +545,15 @@ export class DiscoverComponent implements OnInit {
 
   toggleFilters(): void {
     this.showFilters = !this.showFilters;
+    this.announceAction(this.showFilters ? 'Filters expanded' : 'Filters collapsed');
+    
+    // Focus first filter control when opening
+    if (this.showFilters) {
+      setTimeout(() => {
+        const firstFilterControl = document.querySelector('.filter-content mat-slide-toggle, .filter-content mat-slider') as HTMLElement;
+        firstFilterControl?.focus();
+      }, 100);
+    }
   }
 
   resetFilters(): void {
@@ -518,6 +578,7 @@ export class DiscoverComponent implements OnInit {
 
     this.isActing = true;
     this.cardAnimations.set(discovery.user_id, 'connect');
+    this.announceAction(`Initiating soul connection with ${discovery.profile_preview.first_name}...`);
 
     const connectionData: SoulConnectionCreate = {
       user2_id: discovery.user_id
@@ -530,6 +591,13 @@ export class DiscoverComponent implements OnInit {
           this.discoveries = this.discoveries.filter(d => d.user_id !== discovery.user_id);
           this.isActing = false;
           
+          // Update navigation index if needed
+          if (this.currentCardIndex >= this.discoveries.length) {
+            this.currentCardIndex = Math.max(0, this.discoveries.length - 1);
+          }
+          
+          this.announceAction(`Successfully connected with ${discovery.profile_preview.first_name}! Navigating to your connection...`);
+          
           // Navigate to connection or show success message
           this.router.navigate(['/connections', connection.id]);
         }, 300);
@@ -538,6 +606,7 @@ export class DiscoverComponent implements OnInit {
         this.error = err.message || 'Failed to initiate connection';
         this.cardAnimations.set(discovery.user_id, 'default');
         this.isActing = false;
+        this.announceAction(`Failed to connect with ${discovery.profile_preview.first_name}: ${this.error}`);
       }
     });
   }
@@ -545,13 +614,32 @@ export class DiscoverComponent implements OnInit {
   onPass(userId: number): void {
     if (this.isActing) return;
 
+    const discovery = this.discoveries.find(d => d.user_id === userId);
+    const firstName = discovery?.profile_preview.first_name || 'this profile';
+
     this.isActing = true;
     this.cardAnimations.set(userId, 'pass');
+    this.announceAction(`Passing on ${firstName}'s profile...`);
 
     // Remove from discoveries after animation
     setTimeout(() => {
       this.discoveries = this.discoveries.filter(d => d.user_id !== userId);
       this.isActing = false;
+      
+      // Update navigation index if needed
+      if (this.currentCardIndex >= this.discoveries.length) {
+        this.currentCardIndex = Math.max(0, this.discoveries.length - 1);
+      }
+      
+      // Focus next card if available
+      if (this.discoveries.length > 0) {
+        setTimeout(() => {
+          this.navigateToCard(this.currentCardIndex);
+          this.announceAction(`Passed on ${firstName}. ${this.discoveries.length} profile${this.discoveries.length === 1 ? '' : 's'} remaining.`);
+        }, 100);
+      } else {
+        this.announceAction(`Passed on ${firstName}. No more profiles to review.`);
+      }
     }, 300);
   }
 
@@ -616,5 +704,255 @@ export class DiscoverComponent implements OnInit {
     const explanation = discovery.compatibility.explanation ? `. ${discovery.compatibility.explanation}` : '';
 
     return `${age} years old${location}${bio}${interests}${moreInterests}${emotionalDepth}${explanation}`;
+  }
+
+  /**
+   * Handle keyboard navigation for discovery cards
+   */
+  handleCardKeydown(event: KeyboardEvent, discovery: DiscoveryResponse, index: number): void {
+    switch (event.key) {
+      case 'ArrowDown':
+      case 'ArrowRight':
+        event.preventDefault();
+        this.navigateToCard(index + 1);
+        this.announceCardNavigation(index + 1);
+        break;
+        
+      case 'ArrowUp':
+      case 'ArrowLeft':
+        event.preventDefault();
+        this.navigateToCard(index - 1);
+        this.announceCardNavigation(index - 1);
+        break;
+        
+      case 'Home':
+        event.preventDefault();
+        this.navigateToCard(0);
+        this.announceCardNavigation(0);
+        break;
+        
+      case 'End':
+        event.preventDefault();
+        this.navigateToCard(this.discoveries.length - 1);
+        this.announceCardNavigation(this.discoveries.length - 1);
+        break;
+        
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        this.focusCardActions(discovery);
+        break;
+        
+      case 'p':
+      case 'P':
+        event.preventDefault();
+        this.onPass(discovery.user_id);
+        this.announceAction(`Passed on ${discovery.profile_preview.first_name}'s profile`);
+        break;
+        
+      case 'c':
+      case 'C':
+        event.preventDefault();
+        this.onConnect(discovery);
+        this.announceAction(`Connecting with ${discovery.profile_preview.first_name}`);
+        break;
+        
+      case 'Escape':
+        event.preventDefault();
+        this.blurCurrentCard();
+        break;
+    }
+  }
+
+  /**
+   * Navigate to a specific card index
+   */
+  private navigateToCard(targetIndex: number): void {
+    if (this.discoveries.length === 0) return;
+    
+    // Wrap around navigation
+    if (targetIndex < 0) {
+      targetIndex = this.discoveries.length - 1;
+    } else if (targetIndex >= this.discoveries.length) {
+      targetIndex = 0;
+    }
+    
+    this.currentCardIndex = targetIndex;
+    
+    // Focus the card element
+    setTimeout(() => {
+      const cardElement = document.querySelector(`[data-card-index="${targetIndex}"]`) as HTMLElement;
+      cardElement?.focus();
+    }, 0);
+  }
+
+  /**
+   * Focus on card action buttons
+   */
+  private focusCardActions(discovery: DiscoveryResponse): void {
+    setTimeout(() => {
+      const cardElement = document.querySelector(`[data-card-index="${this.currentCardIndex}"]`);
+      const firstActionButton = cardElement?.querySelector('.card-actions button') as HTMLElement;
+      firstActionButton?.focus();
+      this.announceAction(`Focused on actions for ${discovery.profile_preview.first_name}`);
+    }, 0);
+  }
+
+  /**
+   * Blur current card and return focus to main container
+   */
+  private blurCurrentCard(): void {
+    const mainContainer = document.querySelector('.discovery-cards') as HTMLElement;
+    mainContainer?.focus();
+    this.announceAction('Returned to discovery list');
+  }
+
+  /**
+   * Handle card focus events
+   */
+  onCardFocus(index: number): void {
+    this.currentCardIndex = index;
+    this.isCardFocused = true;
+  }
+
+  /**
+   * Handle card blur events
+   */
+  onCardBlur(index: number): void {
+    this.isCardFocused = false;
+  }
+
+  /**
+   * Announce card navigation to screen readers
+   */
+  private announceCardNavigation(newIndex: number): void {
+    if (newIndex >= 0 && newIndex < this.discoveries.length) {
+      const discovery = this.discoveries[newIndex];
+      const announcement = `Card ${newIndex + 1} of ${this.discoveries.length}: ${discovery.profile_preview.first_name}, ${discovery.compatibility.total_compatibility}% compatibility`;
+      this.announceAction(announcement);
+    }
+  }
+
+  /**
+   * Announce actions to screen readers using accessibility service
+   */
+  private announceAction(message: string): void {
+    // Create live region for immediate announcements
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', 'assertive');
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.className = 'sr-only';
+    announcement.textContent = message;
+    
+    document.body.appendChild(announcement);
+    
+    // Remove after announcement
+    setTimeout(() => {
+      if (announcement.parentNode) {
+        document.body.removeChild(announcement);
+      }
+    }, 1000);
+  }
+
+  /**
+   * Handle keyboard navigation for action buttons within cards
+   */
+  handleActionButtonKeydown(event: KeyboardEvent, action: 'pass' | 'connect', discovery: DiscoveryResponse): void {
+    const cardElement = (event.target as HTMLElement).closest('.soul-card');
+    const actionButtons = Array.from(cardElement?.querySelectorAll('.card-actions button') || []) as HTMLElement[];
+    const currentButtonIndex = actionButtons.findIndex(btn => btn === event.target);
+
+    switch (event.key) {
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        event.preventDefault();
+        const prevButton = actionButtons[currentButtonIndex - 1] || actionButtons[actionButtons.length - 1];
+        prevButton?.focus();
+        break;
+        
+      case 'ArrowRight':
+      case 'ArrowDown':
+        event.preventDefault();
+        const nextButton = actionButtons[currentButtonIndex + 1] || actionButtons[0];
+        nextButton?.focus();
+        break;
+        
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        if (action === 'pass') {
+          this.onPass(discovery.user_id);
+          this.announceAction(`Passed on ${discovery.profile_preview.first_name}'s profile`);
+        } else {
+          this.onConnect(discovery);
+          this.announceAction(`Connecting with ${discovery.profile_preview.first_name}`);
+        }
+        break;
+        
+      case 'Escape':
+        event.preventDefault();
+        // Return focus to the card
+        const card = cardElement as HTMLElement;
+        card?.focus();
+        this.announceAction(`Returned to ${discovery.profile_preview.first_name}'s card`);
+        break;
+    }
+  }
+
+  /**
+   * Handle keyboard navigation for filter controls
+   */
+  handleFilterKeydown(event: KeyboardEvent, filterType: 'toggle' | 'slider'): void {
+    const filterContainer = document.querySelector('.filter-content');
+    const filterControls = Array.from(filterContainer?.querySelectorAll('mat-slide-toggle, mat-slider') || []) as HTMLElement[];
+    const currentControlIndex = filterControls.findIndex(control => 
+      control.contains(event.target as Node) || control === event.target
+    );
+
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        const nextControl = filterControls[currentControlIndex + 1] || filterControls[0];
+        nextControl?.focus();
+        this.announceAction('Next filter control');
+        break;
+        
+      case 'ArrowUp':
+        event.preventDefault();
+        const prevControl = filterControls[currentControlIndex - 1] || filterControls[filterControls.length - 1];
+        prevControl?.focus();
+        this.announceAction('Previous filter control');
+        break;
+        
+      case 'Home':
+        event.preventDefault();
+        filterControls[0]?.focus();
+        this.announceAction('First filter control');
+        break;
+        
+      case 'End':
+        event.preventDefault();
+        filterControls[filterControls.length - 1]?.focus();
+        this.announceAction('Last filter control');
+        break;
+        
+      case 'Escape':
+        event.preventDefault();
+        const filterToggleButton = document.querySelector('.filter-toggle') as HTMLElement;
+        filterToggleButton?.focus();
+        this.announceAction('Returned to filter toggle button');
+        break;
+    }
+
+    // Announce filter value changes
+    if (filterType === 'slider' && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+      setTimeout(() => {
+        if (event.target && 'value' in event.target) {
+          const slider = event.target as any;
+          const ariaLabel = slider.getAttribute('aria-label') || 'Filter';
+          this.announceAction(`${ariaLabel}: ${slider.value}`);
+        }
+      }, 100);
+    }
   }
 }

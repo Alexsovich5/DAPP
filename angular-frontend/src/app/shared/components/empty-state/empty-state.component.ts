@@ -200,8 +200,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
             [attr.aria-describedby]="primaryAction.description ? primaryActionDescId : null"
             [attr.aria-label]="getPrimaryActionAriaLabel()"
             (click)="onPrimaryAction()"
-            (keydown.enter)="onPrimaryAction()"
-            (keydown.space)="onPrimaryAction(); $event.preventDefault()"
+            (keydown)="handleActionKeydown($event, 'primary')"
             [disabled]="primaryActionDisabled">
             <span 
               *ngIf="primaryAction.icon" 
@@ -219,8 +218,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
             [attr.aria-describedby]="secondaryAction.description ? secondaryActionDescId : null"
             [attr.aria-label]="getSecondaryActionAriaLabel()"
             (click)="onSecondaryAction()"
-            (keydown.enter)="onSecondaryAction()"
-            (keydown.space)="onSecondaryAction(); $event.preventDefault()"
+            (keydown)="handleActionKeydown($event, 'secondary')"
             [disabled]="secondaryActionDisabled">
             <span 
               *ngIf="secondaryAction.icon" 
@@ -660,5 +658,74 @@ export class EmptyStateComponent {
 
   private generateId(prefix: string): string {
     return `${prefix}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Handle keyboard navigation for action buttons
+   */
+  handleActionKeydown(event: KeyboardEvent, actionType: 'primary' | 'secondary'): void {
+    const actionContainer = (event.target as HTMLElement).closest('.empty-state-actions');
+    const actionButtons = Array.from(actionContainer?.querySelectorAll('.action-btn') || []) as HTMLElement[];
+    const currentButtonIndex = actionButtons.findIndex(btn => btn.contains(event.target as Node));
+
+    switch (event.key) {
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        if (actionType === 'primary') {
+          this.onPrimaryAction();
+        } else {
+          this.onSecondaryAction();
+        }
+        this.announceAction(`${actionType} action activated`);
+        break;
+        
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        event.preventDefault();
+        const prevButton = actionButtons[currentButtonIndex - 1] || actionButtons[actionButtons.length - 1];
+        prevButton?.focus();
+        this.announceAction('Previous action button');
+        break;
+        
+      case 'ArrowRight':
+      case 'ArrowDown':
+        event.preventDefault();
+        const nextButton = actionButtons[currentButtonIndex + 1] || actionButtons[0];
+        nextButton?.focus();
+        this.announceAction('Next action button');
+        break;
+        
+      case 'Home':
+        event.preventDefault();
+        actionButtons[0]?.focus();
+        this.announceAction('First action button');
+        break;
+        
+      case 'End':
+        event.preventDefault();
+        actionButtons[actionButtons.length - 1]?.focus();
+        this.announceAction('Last action button');
+        break;
+    }
+  }
+
+  /**
+   * Announce actions to screen readers
+   */
+  private announceAction(message: string): void {
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.className = 'sr-only';
+    announcement.textContent = message;
+    
+    document.body.appendChild(announcement);
+    
+    setTimeout(() => {
+      if (announcement.parentNode) {
+        document.body.removeChild(announcement);
+      }
+    }, 1000);
   }
 }
