@@ -88,7 +88,7 @@ interface MessagePreview {
                     <span class="dot"></span>
                     <span class="dot"></span>
                   </span>
-                  is typing...
+                  soul is connecting...
                 </span>
               </p>
               <span class="connection-stage">{{formatConnectionStage(message.connectionStage)}}</span>

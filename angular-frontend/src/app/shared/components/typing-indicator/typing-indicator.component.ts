@@ -8,6 +8,9 @@ export interface TypingUser {
   id: string;
   name: string;
   avatar?: string;
+  connectionStage?: 'soul_discovery' | 'revelation_sharing' | 'photo_reveal' | 'deeper_connection';
+  emotionalState?: 'contemplative' | 'romantic' | 'energetic' | 'peaceful' | 'sophisticated';
+  compatibilityScore?: number;
 }
 
 @Component({
@@ -55,10 +58,19 @@ export interface TypingUser {
           </div>
         </div>
 
-        <!-- Typing Text -->
+        <!-- Soul Typing Text -->
         <div class="typing-text" [@textFade]="'visible'">
-          <span class="typing-label">{{ getTypingText() }}</span>
-          <span class="typing-ellipsis" [@ellipsisAnimation]="'animate'">...</span>
+          <span class="typing-label">{{ getSoulTypingText() }}</span>
+          <span class="typing-ellipsis" [@ellipsisAnimation]="'animate'">{{ getTypingEllipsis() }}</span>
+          <div class="connection-energy" *ngIf="showConnectionEnergy()" [@energyPulse]="'pulse'">
+            ✨
+          </div>
+        </div>
+
+        <!-- Emotional State Indicator -->
+        <div class="emotional-state" *ngIf="getEmotionalState()" [@emotionalGlow]="'glow'">
+          <span class="state-emoji">{{ getEmotionalEmoji() }}</span>
+          <span class="state-label">{{ getEmotionalState() }}</span>
         </div>
       </div>
 
@@ -168,23 +180,60 @@ export interface TypingUser {
       animation: typing-bounce 1.4s ease-in-out infinite;
     }
 
-    /* Typing Text */
+    /* Soul Typing Text */
     .typing-text {
       display: flex;
       align-items: center;
       gap: 0.25rem;
       color: var(--text-secondary, #6b7280);
       font-size: 0.85rem;
+      position: relative;
     }
 
     .typing-label {
       font-weight: 500;
       color: var(--soul-purple-600, #9333ea);
+      background: linear-gradient(135deg, 
+        var(--soul-purple-600, #9333ea) 0%, 
+        var(--emotion-rose-600, #e11d48) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .typing-ellipsis {
       color: var(--soul-purple-400, #c084fc);
       font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .connection-energy {
+      font-size: 0.9rem;
+      margin-left: 0.25rem;
+      opacity: 0.8;
+    }
+
+    /* Emotional State Indicator */
+    .emotional-state {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-top: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      background: rgba(147, 51, 234, 0.1);
+      border-radius: 12px;
+      border: 1px solid rgba(147, 51, 234, 0.2);
+    }
+
+    .state-emoji {
+      font-size: 0.8rem;
+    }
+
+    .state-label {
+      font-size: 0.7rem;
+      color: var(--soul-purple-700, #7c3aed);
+      font-weight: 500;
+      text-transform: capitalize;
     }
 
     /* Energy Flow Effects */
@@ -380,6 +429,41 @@ export interface TypingUser {
           })
         ]))
       ])
+    ]),
+    trigger('energyPulse', [
+      state('pulse', style({ opacity: 1 })),
+      transition('* => pulse', [
+        animate('2s ease-in-out infinite', keyframes([
+          style({ opacity: 0.6, transform: 'scale(1)', offset: 0 }),
+          style({ opacity: 1, transform: 'scale(1.2)', offset: 0.5 }),
+          style({ opacity: 0.6, transform: 'scale(1)', offset: 1 })
+        ]))
+      ])
+    ]),
+    trigger('emotionalGlow', [
+      state('glow', style({ opacity: 1 })),
+      transition('* => glow', [
+        animate('3s ease-in-out infinite', keyframes([
+          style({ 
+            opacity: 0.7, 
+            transform: 'scale(1)', 
+            filter: 'brightness(1)', 
+            offset: 0 
+          }),
+          style({ 
+            opacity: 1, 
+            transform: 'scale(1.02)', 
+            filter: 'brightness(1.1)', 
+            offset: 0.5 
+          }),
+          style({ 
+            opacity: 0.7, 
+            transform: 'scale(1)', 
+            filter: 'brightness(1)', 
+            offset: 1 
+          })
+        ]))
+      ])
     ])
   ]
 })
@@ -436,21 +520,93 @@ export class TypingIndicatorComponent implements OnInit, OnDestroy {
     this.autoHideSubscription = undefined;
   }
 
-  getTypingText(): string {
+  getSoulTypingText(): string {
     if (this.typingUsers.length === 0) return '';
     
+    const user = this.typingUsers[0];
+    const connectionStage = user.connectionStage || 'soul_discovery';
+    
     if (this.typingUsers.length === 1) {
-      return `${this.typingUsers[0].name} is typing`;
+      return this.getSoulTypingMessage(user.name, connectionStage);
     } else if (this.typingUsers.length === 2) {
-      return `${this.typingUsers[0].name} and ${this.typingUsers[1].name} are typing`;
+      return `${user.name} and ${this.typingUsers[1].name}'s souls are connecting`;
     } else {
-      return `${this.typingUsers[0].name} and ${this.typingUsers.length - 1} others are typing`;
+      return `${user.name} and ${this.typingUsers.length - 1} souls are sharing energy`;
     }
   }
 
+  private getSoulTypingMessage(name: string, stage: string): string {
+    switch (stage) {
+      case 'soul_discovery':
+        return `${name}'s soul is opening`;
+      case 'revelation_sharing':
+        return `${name} is sharing their essence`;
+      case 'photo_reveal':
+        return `${name} is preparing to reveal`;
+      case 'deeper_connection':
+        return `${name}'s heart is speaking`;
+      default:
+        return `${name}'s soul is reaching out`;
+    }
+  }
+
+  getTypingEllipsis(): string {
+    const stages = ['✧', '✧✧', '✧✧✧'];
+    const currentStage = Math.floor(Date.now() / 500) % stages.length;
+    return stages[currentStage];
+  }
+
+  showConnectionEnergy(): boolean {
+    return this.typingUsers.some(user => 
+      user.connectionStage === 'deeper_connection' || 
+      user.compatibilityScore && user.compatibilityScore > 80
+    );
+  }
+
+  getEmotionalState(): string {
+    if (this.typingUsers.length === 0) return '';
+    
+    const user = this.typingUsers[0];
+    if (!user.emotionalState) return '';
+    
+    const stateMap = {
+      contemplative: 'deep in thought',
+      romantic: 'feeling connected',
+      energetic: 'full of excitement',
+      peaceful: 'centered and calm',
+      sophisticated: 'thoughtfully composed'
+    };
+    
+    return stateMap[user.emotionalState] || '';
+  }
+
+  getEmotionalEmoji(): string {
+    if (this.typingUsers.length === 0) return '';
+    
+    const user = this.typingUsers[0];
+    if (!user.emotionalState) return '';
+    
+    const emojiMap = {
+      contemplative: '🧘',
+      romantic: '💕',
+      energetic: '⚡',
+      peaceful: '🌿',
+      sophisticated: '🎭'
+    };
+    
+    return emojiMap[user.emotionalState] || '✨';
+  }
+
   getAriaLabel(): string {
-    const typingText = this.getTypingText();
-    return `${typingText}. Message composition in progress.`;
+    const typingText = this.getSoulTypingText();
+    const emotionalState = this.getEmotionalState();
+    const baseText = `${typingText}. Soul connection in progress.`;
+    
+    if (emotionalState) {
+      return `${baseText} Emotional state: ${emotionalState}.`;
+    }
+    
+    return baseText;
   }
 
   getAvatarGradient(userId: string): string {

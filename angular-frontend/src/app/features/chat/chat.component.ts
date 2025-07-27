@@ -201,9 +201,9 @@ export class ChatComponent implements OnInit, OnDestroy {
     // Set current user ID in chat service
     this.chatService.setCurrentUserId(this.currentUserId);
 
-    // Subscribe to typing users for this chat
+    // Subscribe to enhanced typing users for this chat
     this.subscriptions.add(
-      this.chatService.getTypingUsersForChat(this.userId!).subscribe(users => {
+      this.chatService.getEnhancedTypingUsers().subscribe(users => {
         this.typingUsers = users;
         // Scroll to bottom when typing indicators appear/disappear
         if (users.length > 0) {
@@ -212,18 +212,40 @@ export class ChatComponent implements OnInit, OnDestroy {
       })
     );
 
+    // Setup connection activity tracking
+    this.setupConnectionActivity();
+
     // Setup typing detection for message input
     this.setupTypingDetection();
+  }
+
+  private setupConnectionActivity(): void {
+    // Mock connection activity for demonstration
+    // In real implementation, this would come from API/WebSocket
+    if (this.userId && this.chatPartner) {
+      this.chatService.updateConnectionActivity(this.userId, {
+        connectionStage: 'soul_discovery', // This should come from actual connection data
+        compatibilityScore: 85, // This should come from actual compatibility calculation
+        lastActivity: new Date(),
+        connectionEnergy: 'high'
+      });
+
+      // Set initial emotional state (could be determined by mood selector)
+      this.chatService.setEmotionalState(this.userId, 'contemplative');
+    }
   }
 
   private setupTypingDetection(): void {
     if (!this.userId) return;
 
-    // Create current user data for typing indicators
+    // Create enhanced current user data for typing indicators
     const currentUserData: TypingUser = {
       id: this.currentUserId,
       name: 'You', // This should come from user profile
-      avatar: undefined // Optional avatar URL
+      avatar: undefined, // Optional avatar URL
+      connectionStage: 'soul_discovery', // Should come from connection data
+      emotionalState: 'contemplative', // Should come from mood selector
+      compatibilityScore: 85 // Should come from compatibility calculation
     };
 
     // Create typing handler

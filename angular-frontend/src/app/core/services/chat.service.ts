@@ -30,6 +30,11 @@ export interface TypingUser {
   id: string;
   name: string;
   avatar?: string;
+  connectionStage?: 'soul_discovery' | 'revelation_sharing' | 'photo_reveal' | 'deeper_connection';
+  emotionalState?: 'contemplative' | 'romantic' | 'energetic' | 'peaceful' | 'sophisticated';
+  compatibilityScore?: number;
+  lastActivity?: Date;
+  connectionEnergy?: 'low' | 'medium' | 'high' | 'soulmate';
 }
 
 interface TypingIndicator {
@@ -63,6 +68,10 @@ export class ChatService {
   private lastTypingTime = 0;
   private typingTimeout = 3000; // 3 seconds
   private isCurrentlyTyping = false;
+  
+  // Connection activity tracking
+  private connectionActivity = new BehaviorSubject<Map<string, any>>(new Map());
+  private emotionalStates = new BehaviorSubject<Map<string, string>>(new Map());
 
   constructor(private http: HttpClient) {
     this.setupWebSocket();
@@ -371,5 +380,105 @@ export class ChatService {
     this.typingTimer.forEach(timer => clearTimeout(timer));
     this.typingTimer.clear();
     this.isCurrentlyTyping = false;
+  }
+
+  // === CONNECTION ACTIVITY & EMOTIONAL STATE METHODS ===
+
+  /**
+   * Update connection activity status for a user
+   */
+  updateConnectionActivity(userId: string, activity: {
+    connectionStage?: string;
+    compatibilityScore?: number;
+    lastActivity?: Date;
+    connectionEnergy?: string;
+  }): void {
+    const currentActivity = this.connectionActivity.value;
+    currentActivity.set(userId, {
+      ...currentActivity.get(userId),
+      ...activity,
+      lastUpdated: new Date()
+    });
+    this.connectionActivity.next(new Map(currentActivity));
+  }
+
+  /**
+   * Set emotional state for a user
+   */
+  setEmotionalState(userId: string, emotionalState: string): void {
+    const currentStates = this.emotionalStates.value;
+    currentStates.set(userId, emotionalState);
+    this.emotionalStates.next(new Map(currentStates));
+  }
+
+  /**
+   * Get connection activity observable
+   */
+  getConnectionActivity(): Observable<Map<string, any>> {
+    return this.connectionActivity.asObservable();
+  }
+
+  /**
+   * Get emotional states observable
+   */
+  getEmotionalStates(): Observable<Map<string, string>> {
+    return this.emotionalStates.asObservable();
+  }
+
+  /**
+   * Enhanced typing users with connection context
+   */
+  getEnhancedTypingUsers(): Observable<TypingUser[]> {
+    return this.typingUsers.asObservable().pipe(
+      map(typingMap => {
+        const activity = this.connectionActivity.value;
+        const emotions = this.emotionalStates.value;
+        
+        return Array.from(typingMap.values()).map(user => ({
+          ...user,
+          connectionStage: activity.get(user.id)?.connectionStage,
+          compatibilityScore: activity.get(user.id)?.compatibilityScore,
+          lastActivity: activity.get(user.id)?.lastActivity,
+          connectionEnergy: activity.get(user.id)?.connectionEnergy,
+          emotionalState: emotions.get(user.id)
+        }));
+      }),
+      distinctUntilChanged((a, b) => 
+        a.length === b.length && 
+        a.every((user, index) => 
+          user.id === b[index]?.id && 
+          user.emotionalState === b[index]?.emotionalState
+        )
+      )
+    );
+  }
+
+  /**
+   * Calculate connection energy based on activity
+   */
+  calculateConnectionEnergy(compatibilityScore: number, lastActivity: Date): string {
+    const hoursSinceActivity = (Date.now() - lastActivity.getTime()) / (1000 * 60 * 60);
+    
+    if (compatibilityScore >= 90 && hoursSinceActivity < 1) return 'soulmate';
+    if (compatibilityScore >= 80 && hoursSinceActivity < 2) return 'high';
+    if (compatibilityScore >= 65 && hoursSinceActivity < 6) return 'medium';
+    return 'low';
+  }
+
+  /**
+   * Send emotional state update via WebSocket
+   */
+  broadcastEmotionalState(chatId: string, emotionalState: string): void {
+    if (this.socket$ && !this.socket$.closed) {
+      this.socket$.next({
+        type: 'emotional_state_update',
+        chatId,
+        data: {
+          userId: this.currentUserId,
+          emotionalState,
+          timestamp: Date.now()
+        }
+      });
+    }
   }
 }
