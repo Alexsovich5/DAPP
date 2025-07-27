@@ -311,7 +311,7 @@ import { User } from '../../core/interfaces/auth.interfaces';
                 class="interests-preview" 
                 *ngIf="discovery.profile_preview.interests?.length"
                 role="region"
-                aria-labelledby="interests-heading-{{ discovery.user_id }}">
+                [attr.aria-labelledby]="'interests-heading-' + discovery.user_id">
                 <h4 id="interests-heading-{{ discovery.user_id }}">Shared Interests</h4>
                 <div 
                   class="interest-chips"
@@ -420,10 +420,9 @@ import { User } from '../../core/interfaces/auth.interfaces';
               class="sr-only">
               {{ getCardDescriptionForScreenReader(discovery) }}
             </div>
-          </div>
+          </article>
         </div>
       </div>
-    </div>
     </app-error-boundary>
   `,
   styleUrls: ['./discover.component.scss'],
@@ -493,11 +492,11 @@ export class DiscoverComponent implements OnInit {
   };
 
   constructor(
-    private router: Router,
-    private soulConnectionService: SoulConnectionService,
-    private authService: AuthService,
-    private errorLoggingService: ErrorLoggingService,
-    private hapticFeedbackService: HapticFeedbackService
+    private readonly router: Router,
+    private readonly soulConnectionService: SoulConnectionService,
+    private readonly authService: AuthService,
+    private readonly errorLoggingService: ErrorLoggingService,
+    private readonly hapticFeedbackService: HapticFeedbackService
   ) {}
 
   ngOnInit(): void {
@@ -568,43 +567,6 @@ export class DiscoverComponent implements OnInit {
     this.router.navigate(['/profile']);
   }
 
-  onConnect(discovery: DiscoveryResponse): void {
-    if (this.isActing) return;
-
-    this.isActing = true;
-    this.cardAnimations.set(discovery.user_id, 'connect');
-    this.announceAction(`Initiating soul connection with ${discovery.profile_preview.first_name}...`);
-
-    const connectionData: SoulConnectionCreate = {
-      user2_id: discovery.user_id
-    };
-
-    this.soulConnectionService.initiateSoulConnection(connectionData).subscribe({
-      next: (connection) => {
-        // Remove from discoveries and show success
-        setTimeout(() => {
-          this.discoveries = this.discoveries.filter(d => d.user_id !== discovery.user_id);
-          this.isActing = false;
-          
-          // Update navigation index if needed
-          if (this.currentCardIndex >= this.discoveries.length) {
-            this.currentCardIndex = Math.max(0, this.discoveries.length - 1);
-          }
-          
-          this.announceAction(`Successfully connected with ${discovery.profile_preview.first_name}! Navigating to your connection...`);
-          
-          // Navigate to connection or show success message
-          this.router.navigate(['/connections', connection.id]);
-        }, 300);
-      },
-      error: (err) => {
-        this.error = err.message || 'Failed to initiate connection';
-        this.cardAnimations.set(discovery.user_id, 'default');
-        this.isActing = false;
-        this.announceAction(`Failed to connect with ${discovery.profile_preview.first_name}: ${this.error}`);
-      }
-    });
-  }
 
   onPass(userId: number): void {
     if (this.isActing) return;
@@ -664,7 +626,7 @@ export class DiscoverComponent implements OnInit {
     }));
   }
 
-  trackByUserId(index: number, discovery: DiscoveryResponse): number {
+  trackByUserId(_index: number, discovery: DiscoveryResponse): number {
     return discovery.user_id;
   }
 
@@ -815,7 +777,7 @@ export class DiscoverComponent implements OnInit {
   /**
    * Handle card blur events
    */
-  onCardBlur(index: number): void {
+  onCardBlur(_index: number): void {
     this.isCardFocused = false;
   }
 
@@ -861,18 +823,20 @@ export class DiscoverComponent implements OnInit {
 
     switch (event.key) {
       case 'ArrowLeft':
-      case 'ArrowUp':
+      case 'ArrowUp': {
         event.preventDefault();
         const prevButton = actionButtons[currentButtonIndex - 1] || actionButtons[actionButtons.length - 1];
         prevButton?.focus();
         break;
+      }
         
       case 'ArrowRight':
-      case 'ArrowDown':
+      case 'ArrowDown': {
         event.preventDefault();
         const nextButton = actionButtons[currentButtonIndex + 1] || actionButtons[0];
         nextButton?.focus();
         break;
+      }
         
       case 'Enter':
       case ' ':
@@ -886,13 +850,14 @@ export class DiscoverComponent implements OnInit {
         }
         break;
         
-      case 'Escape':
+      case 'Escape': {
         event.preventDefault();
         // Return focus to the card
         const card = cardElement as HTMLElement;
         card?.focus();
         this.announceAction(`Returned to ${discovery.profile_preview.first_name}'s card`);
         break;
+      }
     }
   }
 
@@ -907,19 +872,21 @@ export class DiscoverComponent implements OnInit {
     );
 
     switch (event.key) {
-      case 'ArrowDown':
+      case 'ArrowDown': {
         event.preventDefault();
         const nextControl = filterControls[currentControlIndex + 1] || filterControls[0];
         nextControl?.focus();
         this.announceAction('Next filter control');
         break;
+      }
         
-      case 'ArrowUp':
+      case 'ArrowUp': {
         event.preventDefault();
         const prevControl = filterControls[currentControlIndex - 1] || filterControls[filterControls.length - 1];
         prevControl?.focus();
         this.announceAction('Previous filter control');
         break;
+      }
         
       case 'Home':
         event.preventDefault();
@@ -933,12 +900,13 @@ export class DiscoverComponent implements OnInit {
         this.announceAction('Last filter control');
         break;
         
-      case 'Escape':
+      case 'Escape': {
         event.preventDefault();
         const filterToggleButton = document.querySelector('.filter-toggle') as HTMLElement;
         filterToggleButton?.focus();
         this.announceAction('Returned to filter toggle button');
         break;
+      }
     }
 
     // Announce filter value changes
@@ -1011,7 +979,7 @@ export class DiscoverComponent implements OnInit {
           // Trigger hover effects on soul orb
           soulOrbContainer.dispatchEvent(new Event('mouseenter'));
           break;
-        case 'connect':
+        case 'connect': {
           // Trigger celebration animation
           const soulOrbComponent = soulOrbContainer.querySelector('app-soul-orb');
           if (soulOrbComponent) {
@@ -1019,6 +987,7 @@ export class DiscoverComponent implements OnInit {
             this.triggerConnectionCelebration(userId);
           }
           break;
+        }
       }
     }
   }
@@ -1201,7 +1170,7 @@ export class DiscoverComponent implements OnInit {
       const discoveries = await new Promise<DiscoveryResponse[]>((resolve, reject) => {
         this.soulConnectionService.discoverSoulConnections(this.discoveryFilters).subscribe({
           next: (data) => resolve(data || []),
-          error: (err) => reject(err)
+          error: (err) => reject(err instanceof Error ? err : new Error(String(err)))
         });
       });
       
