@@ -1,6 +1,9 @@
 /* Import WCAG 2.1 AA Compliant Color System */
 @import 'app/shared/styles/accessibility-colors';
 
+/* Import Swipe Gesture Styles */
+@import 'app/shared/styles/swipe-gestures';
+
 /* Import Angular Material themes */
 @import '@angular/material/prebuilt-themes/pink-bluegrey.css';
 

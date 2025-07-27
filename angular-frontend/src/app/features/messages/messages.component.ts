@@ -3,7 +3,10 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SoulConnectionService } from '../../core/services/soul-connection.service';
 import { ChatService } from '../../core/services/chat.service';
+import { HapticFeedbackService } from '../../core/services/haptic-feedback.service';
 import { ConversationsEmptyStateComponent } from './conversations-empty-state.component';
+import { SwipeDirective } from '../../shared/directives/swipe.directive';
+import { SwipeEvent, SwipeConfig } from '../../core/services/swipe-gesture.service';
 import { Subscription } from 'rxjs';
 
 interface MessagePreview {
@@ -23,7 +26,7 @@ interface MessagePreview {
 @Component({
   selector: 'app-messages',
   standalone: true,
-  imports: [CommonModule, ConversationsEmptyStateComponent],
+  imports: [CommonModule, ConversationsEmptyStateComponent, SwipeDirective],
   template: `
     <div class="messages-container">
       <header class="messages-header">
@@ -59,9 +62,14 @@ interface MessagePreview {
       <div class="messages-list" *ngIf="filteredMessages.length > 0; else noMessages">
         <div 
           *ngFor="let message of filteredMessages" 
-          class="message-item"
+          class="message-item conversation-item"
           [class.unread]="message.unreadCount > 0"
           [class.revealing]="message.revelationDay > 1 && message.revelationDay <= 7"
+          appSwipe
+          [swipeConfig]="getConversationSwipeConfig()"
+          [swipeEnabled]="true"
+          (swipeLeft)="onSwipeLeft(message, $event)"
+          (swipeRight)="onSwipeRight(message, $event)"
           (click)="openChat(message)"
         >
           <div class="message-avatar">
@@ -611,6 +619,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
   constructor(
     private soulConnectionService: SoulConnectionService,
     private chatService: ChatService,
+    private hapticFeedbackService: HapticFeedbackService,
     private router: Router
   ) {}
 
@@ -735,11 +744,6 @@ export class MessagesComponent implements OnInit, OnDestroy {
     }
   }
 
-  openChat(message: MessagePreview) {
-    this.router.navigate(['/chat'], {
-      queryParams: { connectionId: message.connectionId }
-    });
-  }
 
   quickReply(message: MessagePreview, event: Event) {
     event.stopPropagation();
@@ -815,7 +819,101 @@ export class MessagesComponent implements OnInit, OnDestroy {
     this.applyFilter();
   }
 
-  // Enhanced openChat to stop typing indicators
+  // === SWIPE GESTURE HANDLERS ===
+
+  getConversationSwipeConfig(): Partial<SwipeConfig> {
+    return {
+      threshold: 80, // Require 80px swipe for conversations
+      velocityThreshold: 0.4,
+      timeThreshold: 600,
+      enabledDirections: ['left', 'right'],
+      hapticFeedback: true,
+      preventDefaultEvents: true
+    };
+  }
+
+  onSwipeLeft(message: MessagePreview, event: SwipeEvent): void {
+    // Swipe left to archive/delete conversation
+    const element = event.element;
+    element.classList.add('swipe-archive', 'swipe-left-preview');
+    
+    // Trigger haptic feedback
+    this.hapticFeedbackService.triggerSelectionFeedback();
+    
+    // Show confirmation and archive
+    setTimeout(() => {
+      this.archiveConversation(message);
+      element.classList.remove('swipe-archive', 'swipe-left-preview');
+    }, 300);
+  }
+
+  onSwipeRight(message: MessagePreview, event: SwipeEvent): void {
+    // Swipe right to mark as read/prioritize
+    const element = event.element;
+    element.classList.add('swipe-priority', 'swipe-right-preview');
+    
+    // Trigger haptic feedback
+    this.hapticFeedbackService.triggerSuccessFeedback();
+    
+    // Mark as priority/read
+    setTimeout(() => {
+      this.prioritizeConversation(message);
+      element.classList.remove('swipe-priority', 'swipe-right-preview');
+    }, 300);
+  }
+
+  private archiveConversation(message: MessagePreview): void {
+    // Remove from current list with animation
+    const index = this.messagesPreviews.findIndex(m => m.connectionId === message.connectionId);
+    if (index > -1) {
+      this.messagesPreviews.splice(index, 1);
+      this.applyFilter();
+      
+      // Announce action for accessibility
+      this.announceAction(`Archived conversation with ${message.partnerName}`);
+      
+      // TODO: Call API to archive conversation
+      console.log('Archived conversation:', message.connectionId);
+    }
+  }
+
+  private prioritizeConversation(message: MessagePreview): void {
+    // Mark as read and move to top
+    message.unreadCount = 0;
+    
+    // Move to top of list
+    const index = this.messagesPreviews.findIndex(m => m.connectionId === message.connectionId);
+    if (index > -1) {
+      const [prioritizedMessage] = this.messagesPreviews.splice(index, 1);
+      this.messagesPreviews.unshift(prioritizedMessage);
+      this.applyFilter();
+      
+      // Announce action for accessibility
+      this.announceAction(`Prioritized conversation with ${message.partnerName}`);
+      
+      // TODO: Call API to mark as priority
+      console.log('Prioritized conversation:', message.connectionId);
+    }
+  }
+
+  private announceAction(message: string): void {
+    // Create temporary element for screen reader announcement
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.style.position = 'absolute';
+    announcement.style.left = '-9999px';
+    announcement.textContent = message;
+    
+    document.body.appendChild(announcement);
+    
+    // Remove after announcement
+    setTimeout(() => {
+      document.body.removeChild(announcement);
+    }, 1000);
+  }
+
+  // Enhanced openChat to stop typing indicators  
   openChat(message: MessagePreview) {
     // Stop typing indicator for this conversation
     this.chatService.clearAllTypingIndicators();

@@ -22,6 +22,8 @@ import { SoulLoadingComponent } from '@shared/components/soul-loading/soul-loadi
 import { CompatibilityScoreComponent } from '@shared/components/compatibility-score/compatibility-score.component';
 import { SoulOrbComponent } from '@shared/components/soul-orb/soul-orb.component';
 import { OnboardingTargetDirective } from '@shared/directives/onboarding-target.directive';
+import { SwipeDirective } from '@shared/directives/swipe.directive';
+import { SwipeEvent } from '@core/services/swipe-gesture.service';
 import { DiscoveryResponse, DiscoveryRequest, SoulConnectionCreate } from '../../core/interfaces/soul-connection.interfaces';
 import { User } from '../../core/interfaces/auth.interfaces';
 
@@ -228,13 +230,19 @@ import { User } from '../../core/interfaces/auth.interfaces';
           tabindex="-1">
           <article 
             *ngFor="let discovery of discoveries; trackBy: trackByUserId; let i = index"
-            class="soul-card"
+            class="soul-card discovery-card"
             role="listitem"
             [attr.aria-labelledby]="'card-title-' + discovery.user_id"
             [attr.aria-describedby]="'card-desc-' + discovery.user_id"
             [@cardAnimation]="getCardAnimation(discovery.user_id)"
             [attr.tabindex]="i === currentCardIndex ? 0 : -1"
             [attr.data-card-index]="i"
+            appSwipe
+            [swipeConfig]="getSwipeConfig()"
+            [swipeEnabled]="true"
+            (swipeLeft)="onSwipeLeft(discovery, $event)"
+            (swipeRight)="onSwipeRight(discovery, $event)"
+            (swipeUp)="onSwipeUp(discovery, $event)"
             (keydown)="handleCardKeydown($event, discovery, i)"
             (focus)="onCardFocus(i)"
             (blur)="onCardBlur(i)"
@@ -444,7 +452,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
     SoulLoadingComponent,
     CompatibilityScoreComponent,
     SoulOrbComponent,
-    OnboardingTargetDirective
+    OnboardingTargetDirective,
+    SwipeDirective
   ],
   animations: [
     trigger('cardAnimation', [
@@ -1211,5 +1220,168 @@ export class DiscoverComponent implements OnInit {
    */
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // === SWIPE GESTURE METHODS ===
+
+  /**
+   * Get swipe configuration for discovery cards
+   */
+  getSwipeConfig() {
+    return {
+      threshold: 80, // Higher threshold for intentional swipes
+      velocityThreshold: 0.5, // Faster swipe required
+      timeThreshold: 400, // Quick swipe within 400ms
+      enabledDirections: ['left', 'right', 'up'] as const,
+      hapticFeedback: true,
+      preventDefaultEvents: true
+    };
+  }
+
+  /**
+   * Handle swipe left gesture (Pass/Reject)
+   */
+  onSwipeLeft(discovery: DiscoveryResponse, event: SwipeEvent): void {
+    // Add visual feedback
+    const element = event.element;
+    element.classList.add('swipe-pass', 'swipe-left-preview');
+    
+    // Trigger haptic feedback
+    this.hapticFeedbackService.triggerImpactFeedback('medium');
+    
+    // Announce action for accessibility
+    this.announceAction(`Passed on ${this.getPartnerName(discovery)}`);
+    
+    // Perform pass action with animation
+    setTimeout(() => {
+      this.passOnDiscovery(discovery);
+      element.classList.remove('swipe-pass', 'swipe-left-preview');
+    }, 200);
+
+    // Log swipe action
+    this.errorLoggingService.logAction('swipe_pass', {
+      userId: discovery.user_id,
+      compatibilityScore: discovery.compatibility.total_compatibility,
+      swipeVelocity: event.velocity,
+      swipeDistance: event.distance
+    });
+  }
+
+  /**
+   * Handle swipe right gesture (Like/Connect)
+   */
+  onSwipeRight(discovery: DiscoveryResponse, event: SwipeEvent): void {
+    // Add visual feedback
+    const element = event.element;
+    element.classList.add('swipe-like', 'swipe-right-preview');
+    
+    // Trigger haptic feedback based on compatibility
+    const compatibilityScore = discovery.compatibility.total_compatibility;
+    if (compatibilityScore >= 90) {
+      this.hapticFeedbackService.triggerSuccessFeedback(); // Strong feedback for high compatibility
+    } else if (compatibilityScore >= 70) {
+      this.hapticFeedbackService.triggerImpactFeedback('medium');
+    } else {
+      this.hapticFeedbackService.triggerImpactFeedback('light');
+    }
+    
+    // Announce action for accessibility
+    this.announceAction(`Connected with ${this.getPartnerName(discovery)}`);
+    
+    // Perform connect action with animation
+    setTimeout(() => {
+      this.connectWithDiscovery(discovery);
+      element.classList.remove('swipe-like', 'swipe-right-preview');
+    }, 200);
+
+    // Log swipe action
+    this.errorLoggingService.logAction('swipe_connect', {
+      userId: discovery.user_id,
+      compatibilityScore: discovery.compatibility.total_compatibility,
+      swipeVelocity: event.velocity,
+      swipeDistance: event.distance
+    });
+  }
+
+  /**
+   * Handle swipe up gesture (Super Like)
+   */
+  onSwipeUp(discovery: DiscoveryResponse, event: SwipeEvent): void {
+    // Only allow super like for high compatibility
+    const compatibilityScore = discovery.compatibility.total_compatibility;
+    if (compatibilityScore < 80) {
+      // Provide feedback that super like isn't available
+      this.hapticFeedbackService.triggerErrorFeedback();
+      this.announceAction('Super like requires 80% compatibility or higher');
+      return;
+    }
+
+    // Add visual feedback
+    const element = event.element;
+    element.classList.add('swipe-superlike');
+    
+    // Strong haptic feedback for super like
+    this.hapticFeedbackService.triggerSuccessFeedback();
+    
+    // Announce action for accessibility
+    this.announceAction(`Super liked ${this.getPartnerName(discovery)}! This shows special interest.`);
+    
+    // Perform super like action with special animation
+    setTimeout(() => {
+      this.superLikeDiscovery(discovery);
+      element.classList.remove('swipe-superlike');
+    }, 300);
+
+    // Log swipe action
+    this.errorLoggingService.logAction('swipe_superlike', {
+      userId: discovery.user_id,
+      compatibilityScore: discovery.compatibility.total_compatibility,
+      swipeVelocity: event.velocity,
+      swipeDistance: event.distance
+    });
+  }
+
+  /**
+   * Super like a discovery (enhanced connection request)
+   */
+  private superLikeDiscovery(discovery: DiscoveryResponse): void {
+    const superLikeRequest: SoulConnectionCreate = {
+      target_user_id: discovery.user_id,
+      connection_type: 'super_like', // Enhanced connection type
+      initial_message: `I'm really excited about our ${discovery.compatibility.total_compatibility}% compatibility! 💫`,
+      hide_photos: this.discoveryFilters.hide_photos
+    };
+
+    this.soulConnectionService.createConnection(superLikeRequest).subscribe({
+      next: (connection) => {
+        // Remove from discoveries
+        this.discoveries = this.discoveries.filter(d => d.user_id !== discovery.user_id);
+        
+        // Show success feedback
+        this.announceAction(`Super like sent to ${this.getPartnerName(discovery)}! They'll be notified of your special interest.`);
+        
+        // Navigate to connections if this was the last discovery
+        if (this.discoveries.length === 0) {
+          setTimeout(() => {
+            this.router.navigate(['/connections']);
+          }, 2000);
+        }
+      },
+      error: (error) => {
+        this.announceAction(`Failed to send super like: ${error.message}`);
+        this.errorLoggingService.logError(error, {
+          component: 'discover',
+          action: 'super_like',
+          targetUserId: discovery.user_id
+        });
+      }
+    });
+  }
+
+  /**
+   * Get partner name for accessibility announcements
+   */
+  private getPartnerName(discovery: DiscoveryResponse): string {
+    return discovery.profile?.first_name || 'soul connection';
   }
 }
