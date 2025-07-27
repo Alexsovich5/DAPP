@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SoulConnectionService } from '../../core/services/soul-connection.service';
 import { ChatService } from '../../core/services/chat.service';
 import { ConversationsEmptyStateComponent } from './conversations-empty-state.component';
+import { Subscription } from 'rxjs';
 
 interface MessagePreview {
   connectionId: number;
@@ -16,6 +17,7 @@ interface MessagePreview {
   revelationDay: number;
   compatibilityScore: number | undefined;
   isOnline?: boolean;
+  isTyping?: boolean; // Added typing indicator support
 }
 
 @Component({
@@ -78,7 +80,17 @@ interface MessagePreview {
             </div>
             
             <div class="message-preview">
-              <p class="last-message">{{message.lastMessage}}</p>
+              <p class="last-message" [class.typing-message]="message.isTyping">
+                <span *ngIf="!message.isTyping">{{message.lastMessage}}</span>
+                <span *ngIf="message.isTyping" class="typing-indicator-text">
+                  <span class="typing-dots">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                  </span>
+                  is typing...
+                </span>
+              </p>
               <span class="connection-stage">{{formatConnectionStage(message.connectionStage)}}</span>
             </div>
             
@@ -332,6 +344,56 @@ interface MessagePreview {
       text-overflow: ellipsis;
       white-space: nowrap;
       font-size: 0.95rem;
+
+      &.typing-message {
+        color: #667eea;
+        font-style: italic;
+      }
+    }
+
+    .typing-indicator-text {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #667eea;
+      font-style: italic;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 0.15rem;
+      align-items: center;
+    }
+
+    .typing-dots .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #667eea;
+      animation: typing-dot-bounce 1.4s ease-in-out infinite;
+    }
+
+    .typing-dots .dot:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .typing-dots .dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dots .dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing-dot-bounce {
+      0%, 80%, 100% {
+        transform: scale(1) translateY(0);
+        opacity: 0.7;
+      }
+      40% {
+        transform: scale(1.2) translateY(-2px);
+        opacity: 1;
+      }
     }
 
     .connection-stage {
@@ -538,11 +600,13 @@ interface MessagePreview {
     }
   `]
 })
-export class MessagesComponent implements OnInit {
+export class MessagesComponent implements OnInit, OnDestroy {
   messagesPreviews: MessagePreview[] = [];
   filteredMessages: MessagePreview[] = [];
   filter: 'all' | 'unread' | 'revealing' = 'all';
   loading = true;
+  
+  private subscriptions = new Subscription();
 
   constructor(
     private soulConnectionService: SoulConnectionService,
@@ -552,6 +616,11 @@ export class MessagesComponent implements OnInit {
 
   ngOnInit() {
     this.loadMessages();
+    this.setupTypingIndicators();
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 
   loadMessages() {
@@ -569,7 +638,8 @@ export class MessagesComponent implements OnInit {
           connectionStage: connection.connection_stage,
           revelationDay: connection.reveal_day,
           compatibilityScore: connection.compatibility_score,
-          isOnline: Math.random() > 0.5 // Mock online status
+          isOnline: Math.random() > 0.5, // Mock online status
+          isTyping: false // Initialize typing status
         }));
 
         // Sort by last message time
@@ -704,5 +774,54 @@ export class MessagesComponent implements OnInit {
 
   newMessage() {
     this.router.navigate(['/discover']);
+  }
+
+  // === TYPING INDICATORS ===
+
+  private setupTypingIndicators() {
+    // Subscribe to typing users updates
+    this.subscriptions.add(
+      this.chatService.getTypingUsers().subscribe(typingUsers => {
+        this.updateTypingStatus(typingUsers);
+      })
+    );
+  }
+
+  private updateTypingStatus(typingUsers: any[]) {
+    // Update typing status for each message preview
+    this.messagesPreviews.forEach(message => {
+      const isTyping = typingUsers.some(user => 
+        // In real implementation, you'd match by user ID or connection ID
+        user.name === message.partnerName
+      );
+      
+      if (message.isTyping !== isTyping) {
+        message.isTyping = isTyping;
+        
+        // Update last message display when typing status changes
+        if (isTyping) {
+          // Store original message to restore later
+          (message as any).originalLastMessage = message.lastMessage;
+        } else {
+          // Restore original message
+          if ((message as any).originalLastMessage) {
+            message.lastMessage = (message as any).originalLastMessage;
+          }
+        }
+      }
+    });
+
+    // Re-apply filter to update display
+    this.applyFilter();
+  }
+
+  // Enhanced openChat to stop typing indicators
+  openChat(message: MessagePreview) {
+    // Stop typing indicator for this conversation
+    this.chatService.clearAllTypingIndicators();
+    
+    this.router.navigate(['/chat'], {
+      queryParams: { connectionId: message.connectionId }
+    });
   }
 }

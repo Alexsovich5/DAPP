@@ -53,6 +53,16 @@
         </div>
       </div>
     </ng-container>
+
+    <!-- Typing Indicator -->
+    <div class="typing-indicator-container" [class]="typingIndicatorClass">
+      <app-typing-indicator 
+        [typingUsers]="typingUsers"
+        [showEnergyFlow]="true"
+        [autoHideDelay]="0"
+        ariaLive="polite">
+      </app-typing-indicator>
+    </div>
   </div>
 
   <!-- Message Input -->

@@ -70,6 +70,77 @@
   }
 }
 
+// === TYPING INDICATOR STYLES ===
+
+.typing-indicator-container {
+  display: flex;
+  justify-content: flex-start;
+  margin: 0.5rem 0 1rem 0;
+  padding: 0 0.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 1;
+  transform: translateY(0);
+
+  &.typing-hidden {
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+    height: 0;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  &.typing-visible {
+    opacity: 1;
+    transform: translateY(0);
+    animation: typing-container-appear 0.3s ease-out;
+  }
+}
+
+@keyframes typing-container-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(15px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Enhanced message styling for typing context
+.message {
+  transition: margin-bottom 0.2s ease;
+}
+
+// When typing indicators are visible, adjust message spacing
+.typing-indicator-container.typing-visible + .message {
+  margin-top: 0.5rem;
+}
+
+// Responsive adjustments for typing indicators
+@media (max-width: 768px) {
+  .typing-indicator-container {
+    padding: 0 0.25rem;
+    margin: 0.25rem 0 0.75rem 0;
+
+    &.typing-visible {
+      animation: typing-container-appear-mobile 0.3s ease-out;
+    }
+  }
+
+  @keyframes typing-container-appear-mobile {
+    0% {
+      opacity: 0;
+      transform: translateY(10px) scale(0.98);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+}
+
 .message {
   display: flex;
   margin-bottom: 8px;
