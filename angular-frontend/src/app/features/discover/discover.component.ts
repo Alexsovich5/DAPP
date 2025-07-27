@@ -1232,7 +1232,7 @@ export class DiscoverComponent implements OnInit {
       threshold: 80, // Higher threshold for intentional swipes
       velocityThreshold: 0.5, // Faster swipe required
       timeThreshold: 400, // Quick swipe within 400ms
-      enabledDirections: ['left', 'right', 'up'] as const,
+      enabledDirections: ['left', 'right', 'up'],
       hapticFeedback: true,
       preventDefaultEvents: true
     };
@@ -1247,19 +1247,19 @@ export class DiscoverComponent implements OnInit {
     element.classList.add('swipe-pass', 'swipe-left-preview');
     
     // Trigger haptic feedback
-    this.hapticFeedbackService.triggerImpactFeedback('medium');
+    this.hapticFeedbackService.triggerPassFeedback();
     
     // Announce action for accessibility
     this.announceAction(`Passed on ${this.getPartnerName(discovery)}`);
     
     // Perform pass action with animation
     setTimeout(() => {
-      this.passOnDiscovery(discovery);
+      this.handlePassAction(discovery);
       element.classList.remove('swipe-pass', 'swipe-left-preview');
     }, 200);
 
     // Log swipe action
-    this.errorLoggingService.logAction('swipe_pass', {
+    console.log('Swipe pass action:', {
       userId: discovery.user_id,
       compatibilityScore: discovery.compatibility.total_compatibility,
       swipeVelocity: event.velocity,
@@ -1279,10 +1279,8 @@ export class DiscoverComponent implements OnInit {
     const compatibilityScore = discovery.compatibility.total_compatibility;
     if (compatibilityScore >= 90) {
       this.hapticFeedbackService.triggerSuccessFeedback(); // Strong feedback for high compatibility
-    } else if (compatibilityScore >= 70) {
-      this.hapticFeedbackService.triggerImpactFeedback('medium');
     } else {
-      this.hapticFeedbackService.triggerImpactFeedback('light');
+      this.hapticFeedbackService.triggerSelectionFeedback();
     }
     
     // Announce action for accessibility
@@ -1290,12 +1288,12 @@ export class DiscoverComponent implements OnInit {
     
     // Perform connect action with animation
     setTimeout(() => {
-      this.connectWithDiscovery(discovery);
+      this.handleConnectAction(discovery);
       element.classList.remove('swipe-like', 'swipe-right-preview');
     }, 200);
 
     // Log swipe action
-    this.errorLoggingService.logAction('swipe_connect', {
+    console.log('Swipe connect action:', {
       userId: discovery.user_id,
       compatibilityScore: discovery.compatibility.total_compatibility,
       swipeVelocity: event.velocity,
@@ -1333,7 +1331,7 @@ export class DiscoverComponent implements OnInit {
     }, 300);
 
     // Log swipe action
-    this.errorLoggingService.logAction('swipe_superlike', {
+    console.log('Swipe superlike action:', {
       userId: discovery.user_id,
       compatibilityScore: discovery.compatibility.total_compatibility,
       swipeVelocity: event.velocity,
@@ -1345,14 +1343,14 @@ export class DiscoverComponent implements OnInit {
    * Super like a discovery (enhanced connection request)
    */
   private superLikeDiscovery(discovery: DiscoveryResponse): void {
-    const superLikeRequest: SoulConnectionCreate = {
-      target_user_id: discovery.user_id,
+    const superLikeRequest = {
+      user_id: discovery.user_id,
       connection_type: 'super_like', // Enhanced connection type
       initial_message: `I'm really excited about our ${discovery.compatibility.total_compatibility}% compatibility! 💫`,
       hide_photos: this.discoveryFilters.hide_photos
     };
 
-    this.soulConnectionService.createConnection(superLikeRequest).subscribe({
+    this.soulConnectionService.initiateConnection(superLikeRequest).subscribe({
       next: (connection) => {
         // Remove from discoveries
         this.discoveries = this.discoveries.filter(d => d.user_id !== discovery.user_id);
@@ -1383,5 +1381,44 @@ export class DiscoverComponent implements OnInit {
    */
   private getPartnerName(discovery: DiscoveryResponse): string {
     return discovery.profile?.first_name || 'soul connection';
+  }
+
+  /**
+   * Handle pass action for discovery
+   */
+  private handlePassAction(discovery: DiscoveryResponse): void {
+    // Remove from discoveries list
+    this.discoveries = this.discoveries.filter(d => d.user_id !== discovery.user_id);
+    
+    // Show next discovery if available
+    if (this.discoveries.length === 0) {
+      this.loadDiscoveries();
+    }
+  }
+
+  /**
+   * Handle connect action for discovery
+   */
+  private handleConnectAction(discovery: DiscoveryResponse): void {
+    const connectionRequest = {
+      user_id: discovery.user_id,
+      connection_type: 'like',
+      initial_message: `I feel a connection with you! Our ${discovery.compatibility.total_compatibility}% compatibility is amazing! 💕`,
+      hide_photos: this.discoveryFilters.hide_photos
+    };
+
+    this.soulConnectionService.initiateConnection(connectionRequest).subscribe({
+      next: (connection) => {
+        // Remove from discoveries
+        this.discoveries = this.discoveries.filter(d => d.user_id !== discovery.user_id);
+        
+        // Show success feedback
+        this.announceAction(`Connection request sent to ${this.getPartnerName(discovery)}!`);
+      },
+      error: (error) => {
+        console.error('Failed to create connection:', error);
+        this.announceAction('Failed to send connection request. Please try again.');
+      }
+    });
   }
 }

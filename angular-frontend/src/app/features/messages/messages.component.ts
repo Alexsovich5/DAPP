@@ -9,6 +9,8 @@ import { SwipeDirective } from '../../shared/directives/swipe.directive';
 import { SwipeEvent, SwipeConfig } from '../../core/services/swipe-gesture.service';
 import { Subscription } from 'rxjs';
 
+// === INTERFACES ===
+
 interface MessagePreview {
   connectionId: number;
   partnerName: string;
@@ -20,8 +22,16 @@ interface MessagePreview {
   revelationDay: number;
   compatibilityScore: number | undefined;
   isOnline?: boolean;
-  isTyping?: boolean; // Added typing indicator support
+  isTyping?: boolean;
 }
+
+interface MessageStats {
+  activeChats: number;
+  totalUnread: number;
+  revealingConnections: number;
+}
+
+type MessageFilter = 'all' | 'unread' | 'revealing';
 
 @Component({
   selector: 'app-messages',
@@ -609,12 +619,21 @@ interface MessagePreview {
   `]
 })
 export class MessagesComponent implements OnInit, OnDestroy {
+  // === COMPONENT STATE ===
   messagesPreviews: MessagePreview[] = [];
   filteredMessages: MessagePreview[] = [];
-  filter: 'all' | 'unread' | 'revealing' = 'all';
+  filter: MessageFilter = 'all';
   loading = true;
   
+  // === PRIVATE PROPERTIES ===
   private subscriptions = new Subscription();
+  private readonly MOCK_MESSAGES = [
+    "Thanks for sharing that beautiful revelation...",
+    "I'm excited to get to know you better 💫",
+    "Your perspective on life is so refreshing",
+    "Looking forward to our photo reveal day!",
+    "What a meaningful conversation we had yesterday"
+  ];
 
   constructor(
     private soulConnectionService: SoulConnectionService,
@@ -623,39 +642,26 @@ export class MessagesComponent implements OnInit, OnDestroy {
     private router: Router
   ) {}
 
-  ngOnInit() {
+  // === LIFECYCLE HOOKS ===
+
+  ngOnInit(): void {
     this.loadMessages();
     this.setupTypingIndicators();
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 
-  loadMessages() {
+  // === DATA LOADING ===
+
+  loadMessages(): void {
     this.loading = true;
     
-    // Get active connections and their latest messages
     this.soulConnectionService.getActiveConnections().subscribe({
       next: (connections) => {
-        this.messagesPreviews = connections.map(connection => ({
-          connectionId: connection.id,
-          partnerName: this.getPartnerName(connection),
-          lastMessage: this.getLastMessage(connection),
-          lastMessageTime: new Date(connection.updated_at || connection.created_at),
-          unreadCount: Math.floor(Math.random() * 3), // Mock unread count
-          connectionStage: connection.connection_stage,
-          revelationDay: connection.reveal_day,
-          compatibilityScore: connection.compatibility_score,
-          isOnline: Math.random() > 0.5, // Mock online status
-          isTyping: false // Initialize typing status
-        }));
-
-        // Sort by last message time
-        this.messagesPreviews.sort((a, b) => 
-          b.lastMessageTime.getTime() - a.lastMessageTime.getTime()
-        );
-
+        this.messagesPreviews = this.mapConnectionsToMessages(connections);
+        this.sortMessagesByTime();
         this.applyFilter();
         this.loading = false;
       },
@@ -666,12 +672,35 @@ export class MessagesComponent implements OnInit, OnDestroy {
     });
   }
 
-  setFilter(filter: 'all' | 'unread' | 'revealing') {
+  private mapConnectionsToMessages(connections: any[]): MessagePreview[] {
+    return connections.map(connection => ({
+      connectionId: connection.id,
+      partnerName: this.getPartnerName(connection),
+      lastMessage: this.getLastMessage(),
+      lastMessageTime: new Date(connection.updated_at || connection.created_at),
+      unreadCount: Math.floor(Math.random() * 3), // TODO: Replace with real data
+      connectionStage: connection.connection_stage,
+      revelationDay: connection.reveal_day,
+      compatibilityScore: connection.compatibility_score,
+      isOnline: Math.random() > 0.5, // TODO: Replace with real data
+      isTyping: false
+    }));
+  }
+
+  private sortMessagesByTime(): void {
+    this.messagesPreviews.sort((a, b) => 
+      b.lastMessageTime.getTime() - a.lastMessageTime.getTime()
+    );
+  }
+
+  // === FILTERING ===
+
+  setFilter(filter: MessageFilter): void {
     this.filter = filter;
     this.applyFilter();
   }
 
-  applyFilter() {
+  applyFilter(): void {
     switch (this.filter) {
       case 'unread':
         this.filteredMessages = this.messagesPreviews.filter(m => m.unreadCount > 0);
@@ -685,6 +714,8 @@ export class MessagesComponent implements OnInit, OnDestroy {
         this.filteredMessages = this.messagesPreviews;
     }
   }
+
+  // === COMPUTED PROPERTIES ===
 
   get activeChats(): number {
     return this.messagesPreviews.length;
@@ -700,32 +731,35 @@ export class MessagesComponent implements OnInit, OnDestroy {
     ).length;
   }
 
+  get messageStats(): MessageStats {
+    return {
+      activeChats: this.activeChats,
+      totalUnread: this.totalUnread,
+      revealingConnections: this.revelingConnections
+    };
+  }
+
+  // === UTILITY METHODS ===
+
   getPartnerName(connection: any): string {
     return connection.user2_profile?.first_name || 
            connection.user1_profile?.first_name || 
            'Soul Connection';
   }
 
-  getLastMessage(connection: any): string {
-    // Mock last message - in real app, fetch from messages API
-    const mockMessages = [
-      "Thanks for sharing that beautiful revelation...",
-      "I'm excited to get to know you better 💫",
-      "Your perspective on life is so refreshing",
-      "Looking forward to our photo reveal day!",
-      "What a meaningful conversation we had yesterday"
-    ];
-    return mockMessages[Math.floor(Math.random() * mockMessages.length)];
+  getLastMessage(): string {
+    // TODO: Replace with real message from API
+    return this.MOCK_MESSAGES[Math.floor(Math.random() * this.MOCK_MESSAGES.length)];
   }
 
   formatConnectionStage(stage: string): string {
-    switch (stage) {
-      case 'soul_discovery': return 'Soul Discovery';
-      case 'revelation_sharing': return 'Sharing Revelations';
-      case 'photo_reveal': return 'Photo Reveal';
-      case 'deeper_connection': return 'Deeper Connection';
-      default: return 'New Connection';
-    }
+    const stageMap: Record<string, string> = {
+      'soul_discovery': 'Soul Discovery',
+      'revelation_sharing': 'Sharing Revelations',
+      'photo_reveal': 'Photo Reveal',
+      'deeper_connection': 'Deeper Connection'
+    };
+    return stageMap[stage] || 'New Connection';
   }
 
   formatTime(date: Date): string {
@@ -745,45 +779,47 @@ export class MessagesComponent implements OnInit, OnDestroy {
   }
 
 
-  quickReply(message: MessagePreview, event: Event) {
+  // === USER ACTIONS ===
+
+  quickReply(message: MessagePreview, event: Event): void {
     event.stopPropagation();
     this.openChat(message);
   }
 
-  viewRevelations(message: MessagePreview, event: Event) {
+  viewRevelations(message: MessagePreview, event: Event): void {
     event.stopPropagation();
     this.router.navigate(['/revelations'], {
       queryParams: { connectionId: message.connectionId }
     });
   }
 
-  toggleMute(message: MessagePreview, event: Event) {
+  toggleMute(message: MessagePreview, event: Event): void {
     event.stopPropagation();
-    // Implement mute functionality
+    // TODO: Implement mute functionality
     console.log('Toggle mute for connection:', message.connectionId);
   }
 
-  goToMatches() {
+  // === NAVIGATION ===
+
+  goToMatches(): void {
     this.router.navigate(['/matches']);
   }
 
-  goToDiscover() {
+  goToDiscover(): void {
     this.router.navigate(['/discover']);
   }
 
-  showConversationTips() {
-    // Navigate to a tips/help page or show modal
+  showConversationTips(): void {
     this.router.navigate(['/help/conversations']);
   }
 
-  newMessage() {
+  newMessage(): void {
     this.router.navigate(['/discover']);
   }
 
   // === TYPING INDICATORS ===
 
-  private setupTypingIndicators() {
-    // Subscribe to typing users updates
+  private setupTypingIndicators(): void {
     this.subscriptions.add(
       this.chatService.getTypingUsers().subscribe(typingUsers => {
         this.updateTypingStatus(typingUsers);
@@ -791,32 +827,28 @@ export class MessagesComponent implements OnInit, OnDestroy {
     );
   }
 
-  private updateTypingStatus(typingUsers: any[]) {
-    // Update typing status for each message preview
+  private updateTypingStatus(typingUsers: any[]): void {
     this.messagesPreviews.forEach(message => {
       const isTyping = typingUsers.some(user => 
-        // In real implementation, you'd match by user ID or connection ID
-        user.name === message.partnerName
+        user.name === message.partnerName // TODO: Match by user ID instead
       );
       
       if (message.isTyping !== isTyping) {
-        message.isTyping = isTyping;
-        
-        // Update last message display when typing status changes
-        if (isTyping) {
-          // Store original message to restore later
-          (message as any).originalLastMessage = message.lastMessage;
-        } else {
-          // Restore original message
-          if ((message as any).originalLastMessage) {
-            message.lastMessage = (message as any).originalLastMessage;
-          }
-        }
+        this.handleTypingStatusChange(message, isTyping);
       }
     });
 
-    // Re-apply filter to update display
     this.applyFilter();
+  }
+
+  private handleTypingStatusChange(message: MessagePreview, isTyping: boolean): void {
+    message.isTyping = isTyping;
+    
+    if (isTyping) {
+      (message as any).originalLastMessage = message.lastMessage;
+    } else if ((message as any).originalLastMessage) {
+      message.lastMessage = (message as any).originalLastMessage;
+    }
   }
 
   // === SWIPE GESTURE HANDLERS ===
