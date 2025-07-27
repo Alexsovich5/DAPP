@@ -21,6 +21,7 @@ import { DiscoverEmptyStateComponent } from './discover-empty-state.component';
 import { SoulLoadingComponent } from '@shared/components/soul-loading/soul-loading.component';
 import { CompatibilityScoreComponent } from '@shared/components/compatibility-score/compatibility-score.component';
 import { SoulOrbComponent } from '@shared/components/soul-orb/soul-orb.component';
+import { OnboardingTargetDirective } from '@shared/directives/onboarding-target.directive';
 import { DiscoveryResponse, DiscoveryRequest, SoulConnectionCreate } from '../../core/interfaces/soul-connection.interfaces';
 import { User } from '../../core/interfaces/auth.interfaces';
 
@@ -42,7 +43,10 @@ import { User } from '../../core/interfaces/auth.interfaces';
           class="discovery-filters" 
           [class.expanded]="showFilters"
           role="region"
-          aria-labelledby="filters-title">
+          aria-labelledby="filters-title"
+          appOnboardingTarget="discovery-filters"
+          onboardingTour="discovery-tour"
+          [onboardingAutoTrigger]="true">
           <button 
             class="filter-toggle" 
             type="button"
@@ -238,7 +242,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
             (mouseleave)="onCardHover(discovery, false)">
             
             <!-- Soul Connection Display -->
-            <div class="soul-connection-header">
+            <div class="soul-connection-header"
+                 appOnboardingTarget="soul-connection-display">
               <app-soul-orb
                 size="medium"
                 [state]="getSoulOrbState(discovery)"
@@ -246,7 +251,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
                 [compatibilityScore]="discovery.compatibility.total_compatibility"
                 [showCompatibility]="true"
                 [showParticles]="discovery.compatibility.total_compatibility >= 70"
-                [showSparkles]="discovery.compatibility.total_compatibility >= 80">
+                [showSparkles]="discovery.compatibility.total_compatibility >= 80"
+                appOnboardingTarget="soul-orb">
               </app-soul-orb>
               
               <app-compatibility-score
@@ -255,7 +261,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
                 [animated]="false"
                 [showDescription]="false"
                 [showIndicators]="false"
-                [breakdown]="discovery.compatibility.breakdown">
+                [breakdown]="discovery.compatibility.breakdown"
+                appOnboardingTarget="compatibility-score">
               </app-compatibility-score>
             </div>
 
@@ -437,7 +444,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
     DiscoverEmptyStateComponent,
     SoulLoadingComponent,
     CompatibilityScoreComponent,
-    SoulOrbComponent
+    SoulOrbComponent,
+    OnboardingTargetDirective
   ],
   animations: [
     trigger('cardAnimation', [

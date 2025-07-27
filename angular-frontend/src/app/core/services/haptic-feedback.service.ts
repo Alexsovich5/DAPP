@@ -127,6 +127,36 @@ export class HapticFeedbackService {
   }
 
   /**
+   * Welcome haptic feedback for new users
+   */
+  triggerWelcomeFeedback(): void {
+    if (!this.canProvideHaptics()) return;
+    
+    // Warm, welcoming pattern
+    this.vibrate([100, 50, 100, 50, 200]);
+  }
+
+  /**
+   * Selection feedback for UI interactions
+   */
+  triggerSelectionFeedback(): void {
+    if (!this.canProvideHaptics()) return;
+    
+    // Quick, crisp selection feedback
+    this.vibrate([50]);
+  }
+
+  /**
+   * Success feedback for completed actions
+   */
+  triggerSuccessFeedback(): void {
+    if (!this.canProvideHaptics()) return;
+    
+    // Celebratory success pattern
+    this.vibrate([100, 50, 100, 50, 150]);
+  }
+
+  /**
    * Check if haptic feedback can be provided
    */
   private canProvideHaptics(): boolean {

@@ -8,6 +8,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { ThemeService } from './core/services/theme.service';
 import { ToastComponent } from './shared/components/toast/toast.component';
 import { NavigationComponent } from './shared/components/navigation/navigation.component';
+import { OnboardingManagerComponent } from './shared/components/onboarding-manager/onboarding-manager.component';
 
 @Component({
   selector: 'app-root',
@@ -20,7 +21,8 @@ import { NavigationComponent } from './shared/components/navigation/navigation.c
     MatIconModule,
     MatSidenavModule,
     ToastComponent,
-    NavigationComponent
+    NavigationComponent,
+    OnboardingManagerComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
