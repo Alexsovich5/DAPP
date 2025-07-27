@@ -6,6 +6,29 @@
   min-height: 100vh;
 }
 
+/* Soul Connection Header */
+.soul-connection-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, 
+    rgba(255, 107, 157, 0.05) 0%, 
+    rgba(96, 165, 250, 0.05) 100%);
+  border: 1px solid rgba(255, 107, 157, 0.1);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: linear-gradient(135deg, 
+      rgba(255, 107, 157, 0.1) 0%, 
+      rgba(96, 165, 250, 0.1) 100%);
+    border-color: rgba(255, 107, 157, 0.2);
+    transform: translateY(-2px);
+  }
+}
+
 /* Emotional Micro-interactions for Discovery Cards */
 .soul-card {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -19,13 +42,11 @@
       0 0 30px rgba(255, 107, 157, 0.2);
     filter: brightness(1.05);
     
-    .compatibility-score {
-      transform: scale(1.1);
-      filter: brightness(1.2) saturate(1.3);
-    }
-    
-    .soul-icon {
-      animation: soul-sparkle 1.5s ease-in-out infinite;
+    .soul-connection-header {
+      background: linear-gradient(135deg, 
+        rgba(255, 107, 157, 0.15) 0%, 
+        rgba(96, 165, 250, 0.15) 100%);
+      border-color: rgba(255, 107, 157, 0.3);
     }
     
     .action-btn {

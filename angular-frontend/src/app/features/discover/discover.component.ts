@@ -18,6 +18,9 @@ import { ErrorLoggingService } from '@core/services/error-logging.service';
 import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
 import { ErrorBoundaryComponent } from '@shared/components/error-boundary/error-boundary.component';
 import { DiscoverEmptyStateComponent } from './discover-empty-state.component';
+import { SoulLoadingComponent } from '@shared/components/soul-loading/soul-loading.component';
+import { CompatibilityScoreComponent } from '@shared/components/compatibility-score/compatibility-score.component';
+import { SoulOrbComponent } from '@shared/components/soul-orb/soul-orb.component';
 import { DiscoveryResponse, DiscoveryRequest, SoulConnectionCreate } from '../../core/interfaces/soul-connection.interfaces';
 import { User } from '../../core/interfaces/auth.interfaces';
 
@@ -140,16 +143,17 @@ import { User } from '../../core/interfaces/auth.interfaces';
         *ngIf="!needsOnboarding"
         role="main"
         aria-label="Soul connection discovery results">
-        <!-- Loading State -->
-        <div 
-          class="loading-container" 
+        <!-- Soul Loading State -->
+        <app-soul-loading
           *ngIf="isLoading"
-          role="status"
-          aria-live="polite"
-          aria-label="Loading soul connections">
-          <mat-progress-bar mode="indeterminate" aria-label="Loading progress"></mat-progress-bar>
-          <p>Finding your soul connections...</p>
-        </div>
+          size="large"
+          variant="immersive"
+          title="Discovering Soul Connections"
+          subtitle="We're analyzing compatibility based on your emotional profile and values"
+          [showProgress]="true"
+          [progressSteps]="4"
+          [currentProgress]="loadingProgress">
+        </app-soul-loading>
 
         <!-- Error State -->
         <div 
@@ -233,23 +237,26 @@ import { User } from '../../core/interfaces/auth.interfaces';
             (mouseenter)="onCardHover(discovery, true)"
             (mouseleave)="onCardHover(discovery, false)">
             
-            <!-- Compatibility Score -->
-            <div 
-              class="compatibility-header"
-              role="group"
-              [attr.aria-label]="getCompatibilityHeaderAriaLabel(discovery)">
-              <div 
-                class="compatibility-score" 
-                [style.color]="getCompatibilityColor(discovery.compatibility.total_compatibility)"
-                role="meter"
-                [attr.aria-valuenow]="discovery.compatibility.total_compatibility"
-                aria-valuemin="0"
-                aria-valuemax="100"
-                [attr.aria-label]="discovery.compatibility.total_compatibility + '% compatibility score'">
-                <span class="score" aria-hidden="true">{{ discovery.compatibility.total_compatibility }}%</span>
-                <span class="quality" aria-hidden="true">{{ discovery.compatibility.match_quality }}</span>
-              </div>
-              <div class="soul-icon" aria-hidden="true">✨</div>
+            <!-- Soul Connection Display -->
+            <div class="soul-connection-header">
+              <app-soul-orb
+                size="medium"
+                [state]="getSoulOrbState(discovery)"
+                [energyLevel]="getEnergyLevel(discovery.compatibility.total_compatibility)"
+                [compatibilityScore]="discovery.compatibility.total_compatibility"
+                [showCompatibility]="true"
+                [showParticles]="discovery.compatibility.total_compatibility >= 70"
+                [showSparkles]="discovery.compatibility.total_compatibility >= 80">
+              </app-soul-orb>
+              
+              <app-compatibility-score
+                [score]="discovery.compatibility.total_compatibility"
+                size="small"
+                [animated]="false"
+                [showDescription]="false"
+                [showIndicators]="false"
+                [breakdown]="discovery.compatibility.breakdown">
+              </app-compatibility-score>
             </div>
 
             <!-- Profile Preview -->
@@ -427,7 +434,10 @@ import { User } from '../../core/interfaces/auth.interfaces';
     MatSlideToggleModule,
     MatSliderModule,
     ErrorBoundaryComponent,
-    DiscoverEmptyStateComponent
+    DiscoverEmptyStateComponent,
+    SoulLoadingComponent,
+    CompatibilityScoreComponent,
+    SoulOrbComponent
   ],
   animations: [
     trigger('cardAnimation', [
@@ -457,6 +467,7 @@ export class DiscoverComponent implements OnInit {
   needsOnboarding = false;
   showFilters = false;
   cardAnimations: Map<number, string> = new Map();
+  loadingProgress = 0;
   
   // Keyboard navigation state
   currentCardIndex = 0;
@@ -501,46 +512,13 @@ export class DiscoverComponent implements OnInit {
   }
 
   loadDiscoveries(): void {
-    this.isLoading = true;
-    this.error = null;
     this.currentCardIndex = 0; // Reset card navigation
-    
     console.log('Loading discoveries with filters:', this.discoveryFilters);
     this.announceAction('Loading soul connections...');
     // Trigger loading haptic feedback
     this.hapticFeedbackService.triggerLoadingFeedback();
     
-    this.soulConnectionService.discoverSoulConnections(this.discoveryFilters).subscribe({
-      next: (discoveries) => {
-        console.log('Discoveries received:', discoveries);
-        this.discoveries = discoveries;
-        // Initialize card animations
-        discoveries.forEach(d => {
-          this.cardAnimations.set(d.user_id, 'default');
-        });
-        
-        // Announce results to screen reader
-        if (discoveries.length === 0) {
-          this.announceAction('No soul connections found. Try adjusting your filters.');
-        } else {
-          this.announceAction(`Found ${discoveries.length} soul connection${discoveries.length === 1 ? '' : 's'}. Use arrow keys to navigate between profiles.`);
-        }
-      },
-      error: (err) => {
-        console.error('Discovery error:', err);
-        this.error = err.message || 'Failed to load soul connections';
-        this.announceAction(`Error loading connections: ${this.error}`);
-        this.errorLoggingService.logError(err, {
-          component: 'discover',
-          action: 'load_discoveries',
-          filters: this.discoveryFilters
-        });
-      },
-      complete: () => {
-        this.isLoading = false;
-        console.log('Discovery loading completed. Total discoveries:', this.discoveries.length);
-      }
-    });
+    this.loadDiscoveriesWithProgress();
   }
 
   onFiltersChange(): void {
@@ -1165,5 +1143,96 @@ export class DiscoverComponent implements OnInit {
         document.body.removeChild(celebrationOverlay);
       }
     }, 1000);
+  }
+
+  /**
+   * Get soul orb state based on discovery data
+   */
+  getSoulOrbState(discovery: DiscoveryResponse): 'active' | 'connecting' | 'matched' | 'dormant' {
+    if (discovery.compatibility.total_compatibility >= 90) {
+      return 'matched';
+    } else if (discovery.compatibility.total_compatibility >= 70) {
+      return 'connecting';
+    } else {
+      return 'active';
+    }
+  }
+
+  /**
+   * Get energy level based on compatibility score
+   */
+  getEnergyLevel(compatibilityScore: number): number {
+    if (compatibilityScore >= 90) return 5;
+    if (compatibilityScore >= 80) return 4;
+    if (compatibilityScore >= 70) return 3;
+    if (compatibilityScore >= 60) return 2;
+    if (compatibilityScore >= 50) return 1;
+    return 0;
+  }
+
+  /**
+   * Enhanced loading with progress updates
+   */
+  private async loadDiscoveriesWithProgress(): Promise<void> {
+    this.isLoading = true;
+    this.loadingProgress = 0;
+    this.error = null;
+
+    try {
+      // Step 1: Analyzing your profile
+      this.loadingProgress = 0;
+      await this.delay(800);
+
+      // Step 2: Finding compatible souls
+      this.loadingProgress = 1;
+      await this.delay(800);
+
+      // Step 3: Calculating compatibility
+      this.loadingProgress = 2;
+      
+      const discoveries = await new Promise<DiscoveryResponse[]>((resolve, reject) => {
+        this.soulConnectionService.discoverSoulConnections(this.discoveryFilters).subscribe({
+          next: (data) => resolve(data || []),
+          error: (err) => reject(err)
+        });
+      });
+      
+      // Step 4: Preparing your matches
+      this.loadingProgress = 3;
+      await this.delay(500);
+
+      this.discoveries = discoveries;
+      
+      // Initialize card animations
+      this.discoveries.forEach(d => {
+        this.cardAnimations.set(d.user_id, 'default');
+      });
+      
+      // Announce results to screen reader
+      if (this.discoveries.length === 0) {
+        this.announceAction('No soul connections found. Try adjusting your filters.');
+      } else {
+        this.announceAction(`Found ${this.discoveries.length} soul connection${this.discoveries.length === 1 ? '' : 's'}. Use arrow keys to navigate between profiles.`);
+      }
+    } catch (error: any) {
+      console.error('Discovery error:', error);
+      this.error = error.message || 'Failed to load soul connections';
+      this.announceAction(`Error loading connections: ${this.error}`);
+      this.errorLoggingService.logError(error, {
+        component: 'discover',
+        action: 'load_discoveries',
+        filters: this.discoveryFilters
+      });
+    } finally {
+      this.isLoading = false;
+      this.loadingProgress = 0;
+    }
+  }
+
+  /**
+   * Utility delay function for loading states
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
