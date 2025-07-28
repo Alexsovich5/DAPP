@@ -124,28 +124,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
-  onSendMessage(): void {
-    if (!this.chatForm.valid || this.isSending) return;
-
-    const message = this.chatForm.get('message')?.value.trim();
-    if (!message) return;
-
-    this.isSending = true;
-
-    this.chatService.sendMessage(this.userId!, message).subscribe({
-      next: (newMessage) => {
-        this.messages = [...this.messages, newMessage];
-        this.chatForm.reset();
-        this.scrollToBottom();
-      },
-      error: (err) => {
-        this.error = 'Failed to send message. Please try again.';
-      },
-      complete: () => {
-        this.isSending = false;
-      }
-    });
-  }
+  // Removed duplicate method - using enhanced version below
 
   private scrollToBottom(): void {
     setTimeout(() => {

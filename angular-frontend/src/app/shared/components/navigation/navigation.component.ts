@@ -679,7 +679,7 @@ export class NavigationComponent implements OnInit {
       case 'Escape':
         event.preventDefault();
         this.closeUserMenu();
-        document.querySelector('.user-menu')?.focus();
+        (document.querySelector('.user-menu') as HTMLElement)?.focus();
         break;
         
       case 'Home':

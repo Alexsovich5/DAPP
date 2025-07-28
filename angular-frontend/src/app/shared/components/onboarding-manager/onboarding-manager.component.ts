@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { environment } from 'src/environments/environment';
+import { environment } from '../../../../environments/environment';
 import { OnboardingService, OnboardingState } from '@core/services/onboarding.service';
 import { AuthService } from '@core/services/auth.service';
 import { OnboardingTooltipComponent } from '@shared/components/onboarding-tooltip/onboarding-tooltip.component';
@@ -85,7 +85,7 @@ import { OnboardingWelcomeComponent } from '@shared/components/onboarding-welcom
             </div>
             <div class="state-item">
               <span class="label">Completed Tours:</span>
-              <span class="value">{{ currentState?.completedTours.length || 0 }}</span>
+              <span class="value">{{ currentState?.completedTours?.length || 0 }}</span>
             </div>
           </div>
         </div>
@@ -126,21 +126,21 @@ import { OnboardingWelcomeComponent } from '@shared/components/onboarding-welcom
             <label class="preference-item">
               <input 
                 type="checkbox"
-                [checked]="currentState?.userPreferences.showTutorials"
+                [checked]="currentState?.userPreferences?.showTutorials || false"
                 (change)="updatePreference('showTutorials', $event)">
               Show Tutorials
             </label>
             <label class="preference-item">
               <input 
                 type="checkbox"
-                [checked]="currentState?.userPreferences.skipIntroductions"
+                [checked]="currentState?.userPreferences?.skipIntroductions || false"
                 (change)="updatePreference('skipIntroductions', $event)">
               Skip Introductions
             </label>
             <label class="preference-item">
               <input 
                 type="checkbox"
-                [checked]="currentState?.userPreferences.autoAdvance"
+                [checked]="currentState?.userPreferences?.autoAdvance || false"
                 (change)="updatePreference('autoAdvance', $event)">
               Auto Advance
             </label>

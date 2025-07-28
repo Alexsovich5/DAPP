@@ -746,7 +746,7 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
    * Generate celebration particles for connection success
    */
   private generateCelebrationParticles(): void {
-    const celebrationParticles = [];
+    const celebrationParticles: any[] = [];
     const particleCount = 12;
     
     for (let i = 0; i < particleCount; i++) {
@@ -773,7 +773,7 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
    * Generate extra sparkles for celebration
    */
   private generateExtraSparkles(): void {
-    const extraSparkles = [];
+    const extraSparkles: any[] = [];
     const sparkleCount = 8;
     
     for (let i = 0; i < sparkleCount; i++) {
