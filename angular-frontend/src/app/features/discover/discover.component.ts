@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,7 +23,9 @@ import { CompatibilityScoreComponent } from '@shared/components/compatibility-sc
 import { SoulOrbComponent } from '@shared/components/soul-orb/soul-orb.component';
 import { OnboardingTargetDirective } from '@shared/directives/onboarding-target.directive';
 import { SwipeDirective } from '@shared/directives/swipe.directive';
+import { ABTestDirective, ABTestConfigPipe } from '@shared/directives/ab-test.directive';
 import { SwipeEvent } from '@core/services/swipe-gesture.service';
+import { ABTestingService } from '@core/services/ab-testing.service';
 import { DiscoveryResponse, DiscoveryRequest, SoulConnectionCreate } from '../../core/interfaces/soul-connection.interfaces';
 import { User } from '../../core/interfaces/auth.interfaces';
 
@@ -453,7 +455,9 @@ import { User } from '../../core/interfaces/auth.interfaces';
     CompatibilityScoreComponent,
     SoulOrbComponent,
     OnboardingTargetDirective,
-    SwipeDirective
+    SwipeDirective,
+    ABTestDirective,
+    ABTestConfigPipe
   ],
   animations: [
     trigger('cardAnimation', [
@@ -474,7 +478,7 @@ import { User } from '../../core/interfaces/auth.interfaces';
     ])
   ]
 })
-export class DiscoverComponent implements OnInit {
+export class DiscoverComponent implements OnInit, OnDestroy {
   discoveries: DiscoveryResponse[] = [];
   currentUser: User | null = null;
   isLoading = false;
@@ -505,10 +509,14 @@ export class DiscoverComponent implements OnInit {
     private readonly soulConnectionService: SoulConnectionService,
     private readonly authService: AuthService,
     private readonly errorLoggingService: ErrorLoggingService,
-    private readonly hapticFeedbackService: HapticFeedbackService
+    private readonly hapticFeedbackService: HapticFeedbackService,
+    private readonly abTestingService: ABTestingService
   ) {}
 
   ngOnInit(): void {
+    // Initialize A/B testing
+    this.initializeABTesting();
+    
     // Check authentication and onboarding status
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
@@ -1412,6 +1420,12 @@ export class DiscoverComponent implements OnInit {
         // Remove from discoveries
         this.discoveries = this.discoveries.filter(d => d.user_id !== discovery.user_id);
         
+        // Track A/B test conversion
+        this.abTestingService.trackEvent('discovery_card_layout', 'connection_created', {
+          compatibilityScore: discovery.compatibility.total_compatibility,
+          connectionType: 'like'
+        });
+        
         // Show success feedback
         this.announceAction(`Connection request sent to ${this.getPartnerName(discovery)}!`);
       },
@@ -1419,6 +1433,82 @@ export class DiscoverComponent implements OnInit {
         console.error('Failed to create connection:', error);
         this.announceAction('Failed to send connection request. Please try again.');
       }
+    });
+  }
+
+  // === A/B TESTING METHODS ===
+
+  /**
+   * Initialize A/B testing for discovery page
+   */
+  private initializeABTesting(): void {
+    // Track discovery page view
+    this.abTestingService.trackEvent('discovery_card_layout', 'discovery_page_viewed');
+    
+    // Log current variant for debugging
+    const variant = this.abTestingService.getVariant('discovery_card_layout');
+    if (variant) {
+      console.log('Discovery A/B Test - User assigned to variant:', variant.name);
+    }
+  }
+
+  /**
+   * Get current discovery card layout configuration
+   */
+  getDiscoveryCardConfig(): any {
+    return this.abTestingService.getVariantConfig('discovery_card_layout') || {
+      layout: 'vertical',
+      showCompatibilityFirst: false,
+      cardAnimation: 'default',
+      buttonStyle: 'standard'
+    };
+  }
+
+  /**
+   * Check if user is in specific A/B test variant
+   */
+  isInVariant(testId: string, variantId: string): boolean {
+    return this.abTestingService.isInVariant(testId, variantId);
+  }
+
+  /**
+   * Track discovery card interaction
+   */
+  private trackCardInteraction(discovery: DiscoveryResponse, action: string): void {
+    this.abTestingService.trackEvent('discovery_card_layout', action, {
+      userId: discovery.user_id,
+      compatibilityScore: discovery.compatibility.total_compatibility,
+      cardPosition: this.discoveries.findIndex(d => d.user_id === discovery.user_id)
+    });
+  }
+
+  /**
+   * Enhanced pass action with A/B testing
+   */
+  private handlePassAction(discovery: DiscoveryResponse): void {
+    // Track A/B test interaction
+    this.trackCardInteraction(discovery, 'card_passed');
+    
+    // Remove from discoveries list
+    this.discoveries = this.discoveries.filter(d => d.user_id !== discovery.user_id);
+    
+    // Show next discovery if available
+    if (this.discoveries.length === 0) {
+      this.loadDiscoveries();
+    }
+  }
+
+  /**
+   * Track time spent on discovery page
+   */
+  private pageViewStartTime = Date.now();
+
+  ngOnDestroy(): void {
+    // Track total time spent on discovery page
+    const timeSpent = Date.now() - this.pageViewStartTime;
+    this.abTestingService.trackEvent('discovery_card_layout', 'discovery_time_spent', {
+      value: timeSpent,
+      cardsViewed: this.discoveries.length
     });
   }
 }
