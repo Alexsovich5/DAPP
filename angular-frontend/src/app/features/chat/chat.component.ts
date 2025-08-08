@@ -12,6 +12,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ChatService, TypingUser } from '../../core/services/chat.service';
+import { AuthService } from '../../core/services/auth.service';
 import { TypingIndicatorComponent } from '../../shared/components/typing-indicator/typing-indicator.component';
 import { Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -67,11 +68,12 @@ export class ChatComponent implements OnInit, OnDestroy {
   typingUsers: TypingUser[] = [];
   private typingHandler?: (inputValue: string) => void;
   private subscriptions = new Subscription();
-  private currentUserId = 'current-user-id'; // This should come from auth service
+  private currentUserId: string | null = null;
 
   constructor(
     private fb: FormBuilder,
     private chatService: ChatService,
+    private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router
   ) {
@@ -81,6 +83,14 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Get current user ID from auth service
+    this.authService.getCurrentUser().subscribe(user => {
+      if (user) {
+        this.currentUserId = user.id.toString();
+        this.chatService.setCurrentUser(this.currentUserId);
+      }
+    });
+
     this.userId = this.route.snapshot.paramMap.get('id');
     if (this.userId) {
       this.loadChatData();

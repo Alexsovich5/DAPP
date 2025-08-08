@@ -258,6 +258,79 @@ export class HapticFeedbackService {
     this.vibrate([50, 20, 70, 20, 90, 20, 110, 20, 90, 20, 70, 20, 50]);
   }
 
+  /**
+   * Trigger impact feedback with varying intensity (for advanced swipe gestures)
+   */
+  triggerImpactFeedback(intensity: 'light' | 'medium' | 'heavy'): void {
+    if (!this.canProvideHaptics()) return;
+
+    switch (intensity) {
+      case 'light':
+        this.vibrate([15]);
+        break;
+      case 'medium':
+        this.vibrate([30]);
+        break;
+      case 'heavy':
+        this.vibrate([50]);
+        break;
+    }
+  }
+
+  /**
+   * Trigger custom haptic pattern
+   */
+  triggerCustomPattern(pattern: number[]): void {
+    if (!this.canProvideHaptics()) return;
+    this.vibrate(pattern);
+  }
+
+  /**
+   * Trigger elastic tension feedback (for swipe physics)
+   */
+  triggerElasticTensionFeedback(tension: number): void {
+    if (!this.canProvideHaptics()) return;
+
+    // Tension from 0-1 maps to vibration intensity
+    const intensity = Math.floor(tension * 40) + 10;
+    this.vibrate([intensity]);
+  }
+
+  /**
+   * Trigger soul-themed haptic patterns based on connection energy
+   */
+  triggerSoulEnergyFeedback(energy: 'low' | 'medium' | 'high' | 'soulmate'): void {
+    if (!this.canProvideHaptics()) return;
+
+    switch (energy) {
+      case 'low':
+        this.vibrate([30, 50, 30]);
+        break;
+      case 'medium':
+        this.vibrate([40, 30, 60, 30, 40]);
+        break;
+      case 'high':
+        this.vibrate([50, 20, 80, 20, 100, 20, 80, 20, 50]);
+        break;
+      case 'soulmate':
+        this.vibrate([60, 20, 100, 20, 140, 20, 100, 20, 80, 20, 60, 20, 40]);
+        break;
+    }
+  }
+
+  /**
+   * Trigger progressive haptic feedback that builds with intensity
+   */
+  triggerProgressiveFeedback(progress: number): void {
+    if (!this.canProvideHaptics()) return;
+
+    const baseIntensity = 20;
+    const maxIntensity = 80;
+    const intensity = baseIntensity + (progress * (maxIntensity - baseIntensity));
+    
+    this.vibrate([Math.floor(intensity)]);
+  }
+
   // Settings toggle
   setHapticsEnabled(enabled: boolean): void {
     this.hapticsEnabled = enabled;

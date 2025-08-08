@@ -627,13 +627,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
   
   // === PRIVATE PROPERTIES ===
   private subscriptions = new Subscription();
-  private readonly MOCK_MESSAGES = [
-    "Thanks for sharing that beautiful revelation...",
-    "I'm excited to get to know you better 💫",
-    "Your perspective on life is so refreshing",
-    "Looking forward to our photo reveal day!",
-    "What a meaningful conversation we had yesterday"
-  ];
+  // Mock messages removed - now using real data from ChatService
 
   constructor(
     private soulConnectionService: SoulConnectionService,
@@ -673,18 +667,33 @@ export class MessagesComponent implements OnInit, OnDestroy {
   }
 
   private mapConnectionsToMessages(connections: any[]): MessagePreview[] {
-    return connections.map(connection => ({
-      connectionId: connection.id,
-      partnerName: this.getPartnerName(connection),
-      lastMessage: this.getLastMessage(),
-      lastMessageTime: new Date(connection.updated_at || connection.created_at),
-      unreadCount: Math.floor(Math.random() * 3), // TODO: Replace with real data
-      connectionStage: connection.connection_stage,
-      revelationDay: connection.reveal_day,
-      compatibilityScore: connection.compatibility_score,
-      isOnline: Math.random() > 0.5, // TODO: Replace with real data
-      isTyping: false
-    }));
+    return connections.map(connection => {
+      const preview: MessagePreview = {
+        connectionId: connection.id,
+        partnerName: this.getPartnerName(connection),
+        lastMessage: 'Loading...', // Will be updated by async call
+        lastMessageTime: new Date(connection.updated_at || connection.created_at),
+        unreadCount: this.chatService.getUnreadCount(connection.id),
+        connectionStage: connection.connection_stage,
+        revelationDay: connection.reveal_day,
+        compatibilityScore: connection.compatibility_score,
+        isOnline: this.chatService.isUserOnline(connection.partner_id || connection.partnerId),
+        isTyping: false
+      };
+
+      // Get real last message asynchronously
+      this.chatService.getLastMessage(connection.id).subscribe({
+        next: (lastMessage) => {
+          preview.lastMessage = lastMessage;
+        },
+        error: (error) => {
+          console.warn(`Could not load last message for connection ${connection.id}:`, error);
+          preview.lastMessage = 'Start your conversation...';
+        }
+      });
+
+      return preview;
+    });
   }
 
   private sortMessagesByTime(): void {
@@ -747,10 +756,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
            'Soul Connection';
   }
 
-  getLastMessage(): string {
-    // TODO: Replace with real message from API
-    return this.MOCK_MESSAGES[Math.floor(Math.random() * this.MOCK_MESSAGES.length)];
-  }
+  // getLastMessage method removed - now handled in mapConnectionsToMessages with real API data
 
   formatConnectionStage(stage: string): string {
     const stageMap: Record<string, string> = {

@@ -94,3 +94,6 @@ class User(Base):
     
     # Photo reveal relationships
     photos = relationship("UserPhoto", back_populates="user")
+    
+    # AI/ML relationships
+    ai_profile = relationship("UserProfile", back_populates="user", uselist=False)

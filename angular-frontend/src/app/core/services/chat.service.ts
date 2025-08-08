@@ -3,7 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, Subject, BehaviorSubject, timer } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
-import { map, tap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { map, tap, debounceTime, distinctUntilChanged, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 interface Message {
   id: string;
@@ -81,14 +82,38 @@ export class ChatService {
     this.setupTypingCleanup();
   }
 
+  setCurrentUser(userId: string): void {
+    this.currentUserId = userId;
+  }
+
   private setupWebSocket(): void {
-    // In a real app, this would be your WebSocket server URL
-    this.socket$ = webSocket(`${environment.socketUrl}/chat`);
+    const socketUrl = `${environment.socketUrl}/chat`;
+    console.log('Connecting to WebSocket:', socketUrl);
+    
+    this.socket$ = webSocket({
+      url: socketUrl,
+      openObserver: {
+        next: () => console.log('WebSocket connection opened')
+      },
+      closeObserver: {
+        next: () => console.log('WebSocket connection closed')
+      }
+    });
 
     this.socket$.subscribe({
       next: (message) => this.handleWebSocketMessage(message),
-      error: (err) => console.error('WebSocket error:', err)
+      error: (err) => {
+        console.error('WebSocket error:', err);
+        this.reconnectWebSocket();
+      }
     });
+  }
+
+  private reconnectWebSocket(): void {
+    console.log('Attempting to reconnect WebSocket in 3 seconds...');
+    setTimeout(() => {
+      this.setupWebSocket();
+    }, 3000);
   }
 
   private handleWebSocketMessage(message: WebSocketMessage): void {
@@ -412,6 +437,66 @@ export class ChatService {
     this.typingTimer.forEach(timer => clearTimeout(timer));
     this.typingTimer.clear();
     this.isCurrentlyTyping = false;
+  }
+
+  /**
+   * Disconnect WebSocket and cleanup resources
+   */
+  disconnect(): void {
+    if (this.socket$ && !this.socket$.closed) {
+      this.socket$.complete();
+    }
+    this.clearAllTypingIndicators();
+  }
+
+  // === MESSAGE DATA METHODS ===
+
+  /**
+   * Get conversation previews for messages list
+   */
+  getConversationPreviews(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/messages/conversations`).pipe(
+      map(conversations => conversations.map(conv => ({
+        ...conv,
+        isOnline: this.isUserOnline(conv.partnerId),
+        unreadCount: this.getUnreadCount(conv.connectionId)
+      })))
+    );
+  }
+
+  /**
+   * Get unread message count for a conversation
+   */
+  getUnreadCount(connectionId: number): number {
+    // In production, this would come from the backend
+    // For now, return 0 to eliminate random mock data
+    return 0;
+  }
+
+  /**
+   * Check if user is currently online
+   */
+  isUserOnline(userId: string): boolean {
+    const onlineUsersList = this.onlineUsers.value;
+    return onlineUsersList.includes(userId);
+  }
+
+  /**
+   * Get last message for a conversation
+   */
+  getLastMessage(connectionId: number): Observable<string> {
+    return this.http.get<any>(`${environment.apiUrl}/messages/last/${connectionId}`).pipe(
+      map(response => response.content || 'No messages yet'),
+      // Fallback to generic message if API fails
+      catchError(() => of('Start your conversation...'))
+    );
+  }
+
+  /**
+   * Get message history for a conversation
+   */
+  getMessageHistory(connectionId: number, limit: number = 50): Observable<Message[]> {
+    return this.http.get<Message[]>(`${environment.apiUrl}/messages/history/${connectionId}?limit=${limit}`);
   }
 
   // === CONNECTION ACTIVITY & EMOTIONAL STATE METHODS ===

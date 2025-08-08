@@ -17,7 +17,7 @@ from app.api.v1.routers import (
     onboarding,
     photo_reveal,
     messages,
-    # ai_matching,  # Temporarily disabled due to missing AI dependencies
+    ai_matching,
 )
 from app.api.v1.routers import chat as chat_router
 from app.api.v1.routers import safety as safety_router
@@ -127,12 +127,12 @@ v1_app.include_router(
     tags=["messages"],
 )
 
-# Phase 5: AI-Enhanced Matching - Temporarily disabled
-# v1_app.include_router(
-#     ai_matching.router,
-#     prefix="/ai-matching",
-#     tags=["ai-matching"],
-# )
+# Phase 5: AI-Enhanced Matching
+v1_app.include_router(
+    ai_matching.router,
+    prefix="/ai-matching",
+    tags=["ai-matching"],
+)
 
 # Real-time Chat and Safety
 v1_app.include_router(chat_router.router, tags=["chat"])
