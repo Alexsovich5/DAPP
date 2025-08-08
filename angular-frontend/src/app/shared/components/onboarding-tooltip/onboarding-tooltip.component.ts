@@ -4,8 +4,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { Subscription } from 'rxjs';
-import { OnboardingService, OnboardingStep } from '@core/services/onboarding.service';
-import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
+import { OnboardingService, OnboardingStep } from '../../../core/services/onboarding.service';
+import { HapticFeedbackService } from '../../../core/services/haptic-feedback.service';
 
 @Component({
   selector: 'app-onboarding-tooltip',
