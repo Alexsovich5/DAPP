@@ -11,6 +11,8 @@ interface Message {
   content: string;
   timestamp: string;
   isRead: boolean;
+  clientId?: string;
+  localStatus?: 'queued' | 'sending' | 'sent' | 'failed';
 }
 
 interface ChatUser {
@@ -57,21 +59,22 @@ export class ChatService {
   private socket$!: WebSocketSubject<any>;
   private messageSubject = new Subject<Message>();
   private onlineUsers = new BehaviorSubject<string[]>([]);
-  
+  private messageStatusSubject = new Subject<{ clientId: string; status: Message['localStatus'] }>();
+
   // Typing indicator management
   private typingUsers = new BehaviorSubject<Map<string, TypingUser>>(new Map());
   private typingSubject = new Subject<TypingIndicator>();
   private typingTimer = new Map<string, NodeJS.Timeout>();
   private currentUserId: string | null = null;
-  
+
   // Typing detection
   private lastTypingTime = 0;
   private typingTimeout = 3000; // 3 seconds
   private isCurrentlyTyping = false;
-  
+
   // Connection activity tracking
   private connectionActivity = new BehaviorSubject<Map<string, any>>(new Map());
-  private emotionalStates = new BehaviorSubject<Map<string, string>>(new Map());
+  private emotionalStates = new BehaviorSubject<Map<string, TypingUser['emotionalState']>>(new Map());
 
   constructor(private http: HttpClient) {
     this.setupWebSocket();
@@ -97,23 +100,23 @@ export class ChatService {
           this.handleTypingStop(message.userId);
         }
         break;
-        
+
       case 'typing_start':
         if (message.userId && message.data) {
           this.handleTypingStart(message.userId, message.data);
         }
         break;
-        
+
       case 'typing_stop':
         if (message.userId) {
           this.handleTypingStop(message.userId);
         }
         break;
-        
+
       case 'online_users':
         this.onlineUsers.next(message.data);
         break;
-        
+
       case 'user_status':
         // Handle user online/offline status changes
         if (message.data) {
@@ -147,7 +150,7 @@ export class ChatService {
     const timer = setTimeout(() => {
       this.handleTypingStop(userId);
     }, this.typingTimeout);
-    
+
     this.typingTimer.set(userId, timer);
   }
 
@@ -207,13 +210,38 @@ export class ChatService {
   }
 
   sendMessage(userId: string, content: string): Observable<Message> {
-    const message = {
-      receiverId: userId,
+    const clientId = `c_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const optimistic: Message = {
+      id: 'temp',
+      clientId,
+      senderId: this.currentUserId || 'me',
       content,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      isRead: false,
+      localStatus: navigator.onLine ? 'sending' : 'queued'
     };
 
-    return this.http.post<Message>(`${environment.apiUrl}/chat/send`, message);
+    // Emit optimistic message immediately
+    this.messageSubject.next(optimistic);
+
+    const body = {
+      receiverId: userId,
+      content,
+      timestamp: optimistic.timestamp
+    };
+
+    return this.http.post<Message>(`${environment.apiUrl}/chat/send`, body).pipe(
+      tap({
+        next: (serverMsg) => {
+          this.messageStatusSubject.next({ clientId, status: 'sent' });
+          this.messageSubject.next({ ...serverMsg, clientId, localStatus: 'sent' });
+        },
+        error: () => {
+          const status: Message['localStatus'] = navigator.onLine ? 'failed' : 'queued';
+          this.messageStatusSubject.next({ clientId, status });
+        }
+      })
+    );
   }
 
   markMessagesAsRead(userId: string): Observable<void> {
@@ -228,11 +256,15 @@ export class ChatService {
     return this.onlineUsers.asObservable();
   }
 
+  getMessageStatus(): Observable<{ clientId: string; status: Message['localStatus'] }> {
+    return this.messageStatusSubject.asObservable();
+  }
+
   disconnect(): void {
     // Clean up typing timers
     this.typingTimer.forEach(timer => clearTimeout(timer));
     this.typingTimer.clear();
-    
+
     if (this.socket$) {
       this.socket$.complete();
     }
@@ -253,8 +285,8 @@ export class ChatService {
   getTypingUsers(): Observable<TypingUser[]> {
     return this.typingUsers.asObservable().pipe(
       map(typingMap => Array.from(typingMap.values())),
-      distinctUntilChanged((a, b) => 
-        a.length === b.length && 
+      distinctUntilChanged((a, b) =>
+        a.length === b.length &&
         a.every((user, index) => user.id === b[index]?.id)
       )
     );
@@ -278,7 +310,7 @@ export class ChatService {
     if (!this.isCurrentlyTyping) {
       this.isCurrentlyTyping = true;
       this.lastTypingTime = Date.now();
-      
+
       // Send typing start event via WebSocket
       if (this.socket$ && !this.socket$.closed) {
         this.socket$.next({
@@ -297,7 +329,7 @@ export class ChatService {
   stopTyping(chatId: string): void {
     if (this.isCurrentlyTyping) {
       this.isCurrentlyTyping = false;
-      
+
       // Send typing stop event via WebSocket
       if (this.socket$ && !this.socket$.closed) {
         this.socket$.next({
@@ -315,7 +347,7 @@ export class ChatService {
    */
   handleTypingInput(chatId: string, userData: TypingUser, isTyping: boolean): void {
     const now = Date.now();
-    
+
     if (isTyping) {
       // User is actively typing
       if (!this.isCurrentlyTyping || (now - this.lastTypingTime) > 1000) {
@@ -336,7 +368,7 @@ export class ChatService {
    */
   createTypingHandler(chatId: string, userData: TypingUser): (inputValue: string) => void {
     let typingSubject = new Subject<string>();
-    
+
     // Debounce input to detect typing start/stop
     typingSubject.pipe(
       debounceTime(300),
@@ -344,7 +376,7 @@ export class ChatService {
     ).subscribe(value => {
       const isTyping = value.length > 0;
       this.handleTypingInput(chatId, userData, isTyping);
-      
+
       // Auto-stop typing after timeout
       if (isTyping) {
         setTimeout(() => {
@@ -376,7 +408,7 @@ export class ChatService {
       currentTyping.clear();
       this.typingUsers.next(new Map(currentTyping));
     }
-    
+
     this.typingTimer.forEach(timer => clearTimeout(timer));
     this.typingTimer.clear();
     this.isCurrentlyTyping = false;
@@ -405,7 +437,7 @@ export class ChatService {
   /**
    * Set emotional state for a user
    */
-  setEmotionalState(userId: string, emotionalState: string): void {
+  setEmotionalState(userId: string, emotionalState: TypingUser['emotionalState']): void {
     const currentStates = this.emotionalStates.value;
     currentStates.set(userId, emotionalState);
     this.emotionalStates.next(new Map(currentStates));
@@ -421,7 +453,7 @@ export class ChatService {
   /**
    * Get emotional states observable
    */
-  getEmotionalStates(): Observable<Map<string, string>> {
+  getEmotionalStates(): Observable<Map<string, TypingUser['emotionalState']>> {
     return this.emotionalStates.asObservable();
   }
 
@@ -433,7 +465,7 @@ export class ChatService {
       map(typingMap => {
         const activity = this.connectionActivity.value;
         const emotions = this.emotionalStates.value;
-        
+
         return Array.from(typingMap.values()).map(user => ({
           ...user,
           connectionStage: activity.get(user.id)?.connectionStage,
@@ -443,10 +475,10 @@ export class ChatService {
           emotionalState: emotions.get(user.id)
         }));
       }),
-      distinctUntilChanged((a, b) => 
-        a.length === b.length && 
-        a.every((user, index) => 
-          user.id === b[index]?.id && 
+      distinctUntilChanged((a, b) =>
+        a.length === b.length &&
+        a.every((user, index) =>
+          user.id === b[index]?.id &&
           user.emotionalState === b[index]?.emotionalState
         )
       )
@@ -458,7 +490,7 @@ export class ChatService {
    */
   calculateConnectionEnergy(compatibilityScore: number, lastActivity: Date): string {
     const hoursSinceActivity = (Date.now() - lastActivity.getTime()) / (1000 * 60 * 60);
-    
+
     if (compatibilityScore >= 90 && hoursSinceActivity < 1) return 'soulmate';
     if (compatibilityScore >= 80 && hoursSinceActivity < 2) return 'high';
     if (compatibilityScore >= 65 && hoursSinceActivity < 6) return 'medium';

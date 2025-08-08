@@ -10,6 +10,7 @@ import { Injectable } from '@angular/core';
 export class HapticFeedbackService {
   private isHapticSupported = false;
   private isMobileDevice = false;
+  private hapticsEnabled = true;
 
   constructor() {
     this.detectHapticSupport();
@@ -22,7 +23,7 @@ export class HapticFeedbackService {
   private detectHapticSupport(): void {
     // Check for Vibration API support
     this.isHapticSupported = 'vibrate' in navigator;
-    
+
     // Additional check for iOS Haptic Feedback
     if ((window as any).DeviceMotionEvent && typeof (window as any).DeviceMotionEvent.requestPermission === 'function') {
       this.isHapticSupported = true;
@@ -41,7 +42,7 @@ export class HapticFeedbackService {
    */
   triggerHoverFeedback(): void {
     if (!this.canProvideHaptics()) return;
-    
+
     // Gentle single tap
     this.vibrate([20]);
   }
@@ -51,7 +52,7 @@ export class HapticFeedbackService {
    */
   triggerConnectionSuccess(): void {
     if (!this.canProvideHaptics()) return;
-    
+
     // Success pattern: short-long-short
     this.vibrate([50, 50, 150, 50, 50]);
   }
@@ -61,7 +62,7 @@ export class HapticFeedbackService {
    */
   triggerPassFeedback(): void {
     if (!this.canProvideHaptics()) return;
-    
+
     // Gentle dismissal: single longer vibration
     this.vibrate([100]);
   }
@@ -71,7 +72,7 @@ export class HapticFeedbackService {
    */
   triggerHighCompatibilityFeedback(): void {
     if (!this.canProvideHaptics()) return;
-    
+
     // Heartbeat pattern for high compatibility
     this.vibrate([80, 100, 120, 100, 80]);
   }
@@ -81,7 +82,7 @@ export class HapticFeedbackService {
    */
   triggerFilterChangeFeedback(): void {
     if (!this.canProvideHaptics()) return;
-    
+
     // Subtle tick for filter adjustments
     this.vibrate([15]);
   }
@@ -91,7 +92,7 @@ export class HapticFeedbackService {
    */
   triggerErrorFeedback(): void {
     if (!this.canProvideHaptics()) return;
-    
+
     // Error pattern: three short bursts
     this.vibrate([100, 50, 100, 50, 100]);
   }
@@ -101,7 +102,7 @@ export class HapticFeedbackService {
    */
   triggerLoadingFeedback(): void {
     if (!this.canProvideHaptics()) return;
-    
+
     // Gentle pulse for loading states
     this.vibrate([30]);
   }
@@ -111,7 +112,7 @@ export class HapticFeedbackService {
    */
   triggerRevelationFeedback(): void {
     if (!this.canProvideHaptics()) return;
-    
+
     // Special pattern for emotional revelations
     this.vibrate([50, 30, 80, 30, 120, 30, 80, 30, 50]);
   }
@@ -121,7 +122,7 @@ export class HapticFeedbackService {
    */
   triggerFocusFeedback(): void {
     if (!this.canProvideHaptics()) return;
-    
+
     // Minimal feedback for focus changes
     this.vibrate([10]);
   }
@@ -131,7 +132,7 @@ export class HapticFeedbackService {
    */
   triggerWelcomeFeedback(): void {
     if (!this.canProvideHaptics()) return;
-    
+
     // Warm, welcoming pattern
     this.vibrate([100, 50, 100, 50, 200]);
   }
@@ -141,7 +142,7 @@ export class HapticFeedbackService {
    */
   triggerSelectionFeedback(): void {
     if (!this.canProvideHaptics()) return;
-    
+
     // Quick, crisp selection feedback
     this.vibrate([50]);
   }
@@ -151,7 +152,7 @@ export class HapticFeedbackService {
    */
   triggerSuccessFeedback(): void {
     if (!this.canProvideHaptics()) return;
-    
+
     // Celebratory success pattern
     this.vibrate([100, 50, 100, 50, 150]);
   }
@@ -160,7 +161,7 @@ export class HapticFeedbackService {
    * Check if haptic feedback can be provided
    */
   private canProvideHaptics(): boolean {
-    return this.isHapticSupported && this.isMobileDevice;
+    return this.hapticsEnabled && this.isHapticSupported && this.isMobileDevice;
   }
 
   /**
@@ -221,7 +222,7 @@ export class HapticFeedbackService {
    */
   triggerCompatibilityFeedback(compatibilityScore: number): void {
     if (!this.canProvideHaptics()) return;
-    
+
     if (compatibilityScore >= 90) {
       // Soul mate level - magical pattern
       this.vibrate([50, 30, 100, 30, 150, 30, 100, 30, 50]);
@@ -242,7 +243,7 @@ export class HapticFeedbackService {
    */
   triggerBreathingFeedback(): void {
     if (!this.canProvideHaptics()) return;
-    
+
     // Breathing pattern: inhale, hold, exhale
     this.vibrate([80, 100, 120, 100, 80]);
   }
@@ -252,8 +253,17 @@ export class HapticFeedbackService {
    */
   triggerCelebrationBurst(): void {
     if (!this.canProvideHaptics()) return;
-    
+
     // Celebration burst pattern
     this.vibrate([50, 20, 70, 20, 90, 20, 110, 20, 90, 20, 70, 20, 50]);
+  }
+
+  // Settings toggle
+  setHapticsEnabled(enabled: boolean): void {
+    this.hapticsEnabled = enabled;
+  }
+
+  getHapticsEnabled(): boolean {
+    return this.hapticsEnabled;
   }
 }

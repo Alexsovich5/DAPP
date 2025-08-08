@@ -6,7 +6,11 @@
   --gesture-duration: 0.3s;
   --gesture-bounce-duration: 0.5s;
   --gesture-intensity: 100%;
-  
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+  --motion-stagger-step: 60ms;
+
   // Dating app colors for gesture feedback
   --like-color: #4CAF50;
   --like-glow: rgba(76, 175, 80, 0.3);
@@ -16,6 +20,48 @@
   --superlike-glow: rgba(255, 215, 0, 0.4);
   --revelation-color: #9C27B0;
   --revelation-glow: rgba(156, 39, 176, 0.3);
+}
+// App-wide motion utility classes
+.fade-in {
+  opacity: 0;
+  transform: translateY(6px);
+  animation: fadeIn 300ms var(--motion-ease-out) forwards;
+}
+
+.scale-in {
+  opacity: 0;
+  transform: scale(0.96);
+  animation: scaleIn 220ms var(--motion-ease) forwards;
+}
+
+.slide-up {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: slideUp 260ms var(--motion-ease-out) forwards;
+}
+
+.stagger > * {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: fadeIn 280ms var(--motion-ease-out) forwards;
+}
+.stagger > *:nth-child(1) { animation-delay: calc(var(--motion-stagger-step) * 0); }
+.stagger > *:nth-child(2) { animation-delay: calc(var(--motion-stagger-step) * 1); }
+.stagger > *:nth-child(3) { animation-delay: calc(var(--motion-stagger-step) * 2); }
+.stagger > *:nth-child(4) { animation-delay: calc(var(--motion-stagger-step) * 3); }
+.stagger > *:nth-child(5) { animation-delay: calc(var(--motion-stagger-step) * 4); }
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  0% { opacity: 0; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes slideUp {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 // Base touch feedback
@@ -29,7 +75,7 @@
 .gesture-like {
   position: relative;
   animation: gesturePositiveFeedback var(--gesture-duration) ease-out;
-  
+
   &::after {
     content: '❤️';
     position: absolute;
@@ -46,7 +92,7 @@
 .gesture-pass {
   position: relative;
   animation: gestureNegativeFeedback var(--gesture-duration) ease-out;
-  
+
   &::after {
     content: '✕';
     position: absolute;
@@ -64,7 +110,7 @@
 .gesture-longpress {
   animation: longPressRipple var(--gesture-duration) ease-out;
   position: relative;
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -85,7 +131,7 @@
 // Profile card specific animations
 .card-like {
   animation: cardSwipeRight var(--gesture-bounce-duration) cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -98,7 +144,7 @@
     pointer-events: none;
     z-index: 2;
   }
-  
+
   &::after {
     content: '💖';
     position: absolute;
@@ -113,7 +159,7 @@
 
 .card-pass {
   animation: cardSwipeLeft var(--gesture-bounce-duration) cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -126,7 +172,7 @@
     pointer-events: none;
     z-index: 2;
   }
-  
+
   &::after {
     content: '👎';
     position: absolute;
@@ -141,7 +187,7 @@
 
 .card-superlike {
   animation: cardSwipeUp var(--gesture-bounce-duration) cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -154,7 +200,7 @@
     pointer-events: none;
     z-index: 2;
   }
-  
+
   &::after {
     content: '⭐';
     position: absolute;
@@ -175,7 +221,7 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
   z-index: 1000;
-  
+
   &::after {
     content: '';
     position: absolute;
@@ -193,7 +239,7 @@
 // Photo zoom feedback
 .photo-zooming {
   transition: transform 0.2s ease;
-  
+
   &::after {
     content: '🔍';
     position: absolute;
@@ -209,7 +255,7 @@
 .revelation-card {
   &.revealing {
     animation: revelationUnfold var(--gesture-bounce-duration) cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    
+
     &::before {
       content: '';
       position: absolute;
@@ -222,7 +268,7 @@
       pointer-events: none;
       z-index: 1;
     }
-    
+
     &::after {
       content: '✨';
       position: absolute;
@@ -238,44 +284,44 @@
 
 // Keyframe animations
 @keyframes gesturePositiveFeedback {
-  0% { 
-    transform: scale(1); 
+  0% {
+    transform: scale(1);
     filter: brightness(1);
   }
-  50% { 
-    transform: scale(1.05); 
+  50% {
+    transform: scale(1.05);
     filter: brightness(1.1) hue-rotate(10deg);
   }
-  100% { 
-    transform: scale(1); 
+  100% {
+    transform: scale(1);
     filter: brightness(1);
   }
 }
 
 @keyframes gestureNegativeFeedback {
-  0% { 
-    transform: scale(1); 
+  0% {
+    transform: scale(1);
     filter: brightness(1);
   }
-  50% { 
-    transform: scale(0.95); 
+  50% {
+    transform: scale(0.95);
     filter: brightness(0.9) hue-rotate(-10deg);
   }
-  100% { 
-    transform: scale(1); 
+  100% {
+    transform: scale(1);
     filter: brightness(1);
   }
 }
 
 @keyframes longPressRipple {
-  0% { 
-    transform: scale(1); 
+  0% {
+    transform: scale(1);
   }
-  50% { 
-    transform: scale(1.02); 
+  50% {
+    transform: scale(1.02);
   }
-  100% { 
-    transform: scale(1); 
+  100% {
+    transform: scale(1);
   }
 }
 
@@ -527,7 +573,7 @@
   .card-superlike::after {
     font-size: calc(24px * var(--gesture-intensity) / 100%);
   }
-  
+
   .gesture-like::after,
   .gesture-pass::after {
     font-size: 36px;
@@ -546,20 +592,20 @@
   .revelation-card.revealing {
     animation: none !important;
   }
-  
+
   .touch-active {
     transition: none !important;
   }
-  
+
   // Provide alternative subtle feedback for reduced motion
   .gesture-like {
     border: 2px solid var(--like-color);
   }
-  
+
   .gesture-pass {
     border: 2px solid var(--pass-color);
   }
-  
+
   .gesture-longpress {
     background-color: rgba(156, 39, 176, 0.1);
   }
@@ -571,12 +617,12 @@
     color: #000;
     text-shadow: 2px 2px 0 var(--like-color);
   }
-  
+
   .gesture-pass::after {
     color: #000;
     text-shadow: 2px 2px 0 var(--pass-color);
   }
-  
+
   .dragging::after {
     border-color: #000;
     border-width: 3px;
@@ -591,7 +637,7 @@
     --superlike-glow: rgba(255, 215, 0, 0.5);
     --revelation-glow: rgba(156, 39, 176, 0.4);
   }
-  
+
   .touch-active {
     filter: brightness(1.1);
   }

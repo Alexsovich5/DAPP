@@ -30,8 +30,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
 @Component({
   selector: 'app-discover',
   template: `
-    <app-error-boundary 
-      [retryCallback]="retryDiscovery" 
+    <app-error-boundary
+      [retryCallback]="retryDiscovery"
       errorTitle="Discovery Error"
       errorMessage="Unable to load soul connections. Please try again.">
       <div class="discover-container">
@@ -39,18 +39,19 @@ import { User } from '../../core/interfaces/auth.interfaces';
         <div class="discovery-header" role="banner">
           <h1 id="discovery-title">Soul Discovery</h1>
           <p class="tagline" aria-describedby="discovery-title">Discover connections based on emotional compatibility, not just photos</p>
-        
+        </div>
+
         <!-- Discovery Filters -->
-        <div 
-          class="discovery-filters" 
+        <div
+          class="discovery-filters"
           [class.expanded]="showFilters"
           role="region"
           aria-labelledby="filters-title"
           appOnboardingTarget="discovery-filters"
           onboardingTour="discovery-tour"
           [onboardingAutoTrigger]="true">
-          <button 
-            class="filter-toggle" 
+          <button
+            class="filter-toggle"
             type="button"
             [attr.aria-expanded]="showFilters"
             aria-controls="filter-content"
@@ -61,16 +62,16 @@ import { User } from '../../core/interfaces/auth.interfaces';
             <mat-icon aria-hidden="true">tune</mat-icon>
             <span id="filters-title">Filters</span>
           </button>
-          
-          <div 
-            class="filter-content" 
+
+          <div
+            class="filter-content"
             *ngIf="showFilters"
             id="filter-content"
             role="group"
             aria-label="Discovery filter options">
             <div class="filter-group" role="group" aria-labelledby="hide-photos-label">
               <label id="hide-photos-label" for="hide-photos-toggle">Hide Photos Initially</label>
-              <mat-slide-toggle 
+              <mat-slide-toggle
                 id="hide-photos-toggle"
                 name="hide_photos"
                 [(ngModel)]="discoveryFilters.hide_photos"
@@ -82,16 +83,16 @@ import { User } from '../../core/interfaces/auth.interfaces';
                 When enabled, profile photos will be hidden until you connect with someone
               </div>
             </div>
-            
+
             <div class="filter-group" role="group" aria-labelledby="min-compatibility-label">
               <label id="min-compatibility-label" for="min-compatibility-slider">
                 Minimum Compatibility: {{ discoveryFilters.min_compatibility }}%
               </label>
-              <mat-slider 
+              <mat-slider
                 id="min-compatibility-slider"
                 name="min_compatibility"
-                min="30" 
-                max="95" 
+                min="30"
+                max="95"
                 step="5"
                 [(ngModel)]="discoveryFilters.min_compatibility"
                 [attr.aria-valuetext]="discoveryFilters.min_compatibility + ' percent minimum compatibility'"
@@ -100,14 +101,14 @@ import { User } from '../../core/interfaces/auth.interfaces';
                 (keydown)="handleFilterKeydown($event, 'slider')">
               </mat-slider>
             </div>
-            
+
             <div class="filter-group" role="group" aria-labelledby="max-results-label">
               <label id="max-results-label" for="max-results-slider">Max Results</label>
-              <mat-slider 
+              <mat-slider
                 id="max-results-slider"
                 name="max_results"
-                min="5" 
-                max="20" 
+                min="5"
+                max="20"
                 step="1"
                 [(ngModel)]="discoveryFilters.max_results"
                 [attr.aria-valuetext]="discoveryFilters.max_results + ' profiles maximum'"
@@ -122,8 +123,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
       </div>
 
       <!-- Onboarding Check -->
-      <div 
-        class="onboarding-required" 
+      <div
+        class="onboarding-required"
         *ngIf="needsOnboarding"
         role="main"
         aria-labelledby="onboarding-title">
@@ -131,8 +132,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
           <mat-icon class="onboarding-icon" aria-hidden="true">psychology</mat-icon>
           <h2 id="onboarding-title">Complete Your Soul Profile</h2>
           <p>Before discovering connections, please complete your emotional onboarding to enable our compatibility algorithms.</p>
-          <button 
-            mat-raised-button 
+          <button
+            mat-raised-button
             color="primary"
             type="button"
             aria-label="Complete soul profile to start discovering connections"
@@ -144,8 +145,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
       </div>
 
       <!-- Discovery Content -->
-      <div 
-        class="discovery-content" 
+        <div
+        class="discovery-content"
         *ngIf="!needsOnboarding"
         role="main"
         aria-label="Soul connection discovery results">
@@ -162,16 +163,16 @@ import { User } from '../../core/interfaces/auth.interfaces';
         </app-soul-loading>
 
         <!-- Error State -->
-        <div 
-          class="error-container" 
+        <div
+          class="error-container"
           *ngIf="error"
           role="alert"
           aria-live="assertive">
           <mat-icon class="error-icon" aria-hidden="true">error</mat-icon>
           <h3>Something went wrong</h3>
           <p>{{ error }}</p>
-          <button 
-            mat-button 
+          <button
+            mat-button
             type="button"
             aria-label="Retry loading soul connections"
             (click)="loadDiscoveries()"
@@ -181,8 +182,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
         </div>
 
         <!-- No Matches State -->
-        <div 
-          class="no-matches-container" 
+        <div
+          class="no-matches-container"
           *ngIf="!isLoading && !error && discoveries.length === 0"
           role="region"
           aria-label="No matches found">
@@ -193,8 +194,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
         </div>
 
         <!-- Keyboard Navigation Instructions -->
-        <div 
-          class="keyboard-help" 
+        <div
+          class="keyboard-help"
           *ngIf="!isLoading && !error && discoveries.length > 0"
           role="complementary"
           aria-label="Keyboard navigation instructions">
@@ -222,13 +223,19 @@ import { User } from '../../core/interfaces/auth.interfaces';
         </div>
 
         <!-- Discovery Cards -->
-        <div 
-          class="discovery-cards" 
+        <div
+          class="discovery-cards"
           *ngIf="!isLoading && !error && discoveries.length > 0"
           role="list"
           [attr.aria-label]="discoveries.length + ' soul connection matches found'"
-          tabindex="-1">
-          <article 
+          tabindex="-1"
+          class="stagger">
+          <!-- Undo banner -->
+          <div class="undo-banner" *ngIf="lastAction" role="status" aria-live="polite">
+            <span>{{ lastAction.message }}</span>
+            <button type="button" class="undo-btn" (click)="undoLastAction()">Undo</button>
+          </div>
+          <article
             *ngFor="let discovery of discoveries; trackBy: trackByUserId; let i = index"
             class="soul-card discovery-card"
             role="listitem"
@@ -243,12 +250,13 @@ import { User } from '../../core/interfaces/auth.interfaces';
             (swipeLeft)="onSwipeLeft(discovery, $event)"
             (swipeRight)="onSwipeRight(discovery, $event)"
             (swipeUp)="onSwipeUp(discovery, $event)"
+            (swipeMove)="onSwipeMove($event)"
             (keydown)="handleCardKeydown($event, discovery, i)"
             (focus)="onCardFocus(i)"
             (blur)="onCardBlur(i)"
             (mouseenter)="onCardHover(discovery, true)"
             (mouseleave)="onCardHover(discovery, false)">
-            
+
             <!-- Soul Connection Display -->
             <div class="soul-connection-header"
                  appOnboardingTarget="soul-connection-display">
@@ -262,7 +270,7 @@ import { User } from '../../core/interfaces/auth.interfaces';
                 [showSparkles]="discovery.compatibility.total_compatibility >= 80"
                 appOnboardingTarget="soul-orb">
               </app-soul-orb>
-              
+
               <app-compatibility-score
                 [score]="discovery.compatibility.total_compatibility"
                 size="small"
@@ -275,19 +283,19 @@ import { User } from '../../core/interfaces/auth.interfaces';
             </div>
 
             <!-- Profile Preview -->
-            <div 
+            <div
               class="profile-preview"
               role="group"
               [attr.aria-labelledby]="'card-title-' + discovery.user_id">
               <div class="profile-header">
                 <h3 [id]="'card-title-' + discovery.user_id">{{ discovery.profile_preview.first_name }}</h3>
-                <span 
+                <span
                   class="age"
                   [attr.aria-label]="discovery.profile_preview.age + ' years old'">
                   {{ discovery.profile_preview.age }}
                 </span>
-                <span 
-                  class="location" 
+                <span
+                  class="location"
                   *ngIf="discovery.profile_preview.location"
                   [attr.aria-label]="'Located in ' + discovery.profile_preview.location">
                   <mat-icon aria-hidden="true">location_on</mat-icon>
@@ -296,8 +304,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
               </div>
 
               <!-- Photo Placeholder (if hidden) -->
-              <div 
-                class="photo-placeholder" 
+              <div
+                class="photo-placeholder"
                 *ngIf="discovery.is_photo_hidden"
                 role="img"
                 aria-label="Photo will be revealed after connecting">
@@ -306,8 +314,8 @@ import { User } from '../../core/interfaces/auth.interfaces';
               </div>
 
               <!-- Bio Preview -->
-              <div 
-                class="bio-preview" 
+              <div
+                class="bio-preview"
                 *ngIf="discovery.profile_preview.bio"
                 role="region"
                 aria-label="Profile bio">
@@ -315,25 +323,25 @@ import { User } from '../../core/interfaces/auth.interfaces';
               </div>
 
               <!-- Interests Preview -->
-              <div 
-                class="interests-preview" 
+              <div
+                class="interests-preview"
                 *ngIf="discovery.profile_preview.interests?.length"
                 role="region"
                 [attr.aria-labelledby]="'interests-heading-' + discovery.user_id">
                 <h4 id="interests-heading-{{ discovery.user_id }}">Shared Interests</h4>
-                <div 
+                <div
                   class="interest-chips"
                   role="list"
                   [attr.aria-label]="discovery.profile_preview.interests.length + ' shared interests'">
-                  <mat-chip 
+                  <mat-chip
                     *ngFor="let interest of discovery.profile_preview.interests.slice(0, 3)"
                     class="interest-chip"
                     role="listitem"
                     [attr.aria-label]="'Shared interest: ' + interest">
                     {{ interest }}
                   </mat-chip>
-                  <span 
-                    *ngIf="discovery.profile_preview.interests.length > 3" 
+                  <span
+                    *ngIf="discovery.profile_preview.interests.length > 3"
                     class="more-interests"
                     [attr.aria-label]="'Plus ' + (discovery.profile_preview.interests.length - 3) + ' more shared interests'">
                     +{{ discovery.profile_preview.interests.length - 3 }} more
@@ -342,28 +350,28 @@ import { User } from '../../core/interfaces/auth.interfaces';
               </div>
 
               <!-- Emotional Depth Score -->
-              <div 
-                class="emotional-depth" 
+              <div
+                class="emotional-depth"
                 *ngIf="discovery.profile_preview.emotional_depth_score"
                 role="group"
                 [attr.aria-labelledby]="'depth-label-' + discovery.user_id">
-                <span 
+                <span
                   class="depth-label"
                   [id]="'depth-label-' + discovery.user_id">Emotional Depth:</span>
-                <div 
+                <div
                   class="depth-bar"
                   role="progressbar"
                   [attr.aria-valuenow]="discovery.profile_preview.emotional_depth_score"
                   aria-valuemin="0"
                   aria-valuemax="100"
                   [attr.aria-label]="'Emotional depth score: ' + discovery.profile_preview.emotional_depth_score + ' out of 100'">
-                  <div 
-                    class="depth-fill" 
+                  <div
+                    class="depth-fill"
                     [style.width.%]="discovery.profile_preview.emotional_depth_score"
                     aria-hidden="true">
                   </div>
                 </div>
-                <span 
+                <span
                   class="depth-score"
                   aria-hidden="true">{{ discovery.profile_preview.emotional_depth_score }}/100</span>
               </div>
@@ -389,12 +397,12 @@ import { User } from '../../core/interfaces/auth.interfaces';
             </div>
 
             <!-- Action Buttons -->
-            <div 
+            <div
               class="card-actions"
               role="group"
               [attr.aria-label]="'Actions for ' + discovery.profile_preview.first_name + ' profile'">
-              <button 
-                mat-fab 
+              <button
+                mat-fab
                 class="pass-btn"
                 type="button"
                 [attr.aria-label]="'Pass on ' + discovery.profile_preview.first_name + ' profile'"
@@ -406,9 +414,9 @@ import { User } from '../../core/interfaces/auth.interfaces';
                 <mat-icon aria-hidden="true">close</mat-icon>
                 <span class="sr-only">Pass</span>
               </button>
-              
-              <button 
-                mat-fab 
+
+              <button
+                mat-fab
                 class="connect-btn"
                 type="button"
                 [attr.aria-label]="'Start soul connection with ' + discovery.profile_preview.first_name + ', ' + discovery.compatibility.total_compatibility + '% compatibility'"
@@ -421,10 +429,10 @@ import { User } from '../../core/interfaces/auth.interfaces';
                 <span class="sr-only">Connect</span>
               </button>
             </div>
-            
+
             <!-- Hidden description for screen readers -->
-            <div 
-              [id]="'card-desc-' + discovery.user_id" 
+            <div
+              [id]="'card-desc-' + discovery.user_id"
               class="sr-only">
               {{ getCardDescriptionForScreenReader(discovery) }}
             </div>
@@ -484,13 +492,14 @@ export class DiscoverComponent implements OnInit {
   showFilters = false;
   cardAnimations: Map<number, string> = new Map();
   loadingProgress = 0;
-  
+
   // Keyboard navigation state
   currentCardIndex = 0;
   isCardFocused = false;
-  
+
   // Card interaction state
   hoveredCards = new Set<number>();
+  lastAction: { type: 'pass' | 'connect' | 'super_like'; item: DiscoveryResponse; index: number; message: string; timeoutId: any } | null = null;
 
   discoveryFilters: DiscoveryRequest = {
     max_results: 10,
@@ -512,7 +521,7 @@ export class DiscoverComponent implements OnInit {
     // Check authentication and onboarding status
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
-      
+
       if (!user) {
         this.router.navigate(['/login']);
         return;
@@ -520,7 +529,7 @@ export class DiscoverComponent implements OnInit {
 
       // Check if user needs emotional onboarding
       this.needsOnboarding = this.soulConnectionService.needsEmotionalOnboarding(user);
-      
+
       if (!this.needsOnboarding) {
         this.loadDiscoveries();
       }
@@ -533,7 +542,7 @@ export class DiscoverComponent implements OnInit {
     this.announceAction('Loading soul connections...');
     // Trigger loading haptic feedback
     this.hapticFeedbackService.triggerLoadingFeedback();
-    
+
     this.loadDiscoveriesWithProgress();
   }
 
@@ -549,7 +558,7 @@ export class DiscoverComponent implements OnInit {
   toggleFilters(): void {
     this.showFilters = !this.showFilters;
     this.announceAction(this.showFilters ? 'Filters expanded' : 'Filters collapsed');
-    
+
     // Focus first filter control when opening
     if (this.showFilters) {
       setTimeout(() => {
@@ -591,14 +600,17 @@ export class DiscoverComponent implements OnInit {
 
     // Remove from discoveries after animation
     setTimeout(() => {
+      const removedIndex = this.discoveries.findIndex(d => d.user_id === userId);
+      const removedItem = this.discoveries.find(d => d.user_id === userId)!;
       this.discoveries = this.discoveries.filter(d => d.user_id !== userId);
+      this.queueUndo('pass', removedItem, removedIndex, `Passed on ${firstName}.`);
       this.isActing = false;
-      
+
       // Update navigation index if needed
       if (this.currentCardIndex >= this.discoveries.length) {
         this.currentCardIndex = Math.max(0, this.discoveries.length - 1);
       }
-      
+
       // Focus next card if available
       if (this.discoveries.length > 0) {
         setTimeout(() => {
@@ -660,8 +672,8 @@ export class DiscoverComponent implements OnInit {
     const age = discovery.profile_preview.age;
     const location = discovery.profile_preview.location ? `, located in ${discovery.profile_preview.location}` : '';
     const bio = discovery.profile_preview.bio ? `. ${discovery.profile_preview.bio}` : '';
-    const interests = discovery.profile_preview.interests?.length 
-      ? `. Shared interests include: ${discovery.profile_preview.interests.slice(0, 3).join(', ')}` 
+    const interests = discovery.profile_preview.interests?.length
+      ? `. Shared interests include: ${discovery.profile_preview.interests.slice(0, 3).join(', ')}`
       : '';
     const moreInterests = discovery.profile_preview.interests && discovery.profile_preview.interests.length > 3
       ? ` and ${discovery.profile_preview.interests.length - 3} more`
@@ -685,46 +697,46 @@ export class DiscoverComponent implements OnInit {
         this.navigateToCard(index + 1);
         this.announceCardNavigation(index + 1);
         break;
-        
+
       case 'ArrowUp':
       case 'ArrowLeft':
         event.preventDefault();
         this.navigateToCard(index - 1);
         this.announceCardNavigation(index - 1);
         break;
-        
+
       case 'Home':
         event.preventDefault();
         this.navigateToCard(0);
         this.announceCardNavigation(0);
         break;
-        
+
       case 'End':
         event.preventDefault();
         this.navigateToCard(this.discoveries.length - 1);
         this.announceCardNavigation(this.discoveries.length - 1);
         break;
-        
+
       case 'Enter':
       case ' ':
         event.preventDefault();
         this.focusCardActions(discovery);
         break;
-        
+
       case 'p':
       case 'P':
         event.preventDefault();
         this.onPass(discovery.user_id);
         this.announceAction(`Passed on ${discovery.profile_preview.first_name}'s profile`);
         break;
-        
+
       case 'c':
       case 'C':
         event.preventDefault();
         this.onConnect(discovery);
         this.announceAction(`Connecting with ${discovery.profile_preview.first_name}`);
         break;
-        
+
       case 'Escape':
         event.preventDefault();
         this.blurCurrentCard();
@@ -737,16 +749,16 @@ export class DiscoverComponent implements OnInit {
    */
   private navigateToCard(targetIndex: number): void {
     if (this.discoveries.length === 0) return;
-    
+
     // Wrap around navigation
     if (targetIndex < 0) {
       targetIndex = this.discoveries.length - 1;
     } else if (targetIndex >= this.discoveries.length) {
       targetIndex = 0;
     }
-    
+
     this.currentCardIndex = targetIndex;
-    
+
     // Focus the card element
     setTimeout(() => {
       const cardElement = document.querySelector(`[data-card-index="${targetIndex}"]`) as HTMLElement;
@@ -811,9 +823,9 @@ export class DiscoverComponent implements OnInit {
     announcement.setAttribute('aria-atomic', 'true');
     announcement.className = 'sr-only';
     announcement.textContent = message;
-    
+
     document.body.appendChild(announcement);
-    
+
     // Remove after announcement
     setTimeout(() => {
       if (announcement.parentNode) {
@@ -838,7 +850,7 @@ export class DiscoverComponent implements OnInit {
         prevButton?.focus();
         break;
       }
-        
+
       case 'ArrowRight':
       case 'ArrowDown': {
         event.preventDefault();
@@ -846,7 +858,7 @@ export class DiscoverComponent implements OnInit {
         nextButton?.focus();
         break;
       }
-        
+
       case 'Enter':
       case ' ':
         event.preventDefault();
@@ -858,7 +870,7 @@ export class DiscoverComponent implements OnInit {
           this.announceAction(`Connecting with ${discovery.profile_preview.first_name}`);
         }
         break;
-        
+
       case 'Escape': {
         event.preventDefault();
         // Return focus to the card
@@ -876,7 +888,7 @@ export class DiscoverComponent implements OnInit {
   handleFilterKeydown(event: KeyboardEvent, filterType: 'toggle' | 'slider'): void {
     const filterContainer = document.querySelector('.filter-content');
     const filterControls = Array.from(filterContainer?.querySelectorAll('mat-slide-toggle, mat-slider') || []) as HTMLElement[];
-    const currentControlIndex = filterControls.findIndex(control => 
+    const currentControlIndex = filterControls.findIndex(control =>
       control.contains(event.target as Node) || control === event.target
     );
 
@@ -888,7 +900,7 @@ export class DiscoverComponent implements OnInit {
         this.announceAction('Next filter control');
         break;
       }
-        
+
       case 'ArrowUp': {
         event.preventDefault();
         const prevControl = filterControls[currentControlIndex - 1] || filterControls[filterControls.length - 1];
@@ -896,19 +908,19 @@ export class DiscoverComponent implements OnInit {
         this.announceAction('Previous filter control');
         break;
       }
-        
+
       case 'Home':
         event.preventDefault();
         filterControls[0]?.focus();
         this.announceAction('First filter control');
         break;
-        
+
       case 'End':
         event.preventDefault();
         filterControls[filterControls.length - 1]?.focus();
         this.announceAction('Last filter control');
         break;
-        
+
       case 'Escape': {
         event.preventDefault();
         const filterToggleButton = document.querySelector('.filter-toggle') as HTMLElement;
@@ -935,10 +947,10 @@ export class DiscoverComponent implements OnInit {
    */
   onCardHover(discovery: DiscoveryResponse, isHovering: boolean): void {
     const userId = discovery.user_id;
-    
+
     if (isHovering) {
       this.hoveredCards.add(userId);
-      
+
       // Add compatibility-based class for special hover effects
       setTimeout(() => {
         const cardElement = document.querySelector(`[data-card-index="${this.discoveries.findIndex(d => d.user_id === userId)}"]`);
@@ -946,7 +958,7 @@ export class DiscoverComponent implements OnInit {
           cardElement.classList.add('high-compatibility');
         }
       }, 0);
-      
+
       // Announce hover for screen readers if compatibility is high
       if (discovery.compatibility.total_compatibility >= 80) {
         this.announceAction(`High compatibility profile: ${discovery.profile_preview.first_name}, ${discovery.compatibility.total_compatibility}% match`);
@@ -956,13 +968,13 @@ export class DiscoverComponent implements OnInit {
         // Gentle hover feedback for medium compatibility
         this.hapticFeedbackService.triggerHoverFeedback();
       }
-      
+
       // Trigger soul orb hover effects
       this.triggerSoulOrbInteraction(userId, 'hover');
-      
+
     } else {
       this.hoveredCards.delete(userId);
-      
+
       // Remove compatibility class
       setTimeout(() => {
         const cardElement = document.querySelector(`[data-card-index="${this.discoveries.findIndex(d => d.user_id === userId)}"]`);
@@ -981,7 +993,7 @@ export class DiscoverComponent implements OnInit {
     const cardIndex = this.discoveries.findIndex(d => d.user_id === userId);
     const cardElement = document.querySelector(`[data-card-index="${cardIndex}"]`);
     const soulOrbContainer = cardElement?.querySelector('.soul-orb-display');
-    
+
     if (soulOrbContainer) {
       switch (interaction) {
         case 'hover':
@@ -1009,13 +1021,13 @@ export class DiscoverComponent implements OnInit {
 
     this.isActing = true;
     this.cardAnimations.set(discovery.user_id, 'connect');
-    
+
     // Trigger soul orb celebration before API call
     this.triggerSoulOrbInteraction(discovery.user_id, 'connect');
-    
+
     // Trigger haptic feedback for connection attempt
     this.hapticFeedbackService.triggerCompatibilityFeedback(discovery.compatibility.total_compatibility);
-    
+
     this.announceAction(`Initiating soul connection with ${discovery.profile_preview.first_name}...`);
 
     const connectionData: SoulConnectionCreate = {
@@ -1028,17 +1040,17 @@ export class DiscoverComponent implements OnInit {
         setTimeout(() => {
           // Trigger additional celebration effects
           this.triggerConnectionSuccessEffects(discovery);
-          
+
           this.discoveries = this.discoveries.filter(d => d.user_id !== discovery.user_id);
           this.isActing = false;
-          
+
           // Update navigation index if needed
           if (this.currentCardIndex >= this.discoveries.length) {
             this.currentCardIndex = Math.max(0, this.discoveries.length - 1);
           }
-          
+
           this.announceAction(`Successfully connected with ${discovery.profile_preview.first_name}! Navigating to your connection...`);
-          
+
           // Navigate to connection or show success message
           this.router.navigate(['/connections', connection.id]);
         }, 300);
@@ -1058,14 +1070,14 @@ export class DiscoverComponent implements OnInit {
   private triggerConnectionCelebration(userId: number): void {
     const cardIndex = this.discoveries.findIndex(d => d.user_id === userId);
     const cardElement = document.querySelector(`[data-card-index="${cardIndex}"]`);
-    
+
     if (cardElement) {
       // Add celebration class
       cardElement.classList.add('connection-celebrating');
-      
+
       // Create floating hearts effect
       this.createFloatingHearts(cardElement as HTMLElement);
-      
+
       // Remove celebration class after animation
       setTimeout(() => {
         cardElement.classList.remove('connection-celebrating');
@@ -1078,7 +1090,7 @@ export class DiscoverComponent implements OnInit {
    */
   private createFloatingHearts(cardElement: HTMLElement): void {
     const heartsCount = 8;
-    
+
     for (let i = 0; i < heartsCount; i++) {
       const heart = document.createElement('div');
       heart.innerHTML = '💖';
@@ -1090,10 +1102,10 @@ export class DiscoverComponent implements OnInit {
       heart.style.top = Math.random() * 100 + '%';
       heart.style.animation = `float-away 2s ease-out forwards`;
       heart.style.animationDelay = (i * 0.2) + 's';
-      
+
       cardElement.style.position = 'relative';
       cardElement.appendChild(heart);
-      
+
       // Remove heart after animation
       setTimeout(() => {
         if (heart.parentNode) {
@@ -1109,7 +1121,7 @@ export class DiscoverComponent implements OnInit {
   private triggerConnectionSuccessEffects(discovery: DiscoveryResponse): void {
     // Create success announcement with sound for screen readers
     this.announceAction(`🎉 Soul connection established with ${discovery.profile_preview.first_name}! Compatibility: ${discovery.compatibility.total_compatibility}%`);
-    
+
     // Create page-wide celebration effect
     const celebrationOverlay = document.createElement('div');
     celebrationOverlay.style.position = 'fixed';
@@ -1121,9 +1133,9 @@ export class DiscoverComponent implements OnInit {
     celebrationOverlay.style.zIndex = '9999';
     celebrationOverlay.style.background = 'radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%)';
     celebrationOverlay.style.animation = 'celebration-flash 1s ease-out';
-    
+
     document.body.appendChild(celebrationOverlay);
-    
+
     setTimeout(() => {
       if (celebrationOverlay.parentNode) {
         document.body.removeChild(celebrationOverlay);
@@ -1175,25 +1187,25 @@ export class DiscoverComponent implements OnInit {
 
       // Step 3: Calculating compatibility
       this.loadingProgress = 2;
-      
+
       const discoveries = await new Promise<DiscoveryResponse[]>((resolve, reject) => {
         this.soulConnectionService.discoverSoulConnections(this.discoveryFilters).subscribe({
           next: (data) => resolve(data || []),
           error: (err) => reject(err instanceof Error ? err : new Error(String(err)))
         });
       });
-      
+
       // Step 4: Preparing your matches
       this.loadingProgress = 3;
       await this.delay(500);
 
       this.discoveries = discoveries;
-      
+
       // Initialize card animations
       this.discoveries.forEach(d => {
         this.cardAnimations.set(d.user_id, 'default');
       });
-      
+
       // Announce results to screen reader
       if (this.discoveries.length === 0) {
         this.announceAction('No soul connections found. Try adjusting your filters.');
@@ -1232,7 +1244,7 @@ export class DiscoverComponent implements OnInit {
       threshold: 80, // Higher threshold for intentional swipes
       velocityThreshold: 0.5, // Faster swipe required
       timeThreshold: 400, // Quick swipe within 400ms
-      enabledDirections: ['left', 'right', 'up'],
+      enabledDirections: ['left', 'right', 'up'] as ('left' | 'right' | 'up' | 'down')[],
       hapticFeedback: true,
       preventDefaultEvents: true
     };
@@ -1245,13 +1257,13 @@ export class DiscoverComponent implements OnInit {
     // Add visual feedback
     const element = event.element;
     element.classList.add('swipe-pass', 'swipe-left-preview');
-    
+
     // Trigger haptic feedback
     this.hapticFeedbackService.triggerPassFeedback();
-    
+
     // Announce action for accessibility
     this.announceAction(`Passed on ${this.getPartnerName(discovery)}`);
-    
+
     // Perform pass action with animation
     setTimeout(() => {
       this.handlePassAction(discovery);
@@ -1268,13 +1280,25 @@ export class DiscoverComponent implements OnInit {
   }
 
   /**
+   * Handle swipe move to preview physics-based movement
+   */
+  onSwipeMove(event: SwipeEvent): void {
+    const element = event.element;
+    const deltaX = event.deltaX || 0;
+    const deltaY = event.deltaY || 0;
+    const rotation = Math.max(-20, Math.min(20, deltaX / 10));
+    element.style.transition = 'transform 0s';
+    element.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotation}deg)`;
+  }
+
+  /**
    * Handle swipe right gesture (Like/Connect)
    */
   onSwipeRight(discovery: DiscoveryResponse, event: SwipeEvent): void {
     // Add visual feedback
     const element = event.element;
     element.classList.add('swipe-like', 'swipe-right-preview');
-    
+
     // Trigger haptic feedback based on compatibility
     const compatibilityScore = discovery.compatibility.total_compatibility;
     if (compatibilityScore >= 90) {
@@ -1282,10 +1306,10 @@ export class DiscoverComponent implements OnInit {
     } else {
       this.hapticFeedbackService.triggerSelectionFeedback();
     }
-    
+
     // Announce action for accessibility
     this.announceAction(`Connected with ${this.getPartnerName(discovery)}`);
-    
+
     // Perform connect action with animation
     setTimeout(() => {
       this.handleConnectAction(discovery);
@@ -1317,13 +1341,13 @@ export class DiscoverComponent implements OnInit {
     // Add visual feedback
     const element = event.element;
     element.classList.add('swipe-superlike');
-    
+
     // Strong haptic feedback for super like
     this.hapticFeedbackService.triggerSuccessFeedback();
-    
+
     // Announce action for accessibility
     this.announceAction(`Super liked ${this.getPartnerName(discovery)}! This shows special interest.`);
-    
+
     // Perform super like action with special animation
     setTimeout(() => {
       this.superLikeDiscovery(discovery);
@@ -1343,21 +1367,14 @@ export class DiscoverComponent implements OnInit {
    * Super like a discovery (enhanced connection request)
    */
   private superLikeDiscovery(discovery: DiscoveryResponse): void {
-    const superLikeRequest = {
-      user_id: discovery.user_id,
-      connection_type: 'super_like', // Enhanced connection type
-      initial_message: `I'm really excited about our ${discovery.compatibility.total_compatibility}% compatibility! 💫`,
-      hide_photos: this.discoveryFilters.hide_photos
-    };
-
-    this.soulConnectionService.initiateConnection(superLikeRequest).subscribe({
-      next: (connection) => {
+    this.soulConnectionService.initiateSoulConnection({ user2_id: discovery.user_id }).subscribe({
+      next: (_connection: any) => {
         // Remove from discoveries
         this.discoveries = this.discoveries.filter(d => d.user_id !== discovery.user_id);
-        
+
         // Show success feedback
         this.announceAction(`Super like sent to ${this.getPartnerName(discovery)}! They'll be notified of your special interest.`);
-        
+
         // Navigate to connections if this was the last discovery
         if (this.discoveries.length === 0) {
           setTimeout(() => {
@@ -1365,9 +1382,9 @@ export class DiscoverComponent implements OnInit {
           }, 2000);
         }
       },
-      error: (error) => {
-        this.announceAction(`Failed to send super like: ${error.message}`);
-        this.errorLoggingService.logError(error, {
+      error: (error: any) => {
+        this.announceAction(`Failed to send super like: ${error?.message || 'Unknown error'}`);
+        this.errorLoggingService.logError(error as any, {
           component: 'discover',
           action: 'super_like',
           targetUserId: discovery.user_id
@@ -1380,7 +1397,7 @@ export class DiscoverComponent implements OnInit {
    * Get partner name for accessibility announcements
    */
   private getPartnerName(discovery: DiscoveryResponse): string {
-    return discovery.profile?.first_name || 'soul connection';
+    return discovery.profile_preview?.first_name || 'soul connection';
   }
 
   /**
@@ -1388,8 +1405,10 @@ export class DiscoverComponent implements OnInit {
    */
   private handlePassAction(discovery: DiscoveryResponse): void {
     // Remove from discoveries list
+    const removedIndex = this.discoveries.findIndex(d => d.user_id === discovery.user_id);
     this.discoveries = this.discoveries.filter(d => d.user_id !== discovery.user_id);
-    
+    this.queueUndo('pass', discovery, removedIndex, `Passed on ${this.getPartnerName(discovery)}.`);
+
     // Show next discovery if available
     if (this.discoveries.length === 0) {
       this.loadDiscoveries();
@@ -1400,25 +1419,53 @@ export class DiscoverComponent implements OnInit {
    * Handle connect action for discovery
    */
   private handleConnectAction(discovery: DiscoveryResponse): void {
-    const connectionRequest = {
-      user_id: discovery.user_id,
-      connection_type: 'like',
-      initial_message: `I feel a connection with you! Our ${discovery.compatibility.total_compatibility}% compatibility is amazing! 💕`,
-      hide_photos: this.discoveryFilters.hide_photos
-    };
-
-    this.soulConnectionService.initiateConnection(connectionRequest).subscribe({
-      next: (connection) => {
+    this.soulConnectionService.initiateSoulConnection({ user2_id: discovery.user_id }).subscribe({
+      next: (_connection: any) => {
         // Remove from discoveries
+        const removedIndex = this.discoveries.findIndex(d => d.user_id === discovery.user_id);
         this.discoveries = this.discoveries.filter(d => d.user_id !== discovery.user_id);
-        
+        this.queueUndo('connect', discovery, removedIndex, `Connection request sent to ${this.getPartnerName(discovery)}.`);
+
         // Show success feedback
         this.announceAction(`Connection request sent to ${this.getPartnerName(discovery)}!`);
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Failed to create connection:', error);
         this.announceAction('Failed to send connection request. Please try again.');
       }
     });
+  }
+
+  /**
+   * Queue undo action for last dismissal/connect
+   */
+  private queueUndo(type: 'pass' | 'connect' | 'super_like', item: DiscoveryResponse, index: number, message: string): void {
+    if (this.lastAction?.timeoutId) {
+      clearTimeout(this.lastAction.timeoutId);
+    }
+    const timeoutId = setTimeout(() => {
+      this.lastAction = null;
+    }, 5000);
+    this.lastAction = { type, item, index, message, timeoutId };
+  }
+
+  /**
+   * Undo the last action if within the time window
+   */
+  undoLastAction(): void {
+    if (!this.lastAction) return;
+    const { item, index, timeoutId } = this.lastAction;
+    clearTimeout(timeoutId);
+    // Reinsert item at previous index
+    this.discoveries = [
+      ...this.discoveries.slice(0, index),
+      item,
+      ...this.discoveries.slice(index)
+    ];
+    this.cardAnimations.set(item.user_id, 'default');
+    this.lastAction = null;
+    this.announceAction('Action undone.');
+    // Focus restored card
+    setTimeout(() => this.navigateToCard(index), 0);
   }
 }

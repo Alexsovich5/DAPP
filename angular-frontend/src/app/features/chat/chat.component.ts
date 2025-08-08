@@ -62,7 +62,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   isSending = false;
   error: string | null = null;
   userId: string | null = null;
-  
+
   // Typing indicator properties
   typingUsers: TypingUser[] = [];
   private typingHandler?: (inputValue: string) => void;
@@ -94,12 +94,12 @@ export class ChatComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // Cleanup subscriptions
     this.subscriptions.unsubscribe();
-    
+
     // Stop any active typing indicators
     if (this.userId) {
       this.chatService.stopTyping(this.userId);
     }
-    
+
     // Cleanup any subscriptions or WebSocket connections
     this.chatService.disconnect();
   }
@@ -124,28 +124,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
-  onSendMessage(): void {
-    if (!this.chatForm.valid || this.isSending) return;
 
-    const message = this.chatForm.get('message')?.value.trim();
-    if (!message) return;
-
-    this.isSending = true;
-
-    this.chatService.sendMessage(this.userId!, message).subscribe({
-      next: (newMessage) => {
-        this.messages = [...this.messages, newMessage];
-        this.chatForm.reset();
-        this.scrollToBottom();
-      },
-      error: (err) => {
-        this.error = 'Failed to send message. Please try again.';
-      },
-      complete: () => {
-        this.isSending = false;
-      }
-    });
-  }
 
   private scrollToBottom(): void {
     setTimeout(() => {

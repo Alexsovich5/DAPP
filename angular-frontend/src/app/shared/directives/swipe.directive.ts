@@ -1,11 +1,11 @@
-import { 
-  Directive, 
-  ElementRef, 
-  EventEmitter, 
-  Input, 
-  OnDestroy, 
-  OnInit, 
-  Output 
+import {
+  Directive,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output
 } from '@angular/core';
 import { SwipeGestureService, SwipeEvent, SwipeConfig } from '../../core/services/swipe-gesture.service';
 
@@ -23,6 +23,7 @@ export class SwipeDirective implements OnInit, OnDestroy {
   @Output() swipeRight = new EventEmitter<SwipeEvent>();
   @Output() swipeUp = new EventEmitter<SwipeEvent>();
   @Output() swipeDown = new EventEmitter<SwipeEvent>();
+  @Output() swipeMove = new EventEmitter<SwipeEvent>();
 
   private zoneId: string;
 
@@ -43,7 +44,7 @@ export class SwipeDirective implements OnInit, OnDestroy {
 
   private setupSwipeZone(): void {
     const element = this.elementRef.nativeElement;
-    
+
     // Add swipe styling
     element.style.touchAction = 'none';
     element.style.userSelect = 'none';
@@ -53,7 +54,8 @@ export class SwipeDirective implements OnInit, OnDestroy {
       this.zoneId,
       element,
       (event: SwipeEvent) => this.handleSwipe(event),
-      this.swipeConfig
+      this.swipeConfig,
+      (event: SwipeEvent) => this.handleSwipeMove(event)
     );
   }
 
@@ -78,6 +80,11 @@ export class SwipeDirective implements OnInit, OnDestroy {
         this.swipeDown.emit(event);
         break;
     }
+  }
+
+  private handleSwipeMove(event: SwipeEvent): void {
+    if (!this.swipeEnabled) return;
+    this.swipeMove.emit(event);
   }
 
   /**
