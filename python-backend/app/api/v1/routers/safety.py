@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 from ....api.v1.deps import get_current_user
 from ....models.user import User
-from ....services.user_safety import (
+from ....services.user_safety_simplified import (
     UserSafetyService,
     UserReport as SafetyUserReport,
     ReportCategory,
@@ -22,12 +22,14 @@ class UserReportRequest(BaseModel):
     evidence: Dict[str, Any] = Field(default_factory=dict)
 
 
-# Dependency factory placeholders – wire your actual implementations
+# Global safety service instance (in production, this would be properly injected)
+_safety_service_instance = None
+
 def get_user_safety_service() -> UserSafetyService:
-    # In a full app, inject DB, Redis, and moderation deps here
-    raise HTTPException(
-        status_code=503, detail="Safety service not configured"
-    )
+    global _safety_service_instance
+    if _safety_service_instance is None:
+        _safety_service_instance = UserSafetyService()
+    return _safety_service_instance
 
 
 @router.post("/report")
@@ -56,3 +58,71 @@ async def report_user(
         raise HTTPException(
             status_code=500, detail=f"Failed to submit report: {e}"
         )
+
+
+@router.get("/status/{user_id}")
+async def get_user_safety_status(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    safety_service: UserSafetyService = Depends(get_user_safety_service),
+) -> Dict[str, Any]:
+    """Get safety status for a specific user (admin only or own status)"""
+    
+    # Users can only check their own status, admins can check any user
+    if current_user.id != user_id and not getattr(current_user, 'is_admin', False):
+        raise HTTPException(
+            status_code=403, detail="Can only check your own safety status"
+        )
+    
+    try:
+        status = await safety_service.get_user_safety_status(user_id)
+        return status
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get safety status: {e}"
+        )
+
+
+@router.get("/reports/summary")
+async def get_reports_summary(
+    current_user: User = Depends(get_current_user),
+    safety_service: UserSafetyService = Depends(get_user_safety_service),
+) -> Dict[str, Any]:
+    """Get summary of all reports (admin only)"""
+    
+    # Check if user has admin privileges
+    if not getattr(current_user, 'is_admin', False):
+        raise HTTPException(
+            status_code=403, detail="Admin privileges required"
+        )
+    
+    try:
+        summary = await safety_service.get_reports_summary()
+        return summary
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get reports summary: {e}"
+        )
+
+
+@router.get("/categories")
+async def get_report_categories() -> Dict[str, Any]:
+    """Get available report categories and their descriptions"""
+    
+    categories = {
+        "harassment": "Bullying, threats, or unwanted contact",
+        "fake_profile": "Profile appears to be fake or impersonation",
+        "inappropriate_photos": "Photos contain inappropriate content",
+        "spam": "Sending unsolicited messages or promotional content",
+        "scam": "Attempting to scam or defraud other users",
+        "violence_threats": "Threats of violence or self-harm",
+        "hate_speech": "Content promoting hatred or discrimination", 
+        "underage": "User appears to be under 18 years old",
+        "impersonation": "Pretending to be someone else",
+        "other": "Other safety concerns not listed above"
+    }
+    
+    return {
+        "categories": categories,
+        "message": "Select the category that best describes the safety issue"
+    }

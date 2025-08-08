@@ -15,6 +15,8 @@ from app.api.v1.routers import (
     soul_connections,
     revelations,
     onboarding,
+    photo_reveal,
+    messages,
     # ai_matching,  # Temporarily disabled due to missing AI dependencies
 )
 from app.api.v1.routers import chat as chat_router
@@ -109,6 +111,20 @@ v1_app.include_router(
     onboarding.router,
     prefix="/onboarding",
     tags=["onboarding"],
+)
+
+# Phase 4: Photo Reveal System
+v1_app.include_router(
+    photo_reveal.router,
+    prefix="/photo-reveal",
+    tags=["photo-reveal"],
+)
+
+# Phase 4: Real-time Messaging
+v1_app.include_router(
+    messages.router,
+    prefix="/messages",
+    tags=["messages"],
 )
 
 # Phase 5: AI-Enhanced Matching - Temporarily disabled
