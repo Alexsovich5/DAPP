@@ -84,7 +84,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // Get current user ID from auth service
-    this.authService.getCurrentUser().subscribe(user => {
+    this.authService.currentUser$.subscribe(user => {
       if (user) {
         this.currentUserId = user.id.toString();
         this.chatService.setCurrentUser(this.currentUserId);
@@ -188,7 +188,9 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   private setupTypingIndicators(): void {
     // Set current user ID in chat service
-    this.chatService.setCurrentUserId(this.currentUserId);
+    if (this.currentUserId) {
+      this.chatService.setCurrentUserId(this.currentUserId);
+    }
 
     // Subscribe to enhanced typing users for this chat
     this.subscriptions.add(
@@ -229,7 +231,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     // Create enhanced current user data for typing indicators
     const currentUserData: TypingUser = {
-      id: this.currentUserId,
+      id: this.currentUserId || '',
       name: 'You', // This should come from user profile
       avatar: undefined, // Optional avatar URL
       connectionStage: 'soul_discovery', // Should come from connection data

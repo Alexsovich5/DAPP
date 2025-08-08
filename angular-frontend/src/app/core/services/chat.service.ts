@@ -285,14 +285,10 @@ export class ChatService {
     return this.messageStatusSubject.asObservable();
   }
 
-  disconnect(): void {
+  private cleanupTypingTimers(): void {
     // Clean up typing timers
     this.typingTimer.forEach(timer => clearTimeout(timer));
     this.typingTimer.clear();
-
-    if (this.socket$) {
-      this.socket$.complete();
-    }
   }
 
   // === TYPING INDICATOR METHODS ===
@@ -447,6 +443,7 @@ export class ChatService {
       this.socket$.complete();
     }
     this.clearAllTypingIndicators();
+    this.cleanupTypingTimers();
   }
 
   // === MESSAGE DATA METHODS ===
