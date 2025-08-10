@@ -310,3 +310,151 @@ async def get_uploaded_file(
         )
     
     return FileResponse(file_path)
+
+
+@router.get("/mutual-interests/{user_id}")
+def get_mutual_interests(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> List[str]:
+    """Get mutual interests between current user and specified user."""
+    
+    # Get the other user
+    other_user = db.query(User).filter(User.id == user_id).first()
+    if not other_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Get interests for both users
+    current_interests = set(current_user.interests or [])
+    other_interests = set(other_user.interests or [])
+    
+    # Find mutual interests
+    mutual = list(current_interests.intersection(other_interests))
+    
+    return mutual
+
+
+@router.get("/match-percentage/{user_id}")
+def get_match_percentage(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """Calculate match percentage between current user and specified user."""
+    
+    # Get the other user
+    other_user = db.query(User).filter(User.id == user_id).first()
+    if not other_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Calculate compatibility using existing scoring functions
+    scores = {
+        "cuisine": _calculate_cuisine_score(
+            current_user.profile.cuisine_preferences if current_user.profile else "",
+            other_user.profile.cuisine_preferences if other_user.profile else ""
+        ),
+        "location": _calculate_location_score(
+            current_user.location or "",
+            other_user.location or ""
+        ),
+        "dietary": _calculate_dietary_score(
+            current_user.profile.dietary_restrictions if current_user.profile else "",
+            other_user.profile.dietary_restrictions if other_user.profile else ""
+        ),
+        "interests": _calculate_interests_compatibility(current_user.interests, other_user.interests),
+        "values": _calculate_values_compatibility(current_user, other_user)
+    }
+    
+    # Weighted average (following CLAUDE.md specification)
+    weights = {
+        "cuisine": 0.25,
+        "location": 0.20,
+        "dietary": 0.15,
+        "interests": 0.25,  # Jaccard similarity from CLAUDE.md
+        "values": 0.15
+    }
+    
+    total_score = sum(scores[category] * weights[category] for category in scores)
+    percentage = int(total_score * 100)
+    
+    return {
+        "match_percentage": percentage,
+        "breakdown": scores,
+        "mutual_interests_count": len(list(set(current_user.interests or []).intersection(set(other_user.interests or [])))),
+        "compatibility_rating": _get_compatibility_rating(percentage)
+    }
+
+
+def _calculate_interests_compatibility(interests1: List[str], interests2: List[str]) -> float:
+    """Calculate Jaccard similarity for interests (as specified in CLAUDE.md)"""
+    if not interests1 or not interests2:
+        return 0.0
+    
+    set1 = set(interests1)
+    set2 = set(interests2)
+    
+    intersection = len(set1.intersection(set2))
+    union = len(set1.union(set2))
+    
+    return intersection / union if union > 0 else 0.0
+
+
+def _calculate_values_compatibility(user1: User, user2: User) -> float:
+    """Calculate values compatibility based on user profiles"""
+    # Simplified values compatibility based on available data
+    score = 0.0
+    
+    # Age compatibility (closer ages = higher compatibility)
+    if user1.date_of_birth and user2.date_of_birth:
+        from datetime import date
+        today = date.today()
+        age1 = today.year - user1.date_of_birth.year - ((today.month, today.day) < (user1.date_of_birth.month, user1.date_of_birth.day))
+        age2 = today.year - user2.date_of_birth.year - ((today.month, today.day) < (user2.date_of_birth.month, user2.date_of_birth.day))
+        age_diff = abs(age1 - age2)
+        
+        if age_diff <= 2:
+            score += 0.4
+        elif age_diff <= 5:
+            score += 0.3
+        elif age_diff <= 8:
+            score += 0.2
+        else:
+            score += 0.1
+    
+    # Gender preference compatibility (simplified)
+    if user1.gender and user2.gender and user1.gender != user2.gender:
+        score += 0.3  # Assume heterosexual preference for simplicity
+    
+    # Bio similarity (if both have bios)
+    if user1.bio and user2.bio:
+        # Simple word overlap check
+        words1 = set(user1.bio.lower().split())
+        words2 = set(user2.bio.lower().split())
+        common_words = len(words1.intersection(words2))
+        if common_words > 0:
+            score += min(0.3, common_words * 0.05)
+    
+    return min(score, 1.0)
+
+
+def _get_compatibility_rating(percentage: int) -> str:
+    """Get compatibility rating label"""
+    if percentage >= 90:
+        return "Soulmate Match"
+    elif percentage >= 80:
+        return "Excellent Match"
+    elif percentage >= 70:
+        return "Great Match"
+    elif percentage >= 60:
+        return "Good Match"
+    elif percentage >= 50:
+        return "Fair Match"
+    else:
+        return "Low Compatibility"

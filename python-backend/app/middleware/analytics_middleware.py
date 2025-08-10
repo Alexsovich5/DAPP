@@ -9,7 +9,8 @@ import uuid
 import logging
 from datetime import datetime
 
-from ..services.analytics import AnalyticsService, AnalyticsEvent, EventType, EventCategory
+from app.services.analytics_service import analytics_service
+from app.models.soul_analytics import AnalyticsEventType
 
 logger = logging.getLogger(__name__)
 
@@ -18,35 +19,35 @@ class AnalyticsMiddleware(BaseHTTPMiddleware):
     Middleware to automatically track user behavior and API usage
     """
     
-    def __init__(self, app, analytics_service: AnalyticsService):
+    def __init__(self, app, analytics_service):
         super().__init__(app)
         self.analytics_service = analytics_service
         
         # Track specific endpoints that should generate events
         self.tracked_endpoints = {
             # Authentication endpoints
-            "/api/v1/auth/login": EventType.LOGIN,
-            "/api/v1/auth/logout": EventType.LOGOUT,
-            "/api/v1/auth/register": EventType.REGISTER,
+            "/api/v1/auth/login": AnalyticsEventType.LOGIN,
+            "/api/v1/auth/logout": AnalyticsEventType.LOGOUT,
+            "/api/v1/auth/register": AnalyticsEventType.REGISTER,
             
             # Profile endpoints
-            "/api/v1/profiles": EventType.PROFILE_EDIT,
-            "/api/v1/profiles/me": EventType.PROFILE_VIEW,
+            "/api/v1/profiles": AnalyticsEventType.PROFILE_EDIT,
+            "/api/v1/profiles/me": AnalyticsEventType.PROFILE_VIEW,
             
             # Matching endpoints
-            "/api/v1/matches": EventType.PROFILE_LIKE,
-            "/api/v1/connections/discover": EventType.SEARCH,
-            "/api/v1/connections/initiate": EventType.MATCH_CREATED,
+            "/api/v1/matches": AnalyticsEventType.SWIPE_ACTION,
+            "/api/v1/connections/discover": AnalyticsEventType.DISCOVER_VIEWED,
+            "/api/v1/connections/initiate": AnalyticsEventType.CONNECTION_INITIATED,
             
             # Messaging endpoints
-            "/api/v1/messages": EventType.MESSAGE_SENT,
+            "/api/v1/messages": AnalyticsEventType.MESSAGE_SENT,
             
             # Revelation endpoints
-            "/api/v1/revelations/create": EventType.REVELATION_CREATED,
+            "/api/v1/revelations/create": AnalyticsEventType.REVELATION_SHARED,
             
             # Safety endpoints
-            "/api/v1/safety/report": EventType.USER_REPORTED,
-            "/api/v1/safety/block": EventType.USER_BLOCKED,
+            "/api/v1/safety/report": AnalyticsEventType.USER_REPORTED,
+            "/api/v1/safety/block": AnalyticsEventType.USER_BLOCKED,
         }
     
     async def dispatch(self, request: Request, call_next):
@@ -127,7 +128,7 @@ class AnalyticsMiddleware(BaseHTTPMiddleware):
         
         return 'unknown'
     
-    def _determine_event_type(self, request: Request, response: Response) -> Optional[EventType]:
+    def _determine_event_type(self, request: Request, response: Response) -> Optional[AnalyticsEventType]:
         """Determine the event type based on request path and method"""
         path = request.url.path
         method = request.method
@@ -139,59 +140,55 @@ class AnalyticsMiddleware(BaseHTTPMiddleware):
         # Pattern matching for dynamic paths
         if method == "GET":
             if "/api/v1/profiles/" in path and path != "/api/v1/profiles/me":
-                return EventType.PROFILE_VIEW
+                return AnalyticsEventType.PROFILE_VIEW
             elif "/api/v1/messages/" in path:
-                return EventType.MESSAGE_READ
+                return AnalyticsEventType.MESSAGE_READ
             elif "/api/v1/revelations/timeline/" in path:
-                return EventType.REVELATION_VIEWED
+                return AnalyticsEventType.REVELATION_VIEWED
         
         elif method == "POST":
             if "/api/v1/matches" in path:
-                return EventType.PROFILE_LIKE
+                return AnalyticsEventType.SWIPE_ACTION
             elif "/api/v1/messages/" in path:
-                return EventType.MESSAGE_SENT
+                return AnalyticsEventType.MESSAGE_SENT
             elif "/api/v1/photos/upload" in path:
-                return EventType.PHOTO_UPLOAD
+                return AnalyticsEventType.PHOTO_UPLOAD
         
         elif method == "PUT":
             if "/api/v1/matches/" in path:
-                return EventType.MATCH_CREATED
+                return AnalyticsEventType.CONNECTION_INITIATED
             elif "/api/v1/revelations/" in path and "/consent" in path:
-                return EventType.PHOTO_REVEAL_CONSENT
+                return AnalyticsEventType.PHOTO_CONSENT_GIVEN
         
         return None
     
-    def _determine_event_category(self, event_type: EventType) -> EventCategory:
+    def _determine_event_category(self, event_type: AnalyticsEventType) -> str:
         """Determine event category based on event type"""
         category_mapping = {
-            EventType.LOGIN: EventCategory.AUTHENTICATION,
-            EventType.LOGOUT: EventCategory.AUTHENTICATION,
-            EventType.REGISTER: EventCategory.AUTHENTICATION,
+            AnalyticsEventType.LOGIN: "authentication",
+            AnalyticsEventType.LOGOUT: "authentication",
+            AnalyticsEventType.REGISTER: "authentication",
             
-            EventType.PROFILE_VIEW: EventCategory.PROFILE_MANAGEMENT,
-            EventType.PROFILE_EDIT: EventCategory.PROFILE_MANAGEMENT,
-            EventType.PHOTO_UPLOAD: EventCategory.PROFILE_MANAGEMENT,
+            AnalyticsEventType.PROFILE_VIEW: "profile_management",
+            AnalyticsEventType.PROFILE_EDIT: "profile_management",
+            AnalyticsEventType.PHOTO_UPLOAD: "profile_management",
             
-            EventType.PROFILE_LIKE: EventCategory.MATCHING,
-            EventType.PROFILE_PASS: EventCategory.MATCHING,
-            EventType.MATCH_CREATED: EventCategory.MATCHING,
-            EventType.SEARCH: EventCategory.MATCHING,
+            AnalyticsEventType.SWIPE_ACTION: "matching",
+            AnalyticsEventType.CONNECTION_INITIATED: "matching",
+            AnalyticsEventType.DISCOVER_VIEWED: "matching",
             
-            EventType.MESSAGE_SENT: EventCategory.MESSAGING,
-            EventType.MESSAGE_READ: EventCategory.MESSAGING,
-            EventType.CONVERSATION_STARTED: EventCategory.MESSAGING,
+            AnalyticsEventType.MESSAGE_SENT: "messaging",
+            AnalyticsEventType.MESSAGE_READ: "messaging",
             
-            EventType.REVELATION_CREATED: EventCategory.REVELATION,
-            EventType.REVELATION_VIEWED: EventCategory.REVELATION,
-            EventType.PHOTO_REVEAL_CONSENT: EventCategory.REVELATION,
-            EventType.PHOTO_REVEALED: EventCategory.REVELATION,
+            AnalyticsEventType.REVELATION_SHARED: "revelation",
+            AnalyticsEventType.REVELATION_VIEWED: "revelation",
+            AnalyticsEventType.PHOTO_CONSENT_GIVEN: "revelation",
             
-            EventType.USER_REPORTED: EventCategory.SAFETY,
-            EventType.USER_BLOCKED: EventCategory.SAFETY,
-            EventType.CONTENT_FLAGGED: EventCategory.SAFETY,
+            AnalyticsEventType.USER_REPORTED: "safety",
+            AnalyticsEventType.USER_BLOCKED: "safety",
         }
         
-        return category_mapping.get(event_type, EventCategory.USER_BEHAVIOR)
+        return category_mapping.get(event_type, "user_behavior")
     
     async def _track_request_event(
         self, 
@@ -209,7 +206,7 @@ class AnalyticsMiddleware(BaseHTTPMiddleware):
         # Always track page views for GET requests to main routes
         if not event_type and request.method == "GET" and response.status_code == 200:
             if any(pattern in request.url.path for pattern in ['/discover', '/matches', '/messages', '/profile']):
-                event_type = EventType.PAGE_VIEW
+                event_type = AnalyticsEventType.PAGE_VIEW
         
         # Skip tracking if no relevant event type
         if not event_type:
@@ -229,30 +226,28 @@ class AnalyticsMiddleware(BaseHTTPMiddleware):
             # Add payload size for POST requests
             properties['payload_size'] = len(str(request._json)) if request._json else 0
         
-        # Create analytics event
-        event = AnalyticsEvent(
-            event_id=str(uuid.uuid4()),
+        # Track the event using our analytics service
+        await self.analytics_service.track_user_event(
             user_id=user_id,
-            session_id=session_id,
             event_type=event_type,
-            event_category=self._determine_event_category(event_type),
-            properties=properties,
-            timestamp=datetime.utcnow(),
-            page_url=str(request.url),
-            referrer=request.headers.get('Referer'),
-            user_agent=request.headers.get('User-Agent'),
-            ip_address=self._get_client_ip(request)
+            event_data={
+                "session_id": session_id,
+                "properties": properties,
+                "page_url": str(request.url),
+                "referrer": request.headers.get('Referer'),
+                "user_agent": request.headers.get('User-Agent'),
+                "ip_address": self._get_client_ip(request)
+            },
+            db=None,  # Would need to pass db session
+            session_id=session_id
         )
-        
-        # Track the event
-        await self.analytics_service.track_event(event)
 
 class PerformanceTrackingMiddleware(BaseHTTPMiddleware):
     """
     Middleware to track API performance metrics
     """
     
-    def __init__(self, app, analytics_service: AnalyticsService):
+    def __init__(self, app, analytics_service):
         super().__init__(app)
         self.analytics_service = analytics_service
         
@@ -309,27 +304,13 @@ class PerformanceTrackingMiddleware(BaseHTTPMiddleware):
         user_id = self._extract_user_id(request)
         session_id = str(uuid.uuid4())
         
-        event = AnalyticsEvent(
-            event_id=str(uuid.uuid4()),
-            user_id=user_id,
-            session_id=session_id,
-            event_type=EventType.PAGE_VIEW,  # Use generic page view for performance tracking
-            event_category=EventCategory.USER_BEHAVIOR,
-            properties={
-                'performance_issue': 'slow_request',
-                'response_time_ms': round(process_time * 1000, 2),
-                'threshold_ms': round(threshold * 1000, 2),
-                'http_method': request.method,
-                'status_code': response.status_code,
-                'endpoint': request.url.path
-            },
-            timestamp=datetime.utcnow(),
-            page_url=str(request.url),
-            user_agent=request.headers.get('User-Agent'),
-            ip_address=self._get_client_ip(request)
+        # Track slow request as performance event
+        await self.analytics_service.track_system_performance(
+            metric_name="slow_request",
+            value=process_time * 1000,  # Convert to milliseconds
+            component=request.url.path,
+            db=None  # Would need to pass db session
         )
-        
-        await self.analytics_service.track_event(event)
     
     async def _track_error_response(
         self, 
@@ -342,26 +323,13 @@ class PerformanceTrackingMiddleware(BaseHTTPMiddleware):
         user_id = self._extract_user_id(request)
         session_id = str(uuid.uuid4())
         
-        event = AnalyticsEvent(
-            event_id=str(uuid.uuid4()),
-            user_id=user_id,
-            session_id=session_id,
-            event_type=EventType.PAGE_VIEW,  # Use generic type for error tracking
-            event_category=EventCategory.USER_BEHAVIOR,
-            properties={
-                'error_response': True,
-                'status_code': response.status_code,
-                'response_time_ms': round(process_time * 1000, 2),
-                'http_method': request.method,
-                'endpoint': request.url.path
-            },
-            timestamp=datetime.utcnow(),
-            page_url=str(request.url),
-            user_agent=request.headers.get('User-Agent'),
-            ip_address=self._get_client_ip(request)
+        # Track error response as system metric
+        await self.analytics_service.track_system_performance(
+            metric_name=f"error_{response.status_code}",
+            value=process_time * 1000,  # Convert to milliseconds
+            component=request.url.path,
+            db=None  # Would need to pass db session
         )
-        
-        await self.analytics_service.track_event(event)
     
     def _extract_user_id(self, request: Request) -> Optional[int]:
         """Extract user ID from request context"""

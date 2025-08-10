@@ -22,13 +22,13 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
     FormsModule
   ],
   template: `
-    <div 
+    <div
       class="mood-selector"
       [class.expanded]="isExpanded"
       [@selectorAnimation]="isExpanded ? 'expanded' : 'collapsed'"
       role="toolbar"
       aria-label="Emotional mood selector">
-      
+
       <!-- Mood Toggle Button -->
       <button
         class="mood-toggle"
@@ -40,9 +40,9 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
         (keydown.enter)="toggleSelector()"
         (keydown.space)="toggleSelector(); $event.preventDefault()"
         matTooltip="Change your emotional mood">
-        
+
         <div class="current-mood-indicator">
-          <div 
+          <div
             class="mood-orb"
             [style.background]="currentMood.colorPalette.primary"
             [style.box-shadow]="getCurrentMoodGlow()"
@@ -50,13 +50,13 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
           </div>
           <span class="mood-icon">{{ getMoodIcon(currentMood) }}</span>
         </div>
-        
+
         <div class="mood-info">
           <span class="mood-name">{{ currentMood.name }}</span>
           <span class="mood-description">{{ currentMood.description }}</span>
         </div>
-        
-        <mat-icon 
+
+        <mat-icon
           class="toggle-icon"
           [class.rotated]="isExpanded"
           aria-hidden="true">
@@ -65,13 +65,13 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
       </button>
 
       <!-- Mood Options Panel -->
-      <div 
+      <div
         class="mood-options"
         *ngIf="isExpanded"
         id="mood-options"
         [@optionsAnimation]="'visible'"
         role="menu">
-        
+
         <!-- Adaptive Mode Toggle -->
         <div class="adaptive-mode">
           <mat-slide-toggle
@@ -100,15 +100,15 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
             (keydown.enter)="selectMood(mood)"
             (keydown.space)="selectMood(mood); $event.preventDefault()"
             [matTooltip]="getMoodTooltip(mood)">
-            
+
             <!-- Mood Preview -->
             <div class="mood-preview">
-              <div 
+              <div
                 class="preview-orb"
                 [style.background]="mood.colorPalette.primary"
                 [style.box-shadow]="getMoodPreviewGlow(mood)">
               </div>
-              <div 
+              <div
                 class="preview-gradient"
                 [style.background]="mood.colorPalette.background">
               </div>
@@ -147,7 +147,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
             <span class="suggestion-text">
               Based on the time of day, {{ timeBasedSuggestion.name }} mood might enhance your experience
             </span>
-            <button 
+            <button
               class="suggestion-button"
               type="button"
               (click)="selectMood(timeBasedSuggestion)"
@@ -161,19 +161,19 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
         <div class="color-preview" *ngIf="currentMood">
           <h4 class="preview-title">Current Emotional Palette</h4>
           <div class="color-swatches">
-            <div 
+            <div
               class="color-swatch primary"
               [style.background]="currentMood.colorPalette.primary"
               [attr.aria-label]="'Primary color: ' + currentMood.colorPalette.primary"
               matTooltip="Primary emotional color">
             </div>
-            <div 
+            <div
               class="color-swatch secondary"
               [style.background]="currentMood.colorPalette.secondary"
               [attr.aria-label]="'Secondary color: ' + currentMood.colorPalette.secondary"
               matTooltip="Secondary emotional color">
             </div>
-            <div 
+            <div
               class="color-swatch accent"
               [style.background]="currentMood.colorPalette.accent"
               [attr.aria-label]="'Accent color: ' + currentMood.colorPalette.accent"
@@ -181,10 +181,15 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
             </div>
           </div>
         </div>
+
+        <!-- Theme Preview Apply -->
+        <div class="theme-apply">
+          <button type="button" class="apply-btn" (click)="applyAppTheme()">Apply as App Theme</button>
+        </div>
       </div>
 
       <!-- Close Overlay -->
-      <div 
+      <div
         class="mood-overlay"
         *ngIf="isExpanded"
         (click)="closeSelector()"
@@ -358,7 +363,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
 
       &.recommended {
         border-color: var(--accent-color);
-        
+
         &::before {
           content: '';
           position: absolute;
@@ -449,7 +454,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
       font-size: 0.8rem;
       color: var(--text-secondary);
       margin-bottom: 0.25rem;
-      
+
       &:before {
         content: '✓ ';
         color: var(--primary-color);
@@ -570,13 +575,13 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
 
     /* Animations */
     @keyframes moodPulse {
-      0%, 100% { 
-        transform: scale(1); 
-        opacity: 1; 
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
       }
-      50% { 
-        transform: scale(1.05); 
-        opacity: 0.9; 
+      50% {
+        transform: scale(1.05);
+        opacity: 0.9;
       }
     }
 
@@ -632,11 +637,11 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
     trigger('optionsAnimation', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(-10px) scale(0.95)' }),
-        animate('300ms cubic-bezier(0.4, 0, 0.2, 1)', 
+        animate('300ms cubic-bezier(0.4, 0, 0.2, 1)',
           style({ opacity: 1, transform: 'translateY(0) scale(1)' }))
       ]),
       transition(':leave', [
-        animate('200ms ease-in', 
+        animate('200ms ease-in',
           style({ opacity: 0, transform: 'translateY(-10px) scale(0.95)' }))
       ])
     ]),
@@ -672,6 +677,16 @@ export class MoodSelectorComponent implements OnInit, OnDestroy {
     private hapticFeedbackService: HapticFeedbackService
   ) {
     this.currentMood = this.colorPsychologyService.getCurrentMood();
+  }
+
+  applyAppTheme(): void {
+    // Apply mood palette as dynamic theme variables
+    const p = this.currentMood.colorPalette;
+    document.documentElement.style.setProperty('--primary-color', p.primary);
+    document.documentElement.style.setProperty('--accent-color', p.accent);
+    document.documentElement.style.setProperty('--background-color', p.background);
+    document.documentElement.style.setProperty('--surface-color', p.background);
+    this.hapticFeedbackService.triggerSuccessFeedback();
   }
 
   ngOnInit(): void {
@@ -726,11 +741,11 @@ export class MoodSelectorComponent implements OnInit, OnDestroy {
     if (mood.id !== this.currentMood.id) {
       this.colorPsychologyService.setMood(mood.id);
       this.hapticFeedbackService.triggerSuccessFeedback();
-      
+
       // Announce mood change
       this.announceMoodChange(mood);
     }
-    
+
     this.closeSelector();
   }
 
@@ -801,16 +816,16 @@ export class MoodSelectorComponent implements OnInit, OnDestroy {
   private announceMoodChange(mood: MoodState): void {
     // Create screen reader announcement
     const announcement = `Mood changed to ${mood.name}. ${mood.description}`;
-    
+
     // Create and trigger announcement element
     const announcer = document.createElement('div');
     announcer.setAttribute('aria-live', 'polite');
     announcer.setAttribute('aria-atomic', 'true');
     announcer.classList.add('sr-only');
     announcer.textContent = announcement;
-    
+
     document.body.appendChild(announcer);
-    
+
     setTimeout(() => {
       document.body.removeChild(announcer);
     }, 1000);

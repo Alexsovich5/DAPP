@@ -10,15 +10,15 @@ import { Observable } from 'rxjs';
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <nav 
-      class="main-navigation" 
+    <nav
+      class="main-navigation"
       *ngIf="isLoggedIn$ | async"
       role="navigation"
       aria-label="Main navigation">
       <div class="nav-container">
         <div class="nav-brand">
-          <a 
-            routerLink="/" 
+          <a
+            routerLink="/"
             class="brand-link"
             aria-label="Dinner First home page">
             <span class="brand-icon" aria-hidden="true">💫</span>
@@ -26,14 +26,14 @@ import { Observable } from 'rxjs';
           </a>
         </div>
 
-        <div 
-          class="nav-menu" 
+        <div
+          class="nav-menu"
           [class.mobile-open]="mobileMenuOpen"
           role="menubar"
           [attr.aria-expanded]="mobileMenuOpen"
           aria-label="Main menu">
-          <a 
-            routerLink="/discover" 
+          <a
+            routerLink="/discover"
             routerLinkActive="active"
             class="nav-link"
             role="menuitem"
@@ -47,8 +47,8 @@ import { Observable } from 'rxjs';
             <span class="nav-text">Discover</span>
           </a>
 
-          <a 
-            routerLink="/conversations" 
+          <a
+            routerLink="/conversations"
             routerLinkActive="active"
             class="nav-link"
             role="menuitem"
@@ -60,8 +60,8 @@ import { Observable } from 'rxjs';
           >
             <span class="nav-icon" aria-hidden="true">💬</span>
             <span class="nav-text">Conversations</span>
-            <span 
-              class="notification-badge" 
+            <span
+              class="notification-badge"
               *ngIf="(unreadCount$ | async) && (unreadCount$ | async)! > 0"
               [attr.aria-label]="(unreadCount$ | async) + ' unread messages'"
               role="status">
@@ -69,8 +69,8 @@ import { Observable } from 'rxjs';
             </span>
           </a>
 
-          <a 
-            routerLink="/revelations" 
+          <a
+            routerLink="/revelations"
             routerLinkActive="active"
             class="nav-link revelation-link"
             role="menuitem"
@@ -87,8 +87,8 @@ import { Observable } from 'rxjs';
         </div>
 
         <div class="nav-actions">
-          <div 
-            class="user-menu" 
+          <div
+            class="user-menu"
             [class.open]="userMenuOpen"
             role="button"
             tabindex="0"
@@ -104,15 +104,15 @@ import { Observable } from 'rxjs';
             <div class="user-avatar" [attr.aria-label]="'User avatar for ' + getUserInitial()">
               <span aria-hidden="true">{{getUserInitial()}}</span>
             </div>
-            <div 
-              class="user-dropdown" 
+            <div
+              class="user-dropdown"
               *ngIf="userMenuOpen"
               role="menu"
               aria-label="User menu options"
               (keydown)="handleDropdownKeydown($event)">
-              <a 
-                routerLink="/profile" 
-                class="dropdown-item" 
+              <a
+                routerLink="/profile"
+                class="dropdown-item"
                 role="menuitem"
                 tabindex="0"
                 aria-label="View and edit your profile"
@@ -120,9 +120,9 @@ import { Observable } from 'rxjs';
                 (keydown.enter)="closeUserMenu()">
                 <span aria-hidden="true">👤</span> Profile
               </a>
-              <a 
-                routerLink="/settings" 
-                class="dropdown-item" 
+              <a
+                routerLink="/settings"
+                class="dropdown-item"
                 role="menuitem"
                 tabindex="0"
                 aria-label="Application settings and preferences"
@@ -131,8 +131,8 @@ import { Observable } from 'rxjs';
                 <span aria-hidden="true">⚙️</span> Settings
               </a>
               <div class="dropdown-divider" role="separator"></div>
-              <button 
-                class="dropdown-item logout-btn" 
+              <button
+                class="dropdown-item logout-btn"
                 role="menuitem"
                 tabindex="0"
                 aria-label="Sign out of your account"
@@ -143,8 +143,8 @@ import { Observable } from 'rxjs';
             </div>
           </div>
 
-          <button 
-            class="mobile-menu-btn" 
+          <button
+            class="mobile-menu-btn"
             type="button"
             [attr.aria-expanded]="mobileMenuOpen"
             aria-controls="mobile-navigation-menu"
@@ -152,8 +152,8 @@ import { Observable } from 'rxjs';
             (click)="toggleMobileMenu()"
             (keydown.enter)="toggleMobileMenu()"
             (keydown.space)="toggleMobileMenu(); $event.preventDefault()">
-            <span 
-              class="hamburger" 
+            <span
+              class="hamburger"
               [class.open]="mobileMenuOpen"
               aria-hidden="true">
               <span></span>
@@ -605,14 +605,14 @@ export class NavigationComponent implements OnInit {
 
   getConversationsAriaLabel(): string {
     const unreadCount = this.notificationService.getCurrentUnreadCount();
-    return unreadCount > 0 
+    return unreadCount > 0
       ? `Conversations with ${unreadCount} unread messages`
       : 'Conversations';
   }
 
   toggleMobileMenu() {
     this.mobileMenuOpen = !this.mobileMenuOpen;
-    
+
     // Announce state change to screen readers
     this.announceToScreenReader(
       this.mobileMenuOpen ? 'Mobile menu opened' : 'Mobile menu closed'
@@ -625,7 +625,7 @@ export class NavigationComponent implements OnInit {
 
   toggleUserMenu() {
     this.userMenuOpen = !this.userMenuOpen;
-    
+
     // Focus first menu item when opening
     if (this.userMenuOpen) {
       setTimeout(() => {
@@ -652,7 +652,7 @@ export class NavigationComponent implements OnInit {
     setTimeout(() => {
       const activeElement = document.activeElement;
       const userMenu = document.querySelector('.user-menu');
-      
+
       if (!userMenu?.contains(activeElement)) {
         this.closeUserMenu();
       }
@@ -662,31 +662,31 @@ export class NavigationComponent implements OnInit {
   handleDropdownKeydown(event: KeyboardEvent) {
     const menuItems = Array.from(document.querySelectorAll('.user-dropdown .dropdown-item')) as HTMLElement[];
     const currentIndex = menuItems.findIndex(item => item === document.activeElement);
-    
+
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
         const nextIndex = (currentIndex + 1) % menuItems.length;
         menuItems[nextIndex]?.focus();
         break;
-        
+
       case 'ArrowUp':
         event.preventDefault();
         const prevIndex = currentIndex <= 0 ? menuItems.length - 1 : currentIndex - 1;
         menuItems[prevIndex]?.focus();
         break;
-        
+
       case 'Escape':
         event.preventDefault();
         this.closeUserMenu();
-        (document.querySelector('.user-menu') as HTMLElement)?.focus();
+        (document.querySelector('.user-menu') as HTMLElement | null)?.focus();
         break;
-        
+
       case 'Home':
         event.preventDefault();
         menuItems[0]?.focus();
         break;
-        
+
       case 'End':
         event.preventDefault();
         menuItems[menuItems.length - 1]?.focus();
@@ -700,9 +700,9 @@ export class NavigationComponent implements OnInit {
     announcement.setAttribute('aria-atomic', 'true');
     announcement.className = 'sr-only';
     announcement.textContent = message;
-    
+
     document.body.appendChild(announcement);
-    
+
     // Remove after announcement
     setTimeout(() => {
       document.body.removeChild(announcement);

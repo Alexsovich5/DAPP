@@ -3,11 +3,12 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { StorageService } from '../../../core/services/storage.service';
+import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skeleton-loader.component';
 
 @Component({
   selector: 'app-emotional-questions',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, SkeletonLoaderComponent],
   template: `
     <div class="emotional-questions">
       <div class="question-header">
@@ -15,13 +16,15 @@ import { StorageService } from '../../../core/services/storage.service';
         <p>These questions help us understand what truly matters to you in connections.</p>
       </div>
 
+      <div class="swipe-container">
       <form [formGroup]="emotionalForm" (ngSubmit)="onSubmit()">
+        <app-skeleton-loader type="text" width="70%" *ngIf="isSaving"></app-skeleton-loader>
         <div class="question-group">
           <label class="question-label">
             <span class="question-number">1</span>
             What do you value most in a relationship?
           </label>
-          <textarea 
+          <textarea
             formControlName="relationship_values"
             placeholder="Share what's most important to you when connecting with someone special..."
             rows="4"
@@ -35,7 +38,7 @@ import { StorageService } from '../../../core/services/storage.service';
             <span class="question-number">2</span>
             Describe your ideal evening with someone special
           </label>
-          <textarea 
+          <textarea
             formControlName="ideal_evening"
             placeholder="Paint a picture of your perfect evening together..."
             rows="4"
@@ -49,7 +52,7 @@ import { StorageService } from '../../../core/services/storage.service';
             <span class="question-number">3</span>
             What makes you feel truly understood?
           </label>
-          <textarea 
+          <textarea
             formControlName="feeling_understood"
             placeholder="Describe moments when you feel most seen and appreciated..."
             rows="4"
@@ -59,14 +62,15 @@ import { StorageService } from '../../../core/services/storage.service';
         </div>
 
         <div class="form-actions">
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             class="btn btn-primary btn-full"
-            [disabled]="!emotionalForm.valid">
+            [disabled]="!emotionalForm.valid || isSaving">
             Continue to Personality Assessment
           </button>
         </div>
       </form>
+      </div>
     </div>
   `,
   styles: [`
@@ -187,6 +191,8 @@ export class EmotionalQuestionsComponent implements OnInit {
   @Output() stepCompleted = new EventEmitter<any>();
 
   emotionalForm!: FormGroup;
+  isSaving = false;
+  private autosaveTimer: any;
 
   constructor(
     private fb: FormBuilder,
@@ -212,6 +218,14 @@ export class EmotionalQuestionsComponent implements OnInit {
         this.stepCompleted.emit(this.emotionalForm.value);
       }
     });
+
+    // Autosave form changes
+    this.emotionalForm.valueChanges.subscribe(val => {
+      clearTimeout(this.autosaveTimer);
+      this.autosaveTimer = setTimeout(() => {
+        this.storage.setJson('onboarding_emotional', val);
+      }, 300);
+    });
   }
 
   private loadExistingData(): void {
@@ -221,19 +235,34 @@ export class EmotionalQuestionsComponent implements OnInit {
     }
   }
 
+  onSwipeNext(): void {
+    if (this.emotionalForm.valid) {
+      this.onSubmit();
+    }
+  }
+
+  onSwipePrev(): void {
+    // Navigate back to previous app route if exists
+    this.router.navigate(['/onboarding']);
+  }
+
   onSubmit(): void {
     if (this.emotionalForm.valid) {
+      this.isSaving = true;
       // Store form data for later submission
       const emotionalData = this.emotionalForm.value;
       console.log('Saving emotional data:', emotionalData);
       this.storage.setJson('onboarding_emotional', emotionalData);
-      
+
       // Verify data was saved
       const savedData = this.storage.getJson('onboarding_emotional');
       console.log('Verified saved emotional data:', savedData);
-      
+
       // Navigate to next step
-      this.router.navigate(['/onboarding/personality-assessment']);
+      setTimeout(() => {
+        this.isSaving = false;
+        this.router.navigate(['/onboarding/personality-assessment']);
+      }, 600);
     }
   }
 

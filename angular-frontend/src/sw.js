@@ -26,7 +26,7 @@ const API_CACHE_PATTERNS = [
 
 // API endpoints for background sync
 const SYNC_ENDPOINTS = [
-  /\/api\/v1\/messages/,
+  /\/api\/v1\/chat\/send/,
   /\/api\/v1\/revelations\/create/,
   /\/api\/v1\/soul-connections\/initiate/,
   /\/api\/v1\/profiles\/me/
@@ -34,7 +34,7 @@ const SYNC_ENDPOINTS = [
 
 self.addEventListener('install', (event) => {
   console.log('[SW] Install event');
-  
+
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -50,7 +50,7 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activate event');
-  
+
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -91,21 +91,21 @@ self.addEventListener('fetch', (event) => {
 // Handle API requests with caching strategy
 async function handleApiRequest(request) {
   const url = new URL(request.url);
-  
+
   try {
     // For dating app, we want fresh data for most API calls
     const response = await fetch(request);
-    
+
     // Cache successful GET requests for offline use
     if (request.method === 'GET' && response.status === 200) {
       const shouldCache = API_CACHE_PATTERNS.some(pattern => pattern.test(url.pathname));
-      
+
       if (shouldCache) {
         const cache = await caches.open(DATA_CACHE_NAME);
         await cache.put(request, response.clone());
       }
     }
-    
+
     return response;
   } catch (error) {
     // If offline, try to serve from cache
@@ -115,31 +115,31 @@ async function handleApiRequest(request) {
         return cachedResponse;
       }
     }
-    
+
     // For POST/PUT requests when offline, queue for background sync
     if (['POST', 'PUT', 'DELETE'].includes(request.method)) {
       await queueRequestForSync(request);
-      
+
       // Return a response indicating the request was queued
       return new Response(
-        JSON.stringify({ 
-          queued: true, 
+        JSON.stringify({
+          queued: true,
           message: 'Request queued for sync when online',
           timestamp: Date.now()
-        }), 
+        }),
         {
           status: 202,
           headers: { 'Content-Type': 'application/json' }
         }
       );
     }
-    
+
     // For unhandled requests, return offline message
     return new Response(
-      JSON.stringify({ 
-        error: 'Offline', 
-        message: 'You are currently offline. Please check your connection.' 
-      }), 
+      JSON.stringify({
+        error: 'Offline',
+        message: 'You are currently offline. Please check your connection.'
+      }),
       {
         status: 503,
         headers: { 'Content-Type': 'application/json' }
@@ -166,19 +166,19 @@ async function handleNavigationRequest(request) {
 async function handleStaticRequest(request) {
   const cache = await caches.open(CACHE_NAME);
   const cachedResponse = await cache.match(request);
-  
+
   if (cachedResponse) {
     return cachedResponse;
   }
-  
+
   try {
     const response = await fetch(request);
-    
+
     // Cache successful responses
     if (response.status === 200) {
       await cache.put(request, response.clone());
     }
-    
+
     return response;
   } catch (error) {
     // Return offline fallback if available
@@ -189,7 +189,7 @@ async function handleStaticRequest(request) {
 // Background sync for dating app actions
 self.addEventListener('sync', (event) => {
   console.log('[SW] Background sync event', event.tag);
-  
+
   if (event.tag === BACKGROUND_SYNC_TAG) {
     event.waitUntil(syncQueuedRequests());
   } else if (event.tag === 'location-sync') {
@@ -208,10 +208,10 @@ async function queueRequestForSync(request) {
     body: request.method !== 'GET' ? await request.text() : null,
     timestamp: Date.now()
   };
-  
+
   // Store in IndexedDB for persistence
   await storeRequestInDB(requestData);
-  
+
   // Register for background sync
   try {
     await self.registration.sync.register(BACKGROUND_SYNC_TAG);
@@ -223,10 +223,10 @@ async function queueRequestForSync(request) {
 // Sync queued requests when online
 async function syncQueuedRequests() {
   console.log('[SW] Syncing queued requests');
-  
+
   try {
     const queuedRequests = await getQueuedRequests();
-    
+
     for (const requestData of queuedRequests) {
       try {
         const request = new Request(requestData.url, {
@@ -234,9 +234,9 @@ async function syncQueuedRequests() {
           headers: requestData.headers,
           body: requestData.body
         });
-        
+
         const response = await fetch(request);
-        
+
         if (response.ok) {
           await removeRequestFromDB(requestData.timestamp);
           console.log('[SW] Successfully synced request:', requestData.url);
@@ -247,13 +247,13 @@ async function syncQueuedRequests() {
         console.log('[SW] Error syncing request:', requestData.url, error);
       }
     }
-    
+
     // Notify clients about sync completion
-    await notifyClients('sync-complete', { 
+    await notifyClients('sync-complete', {
       synced: queuedRequests.length,
       timestamp: Date.now()
     });
-    
+
   } catch (error) {
     console.log('[SW] Background sync failed:', error);
   }
@@ -263,7 +263,7 @@ async function syncQueuedRequests() {
 async function syncLocation() {
   try {
     const position = await getCurrentPosition();
-    
+
     if (position) {
       const response = await fetch('/api/v1/users/location', {
         method: 'POST',
@@ -278,7 +278,7 @@ async function syncLocation() {
           timestamp: Date.now()
         })
       });
-      
+
       if (response.ok) {
         console.log('[SW] Location synced successfully');
       }
@@ -292,18 +292,18 @@ async function syncLocation() {
 async function syncMessages() {
   try {
     const pendingMessages = await getPendingMessages();
-    
+
     for (const message of pendingMessages) {
       try {
-        const response = await fetch('/api/v1/messages', {
+        const response = await fetch('/api/v1/chat/send', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': await getStoredAuthToken()
           },
-          body: JSON.stringify(message)
+          body: JSON.stringify({ receiverId: message.receiverId, content: message.content, timestamp: message.timestamp })
         });
-        
+
         if (response.ok) {
           await removePendingMessage(message.id);
         }
@@ -319,9 +319,9 @@ async function syncMessages() {
 // Push notification handling for dating app
 self.addEventListener('push', (event) => {
   console.log('[SW] Push received');
-  
+
   let data = {};
-  
+
   if (event.data) {
     try {
       data = event.data.json();
@@ -329,7 +329,7 @@ self.addEventListener('push', (event) => {
       data = { title: 'Dinner First', body: event.data.text() };
     }
   }
-  
+
   const options = {
     title: data.title || 'Dinner First',
     body: data.body || 'You have a new notification',
@@ -343,7 +343,7 @@ self.addEventListener('push', (event) => {
     silent: false,
     vibrate: getVibrationPattern(data.type)
   };
-  
+
   event.waitUntil(
     self.registration.showNotification(options.title, options)
   );
@@ -352,12 +352,12 @@ self.addEventListener('push', (event) => {
 // Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
   console.log('[SW] Notification clicked');
-  
+
   event.notification.close();
-  
+
   const data = event.notification.data;
   let url = '/';
-  
+
   // Handle action button clicks
   if (event.action) {
     switch (event.action) {
@@ -392,7 +392,7 @@ self.addEventListener('notificationclick', (event) => {
         url = '/';
     }
   }
-  
+
   event.waitUntil(
     clients.openWindow(url)
   );
@@ -440,7 +440,7 @@ function getVibrationPattern(type) {
 async function storeRequestInDB(requestData) {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('dinner_first-sync', 1);
-    
+
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
       const db = request.result;
@@ -449,7 +449,7 @@ async function storeRequestInDB(requestData) {
       store.add(requestData);
       transaction.oncomplete = () => resolve();
     };
-    
+
     request.onupgradeneeded = () => {
       const db = request.result;
       const store = db.createObjectStore('requests', { keyPath: 'timestamp' });
@@ -461,14 +461,14 @@ async function storeRequestInDB(requestData) {
 async function getQueuedRequests() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('dinner_first-sync', 1);
-    
+
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
       const db = request.result;
       const transaction = db.transaction(['requests'], 'readonly');
       const store = transaction.objectStore('requests');
       const getAllRequest = store.getAll();
-      
+
       getAllRequest.onsuccess = () => resolve(getAllRequest.result);
     };
   });
@@ -477,7 +477,7 @@ async function getQueuedRequests() {
 async function removeRequestFromDB(timestamp) {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('dinner_first-sync', 1);
-    
+
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
       const db = request.result;
@@ -496,7 +496,7 @@ async function getCurrentPosition() {
       reject(new Error('Geolocation not supported'));
       return;
     }
-    
+
     navigator.geolocation.getCurrentPosition(resolve, reject, {
       enableHighAccuracy: true,
       timeout: 10000,
@@ -512,18 +512,42 @@ async function getStoredAuthToken() {
 }
 
 async function getPendingMessages() {
-  // Retrieve pending messages from IndexedDB
-  return []; // Placeholder
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('dinner_first-sync', 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const db = request.result;
+      const transaction = db.transaction(['pending-messages'], 'readonly');
+      const store = transaction.objectStore('pending-messages');
+      const getAllRequest = store.getAll();
+      getAllRequest.onsuccess = () => resolve(getAllRequest.result || []);
+    };
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains('pending-messages')) {
+        db.createObjectStore('pending-messages', { keyPath: 'id' });
+      }
+    };
+  });
 }
 
 async function removePendingMessage(messageId) {
-  // Remove message from IndexedDB after successful sync
-  // Implementation would be similar to removeRequestFromDB
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('dinner_first-sync', 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const db = request.result;
+      const transaction = db.transaction(['pending-messages'], 'readwrite');
+      const store = transaction.objectStore('pending-messages');
+      store.delete(messageId);
+      transaction.oncomplete = () => resolve();
+    };
+  });
 }
 
 async function notifyClients(type, data) {
   const clients = await self.clients.matchAll();
-  
+
   clients.forEach(client => {
     client.postMessage({
       type: type,

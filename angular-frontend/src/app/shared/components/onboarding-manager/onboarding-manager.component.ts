@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { environment } from '../../../../environments/environment';
+import { environment } from '@environments/environment';
 import { OnboardingService, OnboardingState } from '@core/services/onboarding.service';
 import { AuthService } from '@core/services/auth.service';
 import { OnboardingTooltipComponent } from '@shared/components/onboarding-tooltip/onboarding-tooltip.component';
@@ -27,15 +27,15 @@ import { OnboardingWelcomeComponent } from '@shared/components/onboarding-welcom
     </app-onboarding-tooltip>
 
     <!-- Onboarding Controls (Debug/Admin) -->
-    <div 
+    <div
       class="onboarding-controls"
       *ngIf="showControls && isDevelopment"
       role="region"
       aria-label="Onboarding development controls">
-      
+
       <div class="controls-header">
         <h4>Onboarding Controls</h4>
-        <button 
+        <button
           class="toggle-btn"
           type="button"
           (click)="toggleControls()"
@@ -49,7 +49,7 @@ import { OnboardingWelcomeComponent } from '@shared/components/onboarding-welcom
         <div class="control-section">
           <h5>Available Tours</h5>
           <div class="tour-list">
-            <div 
+            <div
               *ngFor="let tour of availableTours"
               class="tour-item"
               [class.completed]="isTourCompleted(tour.id)">
@@ -58,7 +58,7 @@ import { OnboardingWelcomeComponent } from '@shared/components/onboarding-welcom
                 <span class="tour-category">{{ tour.category }}</span>
               </div>
               <div class="tour-actions">
-                <button 
+                <button
                   class="start-btn"
                   type="button"
                   [disabled]="currentState?.currentTour === tour.id"
@@ -94,21 +94,21 @@ import { OnboardingWelcomeComponent } from '@shared/components/onboarding-welcom
         <div class="control-section">
           <h5>Quick Actions</h5>
           <div class="quick-actions">
-            <button 
+            <button
               class="action-btn"
               type="button"
               (click)="showWelcomeModal()"
               aria-label="Show welcome modal">
               Show Welcome
             </button>
-            <button 
+            <button
               class="action-btn"
               type="button"
               (click)="resetOnboarding()"
               aria-label="Reset all onboarding progress">
               Reset All
             </button>
-            <button 
+            <button
               class="action-btn"
               type="button"
               (click)="completeCurrentTour()"
@@ -124,21 +124,21 @@ import { OnboardingWelcomeComponent } from '@shared/components/onboarding-welcom
           <h5>Preferences</h5>
           <div class="preferences">
             <label class="preference-item">
-              <input 
+              <input
                 type="checkbox"
                 [checked]="currentState?.userPreferences?.showTutorials || false"
                 (change)="updatePreference('showTutorials', $event)">
               Show Tutorials
             </label>
             <label class="preference-item">
-              <input 
+              <input
                 type="checkbox"
                 [checked]="currentState?.userPreferences?.skipIntroductions || false"
                 (change)="updatePreference('skipIntroductions', $event)">
               Skip Introductions
             </label>
             <label class="preference-item">
-              <input 
+              <input
                 type="checkbox"
                 [checked]="currentState?.userPreferences?.autoAdvance || false"
                 (change)="updatePreference('autoAdvance', $event)">
@@ -189,7 +189,7 @@ import { OnboardingWelcomeComponent } from '@shared/components/onboarding-welcom
       padding: 0.25rem;
       border-radius: 4px;
       font-weight: bold;
-      
+
       &:hover {
         background: var(--surface-tertiary);
         color: var(--text-primary);
@@ -204,7 +204,7 @@ import { OnboardingWelcomeComponent } from '@shared/components/onboarding-welcom
 
     .control-section {
       margin-bottom: 1.5rem;
-      
+
       &:last-child {
         margin-bottom: 0;
       }
@@ -234,7 +234,7 @@ import { OnboardingWelcomeComponent } from '@shared/components/onboarding-welcom
       background: var(--surface-secondary);
       border-radius: 8px;
       border: 1px solid var(--border-color);
-      
+
       &.completed {
         border-color: var(--success-color);
         background: rgba(52, 211, 153, 0.05);
@@ -270,11 +270,11 @@ import { OnboardingWelcomeComponent } from '@shared/components/onboarding-welcom
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
-      
+
       &:hover:not(:disabled) {
         background: var(--primary-color-dark);
       }
-      
+
       &:disabled {
         background: var(--surface-tertiary);
         color: var(--text-secondary);
@@ -322,12 +322,12 @@ import { OnboardingWelcomeComponent } from '@shared/components/onboarding-welcom
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
-      
+
       &:hover:not(:disabled) {
         background: var(--surface-tertiary);
         border-color: var(--primary-color);
       }
-      
+
       &:disabled {
         opacity: 0.6;
         cursor: not-allowed;
@@ -348,7 +348,7 @@ import { OnboardingWelcomeComponent } from '@shared/components/onboarding-welcom
       cursor: pointer;
       font-size: 0.85rem;
       color: var(--text-primary);
-      
+
       input[type="checkbox"] {
         margin: 0;
       }
@@ -362,17 +362,17 @@ import { OnboardingWelcomeComponent } from '@shared/components/onboarding-welcom
         right: 10px;
         max-width: none;
       }
-      
+
       .controls-content {
         max-height: 50vh;
       }
-      
+
       .tour-item {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.5rem;
       }
-      
+
       .tour-actions {
         width: 100%;
         display: flex;
@@ -409,7 +409,7 @@ export class OnboardingManagerComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Check if we're in development mode
     this.isDevelopment = !environment.production;
-    
+
     // Subscribe to onboarding state changes
     this.subscription.add(
       this.onboardingService.state$.subscribe(state => {
@@ -448,13 +448,13 @@ export class OnboardingManagerComponent implements OnInit, OnDestroy {
   private checkForNewUser(): void {
     const isNewUser = this.onboardingService.isNewUser();
     const state = this.currentState;
-    
+
     // Show welcome if:
     // - User is new
     // - Tutorials are enabled
     // - No tour is currently active
-    if (isNewUser && 
-        state?.userPreferences.showTutorials && 
+    if (isNewUser &&
+        state?.userPreferences.showTutorials &&
         !state.currentTour) {
       this.showWelcome = true;
     }

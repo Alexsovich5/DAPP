@@ -1,17 +1,31 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
-from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 import os
 import logging
 from pathlib import Path
 from pydantic import ValidationError
 
-from app.api.v1.routers import auth, matches, profiles, users, soul_connections, revelations, onboarding, ai_matching
+from app.api.v1.routers import (
+    auth,
+    matches,
+    profiles,
+    users,
+    soul_connections,
+    revelations,
+    onboarding,
+    photo_reveal,
+    messages,
+    ai_matching,
+)
+from app.api.v1.routers import chat as chat_router
+from app.api.v1.routers import safety as safety_router
+# from app.api.v1.routers import analytics as analytics_router  # Temporarily disabled due to missing clickhouse
 from app.core.database import create_tables
 from app.middleware.middleware import log_requests_middleware
 from app.utils.error_handler import validation_error_handler
+from app.services.realtime import manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -83,15 +97,51 @@ v1_app.include_router(profiles.router, prefix="/profiles", tags=["profiles"])
 v1_app.include_router(matches.router, prefix="/matches", tags=["matches"])
 
 # Soul Before Skin routers
-v1_app.include_router(soul_connections.router, prefix="/soul-connections", tags=["soul-connections"])
-v1_app.include_router(revelations.router, prefix="/revelations", tags=["revelations"])
-v1_app.include_router(onboarding.router, prefix="/onboarding", tags=["onboarding"])
+v1_app.include_router(
+    soul_connections.router,
+    prefix="/soul-connections",
+    tags=["soul-connections"],
+)
+v1_app.include_router(
+    revelations.router,
+    prefix="/revelations",
+    tags=["revelations"],
+)
+v1_app.include_router(
+    onboarding.router,
+    prefix="/onboarding",
+    tags=["onboarding"],
+)
+
+# Phase 4: Photo Reveal System
+v1_app.include_router(
+    photo_reveal.router,
+    prefix="/photo-reveal",
+    tags=["photo-reveal"],
+)
+
+# Phase 4: Real-time Messaging
+v1_app.include_router(
+    messages.router,
+    prefix="/messages",
+    tags=["messages"],
+)
 
 # Phase 5: AI-Enhanced Matching
-v1_app.include_router(ai_matching.router, prefix="/ai-matching", tags=["ai-matching"])
+v1_app.include_router(
+    ai_matching.router,
+    prefix="/ai-matching",
+    tags=["ai-matching"],
+)
 
+# Real-time Chat and Safety
+v1_app.include_router(chat_router.router, tags=["chat"])
+v1_app.include_router(safety_router.router)
+# v1_app.include_router(analytics_router.router)  # Temporarily disabled
 # Add profile aliases for Angular compatibility
-v1_app.include_router(profiles.router, prefix="/profile", tags=["profile-alias"])
+v1_app.include_router(
+    profiles.router, prefix="/profile", tags=["profile-alias"]
+)
 
 # Mount the v1 API with prefix
 app.mount("/api/v1", v1_app)
@@ -143,3 +193,17 @@ async def health_check():
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}")
         return {"status": "unhealthy", "error": str(e)}
+
+
+@app.websocket("/chat")
+async def websocket_chat_endpoint(websocket: WebSocket):
+    """Top-level WebSocket endpoint to match frontend `ws://.../chat`."""
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await manager.send_to_all_except(
+                {"type": "event", "data": data}, except_ws=websocket
+            )
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)

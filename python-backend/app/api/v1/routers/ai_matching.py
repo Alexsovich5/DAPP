@@ -1,585 +1,333 @@
-# AI-Enhanced Matching API Router
-# Dinner First Dating Platform - Advanced Features & Scale
-
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query
-from sqlalchemy.orm import Session
-from typing import List, Optional
-import time
+"""
+AI Matching API Router - Phase 5 Revolutionary AI-Powered Matching
+Advanced machine learning endpoints for soul-based compatibility and personalization
+"""
 import logging
+from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 
-from ....core.database import get_db
-from ....core.auth import get_current_user
-from ....models.user import User
-from ....models.profile import Profile
-from ....services.ai_matching import get_ai_matching_service, PrivacyFirstMatchingAI
-from ....schemas.ai_matching import (
-    AICompatibilityAnalysis,
-    ConversationStartersResponse,
-    MatchingRequest,
-    BatchMatchingRequest,
-    BatchMatchingResponse,
-    DeepCompatibilityAnalysis,
-    AIModelStatus,
-    AIMatchingConfig,
-    MatchingMetrics,
-    MatchResult,
-    ConversationStarter
-)
-from ....core.config import settings
-from ....core.rate_limiter import RateLimiter
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy.orm import Session
+from pydantic import BaseModel, Field
+
+from app.core.database import get_db
+from app.api.v1.deps import get_current_user
+from app.models.user import User
+from app.models.ai_models import UserProfile, CompatibilityPrediction, PersonalizedRecommendation
+from app.services.ai_matching_service import ai_matching_service, MatchRecommendation
 
 logger = logging.getLogger(__name__)
+router = APIRouter(tags=["ai_matching"])
 
-router = APIRouter(prefix="/ai-matching", tags=["AI Matching"])
 
-# Rate limiters for AI endpoints
-compatibility_limiter = RateLimiter(times=10, seconds=300)  # 10 analyses per 5 minutes
-batch_limiter = RateLimiter(times=3, seconds=3600)  # 3 batch analyses per hour
-conversation_limiter = RateLimiter(times=20, seconds=3600)  # 20 conversation generations per hour
+# Pydantic models for request/response
 
-@router.post("/analyze-compatibility", response_model=AICompatibilityAnalysis)
-async def analyze_compatibility(
-    request: MatchingRequest,
-    background_tasks: BackgroundTasks,
+class PersonalityInsightResponse(BaseModel):
+    trait_name: str
+    score: float
+    confidence: float
+    description: str
+    percentile: Optional[float] = None
+    improvement_suggestions: List[str] = []
+
+
+class AIProfileResponse(BaseModel):
+    user_id: int
+    personality_summary: Dict[str, Any]
+    ai_confidence_level: float
+    profile_completeness_score: float
+    last_updated: str
+    insights: List[PersonalityInsightResponse]
+
+
+class CompatibilityBreakdownResponse(BaseModel):
+    overall_score: float
+    confidence: float
+    strengths: List[str]
+    potential_challenges: List[str]
+    conversation_starters: List[str]
+    breakdown: Dict[str, float]
+    predictions: Dict[str, float]
+
+
+class MatchRecommendationResponse(BaseModel):
+    user_id: int
+    compatibility_score: float
+    confidence_level: float
+    match_reasons: List[str]
+    conversation_starters: List[str]
+    predicted_success_rate: float
+    recommendation_strength: str
+    user_profile: Dict[str, Any]
+
+
+# AI Profile Management
+
+@router.get("/profile/generate", response_model=AIProfileResponse)
+async def generate_ai_profile(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-    ai_service: PrivacyFirstMatchingAI = Depends(get_ai_matching_service)
+    db: Session = Depends(get_db)
 ):
     """
-    Analyze compatibility between two users using AI-enhanced algorithms.
-    
-    This endpoint provides comprehensive compatibility analysis including:
-    - Semantic similarity of profiles
-    - Communication style compatibility  
-    - Emotional depth analysis
-    - Life goals alignment
-    - Personality matching
-    - Interest overlap calculation
-    """
-    
-    # Rate limiting
-    await compatibility_limiter.check_rate_limit(f"user:{current_user.id}")
-    
-    start_time = time.time()
-    
-    try:
-        # Validate users exist and are not the same
-        if request.user1_id == request.user2_id:
-            raise HTTPException(status_code=400, detail="Cannot analyze compatibility with self")
-        
-        # Get users with profiles
-        user1 = db.query(User).filter(User.id == request.user1_id).first()
-        user2 = db.query(User).filter(User.id == request.user2_id).first()
-        
-        if not user1 or not user2:
-            raise HTTPException(status_code=404, detail="One or both users not found")
-        
-        if not user1.profile or not user2.profile:
-            raise HTTPException(status_code=400, detail="Both users must have completed profiles")
-        
-        # Privacy check - ensure current user is authorized to see this analysis
-        if current_user.id != request.user1_id and current_user.id != request.user2_id:
-            raise HTTPException(status_code=403, detail="Not authorized to analyze these users")
-        
-        # Initialize AI models if needed
-        if not ai_service.is_initialized:
-            await ai_service.initialize_models(db)
-        
-        # Perform compatibility analysis
-        compatibility_result = await ai_service.calculate_comprehensive_compatibility(user1, user2)
-        
-        # Add processing time
-        processing_time = (time.time() - start_time) * 1000
-        compatibility_result["processing_time_ms"] = round(processing_time, 2)
-        
-        # Log analytics in background
-        background_tasks.add_task(
-            log_compatibility_analysis,
-            current_user.id,
-            request.user1_id,
-            request.user2_id,
-            compatibility_result["ai_compatibility_score"],
-            processing_time
-        )
-        
-        return AICompatibilityAnalysis(**compatibility_result)
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error in compatibility analysis: {str(e)}")
-        raise HTTPException(status_code=500, detail="Compatibility analysis failed")
-
-@router.post("/batch-analyze", response_model=BatchMatchingResponse)
-async def batch_analyze_compatibility(
-    request: BatchMatchingRequest,
-    background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-    ai_service: PrivacyFirstMatchingAI = Depends(get_ai_matching_service)
-):
-    """
-    Perform batch compatibility analysis for multiple candidate users.
-    
-    This endpoint analyzes compatibility between a target user and multiple candidates,
-    returning results sorted by compatibility score above the specified threshold.
-    """
-    
-    # Rate limiting
-    await batch_limiter.check_rate_limit(f"user:{current_user.id}")
-    
-    start_time = time.time()
-    
-    try:
-        # Privacy check
-        if current_user.id != request.target_user_id:
-            raise HTTPException(status_code=403, detail="Can only analyze your own compatibility")
-        
-        # Get target user
-        target_user = db.query(User).filter(User.id == request.target_user_id).first()
-        if not target_user or not target_user.profile:
-            raise HTTPException(status_code=404, detail="Target user not found or profile incomplete")
-        
-        # Get candidate users
-        candidate_users = db.query(User).filter(
-            User.id.in_(request.candidate_user_ids),
-            User.profile_id.isnot(None)
-        ).all()
-        
-        if len(candidate_users) != len(request.candidate_user_ids):
-            raise HTTPException(status_code=400, detail="Some candidate users not found or have incomplete profiles")
-        
-        # Initialize AI models if needed
-        if not ai_service.is_initialized:
-            await ai_service.initialize_models(db)
-        
-        # Perform batch analysis
-        matches = []
-        successful_analyses = 0
-        
-        for candidate in candidate_users:
-            try:
-                compatibility_result = await ai_service.calculate_comprehensive_compatibility(target_user, candidate)
-                
-                # Check if above threshold
-                if compatibility_result["ai_compatibility_score"] >= request.min_compatibility_score:
-                    match_result = MatchResult(
-                        user_id=candidate.id,
-                        compatibility_analysis=AICompatibilityAnalysis(**compatibility_result)
-                    )
-                    
-                    # Add conversation starters if requested
-                    if request.include_conversation_starters:
-                        starters_text = await ai_service.generate_conversation_starters(target_user, candidate)
-                        starters = [
-                            ConversationStarter(
-                                message=starter,
-                                category="ai_generated",
-                                confidence_score=0.8,
-                                personalization_factors=["compatibility_analysis"]
-                            )
-                            for starter in starters_text
-                        ]
-                        match_result.conversation_starters = starters
-                    
-                    matches.append(match_result)
-                    successful_analyses += 1
-                    
-            except Exception as e:
-                logger.error(f"Error analyzing compatibility with user {candidate.id}: {str(e)}")
-                continue
-        
-        # Sort by compatibility score (descending) and add ranks
-        matches.sort(key=lambda x: x.compatibility_analysis.ai_compatibility_score, reverse=True)
-        for i, match in enumerate(matches):
-            match.match_rank = i + 1
-        
-        processing_time = (time.time() - start_time) * 1000
-        
-        response = BatchMatchingResponse(
-            target_user_id=request.target_user_id,
-            matches=matches,
-            total_candidates_analyzed=len(candidate_users),
-            matches_above_threshold=len(matches),
-            processing_time_ms=round(processing_time, 2)
-        )
-        
-        # Log analytics in background
-        background_tasks.add_task(
-            log_batch_analysis,
-            current_user.id,
-            len(candidate_users),
-            len(matches),
-            processing_time
-        )
-        
-        return response
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error in batch compatibility analysis: {str(e)}")
-        raise HTTPException(status_code=500, detail="Batch analysis failed")
-
-@router.post("/conversation-starters", response_model=ConversationStartersResponse)
-async def generate_conversation_starters(
-    user1_id: int,
-    user2_id: int,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-    ai_service: PrivacyFirstMatchingAI = Depends(get_ai_matching_service)
-):
-    """
-    Generate AI-powered conversation starters for two matched users.
-    
-    Creates personalized conversation starters based on compatibility analysis
-    and shared interests, values, and personality traits.
-    """
-    
-    # Rate limiting
-    await conversation_limiter.check_rate_limit(f"user:{current_user.id}")
-    
-    try:
-        # Privacy check
-        if current_user.id != user1_id and current_user.id != user2_id:
-            raise HTTPException(status_code=403, detail="Not authorized to generate starters for these users")
-        
-        # Get users
-        user1 = db.query(User).filter(User.id == user1_id).first()
-        user2 = db.query(User).filter(User.id == user2_id).first()
-        
-        if not user1 or not user2:
-            raise HTTPException(status_code=404, detail="One or both users not found")
-        
-        if not user1.profile or not user2.profile:
-            raise HTTPException(status_code=400, detail="Both users must have completed profiles")
-        
-        # Initialize AI models if needed
-        if not ai_service.is_initialized:
-            await ai_service.initialize_models(db)
-        
-        # Generate conversation starters
-        starters_text = await ai_service.generate_conversation_starters(user1, user2)
-        
-        # Get compatibility score for context
-        compatibility_result = await ai_service.calculate_comprehensive_compatibility(user1, user2)
-        
-        # Convert to ConversationStarter objects
-        starters = []
-        categories = ["interests", "values", "personality", "goals", "general"]
-        
-        for i, starter_text in enumerate(starters_text):
-            category = categories[i % len(categories)]
-            confidence = min(0.9, compatibility_result["ai_compatibility_score"] / 100)
-            
-            starter = ConversationStarter(
-                message=starter_text,
-                category=category,
-                confidence_score=confidence,
-                personalization_factors=["ai_analysis", "compatibility_score", "shared_interests"]
-            )
-            starters.append(starter)
-        
-        return ConversationStartersResponse(
-            starters=starters,
-            user_compatibility_score=compatibility_result["ai_compatibility_score"]
-        )
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error generating conversation starters: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to generate conversation starters")
-
-@router.get("/model-status", response_model=AIModelStatus)
-async def get_ai_model_status(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-    ai_service: PrivacyFirstMatchingAI = Depends(get_ai_matching_service)
-):
-    """
-    Get the current status of AI models and their capabilities.
+    Generate comprehensive AI profile with personality analysis and embeddings
     """
     try:
-        # Get training data size
-        profile_count = db.query(Profile).filter(
-            Profile.life_philosophy.isnot(None),
-            Profile.core_values.isnot(None)
-        ).count()
-        
-        return AIModelStatus(
-            is_initialized=ai_service.is_initialized,
-            training_data_size=profile_count,
-            last_updated=datetime.utcnow()
+        profile = await ai_matching_service.generate_user_profile_embeddings(
+            current_user.id, db
         )
-        
-    except Exception as e:
-        logger.error(f"Error getting model status: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to get model status")
-
-@router.get("/config", response_model=AIMatchingConfig)
-async def get_ai_matching_config(
-    current_user: User = Depends(get_current_user),
-    ai_service: PrivacyFirstMatchingAI = Depends(get_ai_matching_service)
-):
-    """
-    Get the current AI matching configuration and weights.
-    """
-    return AIMatchingConfig(
-        compatibility_weights=ai_service.compatibility_weights
-    )
-
-@router.post("/deep-analysis", response_model=DeepCompatibilityAnalysis)
-async def perform_deep_compatibility_analysis(
-    user1_id: int,
-    user2_id: int,
-    background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-    ai_service: PrivacyFirstMatchingAI = Depends(get_ai_matching_service)
-):
-    """
-    Perform deep compatibility analysis with personality insights and relationship potential.
-    
-    This premium feature provides comprehensive analysis including:
-    - Detailed personality insights
-    - Relationship potential assessment
-    - Growth opportunities identification
-    - Potential challenges analysis
-    - Recommended activities for connection
-    """
-    
-    # Rate limiting (stricter for deep analysis)
-    await compatibility_limiter.check_rate_limit(f"user:{current_user.id}:deep")
-    
-    try:
-        # Privacy check
-        if current_user.id != user1_id and current_user.id != user2_id:
-            raise HTTPException(status_code=403, detail="Not authorized for deep analysis of these users")
-        
-        # Get users
-        user1 = db.query(User).filter(User.id == user1_id).first()
-        user2 = db.query(User).filter(User.id == user2_id).first()
-        
-        if not user1 or not user2:
-            raise HTTPException(status_code=404, detail="One or both users not found")
-        
-        if not user1.profile or not user2.profile:
-            raise HTTPException(status_code=400, detail="Both users must have completed profiles")
-        
-        # Initialize AI models if needed
-        if not ai_service.is_initialized:
-            await ai_service.initialize_models(db)
-        
-        # Perform basic compatibility analysis
-        basic_analysis = await ai_service.calculate_comprehensive_compatibility(user1, user2)
         
         # Generate personality insights
-        personality_insights = await generate_personality_insights(user1, user2, ai_service)
+        personality_summary = profile.get_personality_summary()
         
-        # Assess relationship potential
-        relationship_potential = assess_relationship_potential(basic_analysis["ai_compatibility_score"])
+        insights = []
+        # Big Five insights
+        big_five_descriptions = {
+            "openness": "Your openness to new experiences and creative thinking",
+            "conscientiousness": "Your level of organization and goal-directed behavior", 
+            "extraversion": "Your tendency toward social interaction and energy",
+            "agreeableness": "Your cooperative and trusting nature",
+            "neuroticism": "Your emotional stability and stress resilience"
+        }
         
-        # Identify growth opportunities and challenges
-        growth_opportunities = await identify_growth_opportunities(user1, user2, ai_service)
-        potential_challenges = await identify_potential_challenges(user1, user2, ai_service)
+        for trait, description in big_five_descriptions.items():
+            score = getattr(profile, f"{trait}_score", 0.5)
+            if score is not None:
+                insight = PersonalityInsightResponse(
+                    trait_name=trait.title(),
+                    score=score,
+                    confidence=profile.ai_confidence_level,
+                    description=description,
+                    percentile=score * 100,  # Convert to percentile
+                    improvement_suggestions=_get_trait_suggestions(trait, score)
+                )
+                insights.append(insight)
         
-        # Recommend activities
-        recommended_activities = await recommend_connection_activities(user1, user2, ai_service)
-        
-        deep_analysis = DeepCompatibilityAnalysis(
-            basic_analysis=AICompatibilityAnalysis(**basic_analysis),
-            personality_insights=personality_insights,
-            relationship_potential=relationship_potential,
-            growth_opportunities=growth_opportunities,
-            potential_challenges=potential_challenges,
-            recommended_activities=recommended_activities
+        return AIProfileResponse(
+            user_id=current_user.id,
+            personality_summary=personality_summary,
+            ai_confidence_level=profile.ai_confidence_level,
+            profile_completeness_score=profile.profile_completeness_score,
+            last_updated=profile.last_updated_by_ai.isoformat() if profile.last_updated_by_ai else datetime.utcnow().isoformat(),
+            insights=insights
         )
         
-        # Log premium feature usage
-        background_tasks.add_task(
-            log_deep_analysis_usage,
-            current_user.id,
-            user1_id,
-            user2_id,
-            basic_analysis["ai_compatibility_score"]
+    except Exception as e:
+        logger.error(f"Error generating AI profile: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate AI profile: {str(e)}"
+        )
+
+
+@router.get("/recommendations", response_model=List[MatchRecommendationResponse])
+async def get_ai_match_recommendations(
+    limit: int = Query(default=10, ge=1, le=25),
+    refresh: bool = Query(default=False),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get AI-powered personalized match recommendations
+    """
+    try:
+        # Generate fresh recommendations
+        recommendations = await ai_matching_service.generate_personalized_recommendations(
+            current_user.id, limit, db
         )
         
-        return deep_analysis
+        # Format responses with user profile data
+        formatted_recommendations = []
+        for rec in recommendations:
+            # Get recommended user's basic info
+            recommended_user = db.query(User).filter(
+                User.id == rec.recommended_user_id
+            ).first()
+            
+            if recommended_user:
+                user_profile_data = {
+                    "id": recommended_user.id,
+                    "first_name": recommended_user.first_name,
+                    "last_name": recommended_user.last_name,
+                    "age": _calculate_age(recommended_user.date_of_birth) if recommended_user.date_of_birth else None,
+                    "bio": recommended_user.bio,
+                    "interests": recommended_user.interests or [],
+                    "location": recommended_user.location
+                }
+                
+                formatted_rec = MatchRecommendationResponse(
+                    user_id=rec.recommended_user_id,
+                    compatibility_score=rec.compatibility_score,
+                    confidence_level=rec.confidence_level,
+                    match_reasons=rec.match_reasons,
+                    conversation_starters=rec.conversation_starters,
+                    predicted_success_rate=rec.predicted_success_rate,
+                    recommendation_strength=rec.recommendation_strength,
+                    user_profile=user_profile_data
+                )
+                
+                formatted_recommendations.append(formatted_rec)
+        
+        return formatted_recommendations
+        
+    except Exception as e:
+        logger.error(f"Error getting AI recommendations: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate recommendations"
+        )
+
+
+@router.get("/compatibility/{user_id}", response_model=CompatibilityBreakdownResponse)
+async def get_compatibility_analysis(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get detailed AI compatibility analysis with another user
+    """
+    try:
+        if user_id == current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot calculate compatibility with yourself"
+            )
+        
+        # Check if target user exists
+        target_user = db.query(User).filter(User.id == user_id).first()
+        if not target_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        # Calculate compatibility
+        compatibility = await ai_matching_service.calculate_ai_compatibility(
+            current_user.id, user_id, db
+        )
+        
+        # Format response
+        insights = compatibility.get_compatibility_insights()
+        
+        return CompatibilityBreakdownResponse(
+            overall_score=insights["overall_score"],
+            confidence=insights["confidence"],
+            strengths=insights["strengths"],
+            potential_challenges=insights["potential_challenges"],
+            conversation_starters=insights["conversation_starters"],
+            breakdown=insights["breakdown"],
+            predictions=insights["predictions"]
+        )
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error in deep compatibility analysis: {str(e)}")
-        raise HTTPException(status_code=500, detail="Deep analysis failed")
+        logger.error(f"Error getting compatibility analysis: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to analyze compatibility"
+        )
 
-@router.get("/metrics", response_model=MatchingMetrics)
-async def get_matching_metrics(
+
+@router.get("/insights/personality")
+async def get_personality_insights(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-    days: int = Query(7, ge=1, le=30, description="Number of days to analyze")
+    db: Session = Depends(get_db)
 ):
     """
-    Get AI matching system performance metrics (admin only).
+    Get detailed personality insights and recommendations
     """
-    # Check if user is admin (implement admin check)
-    if not getattr(current_user, 'is_admin', False):
-        raise HTTPException(status_code=403, detail="Admin access required")
-    
     try:
-        # This would typically query a metrics database
-        # For now, return mock metrics
-        return MatchingMetrics(
-            total_comparisons=1000,
-            successful_analyses=950,
-            failed_analyses=50,
-            average_processing_time_ms=250.5,
-            average_compatibility_score=67.8,
-            high_compatibility_matches=120,
-            model_confidence_average=0.82
+        profile = db.query(UserProfile).filter(
+            UserProfile.user_id == current_user.id
+        ).first()
+        
+        if not profile:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="AI profile not found. Please generate your profile first."
+            )
+        
+        # Get behavioral analysis
+        behavior_analysis = await ai_matching_service.analyze_user_behavior(
+            current_user.id, db=db
         )
         
+        return {
+            "success": True,
+            "personality": profile.get_personality_summary(),
+            "behavior_analysis": {
+                "patterns": behavior_analysis.patterns,
+                "engagement_score": behavior_analysis.engagement_score,
+                "communication_style": behavior_analysis.communication_style,
+                "preferences": behavior_analysis.preferences,
+                "recommendations": behavior_analysis.recommendations,
+                "analysis_date": datetime.utcnow().isoformat(),
+                "confidence": profile.ai_confidence_level
+            },
+            "profile_stats": {
+                "ai_confidence": profile.ai_confidence_level,
+                "completeness": profile.profile_completeness_score,
+                "last_updated": profile.last_updated_by_ai.isoformat() if profile.last_updated_by_ai else None
+            }
+        }
+        
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error getting matching metrics: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to get metrics")
+        logger.error(f"Error getting personality insights: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get personality insights"
+        )
+
 
 # Helper functions
 
-async def generate_personality_insights(user1: User, user2: User, ai_service: PrivacyFirstMatchingAI):
-    """Generate personality insights for deep analysis"""
-    insights = []
-    
-    # Communication style insight
-    comm_score = await ai_service.analyze_communication_compatibility(user1, user2)
-    insights.append({
-        "aspect": "Communication Style",
-        "description": f"Your communication styles are {get_compatibility_description(comm_score * 100)} compatible",
-        "compatibility_impact": "This affects how well you'll understand each other's communication preferences",
-        "score": round(comm_score * 100, 1)
-    })
-    
-    # Emotional compatibility insight
-    emotional_score = await ai_service.analyze_emotional_compatibility(user1, user2)
-    insights.append({
-        "aspect": "Emotional Depth",
-        "description": f"Your emotional expression styles show {get_compatibility_description(emotional_score * 100)} alignment",
-        "compatibility_impact": "This influences emotional intimacy and understanding",
-        "score": round(emotional_score * 100, 1)
-    })
-    
-    return insights
-
-def get_compatibility_description(score: float) -> str:
-    """Get descriptive text for compatibility scores"""
-    if score >= 80:
-        return "excellent"
-    elif score >= 70:
-        return "very good"
-    elif score >= 60:
-        return "good"
-    elif score >= 50:
-        return "moderate"
-    else:
-        return "challenging"
-
-def assess_relationship_potential(compatibility_score: float) -> str:
-    """Assess overall relationship potential"""
-    if compatibility_score >= 85:
-        return "Exceptional potential for a deep, lasting connection"
-    elif compatibility_score >= 75:
-        return "Strong potential for a meaningful relationship"
-    elif compatibility_score >= 65:
-        return "Good potential with effort and understanding"
-    elif compatibility_score >= 50:
-        return "Moderate potential, may require significant compromise"
-    else:
-        return "Limited compatibility, significant challenges likely"
-
-async def identify_growth_opportunities(user1: User, user2: User, ai_service: PrivacyFirstMatchingAI) -> List[str]:
-    """Identify mutual growth opportunities"""
-    opportunities = [
-        "Exploring shared values and life philosophies together",
-        "Learning from each other's different perspectives",
-        "Supporting each other's personal development goals"
-    ]
-    
-    # Add specific opportunities based on profiles
-    interests1 = set(user1.profile.interests or [])
-    interests2 = set(user2.profile.interests or [])
-    common_interests = interests1.intersection(interests2)
-    
-    if common_interests:
-        opportunities.append(f"Deepening connection through shared interest in {list(common_interests)[0]}")
-    
-    return opportunities
-
-async def identify_potential_challenges(user1: User, user2: User, ai_service: PrivacyFirstMatchingAI) -> List[str]:
-    """Identify potential relationship challenges"""
-    challenges = []
-    
-    # Analyze personality differences
-    traits1 = user1.profile.personality_traits or {}
-    traits2 = user2.profile.personality_traits or {}
-    
-    if 'introverted' in str(traits1).lower() and 'extroverted' in str(traits2).lower():
-        challenges.append("Balancing social energy needs (introvert/extrovert dynamic)")
-    
-    if 'spontaneous' in str(traits1).lower() and 'organized' in str(traits2).lower():
-        challenges.append("Coordinating different approaches to planning and spontaneity")
-    
-    # Generic challenges based on compatibility
-    challenges.extend([
-        "Maintaining individual identity while building connection",
-        "Navigating different communication styles during conflicts"
-    ])
-    
-    return challenges[:3]  # Return top 3 challenges
-
-async def recommend_connection_activities(user1: User, user2: User, ai_service: PrivacyFirstMatchingAI) -> List[str]:
-    """Recommend activities for building connection"""
-    activities = []
-    
-    # Based on common interests
-    interests1 = set(user1.profile.interests or [])
-    interests2 = set(user2.profile.interests or [])
-    common_interests = interests1.intersection(interests2)
-    
-    interest_activities = {
-        'cooking': 'Try cooking a new cuisine together',
-        'reading': 'Start a two-person book club',
-        'hiking': 'Explore new hiking trails together',
-        'art': 'Visit art galleries or create art together',
-        'music': 'Attend concerts or learn an instrument together',
-        'travel': 'Plan a weekend getaway to a new place'
+def _get_trait_suggestions(trait: str, score: float) -> List[str]:
+    """Get improvement suggestions based on personality trait scores"""
+    suggestions = {
+        "openness": {
+            "low": ["Try exploring new hobbies", "Read books from different genres", "Visit museums or art galleries"],
+            "high": ["Channel creativity into projects", "Share your ideas with others", "Embrace structured approaches sometimes"]
+        },
+        "conscientiousness": {
+            "low": ["Use planning apps or calendars", "Set small, achievable goals", "Create daily routines"],
+            "high": ["Allow for spontaneity", "Practice flexibility", "Don't over-plan everything"]
+        },
+        "extraversion": {
+            "low": ["Practice small talk", "Join group activities", "Schedule social time"],
+            "high": ["Make time for solitude", "Practice active listening", "Appreciate quiet moments"]
+        },
+        "agreeableness": {
+            "low": ["Practice empathy exercises", "Consider others' perspectives", "Work on compromise skills"],
+            "high": ["Practice assertiveness", "Set healthy boundaries", "Voice your own needs"]
+        },
+        "neuroticism": {
+            "low": ["Continue stress management", "Help others with anxiety", "Maintain emotional balance"],
+            "high": ["Try meditation or mindfulness", "Practice stress reduction techniques", "Consider professional support"]
+        }
     }
     
-    for interest in common_interests:
-        for activity_interest, activity in interest_activities.items():
-            if activity_interest in interest.lower():
-                activities.append(activity)
-                break
-    
-    # Generic connection activities
-    activities.extend([
-        "Share your life stories over a long dinner",
-        "Take turns teaching each other something new",
-        "Volunteer together for a cause you both care about"
-    ])
-    
-    return activities[:3]  # Return top 3 activities
+    level = "low" if score < 0.4 else "high"
+    return suggestions.get(trait, {}).get(level, ["Continue developing this trait"])
 
-# Background task functions
 
-async def log_compatibility_analysis(user_id: int, user1_id: int, user2_id: int, score: float, processing_time: float):
-    """Log compatibility analysis for analytics"""
-    # Implementation would log to analytics database
-    logger.info(f"Compatibility analysis: user {user_id} analyzed {user1_id}-{user2_id}, score: {score}, time: {processing_time}ms")
-
-async def log_batch_analysis(user_id: int, candidates_count: int, matches_count: int, processing_time: float):
-    """Log batch analysis for analytics"""
-    logger.info(f"Batch analysis: user {user_id} analyzed {candidates_count} candidates, {matches_count} matches, time: {processing_time}ms")
-
-async def log_deep_analysis_usage(user_id: int, user1_id: int, user2_id: int, score: float):
-    """Log deep analysis usage for premium features tracking"""
-    logger.info(f"Deep analysis: user {user_id} performed deep analysis {user1_id}-{user2_id}, score: {score}")
+def _calculate_age(date_of_birth: str) -> Optional[int]:
+    """Calculate age from date of birth string"""
+    try:
+        if not date_of_birth:
+            return None
+        
+        # Parse date string (assuming YYYY-MM-DD format)
+        birth_date = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
+        today = datetime.now().date()
+        
+        age = today.year - birth_date.year
+        if (today.month, today.day) < (birth_date.month, birth_date.day):
+            age -= 1
+        
+        return age
+        
+    except (ValueError, TypeError):
+        return None

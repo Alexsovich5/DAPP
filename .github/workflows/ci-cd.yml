@@ -6,7 +6,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [main, develop, staging]
-    tags: ['v*']
+    tags: ["v*"]
   pull_request:
     branches: [main, develop]
 
@@ -14,29 +14,29 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME_BACKEND: dinner_first/backend
   IMAGE_NAME_FRONTEND: dinner_first/frontend
-  
+
 jobs:
   # Code Quality and Security Checks
   quality-checks:
     runs-on: ubuntu-latest
     name: Code Quality & Security
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for better analysis
+          fetch-depth: 0 # Full history for better analysis
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "18"
+          cache: "npm"
           cache-dependency-path: angular-frontend/package-lock.json
 
       - name: Install Python dependencies
@@ -102,7 +102,7 @@ jobs:
   backend-tests:
     runs-on: ubuntu-latest
     name: Backend Tests
-    
+
     services:
       postgres:
         image: postgres:15
@@ -134,7 +134,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Cache Python dependencies
         uses: actions/cache@v3
@@ -153,7 +153,7 @@ jobs:
         run: |
           cd python-backend
           cp .env.test.example .env.test
-          
+
       - name: Run database migrations
         run: |
           cd python-backend
@@ -181,7 +181,7 @@ jobs:
   frontend-tests:
     runs-on: ubuntu-latest
     name: Frontend Tests
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -189,8 +189,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "18"
+          cache: "npm"
           cache-dependency-path: angular-frontend/package-lock.json
 
       - name: Install dependencies
@@ -221,7 +221,7 @@ jobs:
   security-scan:
     runs-on: ubuntu-latest
     name: Security Scan
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -229,16 +229,16 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
+          scan-type: "fs"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy-results.sarif"
 
       - name: Upload Trivy scan results
         uses: github/codeql-action/upload-sarif@v2
         if: always()
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: "trivy-results.sarif"
 
       - name: Docker Scout vulnerability scan
         if: github.event_name == 'push'
@@ -251,7 +251,7 @@ jobs:
     name: Build & Push Images
     needs: [quality-checks, backend-tests, frontend-tests]
     if: github.event_name == 'push'
-    
+
     permissions:
       contents: read
       packages: write
@@ -323,7 +323,7 @@ jobs:
     needs: [build-images]
     if: github.ref == 'refs/heads/develop'
     environment: staging
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -331,7 +331,7 @@ jobs:
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
         with:
-          version: 'v1.28.0'
+          version: "v1.28.0"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -348,7 +348,7 @@ jobs:
         run: |
           # Update image tags in deployment files
           sed -i "s|IMAGE_TAG|${{ github.sha }}|g" k8s/staging/
-          
+
           # Apply Kubernetes manifests
           kubectl apply -f k8s/staging/
 
@@ -361,7 +361,7 @@ jobs:
         run: |
           # Wait for services to be ready
           sleep 30
-          
+
           # Run basic health checks
           curl -f https://staging-api.dinner_first.com/health
           curl -f https://staging.dinner_first.com/health
@@ -371,9 +371,10 @@ jobs:
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          channel: '#deployments'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-          message: "Staging deployment: ${{ job.status }}"
+          text: "Staging deployment: ${{ job.status }}"
+          fields: repo,commit,author,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   # Deploy to Production
   deploy-production:
@@ -382,7 +383,7 @@ jobs:
     needs: [build-images]
     if: github.ref == 'refs/heads/main' && startsWith(github.ref, 'refs/tags/v')
     environment: production
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -390,7 +391,7 @@ jobs:
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
         with:
-          version: 'v1.28.0'
+          version: "v1.28.0"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -436,9 +437,10 @@ jobs:
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          channel: '#deployments'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-          message: "Production deployment: ${{ job.status }} - Version: ${{ github.ref_name }}"
+          text: "Production deployment: ${{ job.status }} - Version: ${{ github.ref_name }}"
+          fields: repo,commit,author,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   # Performance Testing
   performance-tests:
@@ -446,7 +448,7 @@ jobs:
     name: Performance Tests
     needs: [deploy-staging]
     if: github.ref == 'refs/heads/develop'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -454,7 +456,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install k6
         run: |
@@ -481,7 +483,7 @@ jobs:
     name: Rollback Production
     if: github.event_name == 'workflow_dispatch'
     environment: production
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -518,6 +520,7 @@ jobs:
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          channel: '#deployments'
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-          message: "Production rollback completed: ${{ job.status }}"
+          text: "Production rollback completed: ${{ job.status }}"
+          fields: repo,commit,author,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

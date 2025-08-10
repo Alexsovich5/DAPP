@@ -11,6 +11,8 @@ export interface SwipeEvent {
   duration: number;
   element: HTMLElement;
   originalEvent: TouchEvent | MouseEvent;
+  deltaX?: number;
+  deltaY?: number;
 }
 
 export interface SwipeConfig {
@@ -27,6 +29,7 @@ export interface SwipeZone {
   element: HTMLElement;
   config: Partial<SwipeConfig>;
   onSwipe: (event: SwipeEvent) => void;
+   onMove?: (event: SwipeEvent) => void;
   isActive: boolean;
 }
 
@@ -60,15 +63,17 @@ export class SwipeGestureService {
     id: string,
     element: HTMLElement,
     onSwipe: (event: SwipeEvent) => void,
-    config: Partial<SwipeConfig> = {}
+    config: Partial<SwipeConfig> = {},
+    onMove?: (event: SwipeEvent) => void
   ): void {
     const mergedConfig = { ...this.defaultConfig, ...config };
-    
+
     const swipeZone: SwipeZone = {
       id,
       element,
       config: mergedConfig,
       onSwipe,
+      onMove,
       isActive: true
     };
 
@@ -190,10 +195,29 @@ export class SwipeGestureService {
     ).subscribe((event) => {
       const currentPosition = this.getEventPosition(event);
       const distance = this.calculateDistance(startPosition!, currentPosition);
-      
+
       // Add visual feedback based on distance
       if (distance > zone.config.threshold! * 0.3) {
         element.classList.add('swipe-threshold-reached');
+      }
+
+      // Emit move updates for physics-based UIs
+      if (zone.onMove) {
+        const deltaX = currentPosition.x - startPosition!.x;
+        const deltaY = currentPosition.y - startPosition!.y;
+        const previewEvent: SwipeEvent = {
+          direction: this.getSwipeDirection(startPosition!, currentPosition),
+          distance,
+          velocity: 0,
+          startPosition: startPosition!,
+          endPosition: currentPosition,
+          duration: Date.now() - startTime,
+          element,
+          originalEvent: event as any,
+          deltaX,
+          deltaY
+        };
+        zone.onMove(previewEvent);
       }
     });
 
@@ -206,7 +230,7 @@ export class SwipeGestureService {
       const endPosition = this.getEventPosition(event);
       const endTime = Date.now();
       const duration = endTime - startTime;
-      
+
       const swipeEvent = this.createSwipeEvent(
         startPosition,
         endPosition,
@@ -239,8 +263,10 @@ export class SwipeGestureService {
       this.currentSwipeZone = null;
       this.isSwipeInProgress.next(false);
 
-      // Remove visual feedback
+      // Remove visual feedback and reset transforms
       element.classList.remove('swipe-active', 'swipe-threshold-reached');
+      element.style.transform = '';
+      element.style.transition = '';
     });
   }
 
@@ -296,7 +322,9 @@ export class SwipeGestureService {
       endPosition,
       duration,
       element,
-      originalEvent
+      originalEvent,
+      deltaX: endPosition.x - startPosition.x,
+      deltaY: endPosition.y - startPosition.y
     };
   }
 
@@ -335,7 +363,7 @@ export class SwipeGestureService {
   ): Observable<SwipeEvent> {
     return new Observable(observer => {
       const id = `swipe-${Date.now()}-${Math.random()}`;
-      
+
       this.registerSwipeZone(id, element, (event) => {
         observer.next(event);
       }, config);

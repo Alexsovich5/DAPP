@@ -17,3 +17,8 @@ boto3>=1.26.0
 python-magic>=0.4.27
 aiofiles>=0.8.0
 pillow>=9.0.0  # For image processing
+
+# Phase 5: AI/ML packages
+scikit-learn>=1.3.0  # Machine learning algorithms
+numpy>=1.24.0  # Numerical computing
+pandas>=2.0.0  # Data manipulation and analysis

@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { StorageService } from '../../../core/services/storage.service';
+import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skeleton-loader.component';
 
 interface InterestCategory {
   name: string;
@@ -13,7 +14,7 @@ interface InterestCategory {
 @Component({
   selector: 'app-interest-selection',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, SkeletonLoaderComponent],
   template: `
     <div class="interest-selection">
       <div class="selection-header">
@@ -25,19 +26,21 @@ interface InterestCategory {
         </div>
       </div>
 
+      <div class="swipe-container">
       <form [formGroup]="interestForm" (ngSubmit)="onSubmit()">
+        <app-skeleton-loader type="text" width="60%" *ngIf="isSaving"></app-skeleton-loader>
         <div class="interest-categories">
-          <div 
-            *ngFor="let category of interestCategories" 
+          <div
+            *ngFor="let category of interestCategories"
             class="category-section">
-            
+
             <h3 class="category-title">
               <span class="category-icon">{{ category.icon }}</span>
               {{ category.name }}
             </h3>
-            
+
             <div class="interest-grid">
-              <button 
+              <button
                 type="button"
                 *ngFor="let interest of category.interests"
                 class="interest-tag"
@@ -52,27 +55,26 @@ interface InterestCategory {
         <div class="custom-interests">
           <h3>Add your own interests</h3>
           <div class="custom-input-group">
-            <input 
-              type="text" 
-              #customInterestInput
-              placeholder="Type an interest and press Enter"
+            <input
+              type="text"
+              placeholder="Type an interest"
               class="custom-input"
-              (keyup.enter)="addCustomInterest(customInterestInput.value); customInterestInput.value = ''">
-            <button 
-              type="button" 
+              formControlName="customInterestDraft">
+            <button
+              type="button"
               class="add-btn"
-              (click)="addCustomInterest(customInterestInput.value); customInterestInput.value = ''">
+              (click)="addCustomInterestAndClear()">
               Add
             </button>
           </div>
-          
+
           <div class="custom-interests-list" *ngIf="customInterests.length > 0">
-            <span 
+            <span
               *ngFor="let interest of customInterests"
               class="custom-interest-tag">
               {{ interest }}
-              <button 
-                type="button" 
+              <button
+                type="button"
                 class="remove-btn"
                 (click)="removeCustomInterest(interest)">
                 ×
@@ -82,10 +84,10 @@ interface InterestCategory {
         </div>
 
         <div class="form-actions">
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             class="btn btn-primary btn-full"
-            [disabled]="selectedInterests.length < 5">
+            [disabled]="selectedInterests.length < 5 || isSaving">
             Complete Profile Setup
           </button>
           <small class="action-hint" *ngIf="selectedInterests.length < 5">
@@ -93,6 +95,7 @@ interface InterestCategory {
           </small>
         </div>
       </form>
+      </div>
     </div>
   `,
   styles: [`
@@ -314,7 +317,7 @@ interface InterestCategory {
       .interest-grid {
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       }
-      
+
       .custom-input-group {
         flex-direction: column;
       }
@@ -327,6 +330,8 @@ export class InterestSelectionComponent implements OnInit {
   interestForm!: FormGroup;
   selectedInterests: string[] = [];
   customInterests: string[] = [];
+  isSaving = false;
+  customInterestDraft = '';
 
   interestCategories: InterestCategory[] = [
     {
@@ -372,9 +377,14 @@ export class InterestSelectionComponent implements OnInit {
     this.loadExistingData();
   }
 
+  goBack(): void {
+    this.router.navigate(['/onboarding/personality-assessment']);
+  }
+
   private initializeForm(): void {
     this.interestForm = this.fb.group({
-      interests: [[], [Validators.required, Validators.minLength(5)]]
+      interests: [[], [Validators.required, Validators.minLength(5)]],
+      customInterestDraft: ['']
     });
   }
 
@@ -393,7 +403,7 @@ export class InterestSelectionComponent implements OnInit {
     } else {
       this.selectedInterests.splice(index, 1);
     }
-    
+
     this.updateFormValue();
   }
 
@@ -410,6 +420,12 @@ export class InterestSelectionComponent implements OnInit {
     }
   }
 
+  addCustomInterestAndClear(): void {
+    const draft = this.interestForm.get('customInterestDraft')?.value || '';
+    this.addCustomInterest(draft);
+    this.interestForm.patchValue({ customInterestDraft: '' });
+  }
+
   removeCustomInterest(interest: string): void {
     this.customInterests = this.customInterests.filter(i => i !== interest);
     this.selectedInterests = this.selectedInterests.filter(i => i !== interest);
@@ -422,12 +438,16 @@ export class InterestSelectionComponent implements OnInit {
 
   onSubmit(): void {
     if (this.interestForm.valid && this.selectedInterests.length >= 5) {
+      this.isSaving = true;
       // Store form data for final submission
       const interestData = this.interestForm.value;
       this.storage.setJson('onboarding_interests', interestData);
-      
+
       // Navigate to completion step
-      this.router.navigate(['/onboarding/complete']);
+      setTimeout(() => {
+        this.isSaving = false;
+        this.router.navigate(['/onboarding/complete']);
+      }, 600);
     }
   }
 }

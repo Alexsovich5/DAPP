@@ -2,23 +2,28 @@ import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { StorageService } from '../../../core/services/storage.service';
+import { CompatibilityRadarComponent } from '@shared/components/compatibility-radar/compatibility-radar.component';
+import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skeleton-loader.component';
 
 @Component({
   selector: 'app-personality-assessment',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, CompatibilityRadarComponent, SkeletonLoaderComponent],
   template: `
     <div class="personality-assessment">
+      <app-skeleton-loader type="card" height="140px" *ngIf="isSaving"></app-skeleton-loader>
       <div class="assessment-header">
         <h2>Your Personality & Communication Style</h2>
         <p>Help us understand how you connect and communicate with others.</p>
       </div>
 
+      <div class="swipe-container">
       <form [formGroup]="personalityForm" (ngSubmit)="onSubmit()">
         <div class="assessment-section">
           <h3>Communication Preferences</h3>
-          
+
           <div class="question-group">
             <label class="question-label">How do you prefer to connect with someone?</label>
             <div class="radio-group">
@@ -29,7 +34,7 @@ import { StorageService } from '../../../core/services/storage.service';
                   <small>Meaningful discussions about life, dreams, and philosophy</small>
                 </span>
               </label>
-              
+
               <label class="radio-option">
                 <input type="radio" formControlName="connection_style" value="shared_activities">
                 <span class="radio-content">
@@ -37,7 +42,7 @@ import { StorageService } from '../../../core/services/storage.service';
                   <small>Bonding through experiences, hobbies, and adventures</small>
                 </span>
               </label>
-              
+
               <label class="radio-option">
                 <input type="radio" formControlName="connection_style" value="quality_time">
                 <span class="radio-content">
@@ -55,10 +60,10 @@ import { StorageService } from '../../../core/services/storage.service';
                 <span>Introvert</span>
                 <span>Extrovert</span>
               </div>
-              <input 
-                type="range" 
-                min="1" 
-                max="10" 
+              <input
+                type="range"
+                min="1"
+                max="10"
                 formControlName="social_energy"
                 class="slider">
               <small class="slider-hint">How do you recharge and gain energy?</small>
@@ -68,32 +73,47 @@ import { StorageService } from '../../../core/services/storage.service';
 
         <div class="assessment-section">
           <h3>Relationship Values</h3>
-          
-          <div class="question-group">
+
+            <div class="question-group">
             <label class="question-label">What's most important in a partnership?</label>
             <div class="checkbox-group">
-              <label class="checkbox-option" *ngFor="let value of relationshipValues">
-                <input 
-                  type="checkbox" 
-                  [value]="value.key"
-                  (change)="onValueChange($event)">
+              <button type="button"
+                      class="checkbox-option"
+                      role="checkbox"
+                      *ngFor="let value of relationshipValues"
+                      [attr.aria-checked]="selectedValues.includes(value.key)"
+                      [class.selected]="selectedValues.includes(value.key)"
+                      (click)="toggleValue(value.key)">
                 <span class="checkbox-content">
                   <strong>{{ value.label }}</strong>
                   <small>{{ value.description }}</small>
                 </span>
-              </label>
+              </button>
             </div>
           </div>
         </div>
 
+        <!-- Live compatibility preview -->
+        <div class="assessment-section" *ngIf="compatibilityPreview">
+          <h3>Live Compatibility Preview</h3>
+          <app-compatibility-radar
+            [compatibilityData]="compatibilityPreview"
+            size="small"
+            [showHeader]="false"
+            [showInsights]="false"
+            [showLegend]="false"
+            [animateChart]="false">
+          </app-compatibility-radar>
+        </div>
+
         <div class="assessment-section">
           <h3>Personal Traits</h3>
-          
+
           <div class="question-group">
             <label class="question-label">How would close friends describe you?</label>
             <div class="trait-selector">
               <div class="trait-grid">
-                <button 
+                <button
                   type="button"
                   *ngFor="let trait of personalityTraits"
                   class="trait-tag"
@@ -108,14 +128,15 @@ import { StorageService } from '../../../core/services/storage.service';
         </div>
 
         <div class="form-actions">
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             class="btn btn-primary btn-full"
-            [disabled]="!personalityForm.valid || selectedTraits.length < 3">
+            [disabled]="!personalityForm.valid || selectedTraits.length < 3 || isSaving">
             Continue to Interests
           </button>
         </div>
       </form>
+      </div>
     </div>
   `,
   styles: [`
@@ -345,6 +366,8 @@ export class PersonalityAssessmentComponent implements OnInit {
   personalityForm!: FormGroup;
   selectedTraits: string[] = [];
   selectedValues: string[] = [];
+  isSaving = false;
+  compatibilityPreview: any | null = null;
 
   relationshipValues = [
     { key: 'loyalty', label: 'Loyalty & Trust', description: 'Being faithful and dependable' },
@@ -373,12 +396,21 @@ export class PersonalityAssessmentComponent implements OnInit {
     this.loadExistingData();
   }
 
+  goBack(): void {
+    this.router.navigate(['/onboarding/emotional-questions']);
+  }
+
   private initializeForm(): void {
     this.personalityForm = this.fb.group({
       connection_style: ['', Validators.required],
       social_energy: [5, Validators.required],
       relationship_values: [[], Validators.required],
       personality_traits: [[], Validators.required]
+    });
+
+    // Update live compatibility preview when inputs change
+    this.personalityForm.valueChanges.subscribe(val => {
+      this.updateCompatibilityPreview();
     });
   }
 
@@ -394,13 +426,22 @@ export class PersonalityAssessmentComponent implements OnInit {
   onValueChange(event: any): void {
     const value = event.target.value;
     const isChecked = event.target.checked;
-    
+
     if (isChecked) {
       this.selectedValues.push(value);
     } else {
       this.selectedValues = this.selectedValues.filter(v => v !== value);
     }
-    
+
+    this.personalityForm.patchValue({ relationship_values: this.selectedValues });
+  }
+
+  toggleValue(valueKey: string): void {
+    if (this.selectedValues.includes(valueKey)) {
+      this.selectedValues = this.selectedValues.filter(v => v !== valueKey);
+    } else {
+      this.selectedValues = [...this.selectedValues, valueKey];
+    }
     this.personalityForm.patchValue({ relationship_values: this.selectedValues });
   }
 
@@ -411,8 +452,9 @@ export class PersonalityAssessmentComponent implements OnInit {
     } else {
       this.selectedTraits.splice(index, 1);
     }
-    
+
     this.personalityForm.patchValue({ personality_traits: this.selectedTraits });
+    this.updateCompatibilityPreview();
   }
 
   isTraitSelected(trait: string): boolean {
@@ -421,12 +463,33 @@ export class PersonalityAssessmentComponent implements OnInit {
 
   onSubmit(): void {
     if (this.personalityForm.valid && this.selectedTraits.length >= 3) {
+      this.isSaving = true;
       // Store form data for later submission
       const personalityData = this.personalityForm.value;
       this.storage.setJson('onboarding_personality', personalityData);
-      
+
       // Navigate to next step
-      this.router.navigate(['/onboarding/interest-selection']);
+      setTimeout(() => {
+        this.isSaving = false;
+        this.router.navigate(['/onboarding/interest-selection']);
+      }, 600);
     }
+  }
+
+  private updateCompatibilityPreview(): void {
+    const valuesScore = Math.min(100, 50 + this.selectedValues.length * 10);
+    const personalityScore = Math.min(100, 50 + this.selectedTraits.length * 8);
+    const communication = this.personalityForm.get('connection_style')?.value ? 80 : 60;
+    const lifestyle = 60 + Math.floor(((this.personalityForm.get('social_energy')?.value || 5) - 5) * 4);
+    const interests = 65; // Placeholder until interests step
+    const goals = 70;
+    this.compatibilityPreview = {
+      values: valuesScore,
+      interests,
+      communication,
+      lifestyle,
+      goals,
+      personality: personalityScore
+    };
   }
 }

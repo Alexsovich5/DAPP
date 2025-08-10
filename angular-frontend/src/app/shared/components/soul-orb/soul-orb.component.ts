@@ -6,8 +6,8 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div 
-      class="soul-orb-container" 
+    <div
+      class="soul-orb-container"
       [ngClass]="[size, type, state, getEmotionalClass()]"
       role="img"
       [attr.aria-label]="getSoulOrbAriaLabel()"
@@ -17,10 +17,10 @@ import { CommonModule } from '@angular/common';
       (mouseleave)="onHover(false)"
       (focus)="onFocus(true)"
       (blur)="onFocus(false)">
-      <svg 
-        class="soul-orb-svg" 
-        [attr.width]="svgSize" 
-        [attr.height]="svgSize" 
+      <svg
+        class="soul-orb-svg"
+        [attr.width]="svgSize"
+        [attr.height]="svgSize"
         viewBox="0 0 120 120"
         aria-hidden="true">
         <!-- Outer aura glow -->
@@ -30,7 +30,7 @@ import { CommonModule } from '@angular/common';
             <stop offset="70%" [attr.stop-color]="auraColors.middle" stop-opacity="0.4"/>
             <stop offset="100%" [attr.stop-color]="auraColors.outer" stop-opacity="0.1"/>
           </radialGradient>
-          
+
           <!-- Core gradient -->
           <radialGradient [id]="'core-gradient-' + orbId" cx="50%" cy="50%" r="50%">
             <stop offset="0%" [attr.stop-color]="coreColors.center" stop-opacity="1"/>
@@ -47,7 +47,7 @@ import { CommonModule } from '@angular/common';
           <!-- Glow filter -->
           <filter [id]="'glow-' + orbId" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-            <feMerge> 
+            <feMerge>
               <feMergeNode in="coloredBlur"/>
               <feMergeNode in="SourceGraphic"/>
             </feMerge>
@@ -55,7 +55,7 @@ import { CommonModule } from '@angular/common';
         </defs>
 
         <!-- Aura circle -->
-        <circle 
+        <circle
           cx="60" cy="60" [attr.r]="auraRadius"
           [attr.fill]="'url(#aura-gradient-' + orbId + ')'"
           class="soul-aura"
@@ -64,10 +64,10 @@ import { CommonModule } from '@angular/common';
 
         <!-- Floating particles -->
         <g class="particles" *ngIf="showParticles">
-          <circle 
+          <circle
             *ngFor="let particle of particles; trackBy: trackParticle"
-            [attr.cx]="particle.x" 
-            [attr.cy]="particle.y" 
+            [attr.cx]="particle.x"
+            [attr.cy]="particle.y"
             [attr.r]="particle.size"
             [attr.fill]="'url(#particle-gradient-' + orbId + ')'"
             class="particle"
@@ -77,7 +77,7 @@ import { CommonModule } from '@angular/common';
         </g>
 
         <!-- Core orb -->
-        <circle 
+        <circle
           cx="60" cy="60" [attr.r]="coreRadius"
           [attr.fill]="'url(#core-gradient-' + orbId + ')'"
           [attr.filter]="'url(#glow-' + orbId + ')'"
@@ -87,10 +87,10 @@ import { CommonModule } from '@angular/common';
 
         <!-- Inner sparkles -->
         <g class="sparkles" *ngIf="showSparkles">
-          <circle 
+          <circle
             *ngFor="let sparkle of sparkles; trackBy: trackSparkle"
-            [attr.cx]="sparkle.x" 
-            [attr.cy]="sparkle.y" 
+            [attr.cx]="sparkle.x"
+            [attr.cy]="sparkle.y"
             [attr.r]="sparkle.size"
             [attr.fill]="sparkleColor"
             class="sparkle"
@@ -100,11 +100,11 @@ import { CommonModule } from '@angular/common';
 
         <!-- Energy rings -->
         <g class="energy-rings" *ngIf="energyLevel > 0">
-          <circle 
+          <circle
             *ngFor="let ring of energyRings; let i = index"
-            cx="60" cy="60" 
+            cx="60" cy="60"
             [attr.r]="ring.radius"
-            fill="none" 
+            fill="none"
             [attr.stroke]="ring.color"
             [attr.stroke-width]="ring.width"
             stroke-opacity="0.6"
@@ -115,16 +115,16 @@ import { CommonModule } from '@angular/common';
       </svg>
 
       <!-- Compatibility percentage overlay -->
-      <div 
-        class="compatibility-display" 
+      <div
+        class="compatibility-display"
         *ngIf="showCompatibility && compatibilityScore > 0"
         role="status"
         [attr.aria-label]="getCompatibilityAriaLabel()"
         aria-live="polite">
-        <span 
+        <span
           class="compatibility-text"
           aria-hidden="true">{{compatibilityScore}}%</span>
-        <span 
+        <span
           class="compatibility-label"
           aria-hidden="true">Soul Match</span>
       </div>
@@ -200,7 +200,7 @@ import { CommonModule } from '@angular/common';
     .connecting .soul-aura {
       animation: connecting-pulse 1.5s ease-in-out infinite;
     }
-    
+
     .connecting .soul-core {
       animation: emotional-breathe 2s ease-in-out infinite;
     }
@@ -208,7 +208,7 @@ import { CommonModule } from '@angular/common';
     .matched .soul-core {
       animation: connection-celebrate 3s ease-out;
     }
-    
+
     .matched .soul-aura {
       animation: energy-flow 2s ease-out infinite;
     }
@@ -223,7 +223,7 @@ import { CommonModule } from '@angular/common';
     .high-compatibility .soul-core {
       animation: soul-heartbeat 1.8s ease-in-out infinite;
     }
-    
+
     .high-compatibility .soul-aura {
       animation: aura-pulse 2s ease-in-out infinite, energy-flow 4s linear infinite;
     }
@@ -239,7 +239,7 @@ import { CommonModule } from '@angular/common';
       filter: brightness(1.2);
       transition: filter 0.3s ease;
     }
-    
+
     .soul-orb-container:hover .soul-aura {
       opacity: 0.9;
       transition: opacity 0.3s ease;
@@ -265,25 +265,25 @@ import { CommonModule } from '@angular/common';
 
     /* New Emotional Breathing Animation */
     @keyframes emotional-breathe {
-      0% { 
-        transform: scale(1); 
-        filter: brightness(1); 
+      0% {
+        transform: scale(1);
+        filter: brightness(1);
       }
-      25% { 
-        transform: scale(1.02); 
-        filter: brightness(1.1); 
+      25% {
+        transform: scale(1.02);
+        filter: brightness(1.1);
       }
-      50% { 
-        transform: scale(1.08); 
-        filter: brightness(1.2); 
+      50% {
+        transform: scale(1.08);
+        filter: brightness(1.2);
       }
-      75% { 
-        transform: scale(1.02); 
-        filter: brightness(1.1); 
+      75% {
+        transform: scale(1.02);
+        filter: brightness(1.1);
       }
-      100% { 
-        transform: scale(1); 
-        filter: brightness(1); 
+      100% {
+        transform: scale(1);
+        filter: brightness(1);
       }
     }
 
@@ -298,66 +298,66 @@ import { CommonModule } from '@angular/common';
 
     /* Energy Flow Animation */
     @keyframes energy-flow {
-      0% { 
-        opacity: 0; 
-        transform: scale(0.5) rotate(0deg); 
+      0% {
+        opacity: 0;
+        transform: scale(0.5) rotate(0deg);
       }
-      25% { 
-        opacity: 1; 
-        transform: scale(0.8) rotate(90deg); 
+      25% {
+        opacity: 1;
+        transform: scale(0.8) rotate(90deg);
       }
-      50% { 
-        opacity: 1; 
-        transform: scale(1.2) rotate(180deg); 
+      50% {
+        opacity: 1;
+        transform: scale(1.2) rotate(180deg);
       }
-      75% { 
-        opacity: 0.8; 
-        transform: scale(1.5) rotate(270deg); 
+      75% {
+        opacity: 0.8;
+        transform: scale(1.5) rotate(270deg);
       }
-      100% { 
-        opacity: 0; 
-        transform: scale(2) rotate(360deg); 
+      100% {
+        opacity: 0;
+        transform: scale(2) rotate(360deg);
       }
     }
 
     /* Connection Success Celebration */
     @keyframes connection-celebrate {
-      0% { 
-        transform: scale(1) rotate(0deg); 
-        filter: brightness(1) saturate(1); 
+      0% {
+        transform: scale(1) rotate(0deg);
+        filter: brightness(1) saturate(1);
       }
-      15% { 
-        transform: scale(1.3) rotate(5deg); 
-        filter: brightness(1.5) saturate(1.5); 
+      15% {
+        transform: scale(1.3) rotate(5deg);
+        filter: brightness(1.5) saturate(1.5);
       }
-      30% { 
-        transform: scale(1.1) rotate(-3deg); 
-        filter: brightness(1.8) saturate(2); 
+      30% {
+        transform: scale(1.1) rotate(-3deg);
+        filter: brightness(1.8) saturate(2);
       }
-      45% { 
-        transform: scale(1.4) rotate(2deg); 
-        filter: brightness(2) saturate(2.5); 
+      45% {
+        transform: scale(1.4) rotate(2deg);
+        filter: brightness(2) saturate(2.5);
       }
-      60% { 
-        transform: scale(1.2) rotate(-1deg); 
-        filter: brightness(1.6) saturate(2); 
+      60% {
+        transform: scale(1.2) rotate(-1deg);
+        filter: brightness(1.6) saturate(2);
       }
-      100% { 
-        transform: scale(1) rotate(0deg); 
-        filter: brightness(1) saturate(1); 
+      100% {
+        transform: scale(1) rotate(0deg);
+        filter: brightness(1) saturate(1);
       }
     }
 
     @keyframes particle-float {
-      0% { 
-        transform: translateY(0) rotate(0deg); 
-        opacity: 0; 
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0;
       }
       10% { opacity: 1; }
       90% { opacity: 1; }
-      100% { 
-        transform: translateY(-20px) rotate(360deg); 
-        opacity: 0; 
+      100% {
+        transform: translateY(-20px) rotate(360deg);
+        opacity: 0;
       }
     }
 
@@ -367,13 +367,13 @@ import { CommonModule } from '@angular/common';
     }
 
     @keyframes energy-ripple {
-      0% { 
-        transform: scale(0.8); 
-        stroke-opacity: 0.8; 
+      0% {
+        transform: scale(0.8);
+        stroke-opacity: 0.8;
       }
-      100% { 
-        transform: scale(1.4); 
-        stroke-opacity: 0; 
+      100% {
+        transform: scale(1.4);
+        stroke-opacity: 0;
       }
     }
 
@@ -412,11 +412,11 @@ import { CommonModule } from '@angular/common';
       .soul-orb-container {
         margin: 0.5rem;
       }
-      
+
       .compatibility-text {
         font-size: 1rem;
       }
-      
+
       .compatibility-label {
         font-size: 0.6rem;
       }
@@ -432,20 +432,20 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
   @Input() showCompatibility: boolean = false;
   @Input() showParticles: boolean = true;
   @Input() showSparkles: boolean = true;
-  
+
   // Accessibility inputs
   @Input() ariaLabel?: string;
   @Input() ariaDescribedBy?: string;
-  
+
   // Emotional interaction states
   isHovered: boolean = false;
   isFocused: boolean = false;
 
   orbId: string = Math.random().toString(36).substr(2, 9);
-  particles: any[] = [];
-  sparkles: any[] = [];
-  energyRings: any[] = [];
-  
+  particles: Array<{ id: number; x: number; y: number; size: number; delay: number; duration: number }> = [];
+  sparkles: Array<{ id: number; x: number; y: number; size: number; delay: number }> = [];
+  energyRings: Array<{ radius: number; color: string; width: number }> = [];
+
   private animationFrame?: number;
 
   get svgSize(): number {
@@ -541,7 +541,7 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
   private generateParticles() {
     this.particles = [];
     const particleCount = this.energyLevel * 2 + 3;
-    
+
     for (let i = 0; i < particleCount; i++) {
       this.particles.push({
         id: i,
@@ -557,7 +557,7 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
   private generateSparkles() {
     this.sparkles = [];
     const sparkleCount = Math.max(3, this.energyLevel);
-    
+
     for (let i = 0; i < sparkleCount; i++) {
       this.sparkles.push({
         id: i,
@@ -571,7 +571,7 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
 
   private generateEnergyRings() {
     this.energyRings = [];
-    
+
     for (let i = 0; i < this.energyLevel; i++) {
       this.energyRings.push({
         radius: 30 + (i * 8),
@@ -607,7 +607,7 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
 
     const typeLabels = {
       primary: 'Soul energy orb',
-      secondary: 'Connection energy orb', 
+      secondary: 'Connection energy orb',
       neutral: 'Energy orb'
     };
 
@@ -619,8 +619,8 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
     };
 
     const energyLabel = this.energyLevel > 0 ? ` with energy level ${this.energyLevel} out of 5` : '';
-    const compatibilityLabel = this.showCompatibility && this.compatibilityScore > 0 
-      ? ` showing ${this.compatibilityScore}% soul compatibility match` 
+    const compatibilityLabel = this.showCompatibility && this.compatibilityScore > 0
+      ? ` showing ${this.compatibilityScore}% soul compatibility match`
       : '';
 
     return `${typeLabels[this.type]} ${stateLabels[this.state]}${energyLabel}${compatibilityLabel}`;
@@ -647,13 +647,13 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
    */
   onHover(isHovering: boolean): void {
     this.isHovered = isHovering;
-    
+
     if (isHovering) {
       // Trigger additional particles on hover for high compatibility
       if (this.compatibilityScore >= 80) {
         this.generateExtraParticles();
       }
-      
+
       // Announce hover state for screen readers
       if (this.compatibilityScore > 0) {
         this.announceEmotionalState(`Soul orb activated: ${this.compatibilityScore}% compatibility`);
@@ -666,7 +666,7 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
    */
   onFocus(isFocusing: boolean): void {
     this.isFocused = isFocusing;
-    
+
     if (isFocusing) {
       // Enhanced focus state for emotional connection
       this.announceEmotionalState(`Focused on soul energy: ${this.getSoulOrbAriaLabel()}`);
@@ -678,10 +678,10 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
    */
   private generateExtraParticles(): void {
     if (!this.showParticles) return;
-    
+
     const extraParticles = [];
     const particleCount = 5;
-    
+
     for (let i = 0; i < particleCount; i++) {
       extraParticles.push({
         id: this.particles.length + i,
@@ -692,9 +692,9 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
         duration: 2 + Math.random() * 2
       });
     }
-    
+
     this.particles = [...this.particles, ...extraParticles];
-    
+
     // Remove extra particles after animation
     setTimeout(() => {
       this.particles = this.particles.slice(0, -extraParticles.length);
@@ -710,9 +710,9 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
     announcement.setAttribute('aria-atomic', 'true');
     announcement.className = 'sr-only';
     announcement.textContent = message;
-    
+
     document.body.appendChild(announcement);
-    
+
     setTimeout(() => {
       if (announcement.parentNode) {
         document.body.removeChild(announcement);
@@ -728,13 +728,13 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
     const container = document.querySelector(`#${this.orbId}`)?.parentElement;
     if (container) {
       container.classList.add('connection-celebrating');
-      
+
       // Generate burst of particles
       this.generateCelebrationParticles();
-      
+
       // Announce celebration
       this.announceEmotionalState('Soul connection successful! Celebrating your new bond.');
-      
+
       // Remove celebration class after animation
       setTimeout(() => {
         container.classList.remove('connection-celebrating');
@@ -746,9 +746,9 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
    * Generate celebration particles for connection success
    */
   private generateCelebrationParticles(): void {
-    const celebrationParticles: any[] = [];
+    const celebrationParticles: Array<{ id: number; x: number; y: number; size: number; delay: number; duration: number }> = [];
     const particleCount = 12;
-    
+
     for (let i = 0; i < particleCount; i++) {
       celebrationParticles.push({
         id: Date.now() + i,
@@ -759,10 +759,10 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
         duration: 1.5 + Math.random() * 2
       });
     }
-    
+
     this.particles = [...this.particles, ...celebrationParticles];
     this.generateExtraSparkles();
-    
+
     // Remove celebration particles after animation
     setTimeout(() => {
       this.particles = this.particles.filter(p => !celebrationParticles.find(cp => cp.id === p.id));
@@ -773,9 +773,9 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
    * Generate extra sparkles for celebration
    */
   private generateExtraSparkles(): void {
-    const extraSparkles: any[] = [];
+    const extraSparkles: Array<{ id: number; x: number; y: number; size: number; delay: number }> = [];
     const sparkleCount = 8;
-    
+
     for (let i = 0; i < sparkleCount; i++) {
       extraSparkles.push({
         id: Date.now() + i + 1000,
@@ -785,9 +785,9 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
         delay: Math.random() * 0.5
       });
     }
-    
+
     this.sparkles = [...this.sparkles, ...extraSparkles];
-    
+
     // Remove extra sparkles after animation
     setTimeout(() => {
       this.sparkles = this.sparkles.filter(s => !extraSparkles.find(es => es.id === s.id));

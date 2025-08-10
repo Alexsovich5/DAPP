@@ -3,7 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, Subject, BehaviorSubject, timer } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
-import { map, tap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { map, tap, debounceTime, distinctUntilChanged, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 interface Message {
   id: string;
@@ -11,6 +12,8 @@ interface Message {
   content: string;
   timestamp: string;
   isRead: boolean;
+  clientId?: string;
+  localStatus?: 'queued' | 'sending' | 'sent' | 'failed';
 }
 
 interface ChatUser {
@@ -57,35 +60,60 @@ export class ChatService {
   private socket$!: WebSocketSubject<any>;
   private messageSubject = new Subject<Message>();
   private onlineUsers = new BehaviorSubject<string[]>([]);
-  
+  private messageStatusSubject = new Subject<{ clientId: string; status: Message['localStatus'] }>();
+
   // Typing indicator management
   private typingUsers = new BehaviorSubject<Map<string, TypingUser>>(new Map());
   private typingSubject = new Subject<TypingIndicator>();
   private typingTimer = new Map<string, NodeJS.Timeout>();
   private currentUserId: string | null = null;
-  
+
   // Typing detection
   private lastTypingTime = 0;
   private typingTimeout = 3000; // 3 seconds
   private isCurrentlyTyping = false;
-  
+
   // Connection activity tracking
   private connectionActivity = new BehaviorSubject<Map<string, any>>(new Map());
-  private emotionalStates = new BehaviorSubject<Map<string, string>>(new Map());
+  private emotionalStates = new BehaviorSubject<Map<string, TypingUser['emotionalState']>>(new Map());
 
   constructor(private http: HttpClient) {
     this.setupWebSocket();
     this.setupTypingCleanup();
   }
 
+  setCurrentUser(userId: string): void {
+    this.currentUserId = userId;
+  }
+
   private setupWebSocket(): void {
-    // In a real app, this would be your WebSocket server URL
-    this.socket$ = webSocket(`${environment.socketUrl}/chat`);
+    const socketUrl = `${environment.socketUrl}/chat`;
+    console.log('Connecting to WebSocket:', socketUrl);
+    
+    this.socket$ = webSocket({
+      url: socketUrl,
+      openObserver: {
+        next: () => console.log('WebSocket connection opened')
+      },
+      closeObserver: {
+        next: () => console.log('WebSocket connection closed')
+      }
+    });
 
     this.socket$.subscribe({
       next: (message) => this.handleWebSocketMessage(message),
-      error: (err) => console.error('WebSocket error:', err)
+      error: (err) => {
+        console.error('WebSocket error:', err);
+        this.reconnectWebSocket();
+      }
     });
+  }
+
+  private reconnectWebSocket(): void {
+    console.log('Attempting to reconnect WebSocket in 3 seconds...');
+    setTimeout(() => {
+      this.setupWebSocket();
+    }, 3000);
   }
 
   private handleWebSocketMessage(message: WebSocketMessage): void {
@@ -97,23 +125,23 @@ export class ChatService {
           this.handleTypingStop(message.userId);
         }
         break;
-        
+
       case 'typing_start':
         if (message.userId && message.data) {
           this.handleTypingStart(message.userId, message.data);
         }
         break;
-        
+
       case 'typing_stop':
         if (message.userId) {
           this.handleTypingStop(message.userId);
         }
         break;
-        
+
       case 'online_users':
         this.onlineUsers.next(message.data);
         break;
-        
+
       case 'user_status':
         // Handle user online/offline status changes
         if (message.data) {
@@ -147,7 +175,7 @@ export class ChatService {
     const timer = setTimeout(() => {
       this.handleTypingStop(userId);
     }, this.typingTimeout);
-    
+
     this.typingTimer.set(userId, timer);
   }
 
@@ -207,13 +235,38 @@ export class ChatService {
   }
 
   sendMessage(userId: string, content: string): Observable<Message> {
-    const message = {
-      receiverId: userId,
+    const clientId = `c_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const optimistic: Message = {
+      id: 'temp',
+      clientId,
+      senderId: this.currentUserId || 'me',
       content,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      isRead: false,
+      localStatus: navigator.onLine ? 'sending' : 'queued'
     };
 
-    return this.http.post<Message>(`${environment.apiUrl}/chat/send`, message);
+    // Emit optimistic message immediately
+    this.messageSubject.next(optimistic);
+
+    const body = {
+      receiverId: userId,
+      content,
+      timestamp: optimistic.timestamp
+    };
+
+    return this.http.post<Message>(`${environment.apiUrl}/chat/send`, body).pipe(
+      tap({
+        next: (serverMsg) => {
+          this.messageStatusSubject.next({ clientId, status: 'sent' });
+          this.messageSubject.next({ ...serverMsg, clientId, localStatus: 'sent' });
+        },
+        error: () => {
+          const status: Message['localStatus'] = navigator.onLine ? 'failed' : 'queued';
+          this.messageStatusSubject.next({ clientId, status });
+        }
+      })
+    );
   }
 
   markMessagesAsRead(userId: string): Observable<void> {
@@ -228,11 +281,15 @@ export class ChatService {
     return this.onlineUsers.asObservable();
   }
 
+  getMessageStatus(): Observable<{ clientId: string; status: Message['localStatus'] }> {
+    return this.messageStatusSubject.asObservable();
+  }
+
   disconnect(): void {
     // Clean up typing timers
     this.typingTimer.forEach(timer => clearTimeout(timer));
     this.typingTimer.clear();
-    
+
     if (this.socket$) {
       this.socket$.complete();
     }
@@ -253,8 +310,8 @@ export class ChatService {
   getTypingUsers(): Observable<TypingUser[]> {
     return this.typingUsers.asObservable().pipe(
       map(typingMap => Array.from(typingMap.values())),
-      distinctUntilChanged((a, b) => 
-        a.length === b.length && 
+      distinctUntilChanged((a, b) =>
+        a.length === b.length &&
         a.every((user, index) => user.id === b[index]?.id)
       )
     );
@@ -278,7 +335,7 @@ export class ChatService {
     if (!this.isCurrentlyTyping) {
       this.isCurrentlyTyping = true;
       this.lastTypingTime = Date.now();
-      
+
       // Send typing start event via WebSocket
       if (this.socket$ && !this.socket$.closed) {
         this.socket$.next({
@@ -297,7 +354,7 @@ export class ChatService {
   stopTyping(chatId: string): void {
     if (this.isCurrentlyTyping) {
       this.isCurrentlyTyping = false;
-      
+
       // Send typing stop event via WebSocket
       if (this.socket$ && !this.socket$.closed) {
         this.socket$.next({
@@ -315,7 +372,7 @@ export class ChatService {
    */
   handleTypingInput(chatId: string, userData: TypingUser, isTyping: boolean): void {
     const now = Date.now();
-    
+
     if (isTyping) {
       // User is actively typing
       if (!this.isCurrentlyTyping || (now - this.lastTypingTime) > 1000) {
@@ -336,7 +393,7 @@ export class ChatService {
    */
   createTypingHandler(chatId: string, userData: TypingUser): (inputValue: string) => void {
     let typingSubject = new Subject<string>();
-    
+
     // Debounce input to detect typing start/stop
     typingSubject.pipe(
       debounceTime(300),
@@ -344,7 +401,7 @@ export class ChatService {
     ).subscribe(value => {
       const isTyping = value.length > 0;
       this.handleTypingInput(chatId, userData, isTyping);
-      
+
       // Auto-stop typing after timeout
       if (isTyping) {
         setTimeout(() => {
@@ -376,10 +433,70 @@ export class ChatService {
       currentTyping.clear();
       this.typingUsers.next(new Map(currentTyping));
     }
-    
+
     this.typingTimer.forEach(timer => clearTimeout(timer));
     this.typingTimer.clear();
     this.isCurrentlyTyping = false;
+  }
+
+  /**
+   * Disconnect WebSocket and cleanup resources
+   */
+  disconnect(): void {
+    if (this.socket$ && !this.socket$.closed) {
+      this.socket$.complete();
+    }
+    this.clearAllTypingIndicators();
+  }
+
+  // === MESSAGE DATA METHODS ===
+
+  /**
+   * Get conversation previews for messages list
+   */
+  getConversationPreviews(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/messages/conversations`).pipe(
+      map(conversations => conversations.map(conv => ({
+        ...conv,
+        isOnline: this.isUserOnline(conv.partnerId),
+        unreadCount: this.getUnreadCount(conv.connectionId)
+      })))
+    );
+  }
+
+  /**
+   * Get unread message count for a conversation
+   */
+  getUnreadCount(connectionId: number): number {
+    // In production, this would come from the backend
+    // For now, return 0 to eliminate random mock data
+    return 0;
+  }
+
+  /**
+   * Check if user is currently online
+   */
+  isUserOnline(userId: string): boolean {
+    const onlineUsersList = this.onlineUsers.value;
+    return onlineUsersList.includes(userId);
+  }
+
+  /**
+   * Get last message for a conversation
+   */
+  getLastMessage(connectionId: number): Observable<string> {
+    return this.http.get<any>(`${environment.apiUrl}/messages/last/${connectionId}`).pipe(
+      map(response => response.content || 'No messages yet'),
+      // Fallback to generic message if API fails
+      catchError(() => of('Start your conversation...'))
+    );
+  }
+
+  /**
+   * Get message history for a conversation
+   */
+  getMessageHistory(connectionId: number, limit: number = 50): Observable<Message[]> {
+    return this.http.get<Message[]>(`${environment.apiUrl}/messages/history/${connectionId}?limit=${limit}`);
   }
 
   // === CONNECTION ACTIVITY & EMOTIONAL STATE METHODS ===
@@ -405,7 +522,7 @@ export class ChatService {
   /**
    * Set emotional state for a user
    */
-  setEmotionalState(userId: string, emotionalState: string): void {
+  setEmotionalState(userId: string, emotionalState: TypingUser['emotionalState']): void {
     const currentStates = this.emotionalStates.value;
     currentStates.set(userId, emotionalState);
     this.emotionalStates.next(new Map(currentStates));
@@ -421,7 +538,7 @@ export class ChatService {
   /**
    * Get emotional states observable
    */
-  getEmotionalStates(): Observable<Map<string, string>> {
+  getEmotionalStates(): Observable<Map<string, TypingUser['emotionalState']>> {
     return this.emotionalStates.asObservable();
   }
 
@@ -433,7 +550,7 @@ export class ChatService {
       map(typingMap => {
         const activity = this.connectionActivity.value;
         const emotions = this.emotionalStates.value;
-        
+
         return Array.from(typingMap.values()).map(user => ({
           ...user,
           connectionStage: activity.get(user.id)?.connectionStage,
@@ -443,10 +560,10 @@ export class ChatService {
           emotionalState: emotions.get(user.id) as 'contemplative' | 'romantic' | 'energetic' | 'peaceful' | 'sophisticated' | undefined
         }));
       }),
-      distinctUntilChanged((a, b) => 
-        a.length === b.length && 
-        a.every((user, index) => 
-          user.id === b[index]?.id && 
+      distinctUntilChanged((a, b) =>
+        a.length === b.length &&
+        a.every((user, index) =>
+          user.id === b[index]?.id &&
           user.emotionalState === b[index]?.emotionalState
         )
       )
@@ -458,7 +575,7 @@ export class ChatService {
    */
   calculateConnectionEnergy(compatibilityScore: number, lastActivity: Date): string {
     const hoursSinceActivity = (Date.now() - lastActivity.getTime()) / (1000 * 60 * 60);
-    
+
     if (compatibilityScore >= 90 && hoursSinceActivity < 1) return 'soulmate';
     if (compatibilityScore >= 80 && hoursSinceActivity < 2) return 'high';
     if (compatibilityScore >= 65 && hoursSinceActivity < 6) return 'medium';
