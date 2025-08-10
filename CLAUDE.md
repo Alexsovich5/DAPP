@@ -534,3 +534,58 @@ psql dinner_first < schema.sql
 **Total Enhanced MVP**: $23,000-36,000
 
 This approach leverages your existing Angular 19+ and FastAPI codebase while adding the revolutionary "Soul Before Skin" features with sophisticated local algorithms, keeping development costs low and avoiding external dependencies.
+
+## Git Workflow & Branch Management
+
+### Branch Strategy
+Follow GitFlow best practices for organized development:
+
+**Branch Types:**
+- `main` - Production-ready code, stable releases only
+- `development` - Integration branch for completed features
+- `feature/[feature-name]` - Individual feature development
+- `bugfix/[issue-name]` - Bug fixes and hotfixes
+- `hotfix/[critical-fix]` - Emergency production fixes
+
+### Pull Request Workflow
+
+**For Feature Development:**
+```
+feature/issue → development PR = for integrating work
+development → main PR = for releasing work
+```
+
+**PR Creation Process:**
+1. **Feature Development**:
+   - Create feature branch from `development`
+   - Implement and test feature completely
+   - Create PR: `feature/soul-connections → development`
+   - Include comprehensive testing and documentation
+
+2. **Release Process**:
+   - After features are integrated and tested in `development`
+   - Create PR: `development → main`
+   - Include release notes and version updates
+   - Deploy to production after merge
+
+**PR Requirements:**
+- Clear, descriptive title and comprehensive description
+- All tests passing (backend: pytest, frontend: ng test)
+- Code review from at least one team member
+- Security review for production-facing changes
+- Performance testing for algorithmic changes
+- Documentation updates included
+
+**Commit Message Standards:**
+- Use conventional commits format
+- Include scope and breaking changes
+- Reference issue numbers when applicable
+- No external tool attribution in commit messages
+
+### Development Best Practices
+- **Always branch from `development`** for new features
+- **Keep feature branches focused** - one feature per branch
+- **Test thoroughly** before creating PRs
+- **Update documentation** with code changes
+- **Run security and lint checks** before committing
+- **Squash commits** in feature branches before merging
