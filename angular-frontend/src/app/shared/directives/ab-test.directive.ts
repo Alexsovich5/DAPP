@@ -104,7 +104,7 @@ export class ABTestDirective implements OnInit, OnDestroy {
   private isControlContent(): boolean {
     // Show content if it's marked for control variant
     return this.abTestVariant === 'control' || 
-           (this.abTestVariants && this.abTestVariants.includes('control'));
+           (this.abTestVariants?.includes('control') ?? false);
   }
 
   private showContent(): void {

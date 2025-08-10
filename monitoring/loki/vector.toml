@@ -1,0 +1,187 @@
+# Vector Configuration for Dinner First Log Processing
+# Advanced log processing pipeline for SRE observability
+
+[api]
+enabled = true
+address = "127.0.0.1:8686"
+
+# Sources - Input logs from multiple sources
+[sources.dinner_first_backend]
+type = "file"
+include = ["/app/logs/*.log"]
+read_from = "beginning"
+
+[sources.docker_logs]
+type = "docker_logs"
+include_labels = ["logging=promtail"]
+
+[sources.system_logs]
+type = "file"
+include = ["/host/var/log/syslog", "/host/var/log/auth.log"]
+
+# Transforms - Process and enrich logs
+[transforms.parse_backend_logs]
+type = "remap"
+inputs = ["dinner_first_backend"]
+source = '''
+  . = parse_json!(.message)
+  .timestamp = parse_timestamp!(.timestamp, format: "%+")
+  .level = upcase(.level)
+  
+  # Extract correlation IDs
+  if exists(.request_id) {
+    .correlation_id = .request_id
+  }
+  
+  # Dating platform specific fields
+  if exists(.user_id) {
+    .user_context = "authenticated"
+  } else {
+    .user_context = "anonymous"
+  }
+  
+  # Performance metrics extraction
+  if exists(.response_time) {
+    .response_time_ms = to_float(.response_time) * 1000
+  }
+'''
+
+[transforms.enrich_docker_logs]
+type = "remap"
+inputs = ["docker_logs"]
+source = '''
+  # Parse Docker log format
+  parsed = parse_json(.message) ?? {}
+  .timestamp = parse_timestamp!(.timestamp, format: "%+")
+  .container = .container_name
+  .service = .label."com.docker.compose.service" ?? "unknown"
+  
+  # Extract log level from message
+  .level = extract(.message, r'(?i)\[(debug|info|warn|error|fatal)\]') ?? "info"
+  .level = upcase(.level)
+'''
+
+[transforms.filter_high_value_logs]
+type = "filter"
+inputs = ["parse_backend_logs", "enrich_docker_logs"]
+condition = '''
+  .level == "ERROR" || 
+  .level == "FATAL" || 
+  .level == "WARN" ||
+  (exists(.endpoint) && .endpoint != "/health") ||
+  (exists(.user_id) && .user_id != null) ||
+  (exists(.compatibility_score) && .compatibility_score != null)
+'''
+
+[transforms.add_metadata]
+type = "remap"
+inputs = ["filter_high_value_logs"]
+source = '''
+  .environment = "production"
+  .application = "dinner-first"
+  .processed_at = now()
+  
+  # Add SRE-specific tags
+  if .level == "ERROR" || .level == "FATAL" {
+    .sre_alert_level = "high"
+  } else if .level == "WARN" {
+    .sre_alert_level = "medium"
+  } else {
+    .sre_alert_level = "low"
+  }
+  
+  # Dating platform context
+  if exists(.endpoint) && contains(.endpoint, "/api/v1/connections") {
+    .feature_area = "soul_connections"
+  } else if exists(.endpoint) && contains(.endpoint, "/api/v1/matches") {
+    .feature_area = "matching_engine"
+  } else if exists(.endpoint) && contains(.endpoint, "/api/v1/revelations") {
+    .feature_area = "revelations"
+  } else {
+    .feature_area = "general"
+  }
+'''
+
+# Sinks - Output to Loki and other destinations
+[sinks.loki_output]
+type = "loki"
+inputs = ["add_metadata"]
+endpoint = "http://loki:3100"
+labels.job = "dinner-first-vector"
+labels.service = "{{ service }}"
+labels.level = "{{ level }}"
+labels.feature_area = "{{ feature_area }}"
+labels.environment = "{{ environment }}"
+remove_label_fields = true
+
+# Send high-priority logs to alerting system
+[sinks.alert_logs]
+type = "http"
+inputs = ["add_metadata"]
+uri = "http://alertmanager:9093/api/v1/alerts"
+method = "post"
+encoding.codec = "json"
+
+[sinks.alert_logs.buffer]
+type = "memory"
+max_events = 100
+when_full = "block"
+
+# Condition for alerting
+[sinks.alert_logs.request.headers]
+"Content-Type" = "application/json"
+
+# Transform for alertmanager format
+[transforms.alert_format]
+type = "remap"
+inputs = ["add_metadata"]
+source = '''
+  if .sre_alert_level == "high" {
+    . = [{
+      "labels": {
+        "alertname": "DinnerFirstLogAlert",
+        "severity": "critical",
+        "service": .service ?? "unknown",
+        "level": .level,
+        "feature_area": .feature_area ?? "general"
+      },
+      "annotations": {
+        "summary": "Critical log event in Dinner First",
+        "description": .message,
+        "timestamp": format_timestamp!(.timestamp, format: "%+")
+      },
+      "generatorURL": "http://vector:8686/"
+    }]
+  } else {
+    . = []
+  }
+'''
+
+# Performance metrics sink
+[sinks.performance_metrics]
+type = "prometheus_exporter"
+inputs = ["add_metadata"]
+address = "0.0.0.0:9598"
+default_namespace = "dinner_first_logs"
+
+# Debugging sink for development
+[sinks.debug_console]
+type = "console"
+inputs = ["add_metadata"]
+target = "stdout"
+encoding.codec = "json"
+
+[sinks.debug_console.buffer]
+type = "memory"
+max_events = 10
+when_full = "drop_newest"
+
+# Health check configuration
+[sources.internal_metrics]
+type = "internal_metrics"
+
+[sinks.internal_metrics_output]
+type = "prometheus_exporter"
+inputs = ["internal_metrics"]
+address = "0.0.0.0:9599"
+default_namespace = "vector"

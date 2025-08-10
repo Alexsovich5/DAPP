@@ -146,6 +146,64 @@ start_backend() {
     done
 }
 
+# Start observability stack
+start_observability() {
+    log "Starting observability stack (Grafana, Loki, Prometheus)..."
+    
+    MONITORING_DIR="$PROJECT_ROOT/monitoring/loki"
+    
+    if [ -d "$MONITORING_DIR" ]; then
+        cd "$MONITORING_DIR"
+        
+        # Check if observability stack is already running
+        if docker-compose -f docker-compose.loki.yml ps | grep -q "Up"; then
+            log "Observability stack already running"
+        else
+            log "Starting Loki, Grafana, Prometheus, and Alertmanager..."
+            docker-compose -f docker-compose.loki.yml up -d
+            
+            # Wait for services to be ready
+            sleep 15
+            
+            # Health checks for observability services
+            for i in {1..30}; do
+                if curl -s http://localhost:3000/api/health > /dev/null 2>&1; then
+                    success "Grafana is ready on http://localhost:3000"
+                    break
+                fi
+                if [ $i -eq 30 ]; then
+                    warning "Grafana health check timeout, but may still be starting"
+                fi
+                sleep 1
+            done
+            
+            for i in {1..30}; do
+                if curl -s http://localhost:9090/-/ready > /dev/null 2>&1; then
+                    success "Prometheus is ready on http://localhost:9090"
+                    break
+                fi
+                if [ $i -eq 30 ]; then
+                    warning "Prometheus health check timeout, but may still be starting"
+                fi
+                sleep 1
+            done
+            
+            for i in {1..30}; do
+                if curl -s http://localhost:3100/ready > /dev/null 2>&1; then
+                    success "Loki is ready on http://localhost:3100"
+                    break
+                fi
+                if [ $i -eq 30 ]; then
+                    warning "Loki health check timeout, but may still be starting"
+                fi
+                sleep 1
+            done
+        fi
+    else
+        warning "Observability stack not found at $MONITORING_DIR - skipping"
+    fi
+}
+
 # Start Angular frontend
 start_frontend() {
     log "Starting Angular frontend..."
@@ -205,6 +263,17 @@ cleanup() {
         fi
     fi
     
+    # Stop observability stack
+    MONITORING_DIR="$PROJECT_ROOT/monitoring/loki"
+    if [ -d "$MONITORING_DIR" ]; then
+        cd "$MONITORING_DIR"
+        if docker-compose -f docker-compose.loki.yml ps | grep -q "Up"; then
+            log "Stopping observability stack..."
+            docker-compose -f docker-compose.loki.yml down
+            success "Observability stack stopped"
+        fi
+    fi
+    
     # Stop database container
     if docker ps --format 'table {{.Names}}' | grep -q "dinner_first-postgres"; then
         docker stop dinner_first-postgres
@@ -219,10 +288,11 @@ trap cleanup EXIT
 
 # Main execution
 main() {
-    log "Starting Dinner First Application..."
+    log "Starting Dinner First Application with Full Observability Stack..."
     
     check_docker
     start_database
+    start_observability
     start_backend
     start_frontend
     
@@ -234,9 +304,22 @@ main() {
     echo "   API Docs: http://localhost:5000/docs"
     echo "   Database: localhost:5432 (dinner_first)"
     echo ""
-    echo "📝 Logs:"
+    echo "📊 Observability Stack:"
+    echo "   Grafana Dashboard: http://localhost:3000 (admin/admin123)"
+    echo "   Prometheus Metrics: http://localhost:9090"
+    echo "   Loki Logs: http://localhost:3100"
+    echo "   Alertmanager: http://localhost:9093"
+    echo ""
+    echo "📝 Application Logs:"
     echo "   Backend: $BACKEND_DIR/backend.log"
     echo "   Frontend: $FRONTEND_DIR/frontend.log"
+    echo ""
+    echo "🔍 SRE Features:"
+    echo "   - Real-time metrics correlation"
+    echo "   - Soul connection monitoring" 
+    echo "   - A/B testing analytics"
+    echo "   - Security alert monitoring"
+    echo "   - Business KPI tracking"
     echo ""
     echo "Press Ctrl+C to stop all services"
     
@@ -263,14 +346,37 @@ case "${1:-}" in
         fi
         wait
         ;;
+    "observability")
+        check_docker
+        start_observability
+        echo ""
+        echo "📊 Observability stack started!"
+        echo "   Grafana: http://localhost:3000 (admin/admin123)"
+        echo "   Prometheus: http://localhost:9090"
+        echo "   Loki: http://localhost:3100"
+        echo "   Alertmanager: http://localhost:9093"
+        ;;
+    "monitoring")
+        # Alias for observability
+        check_docker
+        start_observability
+        echo ""
+        echo "📊 Monitoring stack started!"
+        echo "   Grafana: http://localhost:3000 (admin/admin123)"
+        echo "   Prometheus: http://localhost:9090"
+        echo "   Loki: http://localhost:3100"
+        echo "   Alertmanager: http://localhost:9093"
+        ;;
     "")
         main
         ;;
     *)
-        echo "Usage: $0 [stop|logs]"
-        echo "  (no args) - Start all services"
-        echo "  stop      - Stop all services"
-        echo "  logs      - Show service logs"
+        echo "Usage: $0 [stop|logs|observability|monitoring]"
+        echo "  (no args)     - Start all services with full observability"
+        echo "  stop          - Stop all services"
+        echo "  logs          - Show application logs"
+        echo "  observability - Start only observability stack (Grafana, Loki, Prometheus)"
+        echo "  monitoring    - Alias for observability"
         exit 1
         ;;
 esac
