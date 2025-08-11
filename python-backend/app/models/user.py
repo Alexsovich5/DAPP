@@ -97,3 +97,6 @@ class User(Base):
     
     # AI/ML relationships
     ai_profile = relationship("UserProfile", back_populates="user", uselist=False)
+    
+    # Phase 6: Personalization relationship
+    personalization_profile = relationship("UserPersonalizationProfile", back_populates="user", uselist=False)
