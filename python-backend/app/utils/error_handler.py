@@ -4,8 +4,37 @@ from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from typing import Any, Optional
 import logging
+import os
 
 logger = logging.getLogger(__name__)
+
+# Get environment-specific CORS origin
+def get_error_cors_origin(request: Request) -> str:
+    """Get appropriate CORS origin for error responses"""
+    origin = request.headers.get("origin", "")
+    
+    # Get allowed origins from environment
+    allowed_origins = []
+    env_origins = os.getenv("CORS_ORIGINS", "")
+    if env_origins:
+        allowed_origins.extend(env_origins.split(","))
+    
+    # Development origins
+    if os.getenv("ENVIRONMENT", "development") == "development":
+        allowed_origins.extend([
+            "http://localhost:4200",
+            "http://localhost:5001", 
+            "http://127.0.0.1:4200",
+            "http://127.0.0.1:5001"
+        ])
+    
+    # Return specific origin if allowed, otherwise first allowed origin
+    if origin in allowed_origins:
+        return origin
+    elif allowed_origins:
+        return allowed_origins[0]
+    else:
+        return "http://localhost:4200"  # Fallback
 
 
 class APIError(HTTPException):
@@ -76,9 +105,10 @@ async def validation_error_handler(request: Request, exc: ValidationError):
             "type": "validation_error",
         },
         headers={
-            # Ensure CORS headers on error responses
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Accept, Authorization, Content-Type",
+            # Secure CORS headers on error responses
+            "Access-Control-Allow-Origin": get_error_cors_origin(request),
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+            "Access-Control-Allow-Headers": "Accept, Authorization, Content-Type, X-Requested-With",
+            "Access-Control-Allow-Credentials": "true",
         },
     )

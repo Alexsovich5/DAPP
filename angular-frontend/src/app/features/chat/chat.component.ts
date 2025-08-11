@@ -135,7 +135,6 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
 
-
   private scrollToBottom(): void {
     setTimeout(() => {
       try {

@@ -1,0 +1,146 @@
+# Grafana Datasources Configuration for SRE Observability
+# Integrates Prometheus, Loki, and other data sources
+
+apiVersion: 1
+
+datasources:
+  # Prometheus for metrics
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    uid: prometheus-uid
+    editable: false
+    jsonData:
+      httpMethod: POST
+      manageAlerts: true
+      prometheusType: Prometheus
+      prometheusVersion: 2.45.0
+      cacheLevel: 'High'
+      disableMetricsLookup: false
+      customQueryParameters: ''
+      timeInterval: 30s
+
+  # Loki for logs
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    uid: loki-uid
+    editable: false
+    jsonData:
+      maxLines: 1000
+      timeout: 60
+      derivedFields:
+        # Extract request IDs for correlation
+        - name: request_id
+          label: request_id
+          regex: '"request_id":"([^"]+)"'
+          url: '$${__value.raw}'
+          datasourceUid: loki-uid
+        
+        # Extract user IDs for user journey tracking  
+        - name: user_id
+          label: user_id
+          regex: '"user_id":([0-9]+)'
+          url: '$${__value.raw}'
+          datasourceUid: loki-uid
+        
+        # Extract trace IDs if using distributed tracing
+        - name: trace_id
+          label: trace_id
+          regex: '"trace_id":"([^"]+)"'
+          url: 'http://jaeger:16686/trace/$${__value.raw}'
+          datasourceUid: jaeger-uid
+          internal: true
+
+  # Alertmanager for alert management
+  - name: Alertmanager
+    type: alertmanager
+    access: proxy
+    url: http://alertmanager:9093
+    uid: alertmanager-uid
+    editable: false
+    jsonData:
+      implementation: prometheus
+
+  # Optional: Jaeger for distributed tracing (if implemented)
+  - name: Jaeger
+    type: jaeger
+    access: proxy
+    url: http://jaeger:16686
+    uid: jaeger-uid
+    editable: false
+    jsonData:
+      tracesToLogsV2:
+        # Correlate traces with logs via Loki
+        datasourceUid: loki-uid
+        filterByTraceID: true
+        filterBySpanID: false
+        customQuery: true
+        query: '{service="${__data.fields.serviceName}"} |~ "${__data.fields.traceId}"'
+      
+      tracesToMetrics:
+        # Correlate traces with metrics via Prometheus
+        datasourceUid: prometheus-uid
+        queries:
+          - name: 'Request Rate'
+            query: 'rate(http_requests_total{service="$${__data.fields.serviceName}"}[5m])'
+          - name: 'Error Rate'
+            query: 'rate(http_requests_total{service="$${__data.fields.serviceName}",status=~"5.*"}[5m])'
+
+  # PostgreSQL for direct database queries (optional, for deep SRE analysis)
+  - name: PostgreSQL
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    uid: postgres-uid
+    editable: false
+    database: dinner_first
+    user: prometheus_user
+    secureJsonData:
+      password: ${POSTGRES_PROMETHEUS_PASSWORD}
+    jsonData:
+      sslmode: disable
+      maxOpenConns: 5
+      maxIdleConns: 2
+      connMaxLifetime: 14400
+      postgresVersion: 1500
+      timescaledb: false
+
+  # Redis for cache analytics (via Redis exporter)
+  - name: Redis
+    type: redis-datasource
+    access: proxy
+    url: redis://redis:6379
+    uid: redis-uid
+    editable: false
+    jsonData:
+      client: standalone
+      poolSize: 5
+      timeout: 10
+      pingInterval: 0
+      pipelineWindow: 0
+
+  # InfluxDB for high-cardinality metrics (if needed)
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    uid: influxdb-uid
+    editable: false
+    database: dinner_first_metrics
+    user: grafana
+    secureJsonData:
+      password: ${INFLUXDB_PASSWORD}
+    jsonData:
+      timeInterval: 30s
+      httpMode: GET
+      maxSeries: 1000
+
+  # TestData for dashboard development and testing
+  - name: TestData
+    type: testdata
+    uid: testdata-uid
+    editable: false

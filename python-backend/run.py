@@ -26,7 +26,7 @@ def main():
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=8000,  # Backend runs on port 8000 (temporary fix)
+        port=8000,  # Backend runs on port 8000 (port 5000 is used by macOS)
         reload=True,
         log_level="info",
     )

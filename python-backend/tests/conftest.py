@@ -1,9 +1,11 @@
 import pytest
-from typing import Generator, Dict
+import asyncio
+from typing import Generator, Dict, Any
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import database_exists, create_database, drop_database
+from httpx import AsyncClient
 
 from app.core.database import Base, get_db
 from app.main import app
@@ -11,6 +13,13 @@ from app.core.security import create_access_token, get_password_hash
 from app.models.user import User
 from app.models.profile import Profile
 from app.models.match import Match, MatchStatus
+
+# Import test factories
+from tests.factories import (
+    UserFactory, ProfileFactory, SoulConnectionFactory, 
+    DailyRevelationFactory, MessageFactory, PhotoRevealFactory,
+    setup_factories, create_complete_soul_connection
+)
 
 # Test database URL
 TEST_DATABASE_URL = "postgresql://postgres@localhost/test_dinner_app"
@@ -126,3 +135,121 @@ def test_match(db_session, test_user) -> Match:
 def auth_headers(test_user) -> Dict[str, str]:
     """Return authorization headers for authenticated requests"""
     return {"Authorization": f"Bearer {test_user['token']}"}
+
+
+# New fixtures for Sprint 2 comprehensive testing
+
+@pytest.fixture
+def factories(db_session):
+    """Setup test data factories with database session"""
+    setup_factories(db_session)
+    return {
+        'user': UserFactory,
+        'profile': ProfileFactory,
+        'soul_connection': SoulConnectionFactory,
+        'revelation': DailyRevelationFactory,
+        'message': MessageFactory,
+        'photo_reveal': PhotoRevealFactory,
+    }
+
+
+@pytest.fixture
+def soul_connection_data(db_session):
+    """Create complete soul connection test data"""
+    return create_complete_soul_connection(db_session)
+
+
+@pytest.fixture
+def authenticated_user(db_session) -> Dict[str, Any]:
+    """Create authenticated user with emotional profile"""
+    user = UserFactory(
+        email="souluser@test.com",
+        username="souluser",
+        emotional_onboarding_completed=True,
+        emotional_depth_score=8.5
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    
+    profile = ProfileFactory(
+        user_id=user.id,
+        life_philosophy="Connection before appearance, soul before skin",
+        core_values={
+            "relationship_values": ["commitment", "growth", "authenticity"],
+            "life_priorities": ["love", "personal_growth", "meaningful_connections"]
+        }
+    )
+    db_session.add(profile)
+    db_session.commit()
+    
+    token = create_access_token({"sub": user.email})
+    
+    return {
+        "user": user,
+        "profile": profile,
+        "token": token,
+        "headers": {"Authorization": f"Bearer {token}"}
+    }
+
+
+@pytest.fixture
+def matching_users(db_session) -> Dict[str, Any]:
+    """Create two users ready for soul connection matching"""
+    user1 = UserFactory(
+        email="match1@test.com",
+        emotional_onboarding_completed=True,
+        emotional_depth_score=7.5
+    )
+    user2 = UserFactory(
+        email="match2@test.com", 
+        emotional_onboarding_completed=True,
+        emotional_depth_score=8.0
+    )
+    
+    profile1 = ProfileFactory(
+        user_id=user1.id,
+        interests=["cooking", "reading", "hiking", "photography"],
+        core_values={
+            "relationship_values": ["commitment", "growth"],
+            "life_priorities": ["family", "career", "travel"]
+        }
+    )
+    
+    profile2 = ProfileFactory(
+        user_id=user2.id,
+        interests=["cooking", "music", "hiking", "art"],  # 50% overlap
+        core_values={
+            "relationship_values": ["commitment", "adventure"],  # 50% overlap
+            "life_priorities": ["family", "creativity", "travel"]  # 66% overlap
+        }
+    )
+    
+    for entity in [user1, user2, profile1, profile2]:
+        db_session.add(entity)
+    db_session.commit()
+    
+    return {
+        "user1": user1,
+        "user2": user2,
+        "profile1": profile1,
+        "profile2": profile2
+    }
+
+
+@pytest.fixture
+async def async_client() -> AsyncClient:
+    """Async HTTP client for testing async endpoints"""
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        yield client
+
+
+@pytest.fixture
+def performance_config():
+    """Configuration for performance testing"""
+    return {
+        "matching_algorithm_max_time": 0.5,  # 500ms max
+        "database_query_max_time": 0.1,      # 100ms max
+        "api_response_max_time": 2.0,        # 2s max
+        "concurrent_users": 50                # Load testing
+    }

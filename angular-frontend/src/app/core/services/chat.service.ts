@@ -554,7 +554,7 @@ export class ChatService {
           compatibilityScore: activity.get(user.id)?.compatibilityScore,
           lastActivity: activity.get(user.id)?.lastActivity,
           connectionEnergy: activity.get(user.id)?.connectionEnergy,
-          emotionalState: emotions.get(user.id)
+          emotionalState: emotions.get(user.id) as 'contemplative' | 'romantic' | 'energetic' | 'peaceful' | 'sophisticated' | undefined
         }));
       }),
       distinctUntilChanged((a, b) =>

@@ -6,9 +6,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { ThemeService } from './core/services/theme.service';
+import { OfflineService } from './core/services/offline.service';
 import { ToastComponent } from './shared/components/toast/toast.component';
 import { NavigationComponent } from './shared/components/navigation/navigation.component';
 import { OnboardingManagerComponent } from './shared/components/onboarding-manager/onboarding-manager.component';
+import { OfflineStatusComponent } from './shared/components/offline-status/offline-status.component';
 
 @Component({
   selector: 'app-root',
@@ -22,7 +24,8 @@ import { OnboardingManagerComponent } from './shared/components/onboarding-manag
     MatSidenavModule,
     ToastComponent,
     NavigationComponent,
-    OnboardingManagerComponent
+    OnboardingManagerComponent,
+    OfflineStatusComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
@@ -30,9 +33,15 @@ import { OnboardingManagerComponent } from './shared/components/onboarding-manag
 export class AppComponent implements OnInit {
   title = 'dinner-app';
 
-  constructor(private themeService: ThemeService) {}
+  constructor(
+    private themeService: ThemeService,
+    private offlineService: OfflineService
+  ) {}
 
   ngOnInit(): void {
     // Theme service will automatically initialize and apply saved theme
+    
+    // Initialize offline service for PWA functionality
+    // The service constructor already handles initialization
   }
 }

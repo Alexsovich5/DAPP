@@ -24,6 +24,7 @@ from app.api.v1.routers import safety as safety_router
 # from app.api.v1.routers import analytics as analytics_router  # Temporarily disabled due to missing clickhouse
 from app.core.database import create_tables
 from app.middleware.middleware import log_requests_middleware
+from app.middleware.security_headers import security_headers_middleware, get_secure_cors_config
 from app.utils.error_handler import validation_error_handler
 from app.services.realtime import manager
 
@@ -41,37 +42,12 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Configure CORS - updated for Angular frontend
-origins = [
-    "http://localhost:4200",  # Angular dev server default
-    "http://localhost:5001",  # Angular dev server (alternate port)
-    "http://localhost:3000",  # React dev server (if needed)
-    "http://localhost:8080",  # Vue dev server (if needed)
-    "http://localhost:5173",  # Vite dev server (if needed)
-]
+# Security Headers Middleware - Apply first for all responses
+app.middleware("http")(security_headers_middleware)
 
-# Add environment variable override
-env_origins = os.getenv("CORS_ORIGINS")
-if env_origins:
-    origins.extend(env_origins.split(","))
-
-# Add CORS middleware with proper configuration for Angular
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,  # Enable credentials for Angular
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=[
-        "Accept",
-        "Accept-Language",
-        "Content-Language",
-        "Content-Type",
-        "Authorization",
-        "X-Requested-With",
-    ],
-    expose_headers=["*"],
-    max_age=600,  # Cache preflight requests for 10 minutes
-)
+# Secure CORS Configuration - Environment-aware and production-ready
+cors_config = get_secure_cors_config()
+app.add_middleware(CORSMiddleware, **cors_config)
 
 # Try to create database tables
 try:
@@ -127,12 +103,17 @@ v1_app.include_router(
     tags=["messages"],
 )
 
+<<<<<<< Updated upstream
 # Phase 5: AI-Enhanced Matching
 v1_app.include_router(
     ai_matching.router,
     prefix="/ai-matching",
     tags=["ai-matching"],
 )
+=======
+# Phase 5: AI-Enhanced Matching (temporarily disabled for testing)
+# v1_app.include_router(ai_matching.router, prefix="/ai-matching", tags=["ai-matching"])
+>>>>>>> Stashed changes
 
 # Real-time Chat and Safety
 v1_app.include_router(chat_router.router, tags=["chat"])
