@@ -21,6 +21,9 @@ from app.api.v1.routers import (
     personalization,
     adaptive_revelations,
     ui_personalization,
+    enhanced_communication,
+    social_proof,
+    advanced_ai_matching,
 )
 from app.api.v1.routers import chat as chat_router
 from app.api.v1.routers import safety as safety_router
@@ -132,6 +135,27 @@ v1_app.include_router(
     ui_personalization.router,
     prefix="/ui-personalization",
     tags=["ui-personalization"],
+)
+
+# Phase 7: Hybrid Advanced Features - Enhanced Communication
+v1_app.include_router(
+    enhanced_communication.router,
+    prefix="/enhanced-communication",
+    tags=["enhanced-communication"],
+)
+
+# Phase 7: Hybrid Advanced Features - Social Proof & Community
+v1_app.include_router(
+    social_proof.router,
+    prefix="/social-proof",
+    tags=["social-proof"],
+)
+
+# Phase 7: Hybrid Advanced Features - Advanced AI Matching Evolution
+v1_app.include_router(
+    advanced_ai_matching.router,
+    prefix="/advanced-ai-matching",
+    tags=["advanced-ai-matching"],
 )
 
 # Real-time Chat and Safety
