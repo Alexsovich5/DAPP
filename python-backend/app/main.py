@@ -20,6 +20,7 @@ from app.api.v1.routers import (
     ai_matching,
     personalization,
     adaptive_revelations,
+    ui_personalization,
 )
 from app.api.v1.routers import chat as chat_router
 from app.api.v1.routers import safety as safety_router
@@ -124,6 +125,13 @@ v1_app.include_router(
     adaptive_revelations.router,
     prefix="/adaptive-revelations",
     tags=["adaptive-revelations"],
+)
+
+# Phase 6: UI Personalization System
+v1_app.include_router(
+    ui_personalization.router,
+    prefix="/ui-personalization",
+    tags=["ui-personalization"],
 )
 
 # Real-time Chat and Safety
