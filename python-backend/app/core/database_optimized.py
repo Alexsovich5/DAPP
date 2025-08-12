@@ -11,6 +11,7 @@ import time
 import asyncio
 from contextlib import contextmanager
 import redis
+from redis.exceptions import RedisError, ConnectionError as RedisConnectionError
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 import json
@@ -35,9 +36,13 @@ class DatabaseOptimizer:
     High-performance database optimization for dating platform
     """
     
-    def __init__(self, database_url: str, redis_client: redis.Redis):
+    def __init__(self, database_url: str, redis_client: Optional[redis.Redis] = None):
         self.database_url = database_url
-        self.redis_client = redis_client
+        self.redis_client = None  # Will be initialized when Redis is available
+        self._redis_initialized = False
+        self._redis_connection_attempts = 0
+        self._redis_max_attempts = 3
+        self._redis_retry_delay = 1.0  # seconds
         self.metrics = DatabaseMetrics()
         
         # Performance configuration
@@ -51,7 +56,12 @@ class DatabaseOptimizer:
             'slow_query_threshold': 1.0,  # seconds
             'query_cache_ttl': 300,  # 5 minutes
             'connection_cache_ttl': 3600,  # 1 hour
+            'redis_enabled': True,  # Can be disabled for environments without Redis
         }
+        
+        # Initialize Redis connection if provided
+        if redis_client:
+            self._initialize_redis_client(redis_client)
         
         # Initialize optimized engine
         self.engine = self._create_optimized_engine()
@@ -148,6 +158,108 @@ class DatabaseOptimizer:
         thread = threading.Thread(target=metrics_updater, daemon=True)
         thread.start()
     
+    def _initialize_redis_client(self, redis_client: redis.Redis) -> bool:
+        """Initialize Redis client with connection validation and error handling"""
+        try:
+            # Test the connection
+            redis_client.ping()
+            self.redis_client = redis_client
+            self._redis_initialized = True
+            self._redis_connection_attempts = 0
+            logger.info("Redis client initialized successfully")
+            return True
+            
+        except (RedisError, RedisConnectionError, ConnectionError) as e:
+            self._redis_connection_attempts += 1
+            logger.warning(f"Failed to initialize Redis client (attempt {self._redis_connection_attempts}): {e}")
+            
+            if self._redis_connection_attempts < self._redis_max_attempts:
+                logger.info(f"Will retry Redis connection in {self._redis_retry_delay} seconds")
+                time.sleep(self._redis_retry_delay)
+                return self._initialize_redis_client(redis_client)
+            else:
+                logger.error("Max Redis connection attempts reached. Running in degraded mode without Redis.")
+                self.config['redis_enabled'] = False
+                return False
+                
+        except Exception as e:
+            logger.error(f"Unexpected error initializing Redis client: {e}")
+            self.config['redis_enabled'] = False
+            return False
+    
+    def _ensure_redis_connection(self) -> bool:
+        """Ensure Redis connection is available and healthy"""
+        if not self.config['redis_enabled']:
+            return False
+            
+        if not self._redis_initialized or self.redis_client is None:
+            return False
+        
+        try:
+            # Test connection health
+            self.redis_client.ping()
+            return True
+            
+        except (RedisError, RedisConnectionError, ConnectionError) as e:
+            logger.warning(f"Redis connection health check failed: {e}")
+            self._redis_initialized = False
+            return False
+            
+        except Exception as e:
+            logger.error(f"Unexpected error in Redis health check: {e}")
+            self._redis_initialized = False
+            return False
+    
+    def _safe_redis_operation(self, operation_name: str, operation_func, *args, **kwargs):
+        """Safely execute Redis operation with error handling and fallback"""
+        if not self._ensure_redis_connection():
+            logger.debug(f"Skipping Redis operation '{operation_name}' - connection not available")
+            return None
+        
+        try:
+            result = operation_func(*args, **kwargs)
+            return result
+            
+        except (RedisError, RedisConnectionError, ConnectionError) as e:
+            logger.warning(f"Redis operation '{operation_name}' failed: {e}")
+            self._redis_initialized = False
+            return None
+            
+        except Exception as e:
+            logger.error(f"Unexpected error in Redis operation '{operation_name}': {e}")
+            return None
+    
+    def setup_redis_client(self, redis_url: str = None, **redis_kwargs) -> bool:
+        """Setup Redis client from URL or configuration"""
+        try:
+            if redis_url:
+                client = redis.from_url(redis_url, **redis_kwargs)
+            else:
+                # Default Redis configuration
+                redis_config = {
+                    'host': redis_kwargs.get('host', 'localhost'),
+                    'port': redis_kwargs.get('port', 6379),
+                    'db': redis_kwargs.get('db', 0),
+                    'decode_responses': True,
+                    'socket_connect_timeout': redis_kwargs.get('socket_connect_timeout', 5),
+                    'socket_timeout': redis_kwargs.get('socket_timeout', 5),
+                    'retry_on_timeout': True,
+                    'health_check_interval': redis_kwargs.get('health_check_interval', 30)
+                }
+                
+                # Add password if provided
+                if redis_kwargs.get('password'):
+                    redis_config['password'] = redis_kwargs['password']
+                
+                client = redis.Redis(**redis_config)
+            
+            return self._initialize_redis_client(client)
+            
+        except Exception as e:
+            logger.error(f"Failed to setup Redis client: {e}")
+            self.config['redis_enabled'] = False
+            return False
+    
     def _record_slow_query(self, statement: str, parameters: Any, execution_time: float):
         """Record slow query for analysis"""
         try:
@@ -158,9 +270,19 @@ class DatabaseOptimizer:
                 'parameters_hash': hashlib.md5(str(parameters).encode()).hexdigest()[:10]
             }
             
-            # Store in Redis for analysis
-            self.redis_client.lpush('slow_queries', json.dumps(slow_query))
-            self.redis_client.ltrim('slow_queries', 0, 999)  # Keep last 1000
+            # Store in Redis for analysis with safe operation
+            slow_query_json = json.dumps(slow_query)
+            
+            def redis_operations():
+                self.redis_client.lpush('slow_queries', slow_query_json)
+                self.redis_client.ltrim('slow_queries', 0, 999)  # Keep last 1000
+                return True
+            
+            result = self._safe_redis_operation('record_slow_query', redis_operations)
+            
+            if result is None:
+                # Fallback: log slow query locally if Redis is unavailable
+                logger.info(f"Slow query (Redis unavailable): {execution_time:.3f}s - {statement[:100]}...")
             
         except Exception as e:
             logger.error(f"Failed to record slow query: {e}")
@@ -180,7 +302,16 @@ class DatabaseOptimizer:
                 'timestamp': datetime.utcnow().isoformat()
             }
             
-            self.redis_client.set('db_metrics', json.dumps(metrics_data), ex=3600)
+            # Store metrics in Redis with safe operation
+            metrics_json = json.dumps(metrics_data)
+            
+            def store_operation():
+                return self.redis_client.set('db_metrics', metrics_json, ex=3600)
+            
+            result = self._safe_redis_operation('store_metrics', store_operation)
+            
+            if result is None:
+                logger.debug("Database metrics not stored - Redis unavailable (this is non-critical)")
             
         except Exception as e:
             logger.error(f"Failed to store database metrics: {e}")
@@ -204,25 +335,38 @@ class DatabaseOptimizer:
         ttl = ttl or self.config['query_cache_ttl']
         
         try:
-            # Try to get from cache first
-            cached_result = self.redis_client.get(cache_key)
+            # Try to get from cache first with safe operation
+            def get_cache_operation():
+                return self.redis_client.get(cache_key)
+            
+            cached_result = self._safe_redis_operation('get_cache', get_cache_operation)
+            
             if cached_result:
                 self.metrics.cache_hits += 1
-                return json.loads(cached_result)
+                try:
+                    return json.loads(cached_result)
+                except json.JSONDecodeError:
+                    logger.warning(f"Invalid JSON in cache for key {cache_key}, executing query")
             
-            # Cache miss - execute query
+            # Cache miss or Redis unavailable - execute query
             self.metrics.cache_misses += 1
             
             with self.get_db_session() as session:
                 result = query_func(session)
                 
-                # Cache the result
+                # Cache the result with safe operation
                 if result is not None:
-                    self.redis_client.set(
-                        cache_key, 
-                        json.dumps(result, default=str), 
-                        ex=ttl
-                    )
+                    def set_cache_operation():
+                        return self.redis_client.set(
+                            cache_key, 
+                            json.dumps(result, default=str), 
+                            ex=ttl
+                        )
+                    
+                    cache_result = self._safe_redis_operation('set_cache', set_cache_operation)
+                    
+                    if cache_result is None:
+                        logger.debug(f"Cache set failed for key {cache_key} - Redis unavailable")
                 
                 return result
                 
@@ -233,22 +377,43 @@ class DatabaseOptimizer:
     def invalidate_cache_pattern(self, pattern: str):
         """Invalidate cache entries matching pattern"""
         try:
-            keys = self.redis_client.keys(pattern)
-            if keys:
-                self.redis_client.delete(*keys)
-                logger.info(f"Invalidated {len(keys)} cache entries matching {pattern}")
+            def invalidate_operation():
+                keys = self.redis_client.keys(pattern)
+                if keys:
+                    deleted_count = self.redis_client.delete(*keys)
+                    return deleted_count
+                return 0
+            
+            deleted_count = self._safe_redis_operation('invalidate_cache_pattern', invalidate_operation)
+            
+            if deleted_count is not None:
+                logger.info(f"Invalidated {deleted_count} cache entries matching {pattern}")
+            else:
+                logger.debug(f"Cache invalidation skipped for pattern {pattern} - Redis unavailable")
+                
         except Exception as e:
             logger.error(f"Failed to invalidate cache pattern {pattern}: {e}")
     
     def get_database_metrics(self) -> Dict[str, Any]:
         """Get current database performance metrics"""
         try:
-            metrics_json = self.redis_client.get('db_metrics')
-            if metrics_json:
-                return json.loads(metrics_json)
+            # Try to get stored metrics from Redis first
+            def get_metrics_operation():
+                return self.redis_client.get('db_metrics')
             
-            # Return current metrics if Redis data not available
-            return {
+            metrics_json = self._safe_redis_operation('get_database_metrics', get_metrics_operation)
+            
+            if metrics_json:
+                try:
+                    stored_metrics = json.loads(metrics_json)
+                    # Add Redis availability status to the metrics
+                    stored_metrics['redis_available'] = self._redis_initialized
+                    return stored_metrics
+                except json.JSONDecodeError:
+                    logger.warning("Invalid JSON in stored database metrics, using current metrics")
+            
+            # Return current metrics if Redis data not available or invalid
+            current_metrics = {
                 'total_queries': self.metrics.total_queries,
                 'slow_queries': self.metrics.slow_queries,
                 'failed_queries': self.metrics.failed_queries,
@@ -262,12 +427,20 @@ class DatabaseOptimizer:
                     (self.metrics.cache_hits + self.metrics.cache_misses)
                     if (self.metrics.cache_hits + self.metrics.cache_misses) > 0 else 0
                 ),
+                'redis_available': self._redis_initialized,
+                'redis_enabled': self.config['redis_enabled'],
                 'timestamp': datetime.utcnow().isoformat()
             }
             
+            return current_metrics
+            
         except Exception as e:
             logger.error(f"Failed to get database metrics: {e}")
-            return {}
+            return {
+                'error': str(e),
+                'redis_available': False,
+                'timestamp': datetime.utcnow().isoformat()
+            }
     
     def optimize_query_plan(self, query: str) -> Dict[str, Any]:
         """Analyze and optimize query execution plan"""
@@ -486,6 +659,211 @@ class DatabaseOptimizer:
         except Exception as e:
             logger.error(f"Failed to get table statistics: {e}")
             return {}
+    
+    def _check_pg_stat_statements_availability(self) -> bool:
+        """Check if pg_stat_statements extension is available and enabled"""
+        try:
+            with self.get_db_session() as session:
+                # Check if the extension is installed
+                check_extension_query = """
+                SELECT EXISTS (
+                    SELECT 1 
+                    FROM pg_available_extensions 
+                    WHERE name = 'pg_stat_statements'
+                )
+                """
+                extension_available = session.execute(text(check_extension_query)).scalar()
+                
+                if not extension_available:
+                    logger.info("pg_stat_statements extension is not available in this PostgreSQL installation")
+                    return False
+                
+                # Check if the extension is enabled
+                check_enabled_query = """
+                SELECT EXISTS (
+                    SELECT 1 
+                    FROM pg_extension 
+                    WHERE extname = 'pg_stat_statements'
+                )
+                """
+                extension_enabled = session.execute(text(check_enabled_query)).scalar()
+                
+                if not extension_enabled:
+                    logger.info("pg_stat_statements extension is available but not enabled")
+                    return False
+                
+                # Test if we can actually query the view
+                test_query = "SELECT COUNT(*) FROM pg_stat_statements LIMIT 1"
+                session.execute(text(test_query))
+                
+                return True
+                
+        except Exception as e:
+            logger.info(f"pg_stat_statements extension not available or accessible: {e}")
+            return False
+    
+    def _monitor_database_performance(self) -> Dict[str, Any]:
+        """
+        Monitor database performance with graceful handling of pg_stat_statements dependency.
+        Falls back to alternative metrics if pg_stat_statements is unavailable.
+        """
+        performance_metrics = {
+            'timestamp': datetime.utcnow().isoformat(),
+            'pg_stat_statements_available': False,
+            'query_stats': {},
+            'connection_stats': {},
+            'lock_stats': {},
+            'cache_stats': {}
+        }
+        
+        try:
+            with self.get_db_session() as session:
+                # Check if pg_stat_statements is available
+                pg_stat_available = self._check_pg_stat_statements_availability()
+                performance_metrics['pg_stat_statements_available'] = pg_stat_available
+                
+                if pg_stat_available:
+                    # Use pg_stat_statements for detailed query performance
+                    query_stats_query = """
+                    SELECT 
+                        query,
+                        calls,
+                        total_exec_time,
+                        mean_exec_time,
+                        rows,
+                        100.0 * shared_blks_hit / nullif(shared_blks_hit + shared_blks_read, 0) AS hit_percent
+                    FROM pg_stat_statements
+                    ORDER BY total_exec_time DESC
+                    LIMIT 10
+                    """
+                    
+                    try:
+                        result = session.execute(text(query_stats_query))
+                        query_stats = []
+                        
+                        for row in result:
+                            query_stats.append({
+                                'query': row.query[:200] + '...' if len(row.query) > 200 else row.query,
+                                'calls': int(row.calls),
+                                'total_exec_time_ms': float(row.total_exec_time),
+                                'mean_exec_time_ms': float(row.mean_exec_time),
+                                'rows_affected': int(row.rows) if row.rows else 0,
+                                'cache_hit_percent': float(row.hit_percent) if row.hit_percent else 0.0
+                            })
+                        
+                        performance_metrics['query_stats'] = {
+                            'top_queries_by_time': query_stats,
+                            'source': 'pg_stat_statements'
+                        }
+                        
+                    except Exception as e:
+                        logger.warning(f"Failed to query pg_stat_statements despite availability check: {e}")
+                        performance_metrics['query_stats'] = {
+                            'error': 'pg_stat_statements query failed',
+                            'source': 'fallback'
+                        }
+                
+                else:
+                    # Fallback to basic performance metrics without pg_stat_statements
+                    logger.info("Using fallback database performance monitoring (pg_stat_statements not available)")
+                    performance_metrics['query_stats'] = {
+                        'message': 'pg_stat_statements extension not available - using basic metrics',
+                        'source': 'fallback',
+                        'basic_metrics': {
+                            'total_queries_tracked': self.metrics.total_queries,
+                            'slow_queries_count': self.metrics.slow_queries,
+                            'failed_queries_count': self.metrics.failed_queries,
+                            'average_query_time_ms': self.metrics.avg_query_time * 1000
+                        }
+                    }
+                
+                # Get connection statistics (always available)
+                connection_stats_query = """
+                SELECT 
+                    state,
+                    count(*) as count,
+                    count(*) * 100.0 / sum(count(*)) over() as percentage
+                FROM pg_stat_activity 
+                WHERE pid != pg_backend_pid()
+                GROUP BY state
+                """
+                
+                result = session.execute(text(connection_stats_query))
+                connection_stats = {}
+                for row in result:
+                    connection_stats[row.state or 'unknown'] = {
+                        'count': int(row.count),
+                        'percentage': float(row.percentage)
+                    }
+                
+                performance_metrics['connection_stats'] = connection_stats
+                
+                # Get lock statistics (always available)
+                lock_stats_query = """
+                SELECT 
+                    mode,
+                    count(*) as count
+                FROM pg_locks
+                GROUP BY mode
+                ORDER BY count DESC
+                """
+                
+                result = session.execute(text(lock_stats_query))
+                lock_stats = {}
+                for row in result:
+                    lock_stats[row.mode] = int(row.count)
+                
+                performance_metrics['lock_stats'] = lock_stats
+                
+                # Get database cache statistics (always available)
+                cache_stats_query = """
+                SELECT 
+                    sum(heap_blks_hit) as heap_hits,
+                    sum(heap_blks_read) as heap_reads,
+                    sum(idx_blks_hit) as index_hits,
+                    sum(idx_blks_read) as index_reads,
+                    case 
+                        when sum(heap_blks_hit + heap_blks_read) = 0 then 0
+                        else round(100.0 * sum(heap_blks_hit) / sum(heap_blks_hit + heap_blks_read), 2)
+                    end as heap_hit_ratio,
+                    case 
+                        when sum(idx_blks_hit + idx_blks_read) = 0 then 0
+                        else round(100.0 * sum(idx_blks_hit) / sum(idx_blks_hit + idx_blks_read), 2)
+                    end as index_hit_ratio
+                FROM pg_statio_user_tables
+                """
+                
+                result = session.execute(text(cache_stats_query))
+                cache_row = result.fetchone()
+                
+                if cache_row:
+                    performance_metrics['cache_stats'] = {
+                        'heap_hits': int(cache_row.heap_hits or 0),
+                        'heap_reads': int(cache_row.heap_reads or 0),
+                        'index_hits': int(cache_row.index_hits or 0),
+                        'index_reads': int(cache_row.index_reads or 0),
+                        'heap_hit_ratio_percent': float(cache_row.heap_hit_ratio or 0),
+                        'index_hit_ratio_percent': float(cache_row.index_hit_ratio or 0)
+                    }
+                
+                return performance_metrics
+                
+        except Exception as e:
+            logger.error(f"Error monitoring database performance: {e}")
+            # Return basic fallback metrics even on error
+            return {
+                'timestamp': datetime.utcnow().isoformat(),
+                'pg_stat_statements_available': False,
+                'error': str(e),
+                'fallback_metrics': {
+                    'total_queries_tracked': self.metrics.total_queries,
+                    'slow_queries_count': self.metrics.slow_queries,
+                    'failed_queries_count': self.metrics.failed_queries,
+                    'average_query_time_ms': self.metrics.avg_query_time * 1000,
+                    'active_connections': self.metrics.active_connections,
+                    'connection_pool_size': self.metrics.connection_pool_size
+                }
+            }
 
 # Global database optimizer instance
 db_optimizer: Optional[DatabaseOptimizer] = None
@@ -497,7 +875,7 @@ def get_database_optimizer() -> DatabaseOptimizer:
         raise RuntimeError("Database optimizer not initialized")
     return db_optimizer
 
-def init_database_optimizer(database_url: str, redis_client: redis.Redis) -> DatabaseOptimizer:
+def init_database_optimizer(database_url: str, redis_client: Optional[redis.Redis] = None) -> DatabaseOptimizer:
     """Initialize global database optimizer"""
     global db_optimizer
     db_optimizer = DatabaseOptimizer(database_url, redis_client)
