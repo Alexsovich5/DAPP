@@ -93,7 +93,7 @@ class PerformanceMetric(Base):
     __table_args__ = (
         Index('ix_performance_metrics_type_time', 'metric_type', 'measured_at'),
         Index('ix_performance_metrics_name_time', 'metric_name', 'measured_at'),
-        Index('ix_performance_metrics_environment', 'environment', 'measured_at'),
+        Index('ix_performance_metrics_environment', 'measured_at', 'environment'),
     )
 
 
