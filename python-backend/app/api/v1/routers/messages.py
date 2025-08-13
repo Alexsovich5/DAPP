@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from app.core.database import get_db
 from app.api.v1.deps import get_current_user
 from app.models.user import User, UserEmotionalState
-from app.services.message_service import message_service
+from app.services.message_service import get_message_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["messages"])

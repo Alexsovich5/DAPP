@@ -86,7 +86,7 @@ class UserProfile(Base):
     
     # Relationships
     user = relationship("User", back_populates="ai_profile")
-    compatibility_scores = relationship("CompatibilityPrediction", back_populates="user_profile")
+    compatibility_scores = relationship("CompatibilityPrediction", foreign_keys="CompatibilityPrediction.user1_profile_id", back_populates="user_profile")
     recommendations = relationship("PersonalizedRecommendation", back_populates="user_profile")
     
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -236,7 +236,7 @@ class CompatibilityPrediction(Base):
     # Relationships
     user_profile = relationship("UserProfile", foreign_keys=[user1_profile_id])
     partner_profile = relationship("UserProfile", foreign_keys=[user2_profile_id])
-    model = relationship("MLModel", back_populates="predictions")
+    model = relationship("MLModel")
     
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

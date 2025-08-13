@@ -3,19 +3,26 @@ from fastapi import status
 
 def test_register_user(client):
     """Test user registration"""
+    import uuid
+    unique_id = str(uuid.uuid4())[:8]
     response = client.post(
         "/api/v1/auth/register",
         json={
-            "email": "newuser@example.com",
-            "username": "newuser",
+            "email": f"newuser{unique_id}@example.com",
+            "username": f"newuser{unique_id}",
             "password": "testpassword123",
         },
     )
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert data["email"] == "newuser@example.com"
-    assert data["username"] == "newuser"
-    assert "id" in data
+    assert "access_token" in data
+    assert "token_type" in data
+    assert data["token_type"] == "bearer"
+    assert "user" in data
+    user = data["user"]
+    assert user["email"] == f"newuser{unique_id}@example.com"
+    assert user["username"] == f"newuser{unique_id}"
+    assert "id" in user
 
 
 def test_login_user(client, test_user):

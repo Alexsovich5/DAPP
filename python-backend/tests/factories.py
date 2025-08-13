@@ -14,7 +14,7 @@ from app.models.profile import Profile
 from app.models.soul_connection import SoulConnection, ConnectionStage
 from app.models.daily_revelation import DailyRevelation, RevelationType
 from app.models.message import Message
-from app.models.photo_reveal import PhotoReveal, RevealStatus
+from app.models.photo_reveal import UserPhoto, PhotoRevealStage
 from app.core.security import get_password_hash
 
 fake = Faker()
@@ -180,22 +180,21 @@ class MessageFactory(factory.alchemy.SQLAlchemyModelFactory):
     created_at = factory.LazyAttribute(lambda obj: fake.date_time_this_week())
 
 
-class PhotoRevealFactory(factory.alchemy.SQLAlchemyModelFactory):
-    """Factory for creating photo reveal records"""
+class UserPhotoFactory(factory.alchemy.SQLAlchemyModelFactory):
+    """Factory for creating user photo records"""
     
     class Meta:
-        model = PhotoReveal
+        model = UserPhoto
         sqlalchemy_session_persistence = "commit"
     
-    connection_id = factory.SubFactory(SoulConnectionFactory)
     user_id = factory.SubFactory(UserFactory)
-    photo_url = factory.LazyAttribute(lambda obj: f"https://example.com/photos/{fake.uuid4()}.jpg")
-    reveal_status = factory.fuzzy.FuzzyChoice([status.value for status in RevealStatus])
-    revealed_at = factory.LazyAttribute(
-        lambda obj: fake.date_time_this_week() if obj.reveal_status == RevealStatus.REVEALED.value else None
-    )
-    consent_given_at = factory.LazyAttribute(lambda obj: fake.date_time_this_week())
-    created_at = factory.LazyAttribute(lambda obj: fake.date_time_this_week())
+    photo_uuid = factory.LazyAttribute(lambda obj: fake.uuid4())
+    original_filename = factory.LazyAttribute(lambda obj: f"{fake.word()}.jpg")
+    file_path = factory.LazyAttribute(lambda obj: f"/encrypted/photos/{fake.uuid4()}.enc")
+    file_size = factory.fuzzy.FuzzyInteger(100000, 5000000)  # 100KB to 5MB
+    mime_type = "image/jpeg"
+    encryption_key_hash = factory.LazyAttribute(lambda obj: fake.sha256())
+    upload_timestamp = factory.LazyAttribute(lambda obj: fake.date_time_this_week())
 
 
 def setup_factories(session: Session):

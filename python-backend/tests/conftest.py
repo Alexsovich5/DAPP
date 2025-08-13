@@ -17,7 +17,7 @@ from app.models.match import Match, MatchStatus
 # Import test factories
 from tests.factories import (
     UserFactory, ProfileFactory, SoulConnectionFactory, 
-    DailyRevelationFactory, MessageFactory, PhotoRevealFactory,
+    DailyRevelationFactory, MessageFactory, UserPhotoFactory,
     setup_factories, create_complete_soul_connection
 )
 
@@ -87,7 +87,14 @@ def test_user(db_session) -> Dict[str, str]:
     db_session.refresh(user)
 
     token = create_access_token({"sub": user.email})
-    return {"user_id": user.id, "token": token}
+    return {
+        "user_id": user.id, 
+        "email": user.email,
+        "username": user.username,
+        "password": "testpassword",  # Plain text password for testing
+        "token": token,
+        "access_token": token  # Add both for compatibility
+    }
 
 
 @pytest.fixture

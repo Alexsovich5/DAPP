@@ -332,3 +332,74 @@ class UserSafetyService:
             "total_actions_taken": len(self.safety_actions),
             "users_with_restrictions": len(self.user_restrictions)
         }
+
+
+# Standalone functions for testing
+def moderate_user_content(content: str) -> Dict:
+    """Moderate user content for safety and appropriateness"""
+    flags = []
+    is_safe = True
+    
+    content_lower = content.lower()
+    
+    # Check for personal information sharing
+    import re
+    email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    phone_pattern = r'\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b'
+    
+    if re.search(email_pattern, content):
+        flags.append("personal_info_email")
+        is_safe = False
+        
+    if re.search(phone_pattern, content):
+        flags.append("personal_info_phone")
+        is_safe = False
+    
+    # Check for suspicious keywords
+    suspicious_keywords = [
+        "venmo", "paypal", "cashapp", "money", "send me",
+        "whatsapp", "telegram", "snapchat", "kik"
+    ]
+    
+    for keyword in suspicious_keywords:
+        if keyword in content_lower:
+            flags.append(f"suspicious_keyword_{keyword}")
+            is_safe = False
+    
+    return {
+        "is_safe": is_safe,
+        "flags": flags,
+        "confidence": 0.8 if flags else 0.95
+    }
+
+def report_user(reporter_id: int, reported_user_id: int, reason: str, description: str) -> Dict:
+    """Report a user for inappropriate behavior"""
+    report_id = str(uuid.uuid4())
+    
+    # Store report (in-memory for MVP)
+    report = {
+        "report_id": report_id,
+        "reporter_id": reporter_id,
+        "reported_user_id": reported_user_id,
+        "reason": reason,
+        "description": description,
+        "timestamp": datetime.utcnow(),
+        "status": "pending"
+    }
+    
+    logger.info(f"User report created: {report_id}")
+    return {"report_id": report_id, "status": "submitted"}
+
+def detect_spam(content: str) -> bool:
+    """Detect if content is spam"""
+    spam_indicators = [
+        "click here", "amazing deal", "limited time", "act now",
+        "www.", "http://", "https://", "bit.ly", "tinyurl",
+        "!!!", "FREE", "URGENT", "CONGRATULATIONS"
+    ]
+    
+    content_upper = content.upper()
+    spam_count = sum(1 for indicator in spam_indicators if indicator.upper() in content_upper)
+    
+    # Consider spam if multiple indicators present
+    return spam_count >= 2

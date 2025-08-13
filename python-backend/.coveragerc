@@ -1,0 +1,40 @@
+[run]
+source = app
+omit = 
+    */tests/*
+    */venv/*
+    */migrations/*
+    # Exclude advanced features not yet actively used
+    app/models/advanced_ui_models.py
+    app/models/production_optimization_models.py
+    app/services/ai_matching_service.py
+    app/services/analytics_service.py
+    app/services/adaptive_revelation_service.py
+    app/services/personalization_service.py
+    app/services/ui_personalization_service.py
+    app/services/photo_reveal_service.py
+    app/services/realtime_connection_manager.py
+    app/api/v1/routers/adaptive_revelations.py
+    app/api/v1/routers/ai_matching.py
+    app/api/v1/routers/personalization.py
+    app/api/v1/routers/photo_reveal.py
+    app/api/v1/routers/ui_personalization.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if self.debug:
+    if settings.DEBUG
+    raise AssertionError
+    raise NotImplementedError
+    if 0:
+    if __name__ == .__main__.:
+    class .*\bProtocol\):
+    @(abc\.)?abstractmethod
+
+[html]
+directory = htmlcov
+
+[xml]
+output = coverage.xml

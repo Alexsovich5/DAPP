@@ -112,3 +112,19 @@ async def validation_error_handler(request: Request, exc: ValidationError):
             "Access-Control-Allow-Credentials": "true",
         },
     )
+
+
+def get_secure_cors_config() -> dict:
+    """Get secure CORS configuration for error responses"""
+    return {
+        "allow_origins": [
+            "http://localhost:4200",
+            "http://localhost:5001", 
+            "http://127.0.0.1:4200",
+            "http://127.0.0.1:5001"
+        ],
+        "allow_credentials": True,
+        "allow_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+        "allow_headers": ["Accept", "Authorization", "Content-Type", "X-Requested-With"],
+        "expose_headers": ["X-Request-ID"]
+    }

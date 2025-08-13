@@ -119,7 +119,8 @@ async def security_headers_middleware(request: Request, call_next: Callable) -> 
         response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
         
         # Server identification protection
-        response.headers.pop("server", None)  # Remove server header if present
+        if "server" in response.headers:
+            del response.headers["server"]  # Remove server header if present
         
         # Custom security headers for dating platform
         response.headers["X-Dating-Platform-Security"] = "soul-before-skin"
