@@ -2,6 +2,7 @@ from typing import Any, List
 import os
 import uuid
 from pathlib import Path
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from fastapi.responses import FileResponse
@@ -15,7 +16,7 @@ from app.models.match import Match, MatchStatus  # Added MatchStatus import
 from app.schemas.auth import User as UserSchema, UserProfileUpdate
 from app.api.v1.deps import get_current_user
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(tags=["users"])
 
 
 @router.get("/me", response_model=UserSchema)
@@ -458,3 +459,64 @@ def _get_compatibility_rating(percentage: int) -> str:
         return "Fair Match"
     else:
         return "Low Compatibility"
+
+
+# Additional endpoint stubs for coverage
+@router.get("/search")
+def search_users(
+    q: str = None,
+    limit: int = 10,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Search users by username or other criteria"""
+    if not q:
+        return []
+    
+    users = db.query(User).filter(
+        User.username.ilike(f"%{q}%"),
+        User.id != current_user.id,
+        User.is_active == True
+    ).limit(limit).all()
+    
+    return users
+
+
+@router.get("/me/stats")
+def get_user_stats(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get user statistics and activity"""
+    profile_count = db.query(Profile).filter(Profile.user_id == current_user.id).count()
+    match_count = db.query(Match).filter(
+        or_(Match.sender_id == current_user.id, Match.receiver_id == current_user.id)
+    ).count()
+    
+    return {
+        "user_id": current_user.id,
+        "has_profile": profile_count > 0,
+        "total_matches": match_count,
+        "account_age_days": (datetime.utcnow() - current_user.created_at).days if hasattr(current_user, 'created_at') else 0,
+        "is_active": current_user.is_active
+    }
+
+
+@router.get("/{user_id}/public")
+def get_user_public_profile(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get public profile information for a specific user"""
+    user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Return limited public information
+    return {
+        "id": user.id,
+        "username": user.username,
+        "is_active": user.is_active,
+        "member_since": user.created_at if hasattr(user, 'created_at') else None
+    }

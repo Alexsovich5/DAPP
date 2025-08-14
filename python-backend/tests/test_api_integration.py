@@ -178,12 +178,10 @@ class TestMatchingIntegration:
             "/api/v1/users/potential-matches",
             headers={"Authorization": f"Bearer {test_user['access_token']}"}
         )
-        # May return 200 (implemented) or 404 (not implemented)
-        assert response.status_code in [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND]
-        
-        if response.status_code == status.HTTP_200_OK:
-            matches = response.json()
-            assert isinstance(matches, list)
+        # Expect implemented endpoint to respond OK and return a list
+        assert response.status_code == status.HTTP_200_OK
+        matches = response.json()
+        assert isinstance(matches, list)
 
     def test_match_creation_workflow(self, client, test_user, db_session):
         """Test creating matches between users"""
@@ -209,13 +207,12 @@ class TestMatchingIntegration:
             headers={"Authorization": f"Bearer {test_user['access_token']}"},
             json=match_data
         )
-        # May return 200 (created), 404 (not implemented), or 400 (validation error)
-        assert response.status_code in [
-            status.HTTP_200_OK,
-            status.HTTP_201_CREATED,
-            status.HTTP_400_BAD_REQUEST,
-            status.HTTP_404_NOT_FOUND
-        ]
+        # Should create a match when input is valid
+        assert response.status_code in [status.HTTP_200_OK, status.HTTP_201_CREATED]
+        body = response.json()
+        assert body
+        # Accept either field name depending on router schema
+        assert body.get("target_user_id") == target_user.id or body.get("receiver_id") == target_user.id
 
 
 class TestMessageIntegration:
@@ -246,22 +243,20 @@ class TestMessageIntegration:
             headers={"Authorization": f"Bearer {test_user['access_token']}"},
             json=message_data
         )
-        # May return 200/201 (sent) or 404 (not implemented)
-        assert send_response.status_code in [
-            status.HTTP_200_OK,
-            status.HTTP_201_CREATED,
-            status.HTTP_404_NOT_FOUND
-        ]
+        # Should accept a valid message payload
+        assert send_response.status_code in [status.HTTP_200_OK, status.HTTP_201_CREATED]
+        msg_body = send_response.json()
+        assert msg_body
+        assert msg_body.get("recipient_id") == recipient.id or msg_body.get("conversation_id")
         
         # Test retrieving messages
         get_response = client.get(
             f"/api/v1/messages/{recipient.id}",
             headers={"Authorization": f"Bearer {test_user['access_token']}"}
         )
-        assert get_response.status_code in [
-            status.HTTP_200_OK,
-            status.HTTP_404_NOT_FOUND
-        ]
+        assert get_response.status_code == status.HTTP_200_OK
+        msgs = get_response.json()
+        assert isinstance(msgs, list)
 
     def test_message_validation_and_safety(self, client, test_user, db_session):
         """Test message content validation and safety"""
@@ -288,11 +283,7 @@ class TestMessageIntegration:
             json=empty_message
         )
         # Should reject empty messages
-        assert response.status_code in [
-            status.HTTP_400_BAD_REQUEST,
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
-            status.HTTP_404_NOT_FOUND
-        ]
+        assert response.status_code in [status.HTTP_400_BAD_REQUEST, status.HTTP_422_UNPROCESSABLE_ENTITY]
         
         # Test very long message
         long_message = {
@@ -307,11 +298,7 @@ class TestMessageIntegration:
             json=long_message
         )
         # Should reject overly long messages
-        assert response.status_code in [
-            status.HTTP_400_BAD_REQUEST,
-            status.HTTP_422_UNPROCESSABLE_ENTITY,
-            status.HTTP_404_NOT_FOUND
-        ]
+        assert response.status_code in [status.HTTP_400_BAD_REQUEST, status.HTTP_422_UNPROCESSABLE_ENTITY]
 
 
 class TestErrorHandling:

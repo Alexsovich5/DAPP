@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Dict, Any
+from datetime import datetime
 import logging
 
 from app.core.database import get_db
@@ -341,7 +342,7 @@ def update_revelation(
 @router.post("/share/{connection_id}")
 def share_revelation(
     connection_id: int,
-    revelation_data: dict,
+    revelation_data: Dict[str, Any],
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -387,13 +388,16 @@ def share_revelation(
         
         db.add(revelation)
         
-        # Update user's revelation count
-        current_user.total_revelations_shared += 1
+        # Update user's revelation count if field exists
+        if hasattr(current_user, 'total_revelations_shared'):
+            current_user.total_revelations_shared += 1
         
-        # Update connection progress
-        connection.last_activity_at = datetime.utcnow()
+        # Update connection progress  
+        if hasattr(connection, 'last_activity_at'):
+            connection.last_activity_at = datetime.utcnow()
         if current_day == 7:
-            connection.connection_stage = "photo_reveal"
+            if hasattr(connection, 'connection_stage'):
+                connection.connection_stage = "photo_reveal"
         
         db.commit()
         
@@ -493,20 +497,28 @@ def give_photo_consent(
             raise HTTPException(status_code=404, detail="Connection not found")
         
         # Update consent based on which user is giving it
-        if connection.user1_id == current_user.id:
-            connection.user1_photo_consent = True
-        else:
-            connection.user2_photo_consent = True
+        if hasattr(connection, 'user1_photo_consent') and hasattr(connection, 'user2_photo_consent'):
+            if connection.user1_id == current_user.id:
+                connection.user1_photo_consent = True
+            else:
+                connection.user2_photo_consent = True
         
-        # Update user's global photo sharing consent
-        current_user.photo_sharing_consent = True
+        # Update user's global photo sharing consent if field exists
+        if hasattr(current_user, 'photo_sharing_consent'):
+            current_user.photo_sharing_consent = True
         
         # Check if both have consented
-        mutual_consent = connection.has_mutual_photo_consent()
+        mutual_consent = False
+        if hasattr(connection, 'has_mutual_photo_consent'):
+            mutual_consent = connection.has_mutual_photo_consent()
+        elif hasattr(connection, 'user1_photo_consent') and hasattr(connection, 'user2_photo_consent'):
+            mutual_consent = connection.user1_photo_consent and connection.user2_photo_consent
         
         if mutual_consent:
-            connection.photo_revealed_at = datetime.utcnow()
-            connection.connection_stage = "dinner_planning"
+            if hasattr(connection, 'photo_revealed_at'):
+                connection.photo_revealed_at = datetime.utcnow()
+            if hasattr(connection, 'connection_stage'):
+                connection.connection_stage = "dinner_planning"
         
         db.commit()
         

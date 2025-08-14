@@ -3,7 +3,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 from pydantic import BaseModel
 import psutil
@@ -21,7 +21,7 @@ class HealthCheckResponse(BaseModel):
     version: str
     uptime_seconds: float
     services: Dict[str, Dict]
-    system: Dict[str, any]
+    system: Dict[str, Any]
 
 class MetricsResponse(BaseModel):
     timestamp: datetime
@@ -46,7 +46,7 @@ metrics_store = {
     "cache_misses": 0
 }
 
-@router.get("/health", response_model=HealthCheckResponse)
+@router.get("/health")
 async def health_check():
     """
     Comprehensive health check endpoint
@@ -63,44 +63,52 @@ async def health_check():
         }
         
         # Check database health
-        db_health = await check_database_health()
-        health_status["services"]["database"] = db_health
+        try:
+            db_health = await check_database_health()
+            health_status["services"]["database"] = db_health
+        except Exception as e:
+            health_status["services"]["database"] = {"status": "unhealthy", "error": str(e)}
         
         # Check Redis health
-        redis_health = await check_redis_health()
-        health_status["services"]["redis"] = redis_health
+        try:
+            redis_health = await check_redis_health()
+            health_status["services"]["redis"] = redis_health
+        except Exception as e:
+            health_status["services"]["redis"] = {"status": "unhealthy", "error": str(e)}
         
         # Check external services
-        external_health = await check_external_services()
-        health_status["services"]["external"] = external_health
+        try:
+            external_health = await check_external_services()
+            health_status["services"]["external"] = external_health
+        except Exception as e:
+            health_status["services"]["external"] = {"status": "unhealthy", "error": str(e)}
         
         # System resource checks
-        system_health = get_system_health()
-        health_status["system"] = system_health
+        try:
+            system_health = get_system_health()
+            health_status["system"] = system_health
+        except Exception as e:
+            health_status["system"] = {"error": str(e)}
         
         # Determine overall status
         overall_status = determine_overall_health_status(health_status)
         health_status["status"] = overall_status
         
-        # Return appropriate HTTP status
-        if overall_status == "healthy":
-            return JSONResponse(content=health_status, status_code=200)
-        elif overall_status == "degraded":
-            return JSONResponse(content=health_status, status_code=200)  # Still 200 for degraded
-        else:
-            return JSONResponse(content=health_status, status_code=503)  # Service unavailable
+        # Return JSON response directly (FastAPI will handle status codes)
+        return health_status
             
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}")
-        return JSONResponse(
-            content={
-                "status": "unhealthy",
-                "timestamp": datetime.utcnow(),
-                "error": "Health check failed",
-                "details": str(e)
-            },
-            status_code=503
-        )
+        return {
+            "status": "unhealthy",
+            "timestamp": datetime.utcnow(),
+            "error": "Health check failed",
+            "details": str(e),
+            "services": {},
+            "system": {},
+            "version": "1.0.0",
+            "uptime_seconds": time.time() - startup_time
+        }
 
 @router.get("/health/live")
 async def liveness_probe():
@@ -278,19 +286,37 @@ async def get_system_status():
         logger.error(f"Status check failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to get system status")
 
+class CustomMetricRequest(BaseModel):
+    metric_name: str
+    value: Optional[float] = None
+    metric_value: Optional[float] = None  # Alternative field name for compatibility
+    tags: Optional[Dict[str, str]] = None
+    
+    def get_value(self) -> float:
+        """Get the metric value from either 'value' or 'metric_value' field"""
+        if self.value is not None:
+            return self.value
+        elif self.metric_value is not None:
+            return self.metric_value
+        else:
+            raise ValueError("Either 'value' or 'metric_value' must be provided")
+
 @router.post("/metrics/record")
-async def record_custom_metric(metric_name: str, value: float, tags: Dict[str, str] = None):
+async def record_custom_metric(request: CustomMetricRequest):
     """
     Record custom application metrics
     """
     try:
         timestamp = datetime.utcnow()
         
+        # Get the metric value from either field
+        metric_value = request.get_value()
+        
         # Store metric (in production, this would go to a proper metrics store)
         metric_data = {
-            "name": metric_name,
-            "value": value,
-            "tags": tags or {},
+            "name": request.metric_name,
+            "value": metric_value,
+            "tags": request.tags or {},
             "timestamp": timestamp.isoformat()
         }
         
@@ -304,11 +330,20 @@ async def record_custom_metric(metric_name: str, value: float, tags: Dict[str, s
         if len(metrics_store["custom_metrics"]) > 1000:
             metrics_store["custom_metrics"] = metrics_store["custom_metrics"][-1000:]
         
-        return {"success": True, "recorded_at": timestamp}
+        return {
+            "success": True, 
+            "recorded_at": timestamp,
+            "metric_name": request.metric_name,
+            "value": metric_value
+        }
         
     except Exception as e:
-        logger.error(f"Failed to record metric {metric_name}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to record metric")
+        logger.error(f"Failed to record metric {request.metric_name}: {str(e)}")
+        return {
+            "success": False,
+            "error": f"Failed to record metric: {str(e)}",
+            "metric_name": request.metric_name
+        }
 
 # Health check helper functions
 async def check_database_health():

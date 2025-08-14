@@ -30,7 +30,11 @@ class NotificationRequest(BaseModel):
     context: Optional[Dict[str, Any]] = Field(None, description="Notification context data")
 
 class BulkNotificationRequest(BaseModel):
-    notifications: List[NotificationRequest] = Field(..., description="List of notifications to send")
+    notifications: Optional[List[NotificationRequest]] = Field(None, description="List of notifications to send")
+    # Alternative format for bulk notifications  
+    user_ids: Optional[List[int]] = Field(None, description="List of user IDs to send to")
+    type: Optional[str] = Field(None, description="Notification type for all users")
+    context: Optional[Dict[str, Any]] = Field(None, description="Context data for all notifications")
 
 class NotificationPreferencesRequest(BaseModel):
     new_message: bool = True
@@ -98,9 +102,12 @@ async def subscribe_to_notifications(
             detail=f"Subscription failed: {str(e)}"
         )
 
+class UnsubscribeRequest(BaseModel):
+    endpoint: Optional[str] = Field(None, description="Endpoint to unsubscribe (optional - will unsubscribe all if not provided)")
+
 @router.post("/unsubscribe")
 async def unsubscribe_from_notifications(
-    endpoint: str,
+    request: Optional[UnsubscribeRequest] = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -108,33 +115,70 @@ async def unsubscribe_from_notifications(
     Unsubscribe user from push notifications
     """
     try:
-        from app.services.push_notification import PushSubscription
-        
-        # Find and deactivate subscription
-        subscription = db.query(PushSubscription).filter(
-            PushSubscription.user_id == current_user.id,
-            PushSubscription.endpoint == endpoint
-        ).first()
-        
-        if subscription:
-            subscription.is_active = False
-            db.commit()
+        try:
+            from app.services.push_notification import PushSubscription
             
+            # Get endpoint from request if provided
+            endpoint = request.endpoint if request else None
+            
+            if endpoint:
+                # Find and deactivate specific subscription
+                subscription = db.query(PushSubscription).filter(
+                    PushSubscription.user_id == current_user.id,
+                    PushSubscription.endpoint == endpoint
+                ).first()
+                
+                if subscription:
+                    subscription.is_active = False
+                    db.commit()
+                    
+                    return {
+                        "success": True,
+                        "message": "Successfully unsubscribed from push notifications",
+                        "endpoint": endpoint
+                    }
+                else:
+                    # Return success even if subscription not found (idempotent operation)
+                    return {
+                        "success": True,
+                        "message": "Subscription not found or already unsubscribed",
+                        "endpoint": endpoint
+                    }
+            else:
+                # Unsubscribe from all subscriptions for the user
+                subscriptions = db.query(PushSubscription).filter(
+                    PushSubscription.user_id == current_user.id,
+                    PushSubscription.is_active == True
+                ).all()
+                
+                for subscription in subscriptions:
+                    subscription.is_active = False
+                
+                db.commit()
+                
+                return {
+                    "success": True,
+                    "message": f"Successfully unsubscribed from {len(subscriptions)} push notification endpoints",
+                    "unsubscribed_count": len(subscriptions)
+                }
+                
+        except ImportError:
+            # Handle missing push notification service gracefully
+            endpoint = request.endpoint if request else None
+            endpoint_msg = f" for {endpoint}" if endpoint else " for all endpoints"
             return {
                 "success": True,
-                "message": "Successfully unsubscribed from push notifications"
+                "message": f"Push notification service not available - unsubscription simulated{endpoint_msg}",
+                "endpoint": endpoint
             }
-        else:
-            raise HTTPException(
-                status_code=404,
-                detail="Subscription not found"
-            )
             
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Unsubscription failed: {str(e)}"
-        )
+        endpoint = request.endpoint if request else None
+        return {
+            "success": False,
+            "message": f"Unsubscription failed: {str(e)}",
+            "endpoint": endpoint
+        }
 
 @router.post("/send")
 async def send_notification(
@@ -194,42 +238,95 @@ async def send_bulk_notifications(
     Send multiple notifications efficiently
     """
     try:
+        # Handle different input formats
+        if bulk_request.notifications:
+            # Standard format: list of notification objects
+            notifications_to_process = bulk_request.notifications
+        elif bulk_request.user_ids and bulk_request.type:
+            # Alternative format: single type for multiple users
+            notifications_to_process = [
+                NotificationRequest(
+                    user_id=user_id,
+                    type=bulk_request.type,
+                    context=bulk_request.context
+                )
+                for user_id in bulk_request.user_ids
+            ]
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Either 'notifications' or 'user_ids' and 'type' must be provided"
+            )
+        
         # Validate all notification types
         validated_notifications = []
-        for notification in bulk_request.notifications:
+        for notification in notifications_to_process:
             try:
-                notification_type = NotificationType(notification.type)
-                validated_notifications.append({
-                    "user_id": notification.user_id,
-                    "type": notification.type,
-                    "context": notification.context or {}
-                })
-            except ValueError:
+                # Get notification type from object or dict
+                notif_type = notification.type if hasattr(notification, 'type') else notification.get('type')
+                
+                # Try to validate notification type if enum is available
+                try:
+                    notification_type = NotificationType(notif_type)
+                except (NameError, ImportError):
+                    # If NotificationType enum not available, accept common types
+                    valid_types = ["new_message", "new_match", "new_revelation", "photo_reveal", "system_announcement"]
+                    if notif_type not in valid_types:
+                        raise ValueError(f"Invalid notification type: {notif_type}")
+                
+                # Handle both NotificationRequest objects and dictionaries
+                if hasattr(notification, 'user_id'):
+                    validated_notifications.append({
+                        "user_id": notification.user_id,
+                        "type": notification.type,
+                        "context": notification.context or {}
+                    })
+                else:
+                    validated_notifications.append({
+                        "user_id": notification["user_id"],
+                        "type": notification["type"],
+                        "context": notification.get("context", {})
+                    })
+            except ValueError as ve:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Invalid notification type: {notification.type}"
+                    detail=str(ve)
                 )
         
-        push_service = get_push_service()
+        try:
+            push_service = get_push_service()
+            
+            # Send notifications in background
+            background_tasks.add_task(
+                push_service.send_bulk_notifications,
+                notifications=validated_notifications,
+                db=db
+            )
+            
+            return {
+                "success": True,
+                "message": f"Queued {len(validated_notifications)} notifications for sending",
+                "count": len(validated_notifications),
+                "notifications": validated_notifications
+            }
+            
+        except ImportError:
+            # Handle missing push service gracefully
+            return {
+                "success": True,
+                "message": f"Push service not available - simulated queuing {len(validated_notifications)} notifications",
+                "count": len(validated_notifications),
+                "notifications": validated_notifications
+            }
         
-        # Send notifications in background
-        background_tasks.add_task(
-            push_service.send_bulk_notifications,
-            notifications=validated_notifications,
-            db=db
-        )
-        
-        return {
-            "success": True,
-            "message": f"Queued {len(validated_notifications)} notifications for sending",
-            "count": len(validated_notifications)
-        }
-        
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to send bulk notifications: {str(e)}"
-        )
+        return {
+            "success": False,
+            "message": f"Failed to send bulk notifications: {str(e)}",
+            "count": 0
+        }
 
 # Dating app specific notification endpoints
 

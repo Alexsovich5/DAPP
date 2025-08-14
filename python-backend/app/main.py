@@ -21,6 +21,10 @@ from app.api.v1.routers import (
     personalization,
     adaptive_revelations,
     ui_personalization,
+    analytics_api,
+    notifications,
+    monitoring,
+    websocket,
 )
 from app.api.v1.routers import chat as chat_router
 from app.api.v1.routers import safety as safety_router
@@ -58,6 +62,24 @@ try:
     logger.info("Database tables created successfully")
 except Exception as e:
     logger.error(f"Error creating database tables: {str(e)}")
+
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "message": "Dinner First API is running"}
+
+
+@app.get("/ready")
+async def readiness_check():
+    """Readiness probe for Kubernetes"""
+    return {"status": "ready", "message": "Service is ready to accept traffic"}
+
+
+@app.get("/alive")
+async def liveness_check():  
+    """Liveness probe for Kubernetes"""
+    return {"status": "alive", "message": "Service is alive"}
 
 # Create API routers for v1
 v1_app = FastAPI(
@@ -143,6 +165,29 @@ v1_app.include_router(
 v1_app.include_router(chat_router.router, tags=["chat"])
 v1_app.include_router(safety_router.router)
 # v1_app.include_router(analytics_router.router)  # Temporarily disabled
+
+# Phase 7: Additional System Features  
+v1_app.include_router(
+    analytics_api.router,
+    prefix="/analytics",
+    tags=["analytics-api"],
+)
+v1_app.include_router(
+    notifications.router,
+    prefix="/notifications", 
+    tags=["notifications"],
+)
+v1_app.include_router(
+    monitoring.router,
+    prefix="/monitoring",
+    tags=["monitoring"],
+)
+v1_app.include_router(
+    websocket.router,
+    prefix="/websocket",
+    tags=["websocket"],
+)
+
 # Add profile aliases for Angular compatibility
 v1_app.include_router(
     profiles.router, prefix="/profile", tags=["profile-alias"]

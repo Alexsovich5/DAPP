@@ -11,7 +11,7 @@ from app.models.user import User
 logger = logging.getLogger(__name__)
 
 
-async def get_current_user(
+def get_current_user(
     request: Request = None,
     db: Session = Depends(get_db),
     token: str = Depends(oauth2_scheme),
@@ -25,6 +25,15 @@ async def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+    # Handle missing token
+    if not token:
+        logger.warning("No authorization token provided")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing authorization header",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     # Get client info for logging
     client_host = request.client.host if request else "unknown"
@@ -61,7 +70,7 @@ async def get_current_user(
     return user
 
 
-async def get_current_user_websocket(token: str, db: Session) -> Optional[User]:
+def get_current_user_websocket(token: str, db: Session) -> Optional[User]:
     """
     Validate JWT token for WebSocket connections and return the current user.
     Returns None if authentication fails (no exceptions for WebSocket).
@@ -93,3 +102,16 @@ async def get_current_user_websocket(token: str, db: Session) -> Optional[User]:
     except Exception as e:
         logger.error(f"WebSocket authentication error: {str(e)}")
         return None
+
+
+def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
+    """
+    Get the current active user (depends on get_current_user).
+    This is a convenience dependency for endpoints that require active users.
+    """
+    if not current_user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Inactive user"
+        )
+    return current_user

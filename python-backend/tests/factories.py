@@ -197,6 +197,9 @@ class UserPhotoFactory(factory.alchemy.SQLAlchemyModelFactory):
     upload_timestamp = factory.LazyAttribute(lambda obj: fake.date_time_this_week())
 
 
+# Backwards-compatible alias used by some fixtures/tests
+PhotoRevealFactory = UserPhotoFactory
+
 def setup_factories(session: Session):
     """Setup factories with database session"""
     UserFactory._meta.sqlalchemy_session = session

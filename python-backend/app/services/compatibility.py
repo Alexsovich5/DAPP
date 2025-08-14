@@ -130,87 +130,121 @@ class CompatibilityCalculator:
         else:
             return 0.2
 
-    def calculate_location_compatibility(self, location1: str, location2: str) -> float:
+    def calculate_location_compatibility(self, location1, location2) -> float:
         """
-        Simple location compatibility based on string matching.
-        For MVP, basic city/state matching. Can be enhanced with geocoding.
+        Calculate location compatibility supporting both string and dict formats.
         Returns: 0.0 to 1.0 based on location similarity
         """
         if not location1 or not location2:
             return 0.5  # Neutral if location not provided
+        
+        # Handle dictionary format
+        if isinstance(location1, dict) and isinstance(location2, dict):
+            # Same city check
+            if (location1.get("city") and location2.get("city") and 
+                location1["city"].lower() == location2["city"].lower()):
+                return 1.0
             
-        loc1_lower = location1.lower().strip()
-        loc2_lower = location2.lower().strip()
+            # Same state check
+            if (location1.get("state") and location2.get("state") and 
+                location1["state"].lower() == location2["state"].lower()):
+                return 0.8
+            
+            # Same country check
+            if (location1.get("country") and location2.get("country") and 
+                location1["country"].lower() == location2["country"].lower()):
+                return 0.4
+            
+            return 0.2  # Different countries
         
-        # Exact match
-        if loc1_lower == loc2_lower:
-            return 1.0
+        # Handle string format (legacy support)
+        if isinstance(location1, str) and isinstance(location2, str):
+            loc1_lower = location1.lower().strip()
+            loc2_lower = location2.lower().strip()
+            
+            # Exact match
+            if loc1_lower == loc2_lower:
+                return 1.0
+            
+            # City match (assuming format: "City, State")
+            city1 = loc1_lower.split(',')[0].strip()
+            city2 = loc2_lower.split(',')[0].strip()
+            
+            if city1 == city2:
+                return 0.9
+            
+            # State match
+            if ',' in loc1_lower and ',' in loc2_lower:
+                state1 = loc1_lower.split(',')[-1].strip()
+                state2 = loc2_lower.split(',')[-1].strip()
+                if state1 == state2:
+                    return 0.6
+            
+            return 0.3  # Different locations but willing to consider
         
-        # City match (assuming format: "City, State")
-        city1 = loc1_lower.split(',')[0].strip()
-        city2 = loc2_lower.split(',')[0].strip()
-        
-        if city1 == city2:
-            return 0.9
-        
-        # State match
-        if ',' in loc1_lower and ',' in loc2_lower:
-            state1 = loc1_lower.split(',')[-1].strip()
-            state2 = loc2_lower.split(',')[-1].strip()
-            if state1 == state2:
-                return 0.6
-        
-        return 0.3  # Different locations but willing to consider
+        return 0.5  # Mixed format or invalid data
 
-    def calculate_demographic_compatibility(self, user1_data: Dict, user2_data: Dict) -> float:
+    def calculate_demographic_compatibility(self, user1, user2) -> float:
         """
         Calculate compatibility based on age and location.
+        Supports both dict and object formats.
         Returns: 0.0 to 1.0 based on demographic alignment
         """
         age_score = 0.5  # Default if age not available
         location_score = 0.5  # Default if location not available
         
+        # Handle both dict and object formats for user data
+        if isinstance(user1, dict):
+            user1_age = user1.get('age')
+            user1_location = user1.get('location')
+        else:
+            user1_age = getattr(user1, 'age', None)
+            user1_location = getattr(user1, 'location', None)
+        
+        if isinstance(user2, dict):
+            user2_age = user2.get('age')
+            user2_location = user2.get('location')
+        else:
+            user2_age = getattr(user2, 'age', None)
+            user2_location = getattr(user2, 'location', None)
+        
         # Calculate age compatibility
-        if user1_data.get('age') and user2_data.get('age'):
-            age_score = self.calculate_age_compatibility(
-                user1_data['age'], 
-                user2_data['age']
-            )
+        if user1_age and user2_age:
+            age_score = self.calculate_age_compatibility(user1_age, user2_age)
         
         # Calculate location compatibility
-        if user1_data.get('location') and user2_data.get('location'):
-            location_score = self.calculate_location_compatibility(
-                user1_data['location'], 
-                user2_data['location']
-            )
+        if user1_location and user2_location:
+            location_score = self.calculate_location_compatibility(user1_location, user2_location)
         
         return (age_score * 0.4) + (location_score * 0.6)
 
-    def calculate_overall_compatibility(self, user1_data: Dict, user2_data: Dict) -> Dict[str, Any]:
+    def calculate_overall_compatibility(self, user1, user2) -> Dict[str, Any]:
         """
         Calculate comprehensive compatibility score between two users.
+        Supports both dict and object formats.
         
-        Args:
-            user1_data: Dict containing user1's profile data
-            user2_data: Dict containing user2's profile data
-            
         Returns:
             Dict with total compatibility, breakdown, and match quality
         """
+        # Extract data from user objects or dicts
+        if hasattr(user1, 'emotional_profile'):
+            user1_interests = user1.emotional_profile.interests
+            user1_values = user1.emotional_profile.core_values
+        else:
+            user1_interests = user1.get('interests', []) if isinstance(user1, dict) else []
+            user1_values = user1.get('core_values', {}) if isinstance(user1, dict) else {}
+        
+        if hasattr(user2, 'emotional_profile'):
+            user2_interests = user2.emotional_profile.interests
+            user2_values = user2.emotional_profile.core_values
+        else:
+            user2_interests = user2.get('interests', []) if isinstance(user2, dict) else []
+            user2_values = user2.get('core_values', {}) if isinstance(user2, dict) else {}
+        
         # Calculate individual scores
-        interest_score = self.calculate_interest_similarity(
-            user1_data.get('interests', []), 
-            user2_data.get('interests', [])
-        )
-        
-        values_score = self.calculate_values_compatibility(
-            user1_data.get('core_values', {}), 
-            user2_data.get('core_values', {})
-        )
-        
-        demographic_score = self.calculate_demographic_compatibility(
-            user1_data, user2_data
-        )
+        interest_score = self.calculate_interest_similarity(user1_interests, user2_interests)
+        values_score = self.calculate_values_compatibility(user1_values, user2_values)
+        demographic_score = self.calculate_demographic_compatibility(user1, user2)
         
         # For MVP, simplified communication and personality scoring
         communication_score = 0.7  # Default moderate compatibility
@@ -234,24 +268,24 @@ class CompatibilityCalculator:
                 "communication": round(communication_score * 100, 1),
                 "personality": round(personality_score * 100, 1)
             },
-            "match_quality": self._get_match_quality_label(total_score),
+            "match_quality": self.get_match_quality_label(total_score),
             "explanation": self._generate_compatibility_explanation(
                 total_score, interest_score, values_score, demographic_score
             )
         }
 
-    def _get_match_quality_label(self, score: float) -> str:
+    def get_match_quality_label(self, score: float) -> str:
         """Convert compatibility score to descriptive label."""
-        if score >= 0.8:
-            return "Exceptional Soul Connection"
-        elif score >= 0.7:
-            return "Strong Compatibility"
-        elif score >= 0.6:
-            return "Good Potential"
-        elif score >= 0.5:
-            return "Moderate Match"
+        if score >= 0.85:
+            return "excellent"
+        elif score >= 0.70:
+            return "very_good"
+        elif score >= 0.55:
+            return "good"
+        elif score >= 0.40:
+            return "fair"
         else:
-            return "Explore Further"
+            return "poor"
 
     def _generate_compatibility_explanation(self, total: float, interests: float, values: float, demographics: float) -> str:
         """Generate human-readable explanation of compatibility."""
@@ -274,6 +308,72 @@ class CompatibilityCalculator:
             explanations.append("potential for discovering unexpected connections")
         
         return "This match shows " + " and ".join(explanations) + "."
+
+    def calculate_personality_compatibility(self, traits1: Dict, traits2: Dict) -> float:
+        """
+        Calculate personality compatibility based on trait differences.
+        Returns: 0.0 to 1.0 based on personality alignment
+        """
+        if not traits1 or not traits2:
+            return 0.0
+        
+        # Find common traits
+        common_traits = set(traits1.keys()).intersection(set(traits2.keys()))
+        if not common_traits:
+            return 0.0
+        
+        # Calculate compatibility for each common trait
+        trait_scores = []
+        for trait in common_traits:
+            # Calculate similarity (1 - absolute difference)
+            diff = abs(traits1[trait] - traits2[trait])
+            similarity = 1.0 - diff
+            trait_scores.append(similarity)
+        
+        return sum(trait_scores) / len(trait_scores)
+
+    def calculate_communication_compatibility(self, style1: Dict, style2: Dict) -> float:
+        """
+        Calculate communication style compatibility.
+        Returns: 0.0 to 1.0 based on communication alignment
+        """
+        if not style1 or not style2:
+            return 0.0
+        
+        compatibility_scores = []
+        
+        # Numeric style comparisons
+        numeric_styles = ["directness", "emotional_expression"]
+        for style in numeric_styles:
+            if style in style1 and style in style2:
+                diff = abs(style1[style] - style2[style])
+                similarity = 1.0 - diff
+                compatibility_scores.append(similarity)
+        
+        # Categorical style comparisons
+        categorical_styles = ["conflict_resolution"]
+        for style in categorical_styles:
+            if style in style1 and style in style2:
+                if style1[style] == style2[style]:
+                    compatibility_scores.append(1.0)
+                else:
+                    compatibility_scores.append(0.3)  # Some compatibility even if different
+        
+        return sum(compatibility_scores) / len(compatibility_scores) if compatibility_scores else 0.0
+
+    def _normalize_score(self, score: float) -> float:
+        """Normalize score to 0.0-1.0 range."""
+        return max(0.0, min(1.0, score))
+
+    def _weighted_average(self, scores: List[float], weights: List[float]) -> float:
+        """Calculate weighted average of scores."""
+        if not scores or not weights or len(scores) != len(weights):
+            return 0.0
+        
+        weighted_sum = sum(score * weight for score, weight in zip(scores, weights))
+        weight_sum = sum(weights)
+        
+        return weighted_sum / weight_sum if weight_sum > 0 else 0.0
 
 
 def get_compatibility_calculator() -> CompatibilityCalculator:

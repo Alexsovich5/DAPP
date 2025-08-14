@@ -266,3 +266,79 @@ async def approve_verification(
 
     db.commit()
     return {"message": "Profile verification approved"}
+
+
+# Additional endpoint stubs for coverage
+@router.get("/public/{user_id}")
+def get_public_profile(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get public profile for a user"""
+    profile = db.query(Profile).filter(Profile.user_id == user_id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Return limited public information
+    return {
+        "full_name": profile.full_name,
+        "bio": profile.bio,
+        "location": profile.location,
+        "cuisine_preferences": profile.cuisine_preferences
+    }
+
+
+@router.get("/search")
+def search_profiles(
+    location: str = None,
+    cuisine: str = None,
+    limit: int = 10,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Search profiles by criteria"""
+    query = db.query(Profile).filter(Profile.user_id != current_user.id)
+    
+    if location:
+        query = query.filter(Profile.location.ilike(f"%{location}%"))
+    if cuisine:
+        query = query.filter(Profile.cuisine_preferences.ilike(f"%{cuisine}%"))
+    
+    profiles = query.limit(limit).all()
+    return profiles
+
+
+@router.get("/stats")
+def get_profile_stats(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get profile statistics"""
+    profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
+    
+    total_profiles = db.query(Profile).count()
+    profiles_in_location = 0
+    
+    if profile and profile.location:
+        profiles_in_location = db.query(Profile).filter(
+            Profile.location.ilike(f"%{profile.location.split(',')[0]}%")
+        ).count()
+    
+    return {
+        "has_profile": profile is not None,
+        "total_profiles": total_profiles,
+        "profiles_in_area": profiles_in_location,
+        "profile_completion": _calculate_profile_completion(profile) if profile else 0
+    }
+
+
+def _calculate_profile_completion(profile: Profile) -> int:
+    """Calculate profile completion percentage"""
+    if not profile:
+        return 0
+    
+    fields = [profile.full_name, profile.bio, profile.location, profile.cuisine_preferences]
+    completed_fields = sum(1 for field in fields if field and field.strip())
+    
+    return int((completed_fields / len(fields)) * 100)

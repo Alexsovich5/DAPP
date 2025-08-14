@@ -1,3 +1,5 @@
+import os
+import random
 import pytest
 import asyncio
 from typing import Generator, Dict, Any
@@ -6,6 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import database_exists, create_database, drop_database
 from httpx import AsyncClient
+from faker import Faker
 
 from app.core.database import Base, get_db
 from app.main import app
@@ -21,8 +24,12 @@ from tests.factories import (
     setup_factories, create_complete_soul_connection
 )
 
-# Test database URL
-TEST_DATABASE_URL = "postgresql://postgres@localhost/test_dinner_app"
+# Seed randomness for deterministic tests
+random.seed(1)
+Faker.seed(1)
+
+# Test database URL (safe default to SQLite in-memory)
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "sqlite:///file::memory:?cache=shared")
 
 # Create test database engine
 engine = create_engine(TEST_DATABASE_URL)
@@ -33,14 +40,21 @@ TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 @pytest.fixture(scope="session")
 def test_db():
-    """Create test database and tables"""
-    if database_exists(TEST_DATABASE_URL):
-        drop_database(TEST_DATABASE_URL)
+    """Create test database and tables with safe drop/create behavior"""
+    is_sqlite = TEST_DATABASE_URL.startswith("sqlite")
+    allow_drop = os.getenv("ALLOW_DB_DROP") == "1"
 
-    create_database(TEST_DATABASE_URL)
+    if not is_sqlite and allow_drop:
+        if database_exists(TEST_DATABASE_URL):
+            drop_database(TEST_DATABASE_URL)
+        create_database(TEST_DATABASE_URL)
+
+    # Ensure metadata exists for both sqlite and postgres paths
     Base.metadata.create_all(bind=engine)
     yield engine
-    drop_database(TEST_DATABASE_URL)
+
+    if not is_sqlite and allow_drop:
+        drop_database(TEST_DATABASE_URL)
 
 
 @pytest.fixture
@@ -156,7 +170,7 @@ def factories(db_session):
         'soul_connection': SoulConnectionFactory,
         'revelation': DailyRevelationFactory,
         'message': MessageFactory,
-        'photo_reveal': PhotoRevealFactory,
+        'photo_reveal': UserPhotoFactory,
     }
 
 
