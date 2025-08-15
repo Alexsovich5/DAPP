@@ -4,9 +4,8 @@ Compatibility Service Tests - High-impact coverage for matching algorithms
 import pytest
 from unittest.mock import Mock, MagicMock
 from app.services.compatibility import (
-    calculate_interest_similarity,
-    calculate_demographic_compatibility,
     CompatibilityCalculator,
+    get_compatibility_calculator
 )
 from app.models.user import User
 from app.models.profile import Profile

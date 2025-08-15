@@ -11,9 +11,8 @@ from starlette.responses import JSONResponse
 
 from app.utils.error_handler import (
     validation_error_handler,
-    create_error_response,
-    log_error,
-    format_validation_errors,
+    get_error_cors_origin,
+    get_secure_cors_config,
 )
 
 

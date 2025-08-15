@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 import json
 import uuid
 from concurrent.futures import ThreadPoolExecutor
-
 from app.services.data_pipeline import (
     DataPipelineService,
     StreamType,
@@ -13,8 +12,6 @@ from app.services.data_pipeline import (
     StreamEvent,
     ProcessingResult
 )
-
-
 class TestDataPipelineService:
     
     @pytest.fixture
@@ -87,7 +84,6 @@ class TestDataPipelineService:
                 ]
             )
         ]
-
     def test_service_initialization(self, pipeline_service, mock_clickhouse, mock_redis):
         """Test data pipeline service initialization"""
         assert pipeline_service.clickhouse == mock_clickhouse
@@ -95,7 +91,6 @@ class TestDataPipelineService:
         assert isinstance(pipeline_service.executor, ThreadPoolExecutor)
         assert len(pipeline_service.processors) == 6
         assert pipeline_service.is_running is False
-
     def test_pipeline_configuration(self, pipeline_service):
         """Test pipeline configuration is properly set"""
         config = pipeline_service.config
@@ -106,7 +101,6 @@ class TestDataPipelineService:
         assert config['dead_letter_ttl'] == 86400 * 7
         assert len(config['aggregation_windows']) == 3
         assert config['aggregation_windows'] == [60, 300, 3600]
-
     def test_metrics_initialization(self, pipeline_service):
         """Test metrics are properly initialized"""
         metrics = pipeline_service.metrics
@@ -116,7 +110,6 @@ class TestDataPipelineService:
         assert isinstance(metrics['processing_errors'], list)
         assert metrics['last_processing_time'] is None
         assert metrics['average_processing_time'] == 0
-
     def test_processors_setup(self, pipeline_service):
         """Test processors are properly set up for all stream types"""
         processors = pipeline_service.processors
@@ -131,7 +124,6 @@ class TestDataPipelineService:
         # Verify all processors are callable
         for stream_type, processor in processors.items():
             assert callable(processor)
-
     def test_stream_type_enum_values(self):
         """Test StreamType enum values"""
         assert StreamType.USER_EVENTS.value == "user_events"
@@ -140,14 +132,12 @@ class TestDataPipelineService:
         assert StreamType.MESSAGE_EVENTS.value == "message_events"
         assert StreamType.REVELATION_EVENTS.value == "revelation_events"
         assert StreamType.BUSINESS_EVENTS.value == "business_events"
-
     def test_processing_stage_enum_values(self):
         """Test ProcessingStage enum values"""
         assert ProcessingStage.RAW.value == "raw"
         assert ProcessingStage.ENRICHED.value == "enriched"
         assert ProcessingStage.AGGREGATED.value == "aggregated"
         assert ProcessingStage.PROCESSED.value == "processed"
-
     def test_stream_event_dataclass(self, sample_stream_event):
         """Test StreamEvent dataclass"""
         assert sample_stream_event.stream_type == StreamType.USER_EVENTS
@@ -156,7 +146,6 @@ class TestDataPipelineService:
         assert isinstance(sample_stream_event.data, dict)
         assert isinstance(sample_stream_event.timestamp, datetime)
         assert sample_stream_event.data["user_id"] == 123
-
     def test_processing_result_dataclass(self):
         """Test ProcessingResult dataclass"""
         result = ProcessingResult(
@@ -170,7 +159,6 @@ class TestDataPipelineService:
         assert result.processed_events == 50
         assert len(result.errors) == 1
         assert result.processing_time_ms == 125.5
-
     @pytest.mark.asyncio
     async def test_start_pipeline(self, pipeline_service):
         """Test pipeline startup"""
@@ -194,7 +182,6 @@ class TestDataPipelineService:
                         await asyncio.wait_for(pipeline_task, timeout=1.0)
                     except asyncio.TimeoutError:
                         pipeline_task.cancel()
-
     @pytest.mark.asyncio
     async def test_start_pipeline_error(self, pipeline_service):
         """Test pipeline startup error handling"""
@@ -203,7 +190,6 @@ class TestDataPipelineService:
                 await pipeline_service.start_pipeline()
             
             assert pipeline_service.is_running is False
-
     @pytest.mark.asyncio
     async def test_stop_pipeline(self, pipeline_service):
         """Test pipeline graceful shutdown"""
@@ -212,7 +198,6 @@ class TestDataPipelineService:
         await pipeline_service.stop_pipeline()
         
         assert pipeline_service.is_running is False
-
     @pytest.mark.asyncio
     async def test_publish_event_success(self, pipeline_service, mock_redis, sample_stream_event):
         """Test successful event publishing"""
@@ -225,7 +210,6 @@ class TestDataPipelineService:
         call_args = mock_redis.xadd.call_args
         assert call_args[0][0] == f"stream:{sample_stream_event.stream_type.value}"
         assert call_args[1]['maxlen'] == 10000
-
     @pytest.mark.asyncio
     async def test_publish_event_error(self, pipeline_service, mock_redis, sample_stream_event):
         """Test event publishing error handling"""
@@ -234,7 +218,6 @@ class TestDataPipelineService:
         result = await pipeline_service.publish_event(sample_stream_event)
         
         assert result is False
-
     @pytest.mark.asyncio
     async def test_process_stream_setup(self, pipeline_service, mock_redis):
         """Test stream processing setup"""
@@ -248,7 +231,6 @@ class TestDataPipelineService:
         
         # Should attempt to create consumer group
         mock_redis.xgroup_create.assert_called_once()
-
     @pytest.mark.asyncio
     async def test_process_stream_with_messages(self, pipeline_service, mock_redis, sample_redis_messages):
         """Test stream processing with messages"""
@@ -271,7 +253,6 @@ class TestDataPipelineService:
             # Should process the batch and acknowledge messages
             mock_batch.assert_called()
             mock_redis.xack.assert_called()
-
     @pytest.mark.asyncio
     async def test_process_stream_processing_failure(self, pipeline_service, mock_redis, sample_redis_messages):
         """Test stream processing with batch failure"""
@@ -295,7 +276,6 @@ class TestDataPipelineService:
                 # Should handle failure
                 mock_failure.assert_called()
                 assert pipeline_service.metrics['events_failed'] > 0
-
     @pytest.mark.asyncio
     async def test_process_event_batch_success(self, pipeline_service):
         """Test successful event batch processing"""
@@ -313,7 +293,6 @@ class TestDataPipelineService:
                     assert result.processed_events == 1
                     assert len(result.errors) == 0
                     assert result.processing_time_ms > 0
-
     @pytest.mark.asyncio
     async def test_process_event_batch_no_processor(self, pipeline_service):
         """Test event batch processing with no processor"""
@@ -328,7 +307,6 @@ class TestDataPipelineService:
         assert result.processed_events == 0
         assert len(result.errors) == 1
         assert "No processor found" in result.errors[0]
-
     @pytest.mark.asyncio
     async def test_process_event_batch_error(self, pipeline_service):
         """Test event batch processing error handling"""
@@ -341,7 +319,6 @@ class TestDataPipelineService:
             assert result.processed_events == 0
             assert len(result.errors) == 1
             assert "Processing error" in result.errors[0]
-
     @pytest.mark.asyncio
     async def test_process_user_events(self, pipeline_service):
         """Test user events processing"""
@@ -357,7 +334,6 @@ class TestDataPipelineService:
                 assert processed[0]['enriched'] is True
                 assert processed[0]['score'] == 0.8
                 assert processed[0]['processing_stage'] == ProcessingStage.PROCESSED.value
-
     @pytest.mark.asyncio
     async def test_process_user_events_error(self, pipeline_service):
         """Test user events processing error handling"""
@@ -369,7 +345,6 @@ class TestDataPipelineService:
             processed = await pipeline_service._process_user_events(events)
             
             assert len(processed) == 0  # Error should be handled gracefully
-
     @pytest.mark.asyncio
     async def test_process_profile_interactions(self, pipeline_service):
         """Test profile interactions processing"""
@@ -389,7 +364,6 @@ class TestDataPipelineService:
             assert 'quality_score' in processed[0]
             assert processed[0]['demographic_insights']['insights'] is True
             assert processed[0]['processing_stage'] == ProcessingStage.PROCESSED.value
-
     @pytest.mark.asyncio
     async def test_process_matching_events(self, pipeline_service):
         """Test matching events processing"""
@@ -409,7 +383,6 @@ class TestDataPipelineService:
                 assert len(processed) == 1
                 assert processed[0]['quality_metrics']['quality'] == 0.9
                 assert processed[0]['success_prediction']['success'] == 0.7
-
     @pytest.mark.asyncio
     async def test_process_message_events(self, pipeline_service):
         """Test message events processing"""
@@ -430,7 +403,6 @@ class TestDataPipelineService:
             assert processed[0]['conversation_health']['health'] == 0.8
             # Should detect positive sentiment
             assert processed[0]['sentiment_score'] > 0.5
-
     @pytest.mark.asyncio
     async def test_process_revelation_events(self, pipeline_service):
         """Test revelation events processing"""
@@ -449,7 +421,6 @@ class TestDataPipelineService:
             assert len(processed) == 1
             assert 'impact_score' in processed[0]
             assert processed[0]['progression_prediction']['progression'] == 0.6
-
     @pytest.mark.asyncio
     async def test_process_business_events(self, pipeline_service):
         """Test business events processing"""
@@ -470,7 +441,6 @@ class TestDataPipelineService:
             assert processed[0]['customer_segment'] == "premium"
             # Should apply 2.0 multiplier for subscription_started
             assert processed[0]['clv_contribution'] == 59.98  # 29.99 * 2.0
-
     @pytest.mark.asyncio
     async def test_enrich_user_event(self, pipeline_service):
         """Test user event enrichment"""
@@ -486,7 +456,6 @@ class TestDataPipelineService:
             assert 'session_context' in enriched
             assert 'device_insights' in enriched
             assert enriched['session_context']['session'] == "data"
-
     def test_calculate_user_metrics(self, pipeline_service):
         """Test user metrics calculation"""
         event_data = {"user_id": 123, "event_type": "profile_view"}
@@ -496,7 +465,6 @@ class TestDataPipelineService:
         assert 'engagement_score' in metrics
         assert 'session_quality' in metrics
         assert 'feature_usage' in metrics
-
     def test_calculate_interaction_quality(self, pipeline_service):
         """Test interaction quality calculation"""
         interaction_data = {
@@ -508,7 +476,6 @@ class TestDataPipelineService:
         
         assert 0 <= quality_score <= 1
         assert quality_score > 0.5  # Should be high with good compatibility and duration
-
     def test_calculate_interaction_quality_low(self, pipeline_service):
         """Test interaction quality calculation with low scores"""
         interaction_data = {
@@ -520,7 +487,6 @@ class TestDataPipelineService:
         
         assert 0 <= quality_score <= 1
         assert quality_score < 0.5  # Should be low with poor compatibility and short duration
-
     @pytest.mark.asyncio
     async def test_get_demographic_insights(self, pipeline_service):
         """Test demographic insights retrieval"""
@@ -530,7 +496,6 @@ class TestDataPipelineService:
         assert 'location_distance_km' in insights
         assert 'shared_interests_count' in insights
         assert 'education_compatibility' in insights
-
     @pytest.mark.asyncio
     async def test_calculate_match_quality(self, pipeline_service):
         """Test match quality calculation"""
@@ -542,7 +507,6 @@ class TestDataPipelineService:
         assert 'profile_completeness_avg' in quality_metrics
         assert 'mutual_interest_score' in quality_metrics
         assert 'activity_alignment' in quality_metrics
-
     @pytest.mark.asyncio
     async def test_predict_match_outcome(self, pipeline_service):
         """Test match outcome prediction"""
@@ -553,7 +517,6 @@ class TestDataPipelineService:
         assert 'conversation_probability' in prediction
         assert 'date_probability' in prediction
         assert 'long_term_compatibility' in prediction
-
     def test_analyze_message_sentiment_positive(self, pipeline_service):
         """Test positive message sentiment analysis"""
         positive_message = "This is amazing and wonderful! I love it!"
@@ -561,7 +524,6 @@ class TestDataPipelineService:
         sentiment = pipeline_service._analyze_message_sentiment(positive_message)
         
         assert sentiment > 0.5  # Should be positive
-
     def test_analyze_message_sentiment_negative(self, pipeline_service):
         """Test negative message sentiment analysis"""
         negative_message = "This is terrible and awful! I hate it!"
@@ -569,7 +531,6 @@ class TestDataPipelineService:
         sentiment = pipeline_service._analyze_message_sentiment(negative_message)
         
         assert sentiment < 0.5  # Should be negative
-
     def test_analyze_message_sentiment_neutral(self, pipeline_service):
         """Test neutral message sentiment analysis"""
         neutral_message = "This is a normal message without sentiment words."
@@ -577,7 +538,6 @@ class TestDataPipelineService:
         sentiment = pipeline_service._analyze_message_sentiment(neutral_message)
         
         assert sentiment == 0.5  # Should be neutral
-
     @pytest.mark.asyncio
     async def test_calculate_conversation_health(self, pipeline_service):
         """Test conversation health calculation"""
@@ -587,7 +547,6 @@ class TestDataPipelineService:
         assert 'average_response_time_hours' in health
         assert 'message_length_balance' in health
         assert 'engagement_trend' in health
-
     def test_calculate_revelation_impact(self, pipeline_service):
         """Test revelation impact calculation"""
         revelation_data = {
@@ -600,7 +559,6 @@ class TestDataPipelineService:
         assert 0 <= impact <= 1
         # Day 5 should have higher impact than day 1
         assert impact > 0.5
-
     def test_calculate_revelation_impact_early_day(self, pipeline_service):
         """Test revelation impact calculation for early day"""
         revelation_data = {
@@ -613,7 +571,6 @@ class TestDataPipelineService:
         assert 0 <= impact <= 1
         # Day 1 with short content should have lower impact
         assert impact < 0.5
-
     @pytest.mark.asyncio
     async def test_predict_relationship_progression(self, pipeline_service):
         """Test relationship progression prediction"""
@@ -624,7 +581,6 @@ class TestDataPipelineService:
         assert 'next_revelation_probability' in prediction
         assert 'photo_reveal_readiness' in prediction
         assert 'date_likelihood' in prediction
-
     def test_calculate_clv_contribution(self, pipeline_service):
         """Test customer lifetime value contribution calculation"""
         business_data = {
@@ -636,7 +592,6 @@ class TestDataPipelineService:
         
         # Should apply 2.0 multiplier for subscription_started
         assert clv == 59.98  # (2999/100) * 2.0
-
     def test_calculate_clv_contribution_purchase(self, pipeline_service):
         """Test CLV contribution for regular purchase"""
         business_data = {
@@ -648,7 +603,6 @@ class TestDataPipelineService:
         
         # Should apply 1.0 multiplier for purchase_made
         assert clv == 15.0  # (1500/100) * 1.0
-
     @pytest.mark.asyncio
     async def test_determine_customer_segment(self, pipeline_service):
         """Test customer segment determination"""
@@ -656,7 +610,6 @@ class TestDataPipelineService:
         
         # Mock implementation returns 'engaged_free'
         assert segment == 'engaged_free'
-
     def test_parse_stream_event(self, pipeline_service):
         """Test Redis stream event parsing"""
         fields = {
@@ -674,7 +627,6 @@ class TestDataPipelineService:
         assert event.data['user_id'] == 123
         assert event.processing_stage == ProcessingStage.RAW
         assert event.metadata['source'] == 'test'
-
     @pytest.mark.asyncio
     async def test_store_processed_events(self, pipeline_service, mock_clickhouse):
         """Test storing processed events in ClickHouse"""
@@ -687,14 +639,12 @@ class TestDataPipelineService:
         
         # Should not raise error (commented out execution in implementation)
         # mock_clickhouse.execute.assert_called_once()
-
     @pytest.mark.asyncio
     async def test_store_processed_events_empty(self, pipeline_service):
         """Test storing empty processed events list"""
         await pipeline_service._store_processed_events([], StreamType.USER_EVENTS)
         
         # Should handle empty list gracefully
-
     @pytest.mark.asyncio
     async def test_store_processed_events_no_mapping(self, pipeline_service):
         """Test storing events with no table mapping"""
@@ -703,7 +653,6 @@ class TestDataPipelineService:
         
         # This should handle unknown stream type gracefully
         await pipeline_service._store_processed_events(events, StreamType.USER_EVENTS)
-
     @pytest.mark.asyncio
     async def test_update_real_time_aggregations(self, pipeline_service, mock_redis):
         """Test real-time aggregations update"""
@@ -718,7 +667,6 @@ class TestDataPipelineService:
         assert mock_pipeline.hincrby.call_count == 3  # Three aggregation windows
         assert mock_pipeline.expire.call_count == 3
         mock_pipeline.execute.assert_called_once()
-
     @pytest.mark.asyncio
     async def test_update_real_time_aggregations_error(self, pipeline_service, mock_redis):
         """Test real-time aggregations error handling"""
@@ -727,7 +675,6 @@ class TestDataPipelineService:
         
         # Should handle error gracefully
         await pipeline_service._update_real_time_aggregations(events, StreamType.USER_EVENTS)
-
     @pytest.mark.asyncio
     async def test_run_aggregations(self, pipeline_service):
         """Test aggregations task"""
@@ -748,7 +695,6 @@ class TestDataPipelineService:
                 # Should run both aggregations
                 mock_hourly.assert_called()
                 mock_daily.assert_called()
-
     @pytest.mark.asyncio
     async def test_run_hourly_aggregations(self, pipeline_service, mock_redis):
         """Test hourly aggregations"""
@@ -761,7 +707,6 @@ class TestDataPipelineService:
         # Check aggregation key format
         call_args = mock_redis.hset.call_args
         assert call_args[0][0].startswith("hourly_agg:")
-
     @pytest.mark.asyncio
     async def test_run_hourly_aggregations_error(self, pipeline_service, mock_redis):
         """Test hourly aggregations error handling"""
@@ -769,7 +714,6 @@ class TestDataPipelineService:
         
         # Should handle error gracefully
         await pipeline_service._run_hourly_aggregations()
-
     @pytest.mark.asyncio
     async def test_run_daily_aggregations(self, pipeline_service, mock_redis):
         """Test daily aggregations"""
@@ -782,7 +726,6 @@ class TestDataPipelineService:
             # Check daily aggregation key format
             call_args = mock_redis.hset.call_args
             assert call_args[0][0].startswith("daily_agg:")
-
     @pytest.mark.asyncio
     async def test_calculate_daily_business_metrics(self, pipeline_service):
         """Test daily business metrics calculation"""
@@ -794,7 +737,6 @@ class TestDataPipelineService:
         assert 'conversations_started' in metrics
         assert 'revenue_cents' in metrics
         assert 'churn_count' in metrics
-
     @pytest.mark.asyncio
     async def test_collect_metrics(self, pipeline_service, mock_redis):
         """Test metrics collection task"""
@@ -813,7 +755,6 @@ class TestDataPipelineService:
         # Should update metrics
         assert pipeline_service.metrics['last_processing_time'] is not None
         mock_redis.hset.assert_called()
-
     @pytest.mark.asyncio
     async def test_collect_metrics_error(self, pipeline_service, mock_redis):
         """Test metrics collection error handling"""
@@ -829,7 +770,6 @@ class TestDataPipelineService:
             await asyncio.wait_for(task, timeout=1.0)
         except asyncio.TimeoutError:
             task.cancel()
-
     @pytest.mark.asyncio
     async def test_handle_processing_failure(self, pipeline_service, mock_redis):
         """Test processing failure handling"""
@@ -847,7 +787,6 @@ class TestDataPipelineService:
         # Should send events to dead letter queue
         assert mock_redis.lpush.call_count == 2
         assert mock_redis.expire.call_count == 2
-
     @pytest.mark.asyncio
     async def test_handle_processing_failure_error(self, pipeline_service, mock_redis):
         """Test processing failure handling error"""
@@ -858,7 +797,6 @@ class TestDataPipelineService:
         
         # Should handle error gracefully
         await pipeline_service._handle_processing_failure(events, errors)
-
     @pytest.mark.asyncio
     async def test_get_user_session_context(self, pipeline_service):
         """Test user session context retrieval"""
@@ -867,7 +805,6 @@ class TestDataPipelineService:
         assert 'session_duration' in context
         assert 'pages_viewed' in context
         assert 'actions_taken' in context
-
     def test_parse_device_insights(self, pipeline_service):
         """Test device insights parsing"""
         user_agent = "Mozilla/5.0 (Android 10; Mobile) Chrome/91.0"
@@ -877,7 +814,6 @@ class TestDataPipelineService:
         assert 'device_type' in insights
         assert 'browser' in insights
         assert 'os' in insights
-
     def test_calculate_engagement_score(self, pipeline_service):
         """Test engagement score calculation"""
         event_data = {"user_id": 123, "event_type": "profile_view"}
@@ -886,7 +822,6 @@ class TestDataPipelineService:
         
         assert isinstance(score, float)
         assert 0 <= score <= 1
-
     def test_calculate_session_quality(self, pipeline_service):
         """Test session quality calculation"""
         event_data = {"user_id": 123, "session_duration": 1800}
@@ -895,7 +830,6 @@ class TestDataPipelineService:
         
         assert isinstance(quality, float)
         assert 0 <= quality <= 1
-
     def test_analyze_feature_usage(self, pipeline_service):
         """Test feature usage analysis"""
         event_data = {"user_id": 123, "features_used": ["matching", "messaging"]}
@@ -904,7 +838,6 @@ class TestDataPipelineService:
         
         assert 'primary_features' in usage
         assert 'engagement_depth' in usage
-
     @pytest.mark.asyncio
     async def test_get_pipeline_status(self, pipeline_service):
         """Test pipeline status retrieval"""
@@ -918,7 +851,6 @@ class TestDataPipelineService:
         
         assert status['is_running'] == pipeline_service.is_running
         assert len(status['active_streams']) == 6
-
     @pytest.mark.asyncio
     async def test_concurrent_event_processing(self, pipeline_service):
         """Test concurrent event processing"""
@@ -933,7 +865,6 @@ class TestDataPipelineService:
                 
                 assert len(processed) == 10
                 assert all(event['enriched'] for event in processed)
-
     @pytest.mark.asyncio
     async def test_pipeline_performance_metrics(self, pipeline_service):
         """Test pipeline performance tracking"""
@@ -946,7 +877,6 @@ class TestDataPipelineService:
                     
                     assert result.processing_time_ms > 0
                     assert result.success is True
-
     @pytest.mark.asyncio
     async def test_stream_type_specific_processing(self, pipeline_service):
         """Test that each stream type uses its specific processor"""
@@ -958,7 +888,6 @@ class TestDataPipelineService:
             
             # All processors should handle basic case
             assert isinstance(result, ProcessingResult)
-
     def test_aggregation_windows_configuration(self, pipeline_service):
         """Test aggregation windows are properly configured"""
         windows = pipeline_service.config['aggregation_windows']
@@ -969,7 +898,6 @@ class TestDataPipelineService:
         
         # Should be sorted ascending
         assert windows == sorted(windows)
-
     def test_pipeline_configuration_validation(self, pipeline_service):
         """Test pipeline configuration values are reasonable"""
         config = pipeline_service.config

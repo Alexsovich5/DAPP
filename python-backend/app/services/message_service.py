@@ -52,6 +52,7 @@ class MessageService:
         self.db = db_session
         self.max_message_length = 5000
         self.min_message_length = 1
+        self.rate_limit_messages_per_minute = 30  # Rate limit for messages per minute
         
     def create_message(self, sender_id: int, recipient_id: int, content: str, message_type: str = "text") -> Optional[Message]:
         """Create a new message between users"""
@@ -480,7 +481,7 @@ class MessageService:
                 
                 await realtime_manager.send_to_user(
                     user_id=partner_id,
-                    message_type=MessageType.MESSAGE_READ,
+                    message_type="message_read",
                     data={
                         "connection_id": connection_id,
                         "reader_id": user_id,
@@ -551,7 +552,7 @@ class MessageService:
             # Send via WebSocket
             success = await realtime_manager.send_to_user(
                 user_id=recipient_id,
-                message_type=MessageType.NEW_MESSAGE,
+                message_type="new_message",
                 data=message_data
             )
             
@@ -571,5 +572,5 @@ def get_message_service(db_session=None):
     return type('MockMessageService', (), {
         'send_message': lambda *args, **kwargs: None,
         'get_conversations': lambda *args, **kwargs: [],
-        'validate_message_content': lambda content: bool(content and content.strip())
+        'validate_message_content': lambda self, content: bool(content and content.strip())
     })()

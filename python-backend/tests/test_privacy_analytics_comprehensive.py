@@ -4,7 +4,6 @@ from unittest.mock import Mock, AsyncMock, patch, MagicMock
 from datetime import datetime, timedelta
 import uuid
 from cryptography.fernet import Fernet
-
 from app.services.privacy_analytics import (
     PrivacyCompliantAnalyticsService,
     ConsentType,
@@ -14,8 +13,6 @@ from app.services.privacy_analytics import (
     DataRetentionPolicy,
     PrivacyAuditLog
 )
-
-
 class TestPrivacyCompliantAnalyticsService:
     
     @pytest.fixture
@@ -53,7 +50,6 @@ class TestPrivacyCompliantAnalyticsService:
             consent_version="v1.0",
             is_active=True
         )
-
     def test_service_initialization(self, privacy_service):
         """Test privacy service initialization"""
         assert privacy_service.clickhouse is not None
@@ -61,7 +57,6 @@ class TestPrivacyCompliantAnalyticsService:
         assert privacy_service.cipher is not None
         assert len(privacy_service.retention_policies) == 4
         assert len(privacy_service.privacy_level_permissions) == 3
-
     def test_retention_policies(self, privacy_service):
         """Test data retention policies are properly configured"""
         policies = privacy_service.retention_policies
@@ -82,7 +77,6 @@ class TestPrivacyCompliantAnalyticsService:
         assert business_events.retention_period == DataRetentionPeriod.TWO_YEARS
         assert business_events.anonymization_after is None
         assert business_events.legal_basis == "legal_obligation"
-
     def test_privacy_level_permissions(self, privacy_service):
         """Test privacy level permissions are properly configured"""
         permissions = privacy_service.privacy_level_permissions
@@ -101,7 +95,6 @@ class TestPrivacyCompliantAnalyticsService:
         assert len(enhanced_perms) == 5
         assert ConsentType.MARKETING in enhanced_perms
         assert ConsentType.PERSONALIZATION in enhanced_perms
-
     @pytest.mark.asyncio
     async def test_record_user_consent_success(self, privacy_service, mock_redis):
         """Test successful user consent recording"""
@@ -123,7 +116,6 @@ class TestPrivacyCompliantAnalyticsService:
                     mock_store.assert_called_once()
                     mock_update.assert_called_once_with(123, consent_types)
                     mock_log.assert_called_once()
-
     @pytest.mark.asyncio
     async def test_record_user_consent_with_version(self, privacy_service):
         """Test recording user consent with specific version"""
@@ -140,7 +132,6 @@ class TestPrivacyCompliantAnalyticsService:
                     # Verify consent version was passed
                     call_args = mock_store.call_args[0][0]
                     assert call_args.consent_version == "v2.0"
-
     @pytest.mark.asyncio
     async def test_record_user_consent_error(self, privacy_service):
         """Test user consent recording error handling"""
@@ -149,7 +140,6 @@ class TestPrivacyCompliantAnalyticsService:
                 await privacy_service.record_user_consent(
                     123, [ConsentType.ANALYTICS], "192.168.1.1", "Mozilla/5.0"
                 )
-
     @pytest.mark.asyncio
     async def test_revoke_user_consent_success(self, privacy_service, sample_consent):
         """Test successful consent revocation"""
@@ -172,7 +162,6 @@ class TestPrivacyCompliantAnalyticsService:
                             updated_consent = mock_store.call_args[0][0]
                             assert ConsentType.PERSONALIZATION not in updated_consent.consent_types
                             assert ConsentType.ANALYTICS in updated_consent.consent_types
-
     @pytest.mark.asyncio
     async def test_revoke_user_consent_no_existing_consent(self, privacy_service):
         """Test consent revocation when no existing consent"""
@@ -180,7 +169,6 @@ class TestPrivacyCompliantAnalyticsService:
             result = await privacy_service.revoke_user_consent(123, [ConsentType.ANALYTICS])
             
             assert result is False
-
     @pytest.mark.asyncio
     async def test_revoke_user_consent_error(self, privacy_service, sample_consent):
         """Test consent revocation error handling"""
@@ -189,7 +177,6 @@ class TestPrivacyCompliantAnalyticsService:
                 result = await privacy_service.revoke_user_consent(123, [ConsentType.ANALYTICS])
                 
                 assert result is False
-
     @pytest.mark.asyncio
     async def test_process_data_subject_request_access(self, privacy_service):
         """Test data subject access request"""
@@ -199,7 +186,6 @@ class TestPrivacyCompliantAnalyticsService:
             result = await privacy_service.process_data_subject_request(123, "access")
             
             assert result == mock_result
-
     @pytest.mark.asyncio
     async def test_process_data_subject_request_portability(self, privacy_service):
         """Test data portability request"""
@@ -209,7 +195,6 @@ class TestPrivacyCompliantAnalyticsService:
             result = await privacy_service.process_data_subject_request(123, "portability")
             
             assert result == mock_result
-
     @pytest.mark.asyncio
     async def test_process_data_subject_request_erasure(self, privacy_service):
         """Test data erasure request"""
@@ -219,7 +204,6 @@ class TestPrivacyCompliantAnalyticsService:
             result = await privacy_service.process_data_subject_request(123, "erasure")
             
             assert result == mock_result
-
     @pytest.mark.asyncio
     async def test_process_data_subject_request_rectification(self, privacy_service):
         """Test data rectification request"""
@@ -229,20 +213,17 @@ class TestPrivacyCompliantAnalyticsService:
             result = await privacy_service.process_data_subject_request(123, "rectification")
             
             assert result == mock_result
-
     @pytest.mark.asyncio
     async def test_process_data_subject_request_unknown_type(self, privacy_service):
         """Test data subject request with unknown type"""
         with pytest.raises(ValueError, match="Unknown request type"):
             await privacy_service.process_data_subject_request(123, "unknown_type")
-
     @pytest.mark.asyncio
     async def test_process_data_subject_request_error(self, privacy_service):
         """Test data subject request error handling"""
         with patch.object(privacy_service, '_handle_data_access_request', side_effect=Exception("Access error")):
             with pytest.raises(Exception, match="Access error"):
                 await privacy_service.process_data_subject_request(123, "access")
-
     @pytest.mark.asyncio
     async def test_anonymize_user_data_success(self, privacy_service):
         """Test successful user data anonymization"""
@@ -256,7 +237,6 @@ class TestPrivacyCompliantAnalyticsService:
                     assert result is True
                     assert mock_anonymize.call_count == 2
                     mock_log.assert_called_once()
-
     @pytest.mark.asyncio
     async def test_anonymize_user_data_error(self, privacy_service):
         """Test user data anonymization error handling"""
@@ -264,7 +244,6 @@ class TestPrivacyCompliantAnalyticsService:
             result = await privacy_service.anonymize_user_data(123, ["user_events"])
             
             assert result is False
-
     @pytest.mark.asyncio
     async def test_check_data_processing_consent_valid(self, privacy_service, sample_consent):
         """Test checking valid data processing consent"""
@@ -272,7 +251,6 @@ class TestPrivacyCompliantAnalyticsService:
             result = await privacy_service.check_data_processing_consent(123, ConsentType.ANALYTICS)
             
             assert result is True
-
     @pytest.mark.asyncio
     async def test_check_data_processing_consent_invalid_type(self, privacy_service, sample_consent):
         """Test checking consent for type not granted"""
@@ -280,7 +258,6 @@ class TestPrivacyCompliantAnalyticsService:
             result = await privacy_service.check_data_processing_consent(123, ConsentType.MARKETING)
             
             assert result is False
-
     @pytest.mark.asyncio
     async def test_check_data_processing_consent_no_consent(self, privacy_service):
         """Test checking consent when no consent exists"""
@@ -288,7 +265,6 @@ class TestPrivacyCompliantAnalyticsService:
             result = await privacy_service.check_data_processing_consent(123, ConsentType.ANALYTICS)
             
             assert result is False
-
     @pytest.mark.asyncio
     async def test_check_data_processing_consent_inactive(self, privacy_service, sample_consent):
         """Test checking consent when consent is inactive"""
@@ -298,7 +274,6 @@ class TestPrivacyCompliantAnalyticsService:
             result = await privacy_service.check_data_processing_consent(123, ConsentType.ANALYTICS)
             
             assert result is False
-
     @pytest.mark.asyncio
     async def test_check_data_processing_consent_expired(self, privacy_service, sample_consent):
         """Test checking consent when consent is expired"""
@@ -308,7 +283,6 @@ class TestPrivacyCompliantAnalyticsService:
             result = await privacy_service.check_data_processing_consent(123, ConsentType.ANALYTICS)
             
             assert result is False
-
     def test_consent_type_enum_values(self):
         """Test ConsentType enum values"""
         assert ConsentType.ANALYTICS.value == "analytics"
@@ -316,7 +290,6 @@ class TestPrivacyCompliantAnalyticsService:
         assert ConsentType.MARKETING.value == "marketing"
         assert ConsentType.PERFORMANCE.value == "performance"
         assert ConsentType.FUNCTIONAL.value == "functional"
-
     def test_data_retention_period_enum_values(self):
         """Test DataRetentionPeriod enum values"""
         assert DataRetentionPeriod.SEVEN_DAYS.value == 7
@@ -324,13 +297,11 @@ class TestPrivacyCompliantAnalyticsService:
         assert DataRetentionPeriod.SIX_MONTHS.value == 180
         assert DataRetentionPeriod.ONE_YEAR.value == 365
         assert DataRetentionPeriod.TWO_YEARS.value == 730
-
     def test_privacy_level_enum_values(self):
         """Test PrivacyLevel enum values"""
         assert PrivacyLevel.MINIMAL.value == "minimal"
         assert PrivacyLevel.STANDARD.value == "standard"
         assert PrivacyLevel.ENHANCED.value == "enhanced"
-
     def test_user_consent_dataclass(self):
         """Test UserConsent dataclass"""
         consent = UserConsent(
@@ -348,7 +319,6 @@ class TestPrivacyCompliantAnalyticsService:
         assert consent.consent_id == "test-id"
         assert len(consent.consent_types) == 1
         assert consent.is_active is True  # Default value
-
     def test_data_retention_policy_dataclass(self):
         """Test DataRetentionPolicy dataclass"""
         policy = DataRetentionPolicy(
@@ -362,7 +332,6 @@ class TestPrivacyCompliantAnalyticsService:
         assert policy.data_type == "test_data"
         assert policy.retention_period == DataRetentionPeriod.ONE_YEAR
         assert policy.legal_basis == "consent"
-
     def test_privacy_audit_log_dataclass(self):
         """Test PrivacyAuditLog dataclass"""
         log = PrivacyAuditLog(
@@ -378,7 +347,6 @@ class TestPrivacyCompliantAnalyticsService:
         assert log.audit_id == "audit-123"
         assert log.action == "consent_granted"
         assert log.compliance_check is True
-
     @pytest.mark.asyncio
     async def test_encryption_functionality(self, privacy_service):
         """Test encryption and decryption functionality"""
@@ -392,7 +360,6 @@ class TestPrivacyCompliantAnalyticsService:
         
         assert decrypted == test_data
         assert encrypted != test_data.encode()
-
     @pytest.mark.asyncio
     async def test_gdpr_compliance_consent_expiry(self, privacy_service):
         """Test GDPR compliance - consent expires in 2 years"""
@@ -410,7 +377,6 @@ class TestPrivacyCompliantAnalyticsService:
                     
                     # Should be 730 days (2 years) for GDPR compliance
                     assert expiry_days == 730
-
     def test_legal_basis_mapping(self, privacy_service):
         """Test legal basis mapping for different data types"""
         policies = privacy_service.retention_policies
@@ -426,7 +392,6 @@ class TestPrivacyCompliantAnalyticsService:
         
         # Message events should be contract basis
         assert policies["message_events"].legal_basis == "contract"
-
     @pytest.mark.asyncio
     async def test_consent_granularity(self, privacy_service):
         """Test granular consent management"""
@@ -448,7 +413,6 @@ class TestPrivacyCompliantAnalyticsService:
         
         assert isinstance(result1, str)
         assert isinstance(result2, str)
-
     @pytest.mark.asyncio
     async def test_right_to_be_forgotten_compliance(self, privacy_service):
         """Test right to be forgotten (erasure) compliance"""
@@ -463,7 +427,6 @@ class TestPrivacyCompliantAnalyticsService:
             
             assert result["status"] == "completed"
             mock_erasure.assert_called_once_with(123)
-
     @pytest.mark.asyncio
     async def test_data_portability_compliance(self, privacy_service):
         """Test data portability compliance"""
@@ -479,7 +442,6 @@ class TestPrivacyCompliantAnalyticsService:
             assert result["format"] == "JSON"
             assert "data" in result
             mock_portability.assert_called_once_with(123)
-
     @pytest.mark.asyncio
     async def test_privacy_level_escalation(self, privacy_service):
         """Test privacy level escalation based on consent"""
@@ -494,7 +456,6 @@ class TestPrivacyCompliantAnalyticsService:
                     )
                     
                     mock_update.assert_called_with(123, minimal_consent)
-
     @pytest.mark.asyncio
     async def test_audit_trail_completeness(self, privacy_service):
         """Test comprehensive audit trail"""
@@ -511,7 +472,6 @@ class TestPrivacyCompliantAnalyticsService:
                         123, "consent_granted", "user_consent",
                         {"consent_types": ["analytics"]}
                     )
-
     @pytest.mark.asyncio
     async def test_concurrent_consent_operations(self, privacy_service):
         """Test concurrent consent operations"""
@@ -531,7 +491,6 @@ class TestPrivacyCompliantAnalyticsService:
         results = await asyncio.gather(*tasks)
         assert len(results) == 5
         assert all(isinstance(result, str) for result in results)
-
     @pytest.mark.asyncio
     async def test_data_minimization_principle(self, privacy_service):
         """Test data minimization principle"""
@@ -546,7 +505,6 @@ class TestPrivacyCompliantAnalyticsService:
         
         # Each level should progressively allow more data collection
         assert len(minimal_perms) < len(standard_perms) < len(enhanced_perms)
-
     @pytest.mark.asyncio
     async def test_consent_withdrawal_cascade(self, privacy_service, sample_consent):
         """Test consent withdrawal cascades to data handling"""
@@ -562,7 +520,6 @@ class TestPrivacyCompliantAnalyticsService:
                             assert result is True
                             # Should trigger data handling for revoked consent
                             mock_handle.assert_called_once_with(123, revoke_types)
-
     def test_retention_policy_consistency(self, privacy_service):
         """Test retention policy consistency and validity"""
         policies = privacy_service.retention_policies

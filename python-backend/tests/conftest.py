@@ -12,7 +12,7 @@ from faker import Faker
 
 from app.core.database import Base, get_db
 from app.main import app
-from app.core.security import create_access_token, get_password_hash
+from app.core.security import create_access_token, get_password_hash, verify_password
 from app.models.user import User
 from app.models.profile import Profile
 from app.models.match import Match, MatchStatus
@@ -28,11 +28,15 @@ from tests.factories import (
 random.seed(1)
 Faker.seed(1)
 
-# Test database URL (safe default to SQLite in-memory)
-TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "sqlite:///file::memory:?cache=shared")
+# Test database URL (use file-based SQLite for better test isolation)
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "sqlite:///./test_database.db")
 
-# Create test database engine
-engine = create_engine(TEST_DATABASE_URL)
+# Create test database engine with proper settings for testing
+engine = create_engine(
+    TEST_DATABASE_URL,
+    connect_args={"check_same_thread": False} if TEST_DATABASE_URL.startswith("sqlite") else {},
+    poolclass=None if TEST_DATABASE_URL.startswith("sqlite") else None,
+)
 
 # Create test SessionLocal class
 TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -42,33 +46,47 @@ TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 def test_db():
     """Create test database and tables with safe drop/create behavior"""
     is_sqlite = TEST_DATABASE_URL.startswith("sqlite")
+    
+    # For SQLite file-based testing, remove existing database
+    if is_sqlite and "test_database.db" in TEST_DATABASE_URL:
+        import os
+        if os.path.exists("./test_database.db"):
+            os.remove("./test_database.db")
+    
+    # For non-SQLite databases
     allow_drop = os.getenv("ALLOW_DB_DROP") == "1"
-
     if not is_sqlite and allow_drop:
         if database_exists(TEST_DATABASE_URL):
             drop_database(TEST_DATABASE_URL)
         create_database(TEST_DATABASE_URL)
 
-    # Ensure metadata exists for both sqlite and postgres paths
+    # Create all tables
     Base.metadata.create_all(bind=engine)
     yield engine
 
+    # Cleanup
     if not is_sqlite and allow_drop:
         drop_database(TEST_DATABASE_URL)
+    elif is_sqlite and "test_database.db" in TEST_DATABASE_URL:
+        import os
+        if os.path.exists("./test_database.db"):
+            os.remove("./test_database.db")
 
 
 @pytest.fixture
 def db_session(test_db):
     """Create a fresh database session for each test"""
-    connection = test_db.connect()
-    transaction = connection.begin()
-    session = TestSessionLocal(bind=connection)
-
+    session = TestSessionLocal()
+    
     yield session
-
+    
+    # Clean up after each test by removing all data
     session.close()
-    transaction.rollback()
-    connection.close()
+    # Truncate all tables to ensure clean state for next test
+    with test_db.connect() as connection:
+        for table in reversed(Base.metadata.sorted_tables):
+            connection.execute(table.delete())
+        connection.commit()
 
 
 @pytest.fixture
@@ -76,10 +94,8 @@ def client(db_session) -> Generator:
     """Create a test client with a test database session"""
 
     def override_get_db():
-        try:
-            yield db_session
-        finally:
-            db_session.close()
+        """Return the same session instance used by the test"""
+        return db_session
 
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
@@ -90,15 +106,28 @@ def client(db_session) -> Generator:
 @pytest.fixture
 def test_user(db_session) -> Dict[str, str]:
     """Create a test user and return credentials"""
+    # Ensure we're in testing mode for password hashing
+    import os
+    import uuid
+    os.environ["TESTING"] = "1"
+    
+    # Generate unique identifiers to avoid conflicts
+    unique_id = str(uuid.uuid4())[:8]
+    email = f"test{unique_id}@example.com"
+    username = f"testuser{unique_id}"
+    
     user = User(
-        email="test@example.com",
-        username="testuser",
+        email=email,
+        username=username,
         hashed_password=get_password_hash("testpassword"),
         is_active=True,
     )
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
+    
+    # Verify the password hash was created correctly
+    assert verify_password("testpassword", user.hashed_password), "Password hash verification failed in fixture"
 
     token = create_access_token({"sub": user.email})
     return {

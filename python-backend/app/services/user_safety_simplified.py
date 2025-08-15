@@ -42,6 +42,13 @@ class ActionType(Enum):
     PROFILE_REVIEW = "profile_review"
     NO_ACTION = "no_action"
 
+class SafetyStatus(Enum):
+    CLEAR = "clear"
+    FLAGGED = "flagged"
+    SUSPENDED = "suspended"
+    BANNED = "banned"
+    UNDER_REVIEW = "under_review"
+
 @dataclass
 class UserReport:
     reporter_id: int

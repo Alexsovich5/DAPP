@@ -6,9 +6,9 @@ from unittest.mock import Mock, patch
 from datetime import datetime, timedelta
 
 from app.core.auth import (
-    create_token_for_user,
     get_user_from_token,
-    create_refresh_token,
+    get_current_user,
+    get_current_active_user,
 )
 from app.core.security import (
     create_access_token,

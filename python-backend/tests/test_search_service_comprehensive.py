@@ -4,7 +4,6 @@ from unittest.mock import Mock, AsyncMock, patch, MagicMock
 from datetime import datetime, timedelta
 import json
 import uuid
-
 from app.services.search_service import (
     ElasticsearchService,
     SearchType,
@@ -13,8 +12,6 @@ from app.services.search_service import (
     SearchResult,
     SearchResponse
 )
-
-
 class TestElasticsearchService:
     
     @pytest.fixture
@@ -105,7 +102,6 @@ class TestElasticsearchService:
                 ]
             }
         }
-
     def test_service_initialization(self, search_service, mock_elasticsearch, mock_redis):
         """Test search service initialization"""
         assert search_service.es_client == mock_elasticsearch
@@ -114,7 +110,6 @@ class TestElasticsearchService:
         assert "users" in search_service.indexes
         assert "profiles" in search_service.indexes
         assert "activities" in search_service.indexes
-
     def test_search_configurations(self, search_service):
         """Test search configurations are properly set"""
         config = search_service.search_configs
@@ -131,7 +126,6 @@ class TestElasticsearchService:
         assert boost_factors['mutual_interests'] == 3.0
         assert boost_factors['location_proximity'] == 1.8
         assert boost_factors['age_compatibility'] == 1.2
-
     def test_search_type_enum_values(self):
         """Test SearchType enum values"""
         assert SearchType.PROFILE_DISCOVERY.value == "profile_discovery"
@@ -140,7 +134,6 @@ class TestElasticsearchService:
         assert SearchType.LOCATION_BASED.value == "location_based"
         assert SearchType.KEYWORD_SEARCH.value == "keyword_search"
         assert SearchType.ADVANCED_FILTERS.value == "advanced_filters"
-
     def test_sort_order_enum_values(self):
         """Test SortOrder enum values"""
         assert SortOrder.RELEVANCE.value == "relevance"
@@ -149,7 +142,6 @@ class TestElasticsearchService:
         assert SortOrder.LAST_ACTIVE.value == "last_active"
         assert SortOrder.NEWEST_FIRST.value == "newest_first"
         assert SortOrder.RANDOM.value == "random"
-
     def test_search_criteria_dataclass(self, sample_search_criteria):
         """Test SearchCriteria dataclass"""
         assert sample_search_criteria.search_type == SearchType.PROFILE_DISCOVERY
@@ -159,7 +151,6 @@ class TestElasticsearchService:
         assert sample_search_criteria.age_range == (25, 35)
         assert len(sample_search_criteria.interests) == 3
         assert sample_search_criteria.sort_by == SortOrder.COMPATIBILITY_SCORE
-
     def test_search_result_dataclass(self):
         """Test SearchResult dataclass"""
         result = SearchResult(
@@ -177,7 +168,6 @@ class TestElasticsearchService:
         assert result.compatibility_score == 0.88
         assert result.distance_km == 5.2
         assert len(result.match_reasons) == 2
-
     def test_search_response_dataclass(self):
         """Test SearchResponse dataclass"""
         response = SearchResponse(
@@ -196,7 +186,6 @@ class TestElasticsearchService:
         assert response.took_ms == 45
         assert response.search_id == "test_search_123"
         assert len(response.suggestions) == 1
-
     @pytest.mark.asyncio
     async def test_setup_indexes(self, mock_elasticsearch, mock_redis):
         """Test Elasticsearch indexes setup"""
@@ -209,7 +198,6 @@ class TestElasticsearchService:
                     mock_users.assert_called_once()
                     mock_profiles.assert_called_once()
                     mock_activities.assert_called_once()
-
     @pytest.mark.asyncio
     async def test_create_users_index_success(self, search_service, mock_elasticsearch):
         """Test successful users index creation"""
@@ -222,7 +210,6 @@ class TestElasticsearchService:
         assert call_args[1]['index'] == search_service.indexes['users']
         assert 'mappings' in call_args[1]['body']
         assert 'settings' in call_args[1]['body']
-
     @pytest.mark.asyncio
     async def test_create_users_index_error(self, search_service, mock_elasticsearch):
         """Test users index creation error handling"""
@@ -232,7 +219,6 @@ class TestElasticsearchService:
         await search_service._create_users_index()
         
         mock_elasticsearch.indices.create.assert_called_once()
-
     @pytest.mark.asyncio
     async def test_create_profiles_index(self, search_service, mock_elasticsearch):
         """Test profiles index creation"""
@@ -245,7 +231,6 @@ class TestElasticsearchService:
         body = call_args[1]['body']
         assert 'analysis' in body['settings']
         assert 'synonym' in body['settings']['analysis']['filter']
-
     @pytest.mark.asyncio
     async def test_create_activities_index(self, search_service, mock_elasticsearch):
         """Test activities index creation"""
@@ -260,7 +245,6 @@ class TestElasticsearchService:
         assert 'activity_type' in mapping
         assert 'timestamp' in mapping
         assert 'interaction_score' in mapping
-
     @pytest.mark.asyncio
     async def test_search_users_success(self, search_service, sample_search_criteria, sample_search_response):
         """Test successful user search"""
@@ -280,7 +264,6 @@ class TestElasticsearchService:
                                 mock_process.assert_called_once()
                                 mock_cache.assert_called_once()
                                 mock_track.assert_called_once()
-
     @pytest.mark.asyncio
     async def test_search_users_cached_result(self, search_service, sample_search_criteria):
         """Test search with cached result"""
@@ -295,7 +278,6 @@ class TestElasticsearchService:
             assert result.search_id == "cached"
             # Should not call Elasticsearch if cached result exists
             search_service.es_client.search.assert_not_called()
-
     @pytest.mark.asyncio
     async def test_search_users_error_handling(self, search_service, sample_search_criteria):
         """Test search error handling"""
@@ -307,7 +289,6 @@ class TestElasticsearchService:
                 assert result.total_count == 0
                 assert result.search_id == "error"
                 assert len(result.results) == 0
-
     @pytest.mark.asyncio
     async def test_build_search_query_basic(self, search_service, sample_search_criteria):
         """Test basic search query building"""
@@ -323,7 +304,6 @@ class TestElasticsearchService:
                             mock_filters.assert_called_once()
                             mock_sorting.assert_called_once()
                             mock_wrap.assert_called_once()
-
     @pytest.mark.asyncio
     async def test_build_search_query_keyword_search(self, search_service):
         """Test keyword search query building"""
@@ -340,7 +320,6 @@ class TestElasticsearchService:
                         
                         # Should add multi_match query for keyword search
                         mock_wrap.assert_called_once()
-
     @pytest.mark.asyncio
     async def test_build_search_query_interest_based(self, search_service):
         """Test interest-based search query building"""
@@ -356,7 +335,6 @@ class TestElasticsearchService:
                         result = await search_service._build_search_query(100, criteria)
                         
                         mock_wrap.assert_called_once()
-
     @pytest.mark.asyncio
     async def test_build_search_query_compatibility_search(self, search_service):
         """Test compatibility search query building"""
@@ -370,7 +348,6 @@ class TestElasticsearchService:
                             result = await search_service._build_search_query(100, criteria)
                             
                             mock_compatibility.assert_called_once()
-
     @pytest.mark.asyncio
     async def test_add_compatibility_boosting(self, search_service):
         """Test compatibility boosting addition"""
@@ -386,7 +363,6 @@ class TestElasticsearchService:
             # Should add boosting for interests and personality traits
             should_clauses = query["query"]["bool"]["should"]
             assert len(should_clauses) > 0
-
     @pytest.mark.asyncio
     async def test_add_compatibility_boosting_no_profile(self, search_service):
         """Test compatibility boosting with no searcher profile"""
@@ -396,7 +372,6 @@ class TestElasticsearchService:
         
         # Should not modify query if no profile
         assert len(query["query"]["bool"]["should"]) == 0
-
     @pytest.mark.asyncio
     async def test_apply_advanced_filters(self, search_service):
         """Test advanced filters application"""
@@ -419,7 +394,6 @@ class TestElasticsearchService:
         gender_filter = next((f for f in filter_clauses if "gender" in f.get("term", {})), None)
         assert gender_filter is not None
         assert gender_filter["term"]["gender"] == "female"
-
     @pytest.mark.asyncio
     async def test_apply_sorting_compatibility_score(self, search_service):
         """Test sorting by compatibility score"""
@@ -436,7 +410,6 @@ class TestElasticsearchService:
         assert {"emotional_depth_score": {"order": "desc"}} in sort_fields
         assert {"profile_completeness": {"order": "desc"}} in sort_fields
         assert "_score" in sort_fields
-
     @pytest.mark.asyncio
     async def test_apply_sorting_distance(self, search_service):
         """Test sorting by distance"""
@@ -454,7 +427,6 @@ class TestElasticsearchService:
         assert geo_sort["location"]["lat"] == 37.7749
         assert geo_sort["location"]["lon"] == -122.4194
         assert geo_sort["order"] == "asc"
-
     @pytest.mark.asyncio
     async def test_apply_sorting_last_active(self, search_service):
         """Test sorting by last active"""
@@ -467,7 +439,6 @@ class TestElasticsearchService:
         await search_service._apply_sorting(query, criteria)
         
         assert query["sort"] == [{"last_active": {"order": "desc"}}, "_score"]
-
     @pytest.mark.asyncio
     async def test_apply_sorting_random(self, search_service):
         """Test random sorting"""
@@ -483,7 +454,6 @@ class TestElasticsearchService:
         script_sort = query["sort"][0]["_script"]
         assert script_sort["type"] == "number"
         assert "Math.random()" in script_sort["script"]["source"]
-
     @pytest.mark.asyncio
     async def test_wrap_with_function_score(self, search_service):
         """Test function score wrapping"""
@@ -502,7 +472,6 @@ class TestElasticsearchService:
         assert len(function_score["functions"]) >= 3  # recent activity, profile completeness, location
         assert function_score["score_mode"] == "multiply"
         assert function_score["boost_mode"] == "multiply"
-
     @pytest.mark.asyncio
     async def test_process_search_results(self, search_service, sample_search_response, sample_search_criteria):
         """Test search results processing"""
@@ -518,7 +487,6 @@ class TestElasticsearchService:
                 assert results[0].compatibility_score == 0.85
                 assert results[0].distance_km is not None  # Should calculate distance
                 assert len(results[0].match_reasons) == 2
-
     @pytest.mark.asyncio
     async def test_process_search_results_no_location(self, search_service, sample_search_response):
         """Test search results processing without location"""
@@ -532,7 +500,6 @@ class TestElasticsearchService:
                 
                 assert len(results) == 2
                 assert results[0].distance_km is None  # No location provided
-
     def test_generate_match_reasons(self, search_service, sample_search_criteria):
         """Test match reasons generation"""
         hit = {
@@ -552,7 +519,6 @@ class TestElasticsearchService:
         assert any("emotional compatibility" in reason.lower() for reason in reasons)
         assert any("complete profile" in reason.lower() for reason in reasons)
         assert any("verified" in reason.lower() for reason in reasons)
-
     @pytest.mark.asyncio
     async def test_calculate_compatibility_score_cached(self, search_service, mock_redis):
         """Test compatibility score calculation with cached result"""
@@ -563,7 +529,6 @@ class TestElasticsearchService:
         assert score == 0.78
         cache_key = "compatibility:100:200"
         mock_redis.get.assert_called_once_with(cache_key)
-
     @pytest.mark.asyncio
     async def test_calculate_compatibility_score_uncached(self, search_service, mock_redis):
         """Test compatibility score calculation without cached result"""
@@ -577,7 +542,6 @@ class TestElasticsearchService:
             mock_redis.set.assert_called_once()
             assert mock_redis.set.call_args[0][1] == "0.65"
             assert mock_redis.set.call_args[1]["ex"] == 3600
-
     @pytest.mark.asyncio
     async def test_calculate_compatibility_score_error(self, search_service, mock_redis):
         """Test compatibility score calculation error handling"""
@@ -586,7 +550,6 @@ class TestElasticsearchService:
         score = await search_service._calculate_compatibility_score(100, 200)
         
         assert score is None
-
     def test_get_compatible_traits(self, search_service):
         """Test compatible personality traits mapping"""
         personality_traits = {"outgoing": 0.8, "intellectual": 0.7}
@@ -597,7 +560,6 @@ class TestElasticsearchService:
         assert "outgoing" in compatible_traits
         assert "intellectual" in compatible_traits
         assert all(isinstance(boost, float) for boost in compatible_traits.values())
-
     @pytest.mark.asyncio
     async def test_get_user_profile_found(self, search_service, mock_elasticsearch):
         """Test getting user profile when found"""
@@ -615,7 +577,6 @@ class TestElasticsearchService:
             id=123,
             ignore=404
         )
-
     @pytest.mark.asyncio
     async def test_get_user_profile_not_found(self, search_service, mock_elasticsearch):
         """Test getting user profile when not found"""
@@ -625,7 +586,6 @@ class TestElasticsearchService:
         profile = await search_service._get_user_profile(123)
         
         assert profile is None
-
     @pytest.mark.asyncio
     async def test_get_user_profile_error(self, search_service, mock_elasticsearch):
         """Test getting user profile error handling"""
@@ -634,7 +594,6 @@ class TestElasticsearchService:
         profile = await search_service._get_user_profile(123)
         
         assert profile is None
-
     def test_generate_cache_key(self, search_service, sample_search_criteria):
         """Test cache key generation"""
         cache_key = search_service._generate_cache_key(100, sample_search_criteria)
@@ -645,7 +604,6 @@ class TestElasticsearchService:
         # Same criteria should generate same key
         cache_key2 = search_service._generate_cache_key(100, sample_search_criteria)
         assert cache_key == cache_key2
-
     @pytest.mark.asyncio
     async def test_get_cached_search_found(self, search_service, mock_redis):
         """Test getting cached search results when found"""
@@ -664,7 +622,6 @@ class TestElasticsearchService:
         assert isinstance(result, SearchResponse)
         assert result.total_count == 50
         assert result.search_id == "cached_123"
-
     @pytest.mark.asyncio
     async def test_get_cached_search_not_found(self, search_service, mock_redis):
         """Test getting cached search results when not found"""
@@ -673,7 +630,6 @@ class TestElasticsearchService:
         result = await search_service._get_cached_search("test_cache_key")
         
         assert result is None
-
     @pytest.mark.asyncio
     async def test_cache_search_results(self, search_service, mock_redis):
         """Test caching search results"""
@@ -687,14 +643,12 @@ class TestElasticsearchService:
         call_args = mock_redis.set.call_args
         assert call_args[0][0] == "test_cache_key"
         assert call_args[1]["ex"] == 300  # cache_ttl
-
     def test_generate_search_id(self, search_service):
         """Test search ID generation"""
         search_id = search_service._generate_search_id()
         
         assert isinstance(search_id, str)
         assert len(search_id) == 8
-
     @pytest.mark.asyncio
     async def test_generate_search_suggestions_no_results(self, search_service, sample_search_criteria):
         """Test search suggestions when no results"""
@@ -706,7 +660,6 @@ class TestElasticsearchService:
         assert any("age range" in suggestion.lower() for suggestion in suggestions)
         assert any("radius" in suggestion.lower() for suggestion in suggestions)
         assert any("filters" in suggestion.lower() for suggestion in suggestions)
-
     @pytest.mark.asyncio
     async def test_generate_search_suggestions_few_results(self, search_service, sample_search_criteria):
         """Test search suggestions when few results"""
@@ -717,7 +670,6 @@ class TestElasticsearchService:
         assert len(suggestions) == 3
         assert any("interests" in suggestion.lower() for suggestion in suggestions)
         assert any("profile" in suggestion.lower() for suggestion in suggestions)
-
     @pytest.mark.asyncio
     async def test_track_search_analytics(self, search_service, mock_redis, sample_search_criteria):
         """Test search analytics tracking"""
@@ -735,7 +687,6 @@ class TestElasticsearchService:
         assert analytics_data['searcher_id'] == 100
         assert analytics_data['search_type'] == sample_search_criteria.search_type.value
         assert analytics_data['results_count'] == 150
-
     @pytest.mark.asyncio
     async def test_index_user_success(self, search_service, mock_elasticsearch):
         """Test successful user indexing"""
@@ -750,7 +701,6 @@ class TestElasticsearchService:
             id=123,
             body=user_data
         )
-
     @pytest.mark.asyncio
     async def test_index_user_error(self, search_service, mock_elasticsearch):
         """Test user indexing error handling"""
@@ -760,7 +710,6 @@ class TestElasticsearchService:
         result = await search_service.index_user(user_data)
         
         assert result is False
-
     @pytest.mark.asyncio
     async def test_index_profile_success(self, search_service, mock_elasticsearch):
         """Test successful profile indexing"""
@@ -775,7 +724,6 @@ class TestElasticsearchService:
             id=123,
             body=profile_data
         )
-
     @pytest.mark.asyncio
     async def test_delete_user_success(self, search_service, mock_elasticsearch):
         """Test successful user deletion"""
@@ -786,7 +734,6 @@ class TestElasticsearchService:
         assert result is True
         # Should delete from all indexes
         assert mock_elasticsearch.delete.call_count == 3
-
     @pytest.mark.asyncio
     async def test_delete_user_error(self, search_service, mock_elasticsearch):
         """Test user deletion error handling"""
@@ -795,7 +742,6 @@ class TestElasticsearchService:
         result = await search_service.delete_user(123)
         
         assert result is False
-
     @pytest.mark.asyncio
     async def test_bulk_index_users_success(self, search_service):
         """Test successful bulk user indexing"""
@@ -815,7 +761,6 @@ class TestElasticsearchService:
             assert len(actions) == 2
             assert actions[0]["_id"] == 123
             assert actions[1]["_id"] == 456
-
     @pytest.mark.asyncio
     async def test_bulk_index_users_error(self, search_service):
         """Test bulk user indexing error handling"""
@@ -825,7 +770,6 @@ class TestElasticsearchService:
             result = await search_service.bulk_index_users(users_data)
             
             assert result is False
-
     @pytest.mark.asyncio
     async def test_get_search_suggestions_success(self, search_service, mock_elasticsearch):
         """Test getting search suggestions"""
@@ -848,7 +792,6 @@ class TestElasticsearchService:
         assert "travel" in suggestions
         assert "traveler" in suggestions
         assert "adventure" in suggestions
-
     @pytest.mark.asyncio
     async def test_get_search_suggestions_error(self, search_service, mock_elasticsearch):
         """Test search suggestions error handling"""
@@ -857,7 +800,6 @@ class TestElasticsearchService:
         suggestions = await search_service.get_search_suggestions("test")
         
         assert suggestions == []
-
     @pytest.mark.asyncio
     async def test_get_search_analytics_success(self, search_service, mock_redis):
         """Test getting search analytics"""
@@ -875,7 +817,6 @@ class TestElasticsearchService:
         assert analytics['search_types']['interest_based'] == 1
         assert analytics['avg_results'] == 40  # (50+30+40)/3
         assert analytics['avg_search_time_ms'] == 90  # (100+80+90)/3
-
     @pytest.mark.asyncio
     async def test_get_search_analytics_no_data(self, search_service, mock_redis):
         """Test getting search analytics with no data"""
@@ -884,7 +825,6 @@ class TestElasticsearchService:
         analytics = await search_service.get_search_analytics()
         
         assert analytics == {}
-
     @pytest.mark.asyncio
     async def test_get_search_analytics_error(self, search_service, mock_redis):
         """Test search analytics error handling"""
@@ -893,7 +833,6 @@ class TestElasticsearchService:
         analytics = await search_service.get_search_analytics()
         
         assert analytics == {}
-
     @pytest.mark.asyncio
     async def test_concurrent_search_operations(self, search_service, sample_search_criteria):
         """Test concurrent search operations"""
@@ -913,7 +852,6 @@ class TestElasticsearchService:
             assert len(results) == 5
             assert all(isinstance(result, SearchResponse) for result in results)
             assert mock_search.call_count == 5
-
     @pytest.mark.asyncio
     async def test_complex_search_scenario(self, search_service, sample_search_response):
         """Test complex search scenario with all features"""
@@ -946,7 +884,6 @@ class TestElasticsearchService:
                     assert result.total_count == 150
                     assert len(result.results) == 2
                     assert all(r.compatibility_score is not None for r in result.results)
-
     def test_search_service_singleton_pattern(self):
         """Test search service singleton pattern"""
         from app.services.search_service import get_search_service, init_search_service
@@ -965,7 +902,6 @@ class TestElasticsearchService:
             # Get service should return same instance
             retrieved_service = get_search_service()
             assert service is retrieved_service
-
     def test_location_distance_calculation(self, search_service, sample_search_criteria, sample_search_response):
         """Test location distance calculation accuracy"""
         with patch.object(search_service, '_calculate_compatibility_score', return_value=0.85):
@@ -982,7 +918,6 @@ class TestElasticsearchService:
                     
                     assert results[0].distance_km == 5.7
                     mock_distance.assert_called()
-
     def test_search_performance_optimization(self, search_service):
         """Test search performance optimization features"""
         # Test boost factors are reasonable

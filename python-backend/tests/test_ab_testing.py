@@ -10,7 +10,7 @@ from unittest.mock import patch, MagicMock
 import json
 from typing import Dict, Any, List
 
-from app.services.ab_testing_service import ABTestingService, ExperimentStatus
+from app.services.ab_testing import ABTestingService, ExperimentStatus
 from app.models.ab_experiment import ABExperiment, ExperimentVariant
 from app.models.user_experiment import UserExperiment
 

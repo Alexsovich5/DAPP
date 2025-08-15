@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 import json
 import uuid
 from dataclasses import asdict
-
 from app.services.analytics import (
     AnalyticsService, 
     AnalyticsEvent, 
@@ -13,8 +12,6 @@ from app.services.analytics import (
     EventCategory,
     track_request_event
 )
-
-
 class TestAnalyticsService:
     
     @pytest.fixture
@@ -68,7 +65,6 @@ class TestAnalyticsService:
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             ip_address="192.168.1.1"
         )
-
     @pytest.mark.asyncio
     async def test_track_event_success(self, analytics_service, sample_event, mock_clickhouse, mock_redis):
         """Test successful event tracking"""
@@ -78,7 +74,6 @@ class TestAnalyticsService:
         mock_clickhouse.execute.assert_called_once()
         mock_redis.xadd.assert_called()
         mock_redis.lpush.assert_called()
-
     @pytest.mark.asyncio
     async def test_track_event_failure(self, analytics_service, sample_event, mock_clickhouse):
         """Test event tracking failure handling"""
@@ -87,7 +82,6 @@ class TestAnalyticsService:
         result = await analytics_service.track_event(sample_event)
         
         assert result is False
-
     @pytest.mark.asyncio
     async def test_enrich_event_with_user_agent(self, analytics_service, sample_event):
         """Test event enrichment with user agent parsing"""
@@ -107,7 +101,6 @@ class TestAnalyticsService:
             assert enriched['device_type'] == 'desktop'
             assert enriched['browser'] == 'Chrome'
             assert enriched['os'] == 'Windows'
-
     @pytest.mark.asyncio
     async def test_enrich_event_with_geoip(self, mock_clickhouse, mock_redis, sample_event):
         """Test event enrichment with GeoIP data"""
@@ -129,7 +122,6 @@ class TestAnalyticsService:
             assert enriched['city'] == 'San Francisco'
             assert enriched['latitude'] == 37.7749
             assert enriched['longitude'] == -122.4194
-
     def test_get_device_type_mobile(self, analytics_service):
         """Test device type detection for mobile"""
         mock_ua = Mock()
@@ -139,7 +131,6 @@ class TestAnalyticsService:
         
         device_type = analytics_service._get_device_type(mock_ua)
         assert device_type == 'mobile'
-
     def test_get_device_type_tablet(self, analytics_service):
         """Test device type detection for tablet"""
         mock_ua = Mock()
@@ -149,7 +140,6 @@ class TestAnalyticsService:
         
         device_type = analytics_service._get_device_type(mock_ua)
         assert device_type == 'tablet'
-
     def test_get_device_type_desktop(self, analytics_service):
         """Test device type detection for desktop"""
         mock_ua = Mock()
@@ -159,7 +149,6 @@ class TestAnalyticsService:
         
         device_type = analytics_service._get_device_type(mock_ua)
         assert device_type == 'desktop'
-
     def test_get_device_type_unknown(self, analytics_service):
         """Test device type detection for unknown"""
         mock_ua = Mock()
@@ -169,7 +158,6 @@ class TestAnalyticsService:
         
         device_type = analytics_service._get_device_type(mock_ua)
         assert device_type == 'unknown'
-
     @pytest.mark.asyncio
     async def test_store_event_clickhouse(self, analytics_service, mock_clickhouse):
         """Test storing event in ClickHouse"""
@@ -190,7 +178,6 @@ class TestAnalyticsService:
         mock_clickhouse.execute.assert_called_once()
         args = mock_clickhouse.execute.call_args
         assert "INSERT INTO user_events VALUES" in args[0][0]
-
     @pytest.mark.asyncio
     async def test_store_event_redis(self, analytics_service, mock_redis):
         """Test storing event in Redis"""
@@ -205,7 +192,6 @@ class TestAnalyticsService:
         mock_redis.xadd.assert_called_once()
         mock_redis.lpush.assert_called_once()
         mock_redis.ltrim.assert_called_once()
-
     @pytest.mark.asyncio
     async def test_update_real_time_metrics(self, analytics_service, mock_redis):
         """Test updating real-time metrics"""
@@ -220,7 +206,6 @@ class TestAnalyticsService:
         mock_redis.pipeline.assert_called_once()
         pipeline = mock_redis.pipeline.return_value
         pipeline.execute.assert_called_once()
-
     @pytest.mark.asyncio
     async def test_update_category_metrics_matching(self, analytics_service, mock_redis):
         """Test updating category-specific metrics for matching events"""
@@ -233,7 +218,6 @@ class TestAnalyticsService:
         await analytics_service._update_category_metrics(event_data, pipe, "2023-01-01-12", "2023-01-01")
         
         pipe.hincrby.assert_called()
-
     @pytest.mark.asyncio
     async def test_update_category_metrics_revenue(self, analytics_service, mock_redis):
         """Test updating category-specific metrics for revenue events"""
@@ -249,7 +233,6 @@ class TestAnalyticsService:
         calls = pipe.hincrby.call_args_list
         revenue_calls = [call for call in calls if 'revenue_cents' in str(call)]
         assert len(revenue_calls) >= 2  # hourly and daily
-
     @pytest.mark.asyncio
     async def test_get_real_time_metrics(self, analytics_service, mock_redis):
         """Test retrieving real-time metrics"""
@@ -264,7 +247,6 @@ class TestAnalyticsService:
         assert 'daily' in metrics
         assert metrics['hourly']['active_users'] == 25
         assert metrics['hourly']['metrics']['events:page_view'] == 100
-
     @pytest.mark.asyncio
     async def test_track_page_view(self, analytics_service, mock_clickhouse, mock_redis):
         """Test convenience method for tracking page views"""
@@ -279,7 +261,6 @@ class TestAnalyticsService:
         
         assert result is True
         mock_clickhouse.execute.assert_called()
-
     @pytest.mark.asyncio
     async def test_track_profile_interaction(self, analytics_service, mock_clickhouse, mock_redis):
         """Test tracking profile interactions"""
@@ -294,7 +275,6 @@ class TestAnalyticsService:
         assert result is True
         # Verify both general event and specific profile interaction were stored
         assert mock_clickhouse.execute.call_count == 2
-
     @pytest.mark.asyncio
     async def test_track_match_created(self, analytics_service, mock_clickhouse, mock_redis):
         """Test tracking match creation events"""
@@ -308,7 +288,6 @@ class TestAnalyticsService:
         
         assert result is True
         assert mock_clickhouse.execute.call_count == 2
-
     @pytest.mark.asyncio
     async def test_track_revelation_event(self, analytics_service, mock_clickhouse, mock_redis):
         """Test tracking revelation events"""
@@ -322,7 +301,6 @@ class TestAnalyticsService:
         
         assert result is True
         assert mock_clickhouse.execute.call_count == 2
-
     @pytest.mark.asyncio
     async def test_get_user_journey_metrics(self, analytics_service, mock_clickhouse):
         """Test retrieving user journey metrics"""
@@ -341,7 +319,6 @@ class TestAnalyticsService:
         assert metrics['total_events'] == 2
         assert metrics['engagement_score'] == 75.5
         assert 'user_behavior' in metrics['event_categories']
-
     @pytest.mark.asyncio
     async def test_calculate_conversion_funnel(self, analytics_service, mock_clickhouse):
         """Test conversion funnel calculation"""
@@ -359,7 +336,6 @@ class TestAnalyticsService:
         
         for step in expected_steps:
             assert step in funnel
-
     @pytest.mark.asyncio
     async def test_calculate_engagement_score(self, analytics_service, mock_clickhouse):
         """Test engagement score calculation"""
@@ -370,7 +346,6 @@ class TestAnalyticsService:
         
         assert isinstance(score, float)
         assert 0 <= score <= 100
-
     @pytest.mark.asyncio
     async def test_calculate_engagement_score_no_data(self, analytics_service, mock_clickhouse):
         """Test engagement score calculation with no data"""
@@ -379,7 +354,6 @@ class TestAnalyticsService:
         score = await analytics_service._calculate_engagement_score(123)
         
         assert score == 0.0
-
     @pytest.mark.asyncio
     async def test_store_profile_interaction_error_handling(self, analytics_service, mock_clickhouse):
         """Test error handling in profile interaction storage"""
@@ -387,7 +361,6 @@ class TestAnalyticsService:
         
         # Should not raise exception, only log error
         await analytics_service._store_profile_interaction(123, 456, "like", 0.8, datetime.utcnow())
-
     @pytest.mark.asyncio
     async def test_store_matching_event_error_handling(self, analytics_service, mock_clickhouse):
         """Test error handling in matching event storage"""
@@ -395,7 +368,6 @@ class TestAnalyticsService:
         
         # Should not raise exception, only log error
         await analytics_service._store_matching_event(123, 456, "soul_connection", 0.9, "v2.0")
-
     @pytest.mark.asyncio
     async def test_store_revelation_event_error_handling(self, analytics_service, mock_clickhouse):
         """Test error handling in revelation event storage"""
@@ -403,7 +375,6 @@ class TestAnalyticsService:
         
         # Should not raise exception, only log error
         await analytics_service._store_revelation_event(123, 789, 3, "personal_value", 250)
-
     @pytest.mark.asyncio
     async def test_geoip_database_loading_failure(self, mock_clickhouse, mock_redis):
         """Test GeoIP database loading failure"""
@@ -412,7 +383,6 @@ class TestAnalyticsService:
             
             service = AnalyticsService(mock_clickhouse, mock_redis)
             assert service.geoip_reader is None
-
     @pytest.mark.asyncio
     async def test_enrich_event_geoip_error(self, analytics_service, sample_event):
         """Test event enrichment with GeoIP error"""
@@ -427,7 +397,6 @@ class TestAnalyticsService:
         assert 'date' in enriched
         assert 'hour' in enriched
         assert 'country' not in enriched
-
     @pytest.mark.asyncio
     async def test_track_request_event_helper(self, mock_clickhouse, mock_redis):
         """Test track_request_event helper function"""
@@ -443,21 +412,18 @@ class TestAnalyticsService:
             )
             
             assert result is True
-
     def test_event_type_enum_values(self):
         """Test EventType enum has expected values"""
         assert EventType.PAGE_VIEW.value == "page_view"
         assert EventType.PROFILE_LIKE.value == "profile_like"
         assert EventType.REVELATION_CREATED.value == "revelation_created"
         assert EventType.MATCH_CREATED.value == "match_created"
-
     def test_event_category_enum_values(self):
         """Test EventCategory enum has expected values"""
         assert EventCategory.USER_BEHAVIOR.value == "user_behavior"
         assert EventCategory.MATCHING.value == "matching"
         assert EventCategory.REVELATION.value == "revelation"
         assert EventCategory.SAFETY.value == "safety"
-
     def test_analytics_event_dataclass(self):
         """Test AnalyticsEvent dataclass structure"""
         event = AnalyticsEvent(
@@ -474,7 +440,6 @@ class TestAnalyticsService:
         assert event_dict['event_id'] == "test-id"
         assert event_dict['user_id'] == 123
         assert event_dict['properties']['key'] == "value"
-
     @pytest.mark.asyncio
     async def test_concurrent_event_tracking(self, analytics_service, mock_clickhouse, mock_redis):
         """Test concurrent event tracking"""
@@ -498,7 +463,6 @@ class TestAnalyticsService:
         # All should succeed
         assert all(results)
         assert mock_clickhouse.execute.call_count == 5
-
     @pytest.mark.asyncio
     async def test_real_time_metrics_error_handling(self, analytics_service, mock_redis):
         """Test real-time metrics error handling"""
@@ -507,7 +471,6 @@ class TestAnalyticsService:
         metrics = await analytics_service.get_real_time_metrics()
         
         assert metrics == {}
-
     @pytest.mark.asyncio
     async def test_user_journey_metrics_error_handling(self, analytics_service, mock_clickhouse):
         """Test user journey metrics error handling"""
@@ -516,7 +479,6 @@ class TestAnalyticsService:
         metrics = await analytics_service.get_user_journey_metrics(123)
         
         assert metrics == {}
-
     @pytest.mark.asyncio
     async def test_engagement_score_error_handling(self, analytics_service, mock_clickhouse):
         """Test engagement score calculation error handling"""
