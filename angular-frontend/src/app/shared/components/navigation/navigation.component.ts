@@ -68,8 +68,8 @@ import { Observable } from 'rxjs';
           >
             <span class="nav-icon">🔔</span>
             <span class="nav-text">Notifications</span>
-            <span class="notification-badge" *ngIf="(unreadCount$ | async) > 0">
-              {{unreadCount$ | async}}
+            <span class="notification-badge" *ngIf="(unreadCount$ | async) as unreadCount; and unreadCount > 0">
+              {{unreadCount}}
             </span>
           </a>
         </div>
