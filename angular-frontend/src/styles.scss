@@ -29,10 +29,42 @@
     .mat-input-element {
       color: var(--text-primary) !important;
     }
+    
+    .mat-form-field-outline {
+      color: var(--border-color) !important;
+    }
+    
+    .mat-form-field-outline-thick {
+      color: var(--primary-color) !important;
+    }
   }
   
   .mat-icon {
     color: var(--text-primary) !important;
+  }
+  
+  .mat-divider {
+    border-top-color: var(--border-color) !important;
+  }
+  
+  .mat-progress-bar {
+    background-color: var(--surface-color) !important;
+  }
+  
+  .mat-stepper-horizontal {
+    background-color: var(--card-background) !important;
+  }
+  
+  .mat-step-header {
+    color: var(--text-primary) !important;
+  }
+  
+  .mat-checkbox {
+    color: var(--text-primary) !important;
+  }
+  
+  .mat-error {
+    color: var(--error-text) !important;
   }
 }
 
@@ -51,7 +83,9 @@ body {
 :root {
   // Light theme colors
   --primary-color: #ec4899;
+  --primary-color-rgb: 236, 72, 153;
   --accent-color: #8b5cf6;
+  --accent-color-rgb: 139, 92, 246;
   --background-color: #ffffff;
   --surface-color: #f8fafc;
   --text-primary: #1f2937;
@@ -68,7 +102,9 @@ body {
 .dark-theme {
   // Dark theme colors
   --primary-color: #f472b6;
+  --primary-color-rgb: 244, 114, 182;
   --accent-color: #a78bfa;
+  --accent-color-rgb: 167, 139, 250;
   --background-color: #111827;
   --surface-color: #1f2937;
   --text-primary: #f9fafb;
