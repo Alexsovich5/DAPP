@@ -28,11 +28,40 @@
     
     .mat-input-element {
       color: var(--text-primary) !important;
+      caret-color: var(--primary-color) !important;
+    }
+    
+    .mat-form-field-outline {
+      color: var(--border-color) !important;
+    }
+    
+    .mat-form-field-outline-thick {
+      color: var(--primary-color) !important;
     }
   }
   
   .mat-icon {
     color: var(--text-primary) !important;
+  }
+  
+  .mat-progress-bar {
+    background-color: var(--surface-color) !important;
+  }
+  
+  .mat-divider {
+    border-top-color: var(--border-color) !important;
+  }
+  
+  .mat-select-panel {
+    background: var(--card-background) !important;
+  }
+  
+  .mat-option {
+    color: var(--text-primary) !important;
+  }
+  
+  .mat-option:hover:not(.mat-option-disabled) {
+    background: var(--surface-color) !important;
   }
 }
 

@@ -60,7 +60,7 @@
 form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
   padding: 1rem 0;
 
   mat-form-field {
@@ -81,8 +81,9 @@ form {
 .step-actions {
   display: flex;
   justify-content: space-between;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
   gap: 1rem;
+  padding-top: 0.5rem;
 }
 
 mat-divider {

@@ -15,11 +15,11 @@ mat-form-field {
 }
 
 .success {
-  color: green;
+  color: var(--primary-color);
   margin-top: 1rem;
 }
 
 .error {
-  color: red;
+  color: var(--error-text);
   margin-top: 1rem;
 }
