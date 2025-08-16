@@ -26,7 +26,8 @@ class RevelationType(str, Enum):
 class RevelationService:
     """Service for managing the 7-day revelation cycle"""
     
-    def __init__(self):
+    def __init__(self, db_session: Session = None):
+        self.db_session = db_session
         self.revelation_cycle = {
             1: {
                 "type": RevelationType.PERSONAL_VALUE,

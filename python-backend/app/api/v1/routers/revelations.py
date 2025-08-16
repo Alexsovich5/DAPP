@@ -96,7 +96,7 @@ def get_revelation_prompt(day_number: int):
     )
 
 
-@router.post("/create", response_model=DailyRevelationResponse)
+@router.post("/create", response_model=DailyRevelationResponse, status_code=status.HTTP_201_CREATED)
 def create_revelation(
     revelation_data: DailyRevelationCreate,
     current_user: User = Depends(get_current_user),

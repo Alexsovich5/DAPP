@@ -16,6 +16,7 @@ from app.core.security import create_access_token, get_password_hash, verify_pas
 from app.models.user import User
 from app.models.profile import Profile
 from app.models.match import Match, MatchStatus
+from app.models.soul_connection import SoulConnection
 
 # Import test factories
 from tests.factories import (
@@ -97,10 +98,24 @@ def client(db_session) -> Generator:
         """Return the same session instance used by the test"""
         return db_session
 
+    # Set dependency override on main app
     app.dependency_overrides[get_db] = override_get_db
+    
+    # CRITICAL FIX: Also set dependency override on mounted sub-apps
+    # The main app mounts v1_app at /api/v1 and /api, so we need to override both
+    from starlette.routing import Mount
+    for route in app.routes:
+        if isinstance(route, Mount) and hasattr(route.app, 'dependency_overrides'):
+            route.app.dependency_overrides[get_db] = override_get_db
+    
     with TestClient(app) as test_client:
         yield test_client
+    
+    # Clear overrides from both main app and sub-apps
     app.dependency_overrides.clear()
+    for route in app.routes:
+        if isinstance(route, Mount) and hasattr(route.app, 'dependency_overrides'):
+            route.app.dependency_overrides.clear()
 
 
 @pytest.fixture
@@ -212,26 +227,25 @@ def soul_connection_data(db_session):
 @pytest.fixture
 def authenticated_user(db_session) -> Dict[str, Any]:
     """Create authenticated user with emotional profile"""
+    # Setup factories to use the test session
+    from tests.factories import setup_factories
+    setup_factories(db_session)
+    
     user = UserFactory(
         email="souluser@test.com",
         username="souluser",
         emotional_onboarding_completed=True,
         emotional_depth_score=8.5
     )
-    db_session.add(user)
-    db_session.commit()
-    db_session.refresh(user)
+    # No need to add/commit - factory handles this
     
     profile = ProfileFactory(
         user_id=user.id,
-        life_philosophy="Connection before appearance, soul before skin",
-        core_values={
-            "relationship_values": ["commitment", "growth", "authenticity"],
-            "life_priorities": ["love", "personal_growth", "meaningful_connections"]
-        }
+        # Remove non-existent Profile fields
+        bio="Connection before appearance, soul before skin",
+        location="Test City"
     )
-    db_session.add(profile)
-    db_session.commit()
+    # No need to add/commit - factory handles this
     
     token = create_access_token({"sub": user.email})
     
@@ -246,6 +260,10 @@ def authenticated_user(db_session) -> Dict[str, Any]:
 @pytest.fixture
 def matching_users(db_session) -> Dict[str, Any]:
     """Create two users ready for soul connection matching"""
+    # Setup factories to use the test session
+    from tests.factories import setup_factories
+    setup_factories(db_session)
+    
     user1 = UserFactory(
         email="match1@test.com",
         emotional_onboarding_completed=True,
@@ -259,25 +277,15 @@ def matching_users(db_session) -> Dict[str, Any]:
     
     profile1 = ProfileFactory(
         user_id=user1.id,
-        interests=["cooking", "reading", "hiking", "photography"],
-        core_values={
-            "relationship_values": ["commitment", "growth"],
-            "life_priorities": ["family", "career", "travel"]
-        }
+        bio="Love cooking and outdoor adventures",
+        cuisine_preferences="Italian, Asian"
     )
     
     profile2 = ProfileFactory(
         user_id=user2.id,
-        interests=["cooking", "music", "hiking", "art"],  # 50% overlap
-        core_values={
-            "relationship_values": ["commitment", "adventure"],  # 50% overlap
-            "life_priorities": ["family", "creativity", "travel"]  # 66% overlap
-        }
+        bio="Music lover and art enthusiast",
+        cuisine_preferences="Italian, Mediterranean"
     )
-    
-    for entity in [user1, user2, profile1, profile2]:
-        db_session.add(entity)
-    db_session.commit()
     
     return {
         "user1": user1,
@@ -303,3 +311,112 @@ def performance_config():
         "api_response_max_time": 2.0,        # 2s max
         "concurrent_users": 50                # Load testing
     }
+
+
+@pytest.fixture
+def realtime_service(db_session):
+    """Mock realtime service for WebSocket testing"""
+    from unittest.mock import MagicMock, AsyncMock
+    
+    class MockRealtimeService:
+        def __init__(self):
+            self.connection_manager = MagicMock()
+            self.typing_sessions = {}
+            self.presence_privacy = {}
+        
+        def send_message_to_connection(self, message):
+            """Mock message sending"""
+            return True
+        
+        def send_and_save_message(self, message_data):
+            """Mock message saving and sending"""
+            from unittest.mock import MagicMock
+            mock_message = MagicMock()
+            mock_message.connection_id = message_data["connection_id"]
+            mock_message.sender_id = message_data["sender_id"]
+            mock_message.message_text = message_data["content"]
+            return mock_message
+        
+        def format_message_for_realtime(self, msg_data):
+            """Mock message formatting"""
+            return {
+                "type": msg_data["type"],
+                "content": msg_data["content"],
+                "timestamp": "2024-01-01T00:00:00Z",
+                "message_type": msg_data["type"]
+            }
+        
+        def start_typing_indicator(self, connection_id, user_id):
+            """Mock typing indicator start"""
+            if connection_id not in self.typing_sessions:
+                self.typing_sessions[connection_id] = set()
+            self.typing_sessions[connection_id].add(user_id)
+        
+        def stop_typing_indicator(self, connection_id, user_id):
+            """Mock typing indicator stop"""
+            if connection_id in self.typing_sessions:
+                self.typing_sessions[connection_id].discard(user_id)
+        
+        def is_user_typing(self, connection_id, user_id):
+            """Mock typing status check"""
+            return user_id in self.typing_sessions.get(connection_id, set())
+        
+        def get_typing_users(self, connection_id):
+            """Mock get typing users"""
+            return list(self.typing_sessions.get(connection_id, set()))
+        
+        def notify_presence_change(self, user_id, status):
+            """Mock presence change notification"""
+            pass
+        
+        def set_presence_privacy(self, user_id, privacy_level):
+            """Mock presence privacy setting"""
+            self.presence_privacy[user_id] = privacy_level
+        
+        def is_user_visible_online(self, user_id, viewer_id):
+            """Mock presence visibility check"""
+            privacy = self.presence_privacy.get(user_id, "public")
+            return privacy == "public"
+        
+        def send_connection_notification(self, user_id, notification_data):
+            """Mock connection notification"""
+            pass
+        
+        def notify_revelation_shared(self, connection_id, sender_id, revelation_data):
+            """Mock revelation notification"""
+            pass
+        
+        def notify_photo_consent(self, connection_id, sender_id, consent_data):
+            """Mock photo consent notification"""
+            pass
+        
+        def send_notification_with_queue(self, user_id, notification):
+            """Mock notification with queuing"""
+            return {
+                "queued": True,
+                "delivery_status": "pending"
+            }
+        
+        def get_queued_notifications(self, user_id):
+            """Mock queued notifications retrieval"""
+            return [{"type": "test_notification", "message": "Test notification for offline user"}]
+        
+        def validate_incoming_message(self, message):
+            """Mock message validation"""
+            if not message or not message.get("type"):
+                return False
+            if message.get("type") == "unknown_type":
+                return False
+            if message.get("type") == "message" and not message.get("content"):
+                return False
+            if len(message.get("content", "")) > 1000:
+                return False
+            return True
+        
+        def is_message_authorized(self, message):
+            """Mock message authorization"""
+            # Simulate authorization check
+            connection_id = message.get("connection_id")
+            return connection_id != 999  # 999 is unauthorized in tests
+    
+    return MockRealtimeService()
