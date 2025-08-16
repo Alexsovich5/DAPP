@@ -123,7 +123,7 @@ def discover_soul_connections(
         )
 
 
-@router.post("/initiate", response_model=SoulConnectionResponse)
+@router.post("/initiate", response_model=SoulConnectionResponse, status_code=status.HTTP_201_CREATED)
 def initiate_soul_connection(
     connection_data: SoulConnectionCreate,
     current_user: User = Depends(get_current_user),
