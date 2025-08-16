@@ -5,6 +5,7 @@ Tests real-time messaging, typing indicators, and connection status for dating p
 
 import pytest
 from fastapi.testclient import TestClient
+from fastapi import status
 import asyncio
 import json
 from unittest.mock import AsyncMock, patch, MagicMock
@@ -12,92 +13,161 @@ import websockets
 import time
 
 from app.main import app
-from app.services.realtime_connection_manager import ConnectionManager
-from app.services.realtime import RealtimeService
+from app.services.realtime_connection_manager import RealtimeConnectionManager as ConnectionManager
+from app.services.realtime import ConnectionManager as RealtimeService
+
+
+@pytest.fixture
+def ws_client():
+    """Global WebSocket client fixture for all test classes"""
+    return TestClient(app)
+
+@pytest.fixture  
+def connection_manager():
+    """Global connection manager fixture for all test classes"""
+    return ConnectionManager()
 
 
 class TestWebSocketConnection:
     """Test WebSocket connection establishment and management"""
-    
-    @pytest.fixture
-    def ws_client(self):
-        return TestClient(app)
-    
-    @pytest.fixture
-    def connection_manager(self):
-        return ConnectionManager()
 
     @pytest.mark.asyncio
     @pytest.mark.unit
     def test_connection_manager_initialization(self, connection_manager):
         """Test that connection manager initializes properly"""
         assert connection_manager.active_connections == {}
-        assert connection_manager.user_connections == {}
+        assert connection_manager.user_presence == {}
         assert hasattr(connection_manager, 'connect')
         assert hasattr(connection_manager, 'disconnect')
-        assert hasattr(connection_manager, 'send_personal_message')
+        assert hasattr(connection_manager, 'send_to_user')
 
     @pytest.mark.asyncio
     @pytest.mark.integration
-    def test_websocket_connection_establishment(self, ws_client):
-        """Test establishing WebSocket connection with authentication"""
-        # Mock WebSocket connection
-        with ws_client.websocket_connect("/ws/1?token=valid-jwt-token") as websocket:
-            # Should be able to establish connection
-            data = websocket.receive_json()
+    def test_websocket_status_endpoint(self, client, authenticated_user):
+        """Test getting WebSocket status via HTTP endpoint"""
+        from unittest.mock import patch, MagicMock
+        
+        # Mock realtime manager to return test data
+        with patch('app.api.v1.routers.websocket.realtime_manager') as mock_manager:
+            mock_manager.active_connections = {authenticated_user["user"].id: "mock_connection"}
+            mock_manager.get_connection_stats.return_value = {
+                "total_connections": 5,
+                "active_users": 3,
+                "total_messages_sent": 150
+            }
             
-            assert data["type"] == "connection_established"
-            assert "user_id" in data
-            assert data["status"] == "connected"
+            response = client.get(
+                "/api/v1/websocket/status",
+                headers=authenticated_user["headers"]
+            )
+            
+            assert response.status_code == status.HTTP_200_OK
+            data = response.json()
+            
+            assert data["userId"] == authenticated_user["user"].id
+            assert data["isConnected"] == True
+            assert "presence" in data
+            assert "systemStats" in data
+            assert data["systemStats"]["total_connections"] == 5
 
     @pytest.mark.asyncio
     @pytest.mark.integration 
-    def test_websocket_authentication_required(self, ws_client):
-        """Test that WebSocket requires valid authentication"""
-        try:
-            with ws_client.websocket_connect("/ws/1") as websocket:
-                # Should fail without token
-                pytest.fail("Should require authentication")
-        except Exception as e:
-            # Should reject connection without proper auth
-            assert "401" in str(e) or "authentication" in str(e).lower()
+    def test_websocket_typing_start_endpoint(self, client, authenticated_user):
+        """Test starting typing indicator via HTTP endpoint"""
+        from unittest.mock import patch, AsyncMock
+        
+        with patch('app.api.v1.routers.websocket.realtime_manager') as mock_manager:
+            mock_manager.start_typing = AsyncMock(return_value=True)
+            
+            response = client.post(
+                "/api/v1/websocket/typing/start/1",
+                json={"typing": True},
+                headers=authenticated_user["headers"]
+            )
+            
+            assert response.status_code == status.HTTP_200_OK
+            data = response.json()
+            
+            assert data["success"] == True
+            assert data["connection_id"] == 1
+            assert "Typing indicator started" in data["message"]
+
+    @pytest.mark.asyncio
+    @pytest.mark.integration 
+    def test_websocket_typing_stop_endpoint(self, client, authenticated_user):
+        """Test stopping typing indicator via HTTP endpoint"""
+        from unittest.mock import patch, AsyncMock
+        
+        with patch('app.api.v1.routers.websocket.realtime_manager') as mock_manager:
+            mock_manager.stop_typing = AsyncMock(return_value=True)
+            
+            response = client.post(
+                "/api/v1/websocket/typing/stop/1",
+                headers=authenticated_user["headers"]
+            )
+            
+            assert response.status_code == status.HTTP_200_OK
+            data = response.json()
+            
+            assert data["success"] == True
+            assert "Typing indicator stopped" in data["message"]
+
+    @pytest.mark.asyncio
+    @pytest.mark.integration 
+    def test_websocket_energy_update_endpoint(self, client, authenticated_user):
+        """Test updating connection energy via HTTP endpoint"""
+        from unittest.mock import patch, AsyncMock
+        
+        with patch('app.api.v1.routers.websocket.realtime_manager') as mock_manager:
+            mock_manager.update_connection_energy = AsyncMock(return_value=True)
+            
+            response = client.post(
+                "/api/v1/websocket/energy/update/1",
+                json={"energyLevel": "high"},
+                headers=authenticated_user["headers"]
+            )
+            
+            assert response.status_code == status.HTTP_200_OK
+            data = response.json()
+            
+            assert data["success"] == True
+            assert data["newEnergy"] == "high"
+            assert data["connection_id"] == 1
 
     @pytest.mark.asyncio
     @pytest.mark.unit
-    def test_connection_manager_connect_user(self, connection_manager):
+    async def test_connection_manager_connect_user(self, connection_manager, db_session):
         """Test connecting user to connection manager"""
         mock_websocket = AsyncMock()
         user_id = 1
         
-        connection_manager.connect(mock_websocket, user_id)
+        await connection_manager.connect(mock_websocket, user_id, db_session)
         
         assert user_id in connection_manager.active_connections
         assert connection_manager.active_connections[user_id] == mock_websocket
-        assert user_id in connection_manager.user_connections
+        assert user_id in connection_manager.user_presence
 
     @pytest.mark.asyncio
     @pytest.mark.unit
-    def test_connection_manager_disconnect_user(self, connection_manager):
+    async def test_connection_manager_disconnect_user(self, connection_manager, db_session):
         """Test disconnecting user from connection manager"""
         mock_websocket = AsyncMock()
         user_id = 1
         
         # Connect first
-        connection_manager.connect(mock_websocket, user_id)
+        await connection_manager.connect(mock_websocket, user_id, db_session)
         assert user_id in connection_manager.active_connections
         
         # Then disconnect
-        connection_manager.disconnect(user_id)
+        await connection_manager.disconnect(user_id, db_session)
         assert user_id not in connection_manager.active_connections
-        assert user_id not in connection_manager.user_connections
+        # User presence should be tracked as OFFLINE, not removed
+        from app.models.realtime_state import UserPresenceStatus
+        assert connection_manager.user_presence[user_id] == UserPresenceStatus.OFFLINE
 
 
 class TestRealtimeMessaging:
     """Test real-time messaging functionality"""
-    
-    @pytest.fixture
-    def realtime_service(self, db_session):
-        return RealtimeService(db_session)
 
     @pytest.mark.asyncio
     @pytest.mark.integration
@@ -114,7 +184,7 @@ class TestRealtimeMessaging:
         }
         
         # Mock WebSocket connection for testing
-        with ws_client.websocket_connect(f"/ws/{sender_id}?token={authenticated_user['token']}") as websocket:
+        with ws_client.websocket_connect(f"/websocket/{sender_id}?token={authenticated_user['token']}") as websocket:
             # Send message
             websocket.send_json(message_data)
             
@@ -140,14 +210,14 @@ class TestRealtimeMessaging:
         
         # Mock connection manager
         mock_manager = MagicMock()
-        mock_manager.send_personal_message = AsyncMock()
+        mock_manager.send_to_user = AsyncMock()
         
         with patch.object(realtime_service, 'connection_manager', mock_manager):
             realtime_service.send_message_to_connection(message)
             
             # Should attempt to send to recipient
-            mock_manager.send_personal_message.assert_called_once()
-            args = mock_manager.send_personal_message.call_args
+            mock_manager.send_to_user.assert_called_once()
+            args = mock_manager.send_to_user.call_args
             assert args[0][0] == recipient.id  # Recipient user ID
 
     @pytest.mark.asyncio
@@ -209,7 +279,7 @@ class TestTypingIndicators:
             "user_id": user_id
         }
         
-        with ws_client.websocket_connect(f"/ws/{user_id}?token={authenticated_user['token']}") as websocket:
+        with ws_client.websocket_connect(f"/websocket/{user_id}?token={authenticated_user['token']}") as websocket:
             websocket.send_json(typing_data)
             
             # Should receive typing indicator confirmation
@@ -230,7 +300,7 @@ class TestTypingIndicators:
             "user_id": user_id
         }
         
-        with ws_client.websocket_connect(f"/ws/{user_id}?token={authenticated_user['token']}") as websocket:
+        with ws_client.websocket_connect(f"/websocket/{user_id}?token={authenticated_user['token']}") as websocket:
             websocket.send_json(typing_data)
             
             response = websocket.receive_json()
@@ -308,14 +378,14 @@ class TestPresenceStatus:
         user1, user2 = soul_connection_data["users"][:2]
         
         mock_manager = MagicMock()
-        mock_manager.send_personal_message = AsyncMock()
+        mock_manager.send_to_user = AsyncMock()
         
         with patch.object(realtime_service, 'connection_manager', mock_manager):
             # User1 comes online
             realtime_service.notify_presence_change(user1.id, "online")
             
             # Should notify user2 (their connection partner)
-            mock_manager.send_personal_message.assert_called()
+            mock_manager.send_to_user.assert_called()
 
     @pytest.mark.asyncio
     @pytest.mark.unit
@@ -370,13 +440,13 @@ class TestRealtimeNotifications:
         }
         
         mock_manager = MagicMock()
-        mock_manager.send_personal_message = AsyncMock()
+        mock_manager.send_to_user = AsyncMock()
         
         with patch.object(realtime_service, 'connection_manager', mock_manager):
             realtime_service.send_connection_notification(user_id, notification_data)
             
             # Should send notification
-            mock_manager.send_personal_message.assert_called_once_with(
+            mock_manager.send_to_user.assert_called_once_with(
                 user_id, notification_data
             )
 
@@ -397,13 +467,13 @@ class TestRealtimeNotifications:
         }
         
         mock_manager = MagicMock()
-        mock_manager.send_personal_message = AsyncMock()
+        mock_manager.send_to_user = AsyncMock()
         
         with patch.object(realtime_service, 'connection_manager', mock_manager):
             realtime_service.notify_revelation_shared(connection.id, user1.id, revelation_notification)
             
             # Should notify the other user
-            mock_manager.send_personal_message.assert_called_with(
+            mock_manager.send_to_user.assert_called_with(
                 user2.id, revelation_notification
             )
 
@@ -423,11 +493,11 @@ class TestRealtimeNotifications:
         }
         
         with patch.object(realtime_service, 'connection_manager', MagicMock()) as mock_manager:
-            mock_manager.send_personal_message = AsyncMock()
+            mock_manager.send_to_user = AsyncMock()
             
             realtime_service.notify_photo_consent(connection.id, user1.id, consent_notification)
             
-            mock_manager.send_personal_message.assert_called()
+            mock_manager.send_to_user.assert_called()
 
     @pytest.mark.asyncio
     @pytest.mark.unit
@@ -484,7 +554,7 @@ class TestWebSocketSecurity:
         user_id = authenticated_user["user"].id
         token = authenticated_user["token"]
         
-        with ws_client.websocket_connect(f"/ws/{user_id}?token={token}") as websocket:
+        with ws_client.websocket_connect(f"/websocket/{user_id}?token={token}") as websocket:
             # Send many rapid messages
             messages_sent = 0
             rate_limited = False

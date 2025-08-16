@@ -22,9 +22,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["websocket"])
 
 
-@router.websocket("/connect")
+@router.websocket("/{user_id}")
 async def websocket_endpoint(
     websocket: WebSocket,
+    user_id: int,
     token: str,
     db: Session = Depends(get_db)
 ):
@@ -34,7 +35,7 @@ async def websocket_endpoint(
     user = None
     try:
         # Authenticate user from token
-        user = await get_current_user_websocket(token, db)
+        user = get_current_user_websocket(token, db)
         if not user:
             await websocket.close(code=4001, reason="Authentication failed")
             return
