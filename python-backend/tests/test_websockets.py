@@ -12,8 +12,8 @@ import websockets
 import time
 
 from app.main import app
-from app.services.realtime_connection_manager import ConnectionManager
-from app.services.realtime import RealtimeService
+from app.services.realtime_connection_manager import RealtimeConnectionManager as ConnectionManager
+from app.services.realtime import ConnectionManager as RealtimeService
 
 
 class TestWebSocketConnection:

@@ -22,7 +22,7 @@ from app.schemas.personalization_schemas import (
     ContentFeedbackResponse, AlgorithmOptimizationRequest, AlgorithmOptimizationResponse
 )
 
-router = APIRouter(prefix="/personalization", tags=["personalization"])
+router = APIRouter(tags=["personalization"])
 logger = logging.getLogger(__name__)
 
 @router.get("/profile", response_model=PersonalizationProfileResponse)

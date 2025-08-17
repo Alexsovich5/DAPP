@@ -10,9 +10,12 @@ from freezegun import freeze_time
 from unittest.mock import patch, MagicMock
 import uuid
 
-from app.models.photo_reveal import PhotoReveal, RevealStatus
+from app.models.photo_reveal import PhotoRevealTimeline, PhotoRevealStage
 from app.models.soul_connection import ConnectionStage
 from app.services.photo_reveal_service import PhotoRevealService
+
+# Import RevealStatus for tests (alias for PhotoRevealStage)
+RevealStatus = PhotoRevealStage
 
 
 class TestPhotoRevealConsent:
@@ -23,11 +26,11 @@ class TestPhotoRevealConsent:
     def test_photo_reveal_status_enum(self):
         """Test that all photo reveal statuses are properly defined"""
         expected_statuses = [
-            "pending",
-            "consented", 
+            "hidden",
+            "consent_requested", 
+            "mutual_consent",
             "revealed",
-            "declined",
-            "expired"
+            "declined"
         ]
         
         actual_statuses = [status.value for status in RevealStatus]
@@ -36,7 +39,7 @@ class TestPhotoRevealConsent:
             assert expected in actual_statuses
         
         # Should have exactly these statuses for privacy control
-        assert len(actual_statuses) >= 5
+        assert len(actual_statuses) == 5
 
     @pytest.fixture
     def photo_reveal_service(self, db_session):

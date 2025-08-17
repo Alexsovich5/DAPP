@@ -20,7 +20,7 @@ from ....api.v1.deps import get_current_user
 from ....services.realtime import manager
 
 
-router = APIRouter(prefix="/messages", tags=["messages"])
+router = APIRouter(tags=["messages"])
 
 
 class SendMessageRequest(BaseModel):

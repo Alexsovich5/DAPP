@@ -80,3 +80,6 @@ docs/_build/
 # Analytics and monitoring
 *.clickhouse
 grafana/data/
+
+# Development planning files (keep only in development branch)
+# Note: Dev_Planning/ should only exist in development branch, not main

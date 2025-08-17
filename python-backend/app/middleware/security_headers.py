@@ -13,10 +13,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Environment-based configuration
-ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
-IS_PRODUCTION = ENVIRONMENT == "production"
-IS_DEVELOPMENT = ENVIRONMENT == "development"
+# Environment-based configuration will be read at runtime
 
 
 async def security_headers_middleware(request: Request, call_next: Callable) -> Response:
@@ -33,6 +30,11 @@ async def security_headers_middleware(request: Request, call_next: Callable) -> 
     - Permissions-Policy
     - X-Permitted-Cross-Domain-Policies
     """
+    
+    # Read environment at runtime to support testing
+    environment = os.getenv("ENVIRONMENT", "development")
+    is_production = environment == "production"
+    is_development = environment == "development"
     
     try:
         response = await call_next(request)
@@ -56,7 +58,7 @@ async def security_headers_middleware(request: Request, call_next: Callable) -> 
         ]
         
         # Development vs Production CSP
-        if IS_DEVELOPMENT:
+        if is_development:
             # Allow localhost for development
             csp_directives[5] = "connect-src 'self' http://localhost:* ws://localhost:*"
         
@@ -72,7 +74,7 @@ async def security_headers_middleware(request: Request, call_next: Callable) -> 
         response.headers["X-XSS-Protection"] = "1; mode=block"
         
         # Strict Transport Security - HTTPS enforcement
-        if IS_PRODUCTION:
+        if is_production:
             # 1 year HSTS with includeSubDomains and preload
             response.headers["Strict-Transport-Security"] = (
                 "max-age=31536000; includeSubDomains; preload"
@@ -108,7 +110,7 @@ async def security_headers_middleware(request: Request, call_next: Callable) -> 
         ]
         
         # Allow specific features only for same origin in development
-        if IS_DEVELOPMENT:
+        if is_development:
             permissions_policy.extend([
                 "geolocation=(self)",  # Allow for development testing
             ])
@@ -119,7 +121,8 @@ async def security_headers_middleware(request: Request, call_next: Callable) -> 
         response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
         
         # Server identification protection
-        response.headers.pop("server", None)  # Remove server header if present
+        if "server" in response.headers:
+            del response.headers["server"]  # Remove server header if present
         
         # Custom security headers for dating platform
         response.headers["X-Dating-Platform-Security"] = "soul-before-skin"
@@ -134,7 +137,7 @@ async def security_headers_middleware(request: Request, call_next: Callable) -> 
             response.headers["Expires"] = "0"
         
         # Log security headers application in development
-        if IS_DEVELOPMENT and logger.isEnabledFor(logging.DEBUG):
+        if is_development and logger.isEnabledFor(logging.DEBUG):
             logger.debug(f"Applied security headers to {request.method} {request.url.path}")
         
         return response
@@ -155,7 +158,7 @@ def get_cors_origins() -> list[str]:
     """
     base_origins = []
     
-    if IS_DEVELOPMENT:
+    if os.getenv("ENVIRONMENT", "development") == "development":
         # Development origins - specific ports only
         base_origins = [
             "http://localhost:4200",    # Angular dev server
@@ -172,7 +175,7 @@ def get_cors_origins() -> list[str]:
         # Validate production origins for security
         validated_origins = []
         for origin in production_origins:
-            if IS_PRODUCTION:
+            if os.getenv("ENVIRONMENT", "development") == "production":
                 # In production, only allow HTTPS origins
                 if origin.startswith("https://") or origin.startswith("http://localhost"):
                     validated_origins.append(origin)
@@ -186,7 +189,8 @@ def get_cors_origins() -> list[str]:
     
     # Remove duplicates and log configuration
     origins = list(set(base_origins))
-    logger.info(f"CORS origins configured for {ENVIRONMENT}: {origins}")
+    environment = os.getenv("ENVIRONMENT", "development")
+    logger.info(f"CORS origins configured for {environment}: {origins}")
     
     return origins
 

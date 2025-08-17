@@ -10,6 +10,8 @@ from app.core.database import get_db
 from app.core.security import (
     verify_password,
     create_access_token,
+    create_refresh_token,
+    verify_token,
     get_password_hash,
     ACCESS_TOKEN_EXPIRE_MINUTES,
 )
@@ -167,6 +169,76 @@ def login(
 def get_current_user_info(current_user: User = Depends(get_current_user)) -> Any:
     """Get current user information."""
     return current_user
+
+
+@router.post("/refresh", response_model=Token)
+def refresh_access_token(
+    refresh_token_data: dict,
+    db: Session = Depends(get_db)
+) -> Any:
+    """
+    Refresh access token using refresh token.
+    """
+    try:
+        refresh_token = refresh_token_data.get("refresh_token")
+        if not refresh_token:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Refresh token is required"
+            )
+        
+        # Verify refresh token
+        payload = verify_token(refresh_token)
+        if not payload:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid refresh token"
+            )
+        
+        # Check if token is actually a refresh token
+        if payload.get("type") != "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token type"
+            )
+        
+        # Get user email from token
+        user_email = payload.get("sub")
+        if not user_email:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token payload"
+            )
+        
+        # Verify user exists and is active
+        user = db.query(User).filter(User.email == user_email).first()
+        if not user or not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found or inactive"
+            )
+        
+        # Create new access token
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": user.email, "user_id": user.id},
+            expires_delta=access_token_expires
+        )
+        
+        logger.info(f"Refreshed access token for user: {user.email}")
+        return {
+            "access_token": access_token,
+            "token_type": "bearer"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error refreshing token: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Token refresh failed"
+        )
 
 
 @router.options("/login")

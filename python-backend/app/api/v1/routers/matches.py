@@ -17,10 +17,10 @@ RECIPIENT_NOT_FOUND = "Recipient not found"
 NOT_AUTHORIZED = "Only the match recipient can update the status"
 INVALID_UPDATE = "Can only update pending matches"
 
-router = APIRouter(prefix="/matches", tags=["matches"])
+router = APIRouter(tags=["matches"])
 
 
-@router.post("", response_model=MatchSchema)
+@router.post("/", response_model=MatchSchema)
 def create_match(
     match_in: MatchCreate,
     db: Session = Depends(get_db),

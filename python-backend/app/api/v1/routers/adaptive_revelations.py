@@ -21,7 +21,7 @@ from app.schemas.adaptive_revelation_schemas import (
     RevelationTimingResponse, RevelationThemeResponse
 )
 
-router = APIRouter(prefix="/adaptive-revelations", tags=["adaptive-revelations"])
+router = APIRouter(tags=["adaptive-revelations"])
 logger = logging.getLogger(__name__)
 
 @router.post("/generate", response_model=List[AdaptiveRevelationResponse])

@@ -12,7 +12,7 @@ from ....services.user_safety_simplified import (
     UserReport as SafetyUserReport,
     ReportCategory,
 )
-router = APIRouter(prefix="/safety", tags=["safety"])
+router = APIRouter(tags=["safety"])
 
 
 class UserReportRequest(BaseModel):

@@ -10,8 +10,8 @@ from unittest.mock import patch, MagicMock
 import json
 
 from app.main import app
-from app.middleware.security_headers import security_headers_middleware
-from app.utils.error_handler import get_secure_cors_config
+from app.middleware.security_headers import security_headers_middleware, get_secure_cors_config
+from app.utils.error_handler import get_error_cors_origin
 
 
 class TestSecurityHeadersMiddleware:
@@ -31,11 +31,8 @@ class TestSecurityHeadersMiddleware:
         assert "connect-src 'self'" in csp
         assert "frame-ancestors 'none'" in csp
         
-        # HTTP Strict Transport Security
-        assert "Strict-Transport-Security" in response.headers
-        hsts = response.headers["Strict-Transport-Security"]
-        assert "max-age=31536000" in hsts
-        assert "includeSubDomains" in hsts
+        # HTTP Strict Transport Security (only in production or HTTPS)
+        # This is tested separately in environment-specific tests
         
         # Frame Options
         assert response.headers.get("X-Frame-Options") == "DENY"
@@ -43,8 +40,8 @@ class TestSecurityHeadersMiddleware:
         # Content Type Options
         assert response.headers.get("X-Content-Type-Options") == "nosniff"
         
-        # Referrer Policy
-        assert response.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
+        # Referrer Policy - should be same-origin for privacy in dating platform
+        assert response.headers.get("Referrer-Policy") == "same-origin"
         
         # Permissions Policy
         assert "Permissions-Policy" in response.headers

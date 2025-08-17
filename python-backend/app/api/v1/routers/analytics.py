@@ -13,7 +13,7 @@ from ....services.analytics import AnalyticsService
 from ....models.user import User
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/analytics", tags=["analytics"])
+router = APIRouter(tags=["analytics"])
 security = HTTPBearer()
 
 # Response Models

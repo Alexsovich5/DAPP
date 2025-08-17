@@ -20,7 +20,7 @@ from app.schemas.ui_personalization_schemas import (
     UIAdaptationRequest, UIAnalyticsResponse
 )
 
-router = APIRouter(prefix="/ui-personalization", tags=["ui-personalization"])
+router = APIRouter(tags=["ui-personalization"])
 logger = logging.getLogger(__name__)
 
 @router.get("/profile", response_model=UIProfileResponse)

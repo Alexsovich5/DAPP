@@ -86,7 +86,12 @@ class UserProfile(Base):
     
     # Relationships
     user = relationship("User", back_populates="ai_profile")
-    compatibility_scores = relationship("CompatibilityPrediction", back_populates="user_profile")
+    compatibility_scores = relationship("CompatibilityPrediction", 
+                                      foreign_keys="[CompatibilityPrediction.user1_profile_id]",
+                                      back_populates="user_profile")
+    partner_compatibility_scores = relationship("CompatibilityPrediction",
+                                               foreign_keys="[CompatibilityPrediction.user2_profile_id]", 
+                                               back_populates="partner_profile")
     recommendations = relationship("PersonalizedRecommendation", back_populates="user_profile")
     
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -164,7 +169,8 @@ class MLModel(Base):
     # Relationships
     parent_model = relationship("MLModel", remote_side=[id])
     child_models = relationship("MLModel", back_populates="parent_model")
-    predictions = relationship("ModelPrediction", back_populates="model")
+    model_predictions = relationship("ModelPrediction", back_populates="model")
+    compatibility_predictions = relationship("CompatibilityPrediction", back_populates="model")
     
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -236,7 +242,7 @@ class CompatibilityPrediction(Base):
     # Relationships
     user_profile = relationship("UserProfile", foreign_keys=[user1_profile_id])
     partner_profile = relationship("UserProfile", foreign_keys=[user2_profile_id])
-    model = relationship("MLModel", back_populates="predictions")
+    model = relationship("MLModel", back_populates="compatibility_predictions")
     
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -344,7 +350,7 @@ class ModelPrediction(Base):
     request_source = Column(String, nullable=True)        # api, batch_job, etc.
     
     # Relationships
-    model = relationship("MLModel", back_populates="predictions")
+    model = relationship("MLModel", back_populates="model_predictions")
     user = relationship("User")
     
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

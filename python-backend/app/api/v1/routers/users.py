@@ -15,7 +15,7 @@ from app.models.match import Match, MatchStatus  # Added MatchStatus import
 from app.schemas.auth import User as UserSchema, UserProfileUpdate
 from app.api.v1.deps import get_current_user
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(tags=["users"])
 
 
 @router.get("/me", response_model=UserSchema)

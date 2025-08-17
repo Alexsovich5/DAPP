@@ -14,7 +14,7 @@ from app.models.profile import Profile
 from app.models.soul_connection import SoulConnection, ConnectionStage
 from app.models.daily_revelation import DailyRevelation, RevelationType
 from app.models.message import Message
-from app.models.photo_reveal import PhotoReveal, RevealStatus
+from app.models.photo_reveal import PhotoRevealTimeline, PhotoRevealStage as RevealStatus
 from app.core.security import get_password_hash
 
 fake = Faker()
@@ -50,67 +50,28 @@ class ProfileFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = Profile
         sqlalchemy_session_persistence = "commit"
     
-    user_id = factory.SubFactory(UserFactory)
+    # Use sequence instead of SubFactory to avoid circular dependencies
+    user_id = factory.Sequence(lambda n: n)
     full_name = factory.LazyAttribute(lambda obj: f"{fake.first_name()} {fake.last_name()}")
-    
-    # Soul Before Skin specific fields
-    life_philosophy = factory.LazyAttribute(
-        lambda obj: fake.paragraph(nb_sentences=3, variable_nb_sentences=True)
-    )
-    core_values = factory.LazyAttribute(lambda obj: {
-        "relationship_values": fake.random_choices(
-            elements=("commitment", "growth", "adventure", "stability", "creativity"),
-            length=fake.random_int(min=2, max=4)
-        ),
-        "life_priorities": fake.random_choices(
-            elements=("family", "career", "travel", "spirituality", "health", "learning"),
-            length=fake.random_int(min=2, max=3)
-        ),
-        "communication_style": fake.random_element(
-            elements=("deep_conversations", "playful_banter", "thoughtful_listener", "storyteller")
-        )
-    })
-    
-    interests = factory.LazyAttribute(lambda obj: fake.random_choices(
-        elements=(
-            "cooking", "reading", "hiking", "photography", "music", "art", "travel",
-            "meditation", "yoga", "dancing", "writing", "gardening", "volunteering"
-        ),
-        length=fake.random_int(min=3, max=7)
+    bio = factory.LazyAttribute(lambda obj: fake.paragraph(nb_sentences=2))
+    location = factory.LazyAttribute(lambda obj: f"{fake.city()}, {fake.state_abbr()}")
+    cuisine_preferences = factory.LazyAttribute(lambda obj: fake.random_element(
+        elements=["Italian", "Asian", "Mediterranean", "Mexican", "American", "Indian"]
+    ))
+    cooking_level = factory.LazyAttribute(lambda obj: fake.random_element(
+        elements=["beginner", "intermediate", "expert"]
     ))
     
-    personality_traits = factory.LazyAttribute(lambda obj: {
-        "openness": fake.random_int(min=1, max=10),
-        "conscientiousness": fake.random_int(min=1, max=10),
-        "extraversion": fake.random_int(min=1, max=10),
-        "agreeableness": fake.random_int(min=1, max=10),
-        "neuroticism": fake.random_int(min=1, max=10),
-        "emotional_intelligence": fake.random_int(min=1, max=10)
-    })
-    
-    communication_style = factory.LazyAttribute(lambda obj: {
-        "preferred_depth": fake.random_element(elements=("surface", "moderate", "deep")),
-        "response_style": fake.random_element(elements=("quick", "thoughtful", "detailed")),
-        "conflict_resolution": fake.random_element(elements=("direct", "diplomatic", "avoidant"))
-    })
-    
-    emotional_depth_score = factory.fuzzy.FuzzyFloat(0.0, 10.0, precision=1)
-    
-    responses = factory.LazyAttribute(lambda obj: {
-        "onboarding_q1": "I value authenticity and deep connection above all else.",
-        "onboarding_q2": "My ideal evening involves meaningful conversation over a home-cooked meal.",
-        "onboarding_q3": "I feel understood when someone truly listens without judgment.",
-        "relationship_goals": fake.random_element(
-            elements=("long_term_partnership", "marriage", "companionship", "exploring_connection")
-        ),
-        "emotional_availability": fake.random_element(
-            elements=("fully_available", "somewhat_available", "taking_it_slow")
-        )
-    })
-    
-    # Traditional profile fields
-    bio = factory.LazyAttribute(lambda obj: fake.paragraph(nb_sentences=2))
-    location = factory.LazyAttribute(lambda obj: fake.city())
+    dietary_restrictions = factory.LazyAttribute(lambda obj: fake.random_element(
+        elements=["None", "Vegetarian", "Vegan", "Gluten-free", "Dairy-free", "Nut allergy"]
+    ))
+    preferred_dining_time = factory.LazyAttribute(lambda obj: fake.random_element(
+        elements=["morning", "afternoon", "evening"]
+    ))
+    favorite_cuisines = factory.LazyAttribute(lambda obj: [
+        fake.random_element(elements=["Italian", "Asian", "Mediterranean", "Mexican", "Indian"])
+    ])
+    is_verified = False
     created_at = factory.LazyAttribute(lambda obj: fake.date_time_this_year())
 
 
@@ -121,8 +82,9 @@ class SoulConnectionFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = SoulConnection
         sqlalchemy_session_persistence = "commit"
     
-    user1_id = factory.SubFactory(UserFactory)
-    user2_id = factory.SubFactory(UserFactory)
+    user1_id = factory.Sequence(lambda n: n)
+    user2_id = factory.Sequence(lambda n: n + 1000)  # Ensure different IDs
+    # initiated_by will be set manually when creating connections
     connection_stage = factory.fuzzy.FuzzyChoice([stage.value for stage in ConnectionStage])
     compatibility_score = factory.fuzzy.FuzzyFloat(50.0, 95.0, precision=1)
     
@@ -148,8 +110,8 @@ class DailyRevelationFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = DailyRevelation
         sqlalchemy_session_persistence = "commit"
     
-    connection_id = factory.SubFactory(SoulConnectionFactory)
-    sender_id = factory.SubFactory(UserFactory)
+    connection_id = factory.Sequence(lambda n: n)
+    sender_id = factory.Sequence(lambda n: n)
     day_number = factory.fuzzy.FuzzyInteger(1, 7)
     revelation_type = factory.fuzzy.FuzzyChoice([rtype.value for rtype in RevelationType])
     
@@ -157,13 +119,13 @@ class DailyRevelationFactory(factory.alchemy.SQLAlchemyModelFactory):
         RevelationType.PERSONAL_VALUE.value: "Family and loyalty are the foundations of my life.",
         RevelationType.MEANINGFUL_EXPERIENCE.value: "Volunteering at the shelter taught me about compassion.",
         RevelationType.HOPE_OR_DREAM.value: "I dream of building a sustainable community garden.",
-        RevelationType.HUMOR_SOURCE.value: "Dad jokes and wordplay never fail to make me smile.",
+        RevelationType.WHAT_MAKES_LAUGH.value: "Dad jokes and wordplay never fail to make me smile.",
         RevelationType.CHALLENGE_OVERCOME.value: "Learning to trust again after heartbreak made me stronger.",
         RevelationType.IDEAL_CONNECTION.value: "A partner who challenges me to grow while accepting who I am.",
         RevelationType.PHOTO_REVEAL.value: "Ready to share my photo - excited to see the real you!"
     }.get(obj.revelation_type, "A meaningful reflection from my heart to yours."))
     
-    created_at = factory.LazyAttribute(lambda obj: fake.date_time_this_week())
+    created_at = factory.LazyAttribute(lambda obj: fake.date_time_this_year())
 
 
 class MessageFactory(factory.alchemy.SQLAlchemyModelFactory):
@@ -173,29 +135,32 @@ class MessageFactory(factory.alchemy.SQLAlchemyModelFactory):
         model = Message
         sqlalchemy_session_persistence = "commit"
     
-    connection_id = factory.SubFactory(SoulConnectionFactory)
-    sender_id = factory.SubFactory(UserFactory)
+    connection_id = factory.Sequence(lambda n: n)
+    sender_id = factory.Sequence(lambda n: n)
     message_text = factory.LazyAttribute(lambda obj: fake.sentence(nb_words=fake.random_int(min=5, max=20)))
     message_type = factory.fuzzy.FuzzyChoice(["text", "revelation", "photo", "emoji_reaction"])
-    created_at = factory.LazyAttribute(lambda obj: fake.date_time_this_week())
+    created_at = factory.LazyAttribute(lambda obj: fake.date_time_this_year())
 
 
 class PhotoRevealFactory(factory.alchemy.SQLAlchemyModelFactory):
-    """Factory for creating photo reveal records"""
+    """Factory for creating photo reveal timeline records"""
     
     class Meta:
-        model = PhotoReveal
+        model = PhotoRevealTimeline
         sqlalchemy_session_persistence = "commit"
     
-    connection_id = factory.SubFactory(SoulConnectionFactory)
-    user_id = factory.SubFactory(UserFactory)
-    photo_url = factory.LazyAttribute(lambda obj: f"https://example.com/photos/{fake.uuid4()}.jpg")
-    reveal_status = factory.fuzzy.FuzzyChoice([status.value for status in RevealStatus])
-    revealed_at = factory.LazyAttribute(
-        lambda obj: fake.date_time_this_week() if obj.reveal_status == RevealStatus.REVEALED.value else None
-    )
-    consent_given_at = factory.LazyAttribute(lambda obj: fake.date_time_this_week())
-    created_at = factory.LazyAttribute(lambda obj: fake.date_time_this_week())
+    connection_id = factory.Sequence(lambda n: n)
+    revelation_cycle_days = 7
+    auto_reveal_enabled = True
+    early_reveal_allowed = True
+    connection_started_at = factory.LazyAttribute(lambda obj: fake.date_time_this_week())
+    current_stage = factory.fuzzy.FuzzyChoice([status.value for status in RevealStatus])
+    revelations_completed = factory.fuzzy.FuzzyInteger(0, 7)
+    min_revelations_required = 5
+    user1_consent_status = factory.fuzzy.FuzzyChoice(["pending", "granted", "declined"])
+    user2_consent_status = factory.fuzzy.FuzzyChoice(["pending", "granted", "declined"])
+    photos_revealed = False
+    created_at = factory.LazyAttribute(lambda obj: fake.date_time_this_year())
 
 
 def setup_factories(session: Session):
@@ -210,18 +175,25 @@ def setup_factories(session: Session):
 
 def create_complete_soul_connection(session: Session):
     """Create a complete soul connection with users, profiles, and revelations"""
-    # Create two users with emotional profiles
-    user1 = UserFactory(session=session)
-    user2 = UserFactory(session=session)
+    # Set session for all factories
+    UserFactory._meta.sqlalchemy_session = session
+    ProfileFactory._meta.sqlalchemy_session = session
+    SoulConnectionFactory._meta.sqlalchemy_session = session
+    DailyRevelationFactory._meta.sqlalchemy_session = session
+    MessageFactory._meta.sqlalchemy_session = session
     
-    profile1 = ProfileFactory(user_id=user1.id, session=session)
-    profile2 = ProfileFactory(user_id=user2.id, session=session)
+    # Create two users with emotional profiles
+    user1 = UserFactory()
+    user2 = UserFactory()
+    
+    profile1 = ProfileFactory(user_id=user1.id)
+    profile2 = ProfileFactory(user_id=user2.id)
     
     # Create soul connection
     connection = SoulConnectionFactory(
         user1_id=user1.id,
         user2_id=user2.id,
-        session=session
+        initiated_by=user1.id
     )
     
     # Create some revelations
@@ -230,14 +202,12 @@ def create_complete_soul_connection(session: Session):
         rev1 = DailyRevelationFactory(
             connection_id=connection.id,
             sender_id=user1.id,
-            day_number=day,
-            session=session
+            day_number=day
         )
         rev2 = DailyRevelationFactory(
             connection_id=connection.id,
             sender_id=user2.id,
-            day_number=day,
-            session=session
+            day_number=day
         )
         revelations.extend([rev1, rev2])
     
@@ -247,7 +217,6 @@ def create_complete_soul_connection(session: Session):
         msg = MessageFactory(
             connection_id=connection.id,
             sender_id=fake.random_element([user1.id, user2.id]),
-            session=session
         )
         messages.append(msg)
     
