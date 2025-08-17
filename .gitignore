@@ -49,3 +49,37 @@ env/
 
 # Uploads
 uploads/
+
+# Process files
+*.pid
+
+# Cache and temporary files
+*.tmp
+*.cache
+.cache/
+
+# Testing
+coverage/
+.coverage
+.pytest_cache/
+.tox/
+
+# Development tools
+.mypy_cache/
+.ruff_cache/
+
+# Documentation builds
+docs/_build/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Analytics and monitoring
+*.clickhouse
+grafana/data/
+
+# Development planning files (keep only in development branch)
+# Note: Dev_Planning/ should only exist in development branch, not main

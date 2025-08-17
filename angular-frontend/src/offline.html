@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dinner First - Offline</title>
+    <style>
+        :root {
+            --primary-color: #ff6b9d;
+            --secondary-color: #4ecdc4;
+            --accent-color: #ffd93d;
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --background: #f7fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .offline-container {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .offline-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+        }
+
+        .offline-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 2rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b9d20, #4ecdc420);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        .offline-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .offline-message {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.7;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 12px;
+            color: #856404;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .status-indicator.online {
+            background: #28a745;
+            animation: none;
+        }
+
+        .offline-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-button {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 0.875rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .action-button.secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+        }
+
+        .action-button.secondary:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .offline-tips {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+
+        .offline-tips h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .offline-tips ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .offline-tips li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .offline-tips li::before {
+            content: '💡';
+            flex-shrink: 0;
+        }
+
+        .cached-content {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .cached-content h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .cached-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .cached-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .cached-item:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .cached-item-icon {
+            font-size: 1.5rem;
+        }
+
+        .cached-item-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .offline-container {
+                padding: 2rem 1.5rem;
+                margin: 1rem;
+            }
+
+            .offline-title {
+                font-size: 1.75rem;
+            }
+
+            .offline-message {
+                font-size: 1rem;
+            }
+
+            .cached-items {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --text-primary: #e2e8f0;
+                --text-secondary: #a0aec0;
+                --background: #1a202c;
+                --surface: #2d3748;
+                --border: #4a5568;
+            }
+
+            body {
+                background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+            }
+
+            .connection-status {
+                background: #553d00;
+                border-color: #b7791f;
+                color: #ffd93d;
+            }
+
+            .offline-tips {
+                background: #4a5568;
+            }
+
+            .cached-item {
+                background: #4a5568;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">
+            💔
+        </div>
+        
+        <h1 class="offline-title">You're Offline</h1>
+        
+        <p class="offline-message">
+            Don't worry! While your heart is always online, your internet connection seems to have taken a break. 
+            Dinner First works offline too – you can still browse your soul connections and prepare for when you're back online.
+        </p>
+
+        <div class="connection-status">
+            <div class="status-indicator" id="statusIndicator"></div>
+            <span id="connectionStatus">No internet connection</span>
+        </div>
+
+        <div class="offline-actions">
+            <button class="action-button" onclick="checkConnection()">
+                🔄 Check Connection
+            </button>
+            <button class="action-button secondary" onclick="goOffline()">
+                📱 Browse Offline
+            </button>
+        </div>
+
+        <div class="offline-tips">
+            <h3>While you're offline, you can:</h3>
+            <ul>
+                <li>Review your cached soul connections and conversations</li>
+                <li>Plan what to share in your next revelation</li>
+                <li>Reflect on meaningful conversations you've had</li>
+                <li>Update your profile (changes will sync when online)</li>
+            </ul>
+        </div>
+
+        <div class="cached-content">
+            <h3>Available Offline</h3>
+            <div class="cached-items">
+                <a href="/" class="cached-item">
+                    <div class="cached-item-icon">🏠</div>
+                    <div class="cached-item-label">Home</div>
+                </a>
+                <a href="/profile" class="cached-item">
+                    <div class="cached-item-icon">👤</div>
+                    <div class="cached-item-label">Profile</div>
+                </a>
+                <a href="/messages" class="cached-item">
+                    <div class="cached-item-icon">💬</div>
+                    <div class="cached-item-label">Messages</div>
+                </a>
+                <a href="/settings" class="cached-item">
+                    <div class="cached-item-icon">⚙️</div>
+                    <div class="cached-item-label">Settings</div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check connection status
+        function updateConnectionStatus() {
+            const statusIndicator = document.getElementById('statusIndicator');
+            const connectionStatus = document.getElementById('connectionStatus');
+            
+            if (navigator.onLine) {
+                statusIndicator.classList.add('online');
+                connectionStatus.textContent = 'Back online! Refreshing...';
+                
+                // Redirect to main app when online
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1500);
+            } else {
+                statusIndicator.classList.remove('online');
+                connectionStatus.textContent = 'No internet connection';
+            }
+        }
+
+        function checkConnection() {
+            updateConnectionStatus();
+            
+            if (!navigator.onLine) {
+                // Provide feedback that check was performed
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '🔍 Checking...';
+                button.disabled = true;
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }, 2000);
+            }
+        }
+
+        function goOffline() {
+            // Navigate to cached version of the app
+            window.location.href = '/';
+        }
+
+        // Listen for online/offline events
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+
+        // Initial status check
+        updateConnectionStatus();
+
+        // Periodic connection check
+        setInterval(() => {
+            // Try to fetch a small resource to verify connection
+            fetch('/favicon.ico', { 
+                method: 'HEAD',
+                cache: 'no-cache'
+            }).then(() => {
+                if (!navigator.onLine) {
+                    // Connection is actually available
+                    navigator.onLine = true;
+                    updateConnectionStatus();
+                }
+            }).catch(() => {
+                // Connection is not available
+                if (navigator.onLine) {
+                    navigator.onLine = false;
+                    updateConnectionStatus();
+                }
+            });
+        }, 5000);
+
+        // Add some personality with random encouraging messages
+        const encouragingMessages = [
+            "Distance means nothing when someone means everything 💕",
+            "True connections transcend internet connections ✨",
+            "Your soul mate is worth waiting for, even offline 💖",
+            "Love finds a way, online or offline 💫",
+            "The best connections are heart-to-heart 💝"
+        ];
+
+        // Show random encouraging message
+        setTimeout(() => {
+            const randomMessage = encouragingMessages[Math.floor(Math.random() * encouragingMessages.length)];
+            const messageElement = document.querySelector('.offline-message');
+            messageElement.innerHTML += `<br><br><em style="color: var(--primary-color); font-size: 0.95rem;">${randomMessage}</em>`;
+        }, 3000);
+    </script>
+</body>
+</html>

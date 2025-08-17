@@ -65,14 +65,20 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
-    path: 'matches',
-    loadComponent: () => import('./features/matches/matches.component').then(m => m.MatchesComponent),
+    path: 'conversations',
+    loadComponent: () => import('./features/messages/messages.component').then(m => m.MessagesComponent),
     canActivate: [AuthGuard]
+  },
+  // Legacy routes for backward compatibility
+  {
+    path: 'matches',
+    redirectTo: 'conversations',
+    pathMatch: 'full'
   },
   {
     path: 'messages',
-    loadComponent: () => import('./features/messages/messages.component').then(m => m.MessagesComponent),
-    canActivate: [AuthGuard]
+    redirectTo: 'conversations',
+    pathMatch: 'full'
   },
   {
     path: 'revelations',
@@ -80,9 +86,8 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
-    path: 'notifications',
-    loadComponent: () => import('./features/notifications/notifications.component').then(m => m.NotificationsComponent),
-    canActivate: [AuthGuard]
+    path: 'demo',
+    loadComponent: () => import('./shared/components/navigation/navigation-demo.component').then(m => m.NavigationDemoComponent)
   },
   {
     path: 'settings',

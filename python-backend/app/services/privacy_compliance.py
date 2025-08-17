@@ -122,13 +122,13 @@ class PrivacyComplianceService:
         return {
             "profile_matching": {
                 "version": "1.0",
-                "text": "I consent to Dinner1 processing my profile information, preferences, and behavioral data to provide matching services and recommendations. This includes using algorithms to suggest compatible partners based on your interests, values, and communication style.",
+                "text": "I consent to Dinner First processing my profile information, preferences, and behavioral data to provide matching services and recommendations. This includes using algorithms to suggest compatible partners based on your interests, values, and communication style.",
                 "purposes": [ProcessingPurpose.MATCHING_SERVICE, ProcessingPurpose.ANALYTICS],
                 "legal_basis": LegalBasis.CONSENT
             },
             "communication": {
                 "version": "1.0", 
-                "text": "I consent to Dinner1 storing and processing my messages and communication data to enable conversations with matched users and provide customer support when needed.",
+                "text": "I consent to Dinner First storing and processing my messages and communication data to enable conversations with matched users and provide customer support when needed.",
                 "purposes": [ProcessingPurpose.COMMUNICATION],
                 "legal_basis": LegalBasis.CONTRACT
             },
@@ -140,13 +140,13 @@ class PrivacyComplianceService:
             },
             "marketing": {
                 "version": "1.0",
-                "text": "I consent to receiving marketing communications about Dinner1 features, events, and dating tips via email and push notifications. You may withdraw this consent at any time.",
+                "text": "I consent to receiving marketing communications about Dinner First features, events, and dating tips via email and push notifications. You may withdraw this consent at any time.",
                 "purposes": [ProcessingPurpose.MARKETING],
                 "legal_basis": LegalBasis.CONSENT
             },
             "location_services": {
                 "version": "1.0",
-                "text": "I consent to Dinner1 collecting and processing my location data to show me nearby matches and improve matching accuracy. Location data is anonymized and not shared with other users in precise form.",
+                "text": "I consent to Dinner First collecting and processing my location data to show me nearby matches and improve matching accuracy. Location data is anonymized and not shared with other users in precise form.",
                 "purposes": [ProcessingPurpose.MATCHING_SERVICE],
                 "legal_basis": LegalBasis.CONSENT
             }

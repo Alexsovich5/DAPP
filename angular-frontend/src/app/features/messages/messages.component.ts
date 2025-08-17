@@ -1,8 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SoulConnectionService } from '../../core/services/soul-connection.service';
 import { ChatService } from '../../core/services/chat.service';
+import { HapticFeedbackService } from '../../core/services/haptic-feedback.service';
+import { ConversationsEmptyStateComponent } from './conversations-empty-state.component';
+import { SwipeDirective } from '../../shared/directives/swipe.directive';
+import { SwipeEvent, SwipeConfig } from '../../core/services/swipe-gesture.service';
+import { Subscription } from 'rxjs';
+
+// === INTERFACES ===
 
 interface MessagePreview {
   connectionId: number;
@@ -15,12 +22,21 @@ interface MessagePreview {
   revelationDay: number;
   compatibilityScore: number | undefined;
   isOnline?: boolean;
+  isTyping?: boolean;
 }
+
+interface MessageStats {
+  activeChats: number;
+  totalUnread: number;
+  revealingConnections: number;
+}
+
+type MessageFilter = 'all' | 'unread' | 'revealing';
 
 @Component({
   selector: 'app-messages',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ConversationsEmptyStateComponent, SwipeDirective],
   template: `
     <div class="messages-container">
       <header class="messages-header">
@@ -56,9 +72,14 @@ interface MessagePreview {
       <div class="messages-list" *ngIf="filteredMessages.length > 0; else noMessages">
         <div 
           *ngFor="let message of filteredMessages" 
-          class="message-item"
+          class="message-item conversation-item"
           [class.unread]="message.unreadCount > 0"
           [class.revealing]="message.revelationDay > 1 && message.revelationDay <= 7"
+          appSwipe
+          [swipeConfig]="getConversationSwipeConfig()"
+          [swipeEnabled]="true"
+          (swipeLeft)="onSwipeLeft(message, $event)"
+          (swipeRight)="onSwipeRight(message, $event)"
           (click)="openChat(message)"
         >
           <div class="message-avatar">
@@ -77,7 +98,17 @@ interface MessagePreview {
             </div>
             
             <div class="message-preview">
-              <p class="last-message">{{message.lastMessage}}</p>
+              <p class="last-message" [class.typing-message]="message.isTyping">
+                <span *ngIf="!message.isTyping">{{message.lastMessage}}</span>
+                <span *ngIf="message.isTyping" class="typing-indicator-text">
+                  <span class="typing-dots">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                  </span>
+                  soul is connecting...
+                </span>
+              </p>
               <span class="connection-stage">{{formatConnectionStage(message.connectionStage)}}</span>
             </div>
             
@@ -114,16 +145,10 @@ interface MessagePreview {
       </div>
 
       <ng-template #noMessages>
-        <div class="empty-state">
-          <div class="empty-icon">💌</div>
-          <h2>No Messages Yet</h2>
-          <p *ngIf="filter === 'all'">Start conversations with your soul connections</p>
-          <p *ngIf="filter === 'unread'">No unread messages</p>
-          <p *ngIf="filter === 'revealing'">No active revelation conversations</p>
-          <button class="cta-button" (click)="goToMatches()" *ngIf="filter === 'all'">
-            <span>💫</span> View Your Connections
-          </button>
-        </div>
+        <app-conversations-empty-state
+          (discoverMatches)="goToDiscover()"
+          (learnConversationTips)="showConversationTips()">
+        </app-conversations-empty-state>
       </ng-template>
 
       <div class="floating-action">
@@ -337,6 +362,56 @@ interface MessagePreview {
       text-overflow: ellipsis;
       white-space: nowrap;
       font-size: 0.95rem;
+
+      &.typing-message {
+        color: #667eea;
+        font-style: italic;
+      }
+    }
+
+    .typing-indicator-text {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #667eea;
+      font-style: italic;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 0.15rem;
+      align-items: center;
+    }
+
+    .typing-dots .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #667eea;
+      animation: typing-dot-bounce 1.4s ease-in-out infinite;
+    }
+
+    .typing-dots .dot:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .typing-dots .dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dots .dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing-dot-bounce {
+      0%, 80%, 100% {
+        transform: scale(1) translateY(0);
+        opacity: 0.7;
+      }
+      40% {
+        transform: scale(1.2) translateY(-2px);
+        opacity: 1;
+      }
     }
 
     .connection-stage {
@@ -543,45 +618,44 @@ interface MessagePreview {
     }
   `]
 })
-export class MessagesComponent implements OnInit {
+export class MessagesComponent implements OnInit, OnDestroy {
+  // === COMPONENT STATE ===
   messagesPreviews: MessagePreview[] = [];
   filteredMessages: MessagePreview[] = [];
-  filter: 'all' | 'unread' | 'revealing' = 'all';
+  filter: MessageFilter = 'all';
   loading = true;
+  
+  // === PRIVATE PROPERTIES ===
+  private subscriptions = new Subscription();
+  // Mock messages removed - now using real data from ChatService
 
   constructor(
     private soulConnectionService: SoulConnectionService,
     private chatService: ChatService,
+    private hapticFeedbackService: HapticFeedbackService,
     private router: Router
   ) {}
 
-  ngOnInit() {
+  // === LIFECYCLE HOOKS ===
+
+  ngOnInit(): void {
     this.loadMessages();
+    this.setupTypingIndicators();
   }
 
-  loadMessages() {
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
+  // === DATA LOADING ===
+
+  loadMessages(): void {
     this.loading = true;
     
-    // Get active connections and their latest messages
     this.soulConnectionService.getActiveConnections().subscribe({
       next: (connections) => {
-        this.messagesPreviews = connections.map(connection => ({
-          connectionId: connection.id,
-          partnerName: this.getPartnerName(connection),
-          lastMessage: this.getLastMessage(connection),
-          lastMessageTime: new Date(connection.updated_at || connection.created_at),
-          unreadCount: Math.floor(Math.random() * 3), // Mock unread count
-          connectionStage: connection.connection_stage,
-          revelationDay: connection.reveal_day,
-          compatibilityScore: connection.compatibility_score,
-          isOnline: Math.random() > 0.5 // Mock online status
-        }));
-
-        // Sort by last message time
-        this.messagesPreviews.sort((a, b) => 
-          b.lastMessageTime.getTime() - a.lastMessageTime.getTime()
-        );
-
+        this.messagesPreviews = this.mapConnectionsToMessages(connections);
+        this.sortMessagesByTime();
         this.applyFilter();
         this.loading = false;
       },
@@ -592,12 +666,50 @@ export class MessagesComponent implements OnInit {
     });
   }
 
-  setFilter(filter: 'all' | 'unread' | 'revealing') {
+  private mapConnectionsToMessages(connections: any[]): MessagePreview[] {
+    return connections.map(connection => {
+      const preview: MessagePreview = {
+        connectionId: connection.id,
+        partnerName: this.getPartnerName(connection),
+        lastMessage: 'Loading...', // Will be updated by async call
+        lastMessageTime: new Date(connection.updated_at || connection.created_at),
+        unreadCount: this.chatService.getUnreadCount(connection.id),
+        connectionStage: connection.connection_stage,
+        revelationDay: connection.reveal_day,
+        compatibilityScore: connection.compatibility_score,
+        isOnline: this.chatService.isUserOnline(connection.partner_id || connection.partnerId),
+        isTyping: false
+      };
+
+      // Get real last message asynchronously
+      this.chatService.getLastMessage(connection.id).subscribe({
+        next: (lastMessage) => {
+          preview.lastMessage = lastMessage;
+        },
+        error: (error) => {
+          console.warn(`Could not load last message for connection ${connection.id}:`, error);
+          preview.lastMessage = 'Start your conversation...';
+        }
+      });
+
+      return preview;
+    });
+  }
+
+  private sortMessagesByTime(): void {
+    this.messagesPreviews.sort((a, b) => 
+      b.lastMessageTime.getTime() - a.lastMessageTime.getTime()
+    );
+  }
+
+  // === FILTERING ===
+
+  setFilter(filter: MessageFilter): void {
     this.filter = filter;
     this.applyFilter();
   }
 
-  applyFilter() {
+  applyFilter(): void {
     switch (this.filter) {
       case 'unread':
         this.filteredMessages = this.messagesPreviews.filter(m => m.unreadCount > 0);
@@ -611,6 +723,8 @@ export class MessagesComponent implements OnInit {
         this.filteredMessages = this.messagesPreviews;
     }
   }
+
+  // === COMPUTED PROPERTIES ===
 
   get activeChats(): number {
     return this.messagesPreviews.length;
@@ -626,32 +740,32 @@ export class MessagesComponent implements OnInit {
     ).length;
   }
 
+  get messageStats(): MessageStats {
+    return {
+      activeChats: this.activeChats,
+      totalUnread: this.totalUnread,
+      revealingConnections: this.revelingConnections
+    };
+  }
+
+  // === UTILITY METHODS ===
+
   getPartnerName(connection: any): string {
     return connection.user2_profile?.first_name || 
            connection.user1_profile?.first_name || 
            'Soul Connection';
   }
 
-  getLastMessage(connection: any): string {
-    // Mock last message - in real app, fetch from messages API
-    const mockMessages = [
-      "Thanks for sharing that beautiful revelation...",
-      "I'm excited to get to know you better 💫",
-      "Your perspective on life is so refreshing",
-      "Looking forward to our photo reveal day!",
-      "What a meaningful conversation we had yesterday"
-    ];
-    return mockMessages[Math.floor(Math.random() * mockMessages.length)];
-  }
+  // getLastMessage method removed - now handled in mapConnectionsToMessages with real API data
 
   formatConnectionStage(stage: string): string {
-    switch (stage) {
-      case 'soul_discovery': return 'Soul Discovery';
-      case 'revelation_sharing': return 'Sharing Revelations';
-      case 'photo_reveal': return 'Photo Reveal';
-      case 'deeper_connection': return 'Deeper Connection';
-      default: return 'New Connection';
-    }
+    const stageMap: Record<string, string> = {
+      'soul_discovery': 'Soul Discovery',
+      'revelation_sharing': 'Sharing Revelations',
+      'photo_reveal': 'Photo Reveal',
+      'deeper_connection': 'Deeper Connection'
+    };
+    return stageMap[stage] || 'New Connection';
   }
 
   formatTime(date: Date): string {
@@ -670,35 +784,180 @@ export class MessagesComponent implements OnInit {
     }
   }
 
-  openChat(message: MessagePreview) {
-    this.router.navigate(['/chat'], {
-      queryParams: { connectionId: message.connectionId }
-    });
-  }
 
-  quickReply(message: MessagePreview, event: Event) {
+  // === USER ACTIONS ===
+
+  quickReply(message: MessagePreview, event: Event): void {
     event.stopPropagation();
     this.openChat(message);
   }
 
-  viewRevelations(message: MessagePreview, event: Event) {
+  viewRevelations(message: MessagePreview, event: Event): void {
     event.stopPropagation();
     this.router.navigate(['/revelations'], {
       queryParams: { connectionId: message.connectionId }
     });
   }
 
-  toggleMute(message: MessagePreview, event: Event) {
+  toggleMute(message: MessagePreview, event: Event): void {
     event.stopPropagation();
-    // Implement mute functionality
+    // TODO: Implement mute functionality
     console.log('Toggle mute for connection:', message.connectionId);
   }
 
-  goToMatches() {
+  // === NAVIGATION ===
+
+  goToMatches(): void {
     this.router.navigate(['/matches']);
   }
 
-  newMessage() {
+  goToDiscover(): void {
     this.router.navigate(['/discover']);
+  }
+
+  showConversationTips(): void {
+    this.router.navigate(['/help/conversations']);
+  }
+
+  newMessage(): void {
+    this.router.navigate(['/discover']);
+  }
+
+  // === TYPING INDICATORS ===
+
+  private setupTypingIndicators(): void {
+    this.subscriptions.add(
+      this.chatService.getTypingUsers().subscribe(typingUsers => {
+        this.updateTypingStatus(typingUsers);
+      })
+    );
+  }
+
+  private updateTypingStatus(typingUsers: any[]): void {
+    this.messagesPreviews.forEach(message => {
+      const isTyping = typingUsers.some(user => 
+        user.name === message.partnerName // TODO: Match by user ID instead
+      );
+      
+      if (message.isTyping !== isTyping) {
+        this.handleTypingStatusChange(message, isTyping);
+      }
+    });
+
+    this.applyFilter();
+  }
+
+  private handleTypingStatusChange(message: MessagePreview, isTyping: boolean): void {
+    message.isTyping = isTyping;
+    
+    if (isTyping) {
+      (message as any).originalLastMessage = message.lastMessage;
+    } else if ((message as any).originalLastMessage) {
+      message.lastMessage = (message as any).originalLastMessage;
+    }
+  }
+
+  // === SWIPE GESTURE HANDLERS ===
+
+  getConversationSwipeConfig(): Partial<SwipeConfig> {
+    return {
+      threshold: 80, // Require 80px swipe for conversations
+      velocityThreshold: 0.4,
+      timeThreshold: 600,
+      enabledDirections: ['left', 'right'],
+      hapticFeedback: true,
+      preventDefaultEvents: true
+    };
+  }
+
+  onSwipeLeft(message: MessagePreview, event: SwipeEvent): void {
+    // Swipe left to archive/delete conversation
+    const element = event.element;
+    element.classList.add('swipe-archive', 'swipe-left-preview');
+    
+    // Trigger haptic feedback
+    this.hapticFeedbackService.triggerSelectionFeedback();
+    
+    // Show confirmation and archive
+    setTimeout(() => {
+      this.archiveConversation(message);
+      element.classList.remove('swipe-archive', 'swipe-left-preview');
+    }, 300);
+  }
+
+  onSwipeRight(message: MessagePreview, event: SwipeEvent): void {
+    // Swipe right to mark as read/prioritize
+    const element = event.element;
+    element.classList.add('swipe-priority', 'swipe-right-preview');
+    
+    // Trigger haptic feedback
+    this.hapticFeedbackService.triggerSuccessFeedback();
+    
+    // Mark as priority/read
+    setTimeout(() => {
+      this.prioritizeConversation(message);
+      element.classList.remove('swipe-priority', 'swipe-right-preview');
+    }, 300);
+  }
+
+  private archiveConversation(message: MessagePreview): void {
+    // Remove from current list with animation
+    const index = this.messagesPreviews.findIndex(m => m.connectionId === message.connectionId);
+    if (index > -1) {
+      this.messagesPreviews.splice(index, 1);
+      this.applyFilter();
+      
+      // Announce action for accessibility
+      this.announceAction(`Archived conversation with ${message.partnerName}`);
+      
+      // TODO: Call API to archive conversation
+      console.log('Archived conversation:', message.connectionId);
+    }
+  }
+
+  private prioritizeConversation(message: MessagePreview): void {
+    // Mark as read and move to top
+    message.unreadCount = 0;
+    
+    // Move to top of list
+    const index = this.messagesPreviews.findIndex(m => m.connectionId === message.connectionId);
+    if (index > -1) {
+      const [prioritizedMessage] = this.messagesPreviews.splice(index, 1);
+      this.messagesPreviews.unshift(prioritizedMessage);
+      this.applyFilter();
+      
+      // Announce action for accessibility
+      this.announceAction(`Prioritized conversation with ${message.partnerName}`);
+      
+      // TODO: Call API to mark as priority
+      console.log('Prioritized conversation:', message.connectionId);
+    }
+  }
+
+  private announceAction(message: string): void {
+    // Create temporary element for screen reader announcement
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.style.position = 'absolute';
+    announcement.style.left = '-9999px';
+    announcement.textContent = message;
+    
+    document.body.appendChild(announcement);
+    
+    // Remove after announcement
+    setTimeout(() => {
+      document.body.removeChild(announcement);
+    }, 1000);
+  }
+
+  // Enhanced openChat to stop typing indicators  
+  openChat(message: MessagePreview) {
+    // Stop typing indicator for this conversation
+    this.chatService.clearAllTypingIndicators();
+    
+    this.router.navigate(['/chat'], {
+      queryParams: { connectionId: message.connectionId }
+    });
   }
 }

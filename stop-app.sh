@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Dinner1 Application Stop Script
+# Dinner First Application Stop Script
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$PROJECT_ROOT/python-backend"
@@ -20,7 +20,7 @@ success() {
     echo -e "${GREEN}[SUCCESS] $1${NC}"
 }
 
-log "Stopping Dinner1 Application services..."
+log "Stopping Dinner First Application services..."
 
 # Kill backend
 if [ -f "$BACKEND_DIR/backend.pid" ]; then

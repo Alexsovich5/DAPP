@@ -1,0 +1,486 @@
+# Default values for Dinner First Dating Platform
+# This is a YAML-formatted file.
+
+# Global configuration
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# Application configuration
+app:
+  name: dinner-first
+  version: "1.0.0"
+  environment: production
+
+# Image configuration
+image:
+  frontend:
+    repository: nexus-repository:8081/repository/docker-hosted/dinner-first-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  backend:
+    repository: nexus-repository:8081/repository/docker-hosted/dinner-first-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+# Replica configuration
+replicaCount:
+  frontend: 2
+  backend: 2
+
+# Service configuration
+service:
+  frontend:
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+  backend:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "traefik"
+  annotations:
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.middlewares: "default-auth@kubernetescrd"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  host: dinner-first.app
+  tls:
+    enabled: true
+    secretName: dinner-first-tls
+  paths:
+    - path: /
+      pathType: Prefix
+      service: frontend
+    - path: /api
+      pathType: Prefix
+      service: backend
+    - path: /docs
+      pathType: Prefix
+      service: backend
+
+# Resource limits and requests
+resources:
+  frontend:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  backend:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+
+# Autoscaling configuration
+autoscaling:
+  enabled: true
+  frontend:
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  backend:
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# Database configuration
+database:
+  enabled: true
+  type: postgresql
+  host: postgres-primary
+  port: 5432
+  name: dinner-first
+  username: dinner-first_user
+  password: "" # Set via secret
+  ssl: require
+  connectionPool:
+    maxConnections: 20
+    minConnections: 5
+
+# Redis configuration
+redis:
+  enabled: true
+  host: redis-master
+  port: 6379
+  password: "" # Set via secret
+  database: 0
+  ssl: false
+  sentinel:
+    enabled: false
+
+# MinIO configuration
+minio:
+  enabled: true
+  host: minio-storage
+  port: 9000
+  accessKey: "" # Set via secret
+  secretKey: "" # Set via secret
+  bucket: dinner-first-uploads
+  ssl: false
+
+# External services configuration
+externalServices:
+  sonarqube:
+    enabled: true
+    url: http://sonarqube-ce:9000
+  nexus:
+    enabled: true
+    url: http://nexus-repository:8081
+  vault:
+    enabled: true
+    url: http://vault-secrets:8200
+  prometheus:
+    enabled: true
+    url: http://prometheus-metrics:9090
+  grafana:
+    enabled: true
+    url: http://grafana-monitoring:3000
+
+# Security configuration
+security:
+  enabled: true
+  networkPolicies:
+    enabled: true
+  podSecurityPolicy:
+    enabled: true
+  rbac:
+    enabled: true
+  serviceAccount:
+    create: true
+    name: dinner-first-sa
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+    scrapeInterval: 30s
+    path: /metrics
+  grafana:
+    enabled: true
+    dashboards:
+      enabled: true
+  alerts:
+    enabled: true
+    rules:
+      - name: high-cpu
+        threshold: 80
+      - name: high-memory
+        threshold: 85
+      - name: low-disk-space
+        threshold: 90
+
+# Logging configuration
+logging:
+  enabled: true
+  level: INFO
+  format: json
+  destinations:
+    - console
+    - file
+  fileRotation:
+    enabled: true
+    maxSize: 100M
+    maxFiles: 7
+
+# Health checks configuration
+healthChecks:
+  frontend:
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 80
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readinessProbe:
+      httpGet:
+        path: /ready
+        port: 80
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
+  backend:
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 8000
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readinessProbe:
+      httpGet:
+        path: /ready
+        port: 8000
+      initialDelaySeconds: 15
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
+
+# Environment variables
+env:
+  frontend:
+    NODE_ENV: production
+    API_URL: https://dinner-first.app/api
+    ENABLE_PWA: "true"
+    ENABLE_ANALYTICS: "true"
+  backend:
+    PYTHONPATH: /app
+    ENVIRONMENT: production
+    DEBUG: "false"
+    LOG_LEVEL: INFO
+    CORS_ORIGINS: "https://dinner-first.app"
+    SESSION_TIMEOUT: "1440"
+    MAX_UPLOAD_SIZE: "10485760"
+
+# Secrets configuration (referenced, not actual values)
+secrets:
+  database:
+    password: dinner-first-db-secret
+  redis:
+    password: dinner-first-redis-secret
+  minio:
+    accessKey: dinner-first-minio-secret
+    secretKey: dinner-first-minio-secret
+  app:
+    secretKey: dinner-first-app-secret
+    jwtSecret: dinner-first-jwt-secret
+  external:
+    googleMapsApiKey: dinner-first-gmaps-secret
+    sendgridApiKey: dinner-first-sendgrid-secret
+    vapidKeys: dinner-first-vapid-secret
+
+# ConfigMaps
+configMaps:
+  app:
+    data:
+      features.json: |
+        {
+          "revelations": true,
+          "videoChat": false,
+          "premiumFeatures": true,
+          "socialLogin": true,
+          "locationServices": true
+        }
+      limits.json: |
+        {
+          "maxPhotos": 9,
+          "maxBio": 500,
+          "maxMessageLength": 1000,
+          "dailyLikes": 50,
+          "profileViews": 100
+        }
+
+# Persistent storage
+persistence:
+  enabled: true
+  storageClass: "fast-ssd"
+  size: 20Gi
+  accessMode: ReadWriteOnce
+  mountPath: /var/lib/dinner-first
+
+# Backup configuration
+backup:
+  enabled: true
+  schedule: "0 2 * * *"
+  retention: "30d"
+  destination: minio
+  encryption: true
+
+# Migration configuration
+migration:
+  enabled: true
+  image:
+    repository: dinner-first-backend
+    tag: latest
+  command:
+    - python
+    - manage.py
+    - migrate
+
+# Init containers
+initContainers:
+  dbMigration:
+    enabled: true
+    image:
+      repository: dinner-first-backend
+      tag: latest
+    command:
+      - sh
+      - -c
+      - |
+        python manage.py wait_for_db
+        python manage.py migrate
+        python manage.py collectstatic --noinput
+
+# Sidecars
+sidecars:
+  logShipper:
+    enabled: true
+    image: fluent/fluent-bit:latest
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+
+# Affinity and scheduling
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: node-type
+          operator: In
+          values:
+          - application
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - dinner-first
+        topologyKey: kubernetes.io/hostname
+
+# Tolerations
+tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    value: "application"
+    effect: "NoSchedule"
+
+# Node selector
+nodeSelector:
+  node-type: application
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 2000
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Network policy
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: traefik-system
+      ports:
+      - protocol: TCP
+        port: 80
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: monitoring
+      ports:
+      - protocol: TCP
+        port: 8080
+  egress:
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            name: database
+      ports:
+      - protocol: TCP
+        port: 5432
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            name: redis
+      ports:
+      - protocol: TCP
+        port: 6379
+
+# Service monitor for Prometheus
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  path: /metrics
+  labels:
+    release: prometheus
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+  maxUnavailable: ""
+
+# Deployment strategy
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+# Jobs
+jobs:
+  dataSeeding:
+    enabled: false
+    image:
+      repository: dinner-first-backend
+      tag: latest
+    command:
+      - python
+      - manage.py
+      - seed_data
+    restartPolicy: OnFailure
+    backoffLimit: 3
+
+# CronJobs
+cronJobs:
+  dataCleanup:
+    enabled: true
+    schedule: "0 3 * * 0"
+    image:
+      repository: dinner-first-backend
+      tag: latest
+    command:
+      - python
+      - manage.py
+      - cleanup_expired_data
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 1
+  backupDatabase:
+    enabled: true
+    schedule: "0 2 * * *"
+    image:
+      repository: postgres:15-alpine
+    command:
+      - sh
+      - -c
+      - |
+        pg_dump $DATABASE_URL | gzip > /backups/dinner-first-$(date +%Y%m%d_%H%M%S).sql.gz
+    successfulJobsHistoryLimit: 7
+    failedJobsHistoryLimit: 3

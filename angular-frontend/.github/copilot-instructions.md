@@ -1,7 +1,7 @@
-# Dinner1 Angular Implementation
+# Dinner First Angular Implementation
 
 ## Project Overview
-Dinner1 is a dating application focused on matching users based on their dining and food preferences. This is the Angular implementation of the application, converted from the original React version.
+Dinner First is a dating application focused on matching users based on their dining and food preferences. This is the Angular implementation of the application, converted from the original React version.
 
 ## Technical Stack & Dependencies
 - **Framework**: Angular (Latest Version)

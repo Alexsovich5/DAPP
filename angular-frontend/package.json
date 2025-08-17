@@ -1,7 +1,7 @@
 {
   "name": "dinner-app-angular",
   "version": "1.0.0",
-  "description": "Dinner1 dating application - Angular frontend implementation focused on matching users based on dining and food preferences",
+  "description": "Dinner First dating application - Angular frontend implementation focused on matching users based on dining and food preferences",
   "scripts": {
     "build": "nx build",
     "dev": "nx serve",

@@ -1,17 +1,38 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
-from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 import os
 import logging
 from pathlib import Path
 from pydantic import ValidationError
 
-from app.api.v1.routers import auth, matches, profiles, users, soul_connections, revelations, onboarding
+from app.api.v1.routers import (
+    auth,
+    matches,
+    profiles,
+    users,
+    soul_connections,
+    revelations,
+    onboarding,
+    photo_reveal,
+    messages,
+    ai_matching,
+    personalization,
+    adaptive_revelations,
+    ui_personalization,
+    # enhanced_communication,  # Temporarily disabled - file missing
+    # social_proof,  # Temporarily disabled - file missing
+    # advanced_ai_matching,  # Temporarily disabled - file missing
+)
+from app.api.v1.routers import chat as chat_router
+from app.api.v1.routers import safety as safety_router
+# from app.api.v1.routers import analytics as analytics_router  # Temporarily disabled due to missing clickhouse
 from app.core.database import create_tables
 from app.middleware.middleware import log_requests_middleware
+from app.middleware.security_headers import security_headers_middleware, get_secure_cors_config
 from app.utils.error_handler import validation_error_handler
+from app.services.realtime import manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -27,37 +48,12 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Configure CORS - updated for Angular frontend
-origins = [
-    "http://localhost:4200",  # Angular dev server default
-    "http://localhost:5001",  # Angular dev server (alternate port)
-    "http://localhost:3000",  # React dev server (if needed)
-    "http://localhost:8080",  # Vue dev server (if needed)
-    "http://localhost:5173",  # Vite dev server (if needed)
-]
+# Security Headers Middleware - Apply first for all responses
+app.middleware("http")(security_headers_middleware)
 
-# Add environment variable override
-env_origins = os.getenv("CORS_ORIGINS")
-if env_origins:
-    origins.extend(env_origins.split(","))
-
-# Add CORS middleware with proper configuration for Angular
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,  # Enable credentials for Angular
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=[
-        "Accept",
-        "Accept-Language",
-        "Content-Language",
-        "Content-Type",
-        "Authorization",
-        "X-Requested-With",
-    ],
-    expose_headers=["*"],
-    max_age=600,  # Cache preflight requests for 10 minutes
-)
+# Secure CORS Configuration - Environment-aware and production-ready
+cors_config = get_secure_cors_config()
+app.add_middleware(CORSMiddleware, **cors_config)
 
 # Try to create database tables
 try:
@@ -83,12 +79,94 @@ v1_app.include_router(profiles.router, prefix="/profiles", tags=["profiles"])
 v1_app.include_router(matches.router, prefix="/matches", tags=["matches"])
 
 # Soul Before Skin routers
-v1_app.include_router(soul_connections.router, prefix="/soul-connections", tags=["soul-connections"])
-v1_app.include_router(revelations.router, prefix="/revelations", tags=["revelations"])
-v1_app.include_router(onboarding.router, prefix="/onboarding", tags=["onboarding"])
+v1_app.include_router(
+    soul_connections.router,
+    prefix="/soul-connections",
+    tags=["soul-connections"],
+)
+v1_app.include_router(
+    revelations.router,
+    prefix="/revelations",
+    tags=["revelations"],
+)
+v1_app.include_router(
+    onboarding.router,
+    prefix="/onboarding",
+    tags=["onboarding"],
+)
 
+# Phase 4: Photo Reveal System
+v1_app.include_router(
+    photo_reveal.router,
+    prefix="/photo-reveal",
+    tags=["photo-reveal"],
+)
+
+# Phase 4: Real-time Messaging
+v1_app.include_router(
+    messages.router,
+    prefix="/messages",
+    tags=["messages"],
+)
+
+# Phase 5: AI-Enhanced Matching
+v1_app.include_router(
+    ai_matching.router,
+    prefix="/ai-matching",
+    tags=["ai-matching"],
+)
+
+# Phase 6: Advanced Personalization & Content Intelligence
+v1_app.include_router(
+    personalization.router,
+    prefix="/personalization",
+    tags=["personalization"],
+)
+
+# Phase 6: Adaptive Revelation Prompts
+v1_app.include_router(
+    adaptive_revelations.router,
+    prefix="/adaptive-revelations",
+    tags=["adaptive-revelations"],
+)
+
+# Phase 6: UI Personalization System
+v1_app.include_router(
+    ui_personalization.router,
+    prefix="/ui-personalization",
+    tags=["ui-personalization"],
+)
+
+# Phase 7: Hybrid Advanced Features - Temporarily disabled
+# Enhanced Communication
+# v1_app.include_router(
+#     enhanced_communication.router,
+#     prefix="/enhanced-communication", 
+#     tags=["enhanced-communication"],
+# )
+
+# Social Proof & Community  
+# v1_app.include_router(
+#     social_proof.router,
+#     prefix="/social-proof",
+#     tags=["social-proof"],
+# )
+
+# Advanced AI Matching Evolution
+# v1_app.include_router(
+#     advanced_ai_matching.router,
+#     prefix="/advanced-ai-matching",
+#     tags=["advanced-ai-matching"],
+# )
+
+# Real-time Chat and Safety
+v1_app.include_router(chat_router.router, tags=["chat"])
+v1_app.include_router(safety_router.router)
+# v1_app.include_router(analytics_router.router)  # Temporarily disabled
 # Add profile aliases for Angular compatibility
-v1_app.include_router(profiles.router, prefix="/profile", tags=["profile-alias"])
+v1_app.include_router(
+    profiles.router, prefix="/profile", tags=["profile-alias"]
+)
 
 # Mount the v1 API with prefix
 app.mount("/api/v1", v1_app)
@@ -140,3 +218,17 @@ async def health_check():
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}")
         return {"status": "unhealthy", "error": str(e)}
+
+
+@app.websocket("/chat")
+async def websocket_chat_endpoint(websocket: WebSocket):
+    """Top-level WebSocket endpoint to match frontend `ws://.../chat`."""
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await manager.send_to_all_except(
+                {"type": "event", "data": data}, except_ws=websocket
+            )
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)

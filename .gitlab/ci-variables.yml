@@ -1,0 +1,338 @@
+# GitLab CI/CD Variables Configuration
+# This file documents the required variables for the CI/CD pipeline
+# Set these in GitLab Project Settings > CI/CD > Variables
+
+# Required Variables (set in GitLab UI):
+
+# SonarQube Configuration
+SONAR_TOKEN:
+  description: "SonarQube authentication token for code quality analysis"
+  type: "variable"
+  protected: true
+  masked: true
+  scope: "environment"
+  
+# Nexus Repository Configuration  
+NEXUS_USER:
+  description: "Nexus Repository username for artifact storage"
+  type: "variable"
+  protected: true
+  masked: false
+  scope: "environment"
+
+NEXUS_PASSWORD:
+  description: "Nexus Repository password for artifact storage"
+  type: "variable"
+  protected: true
+  masked: true
+  scope: "environment"
+
+# Vault Configuration
+VAULT_ROLE_ID:
+  description: "HashiCorp Vault AppRole role ID for authentication"
+  type: "variable"
+  protected: true
+  masked: true
+  scope: "environment"
+
+VAULT_SECRET_ID:
+  description: "HashiCorp Vault AppRole secret ID for authentication"
+  type: "variable"
+  protected: true
+  masked: true
+  scope: "environment"
+
+# Docker Registry Configuration
+DOCKER_REGISTRY_USER:
+  description: "Docker registry username (Nexus Docker repo)"
+  type: "variable"
+  protected: true
+  masked: false
+  scope: "environment"
+
+DOCKER_REGISTRY_PASSWORD:
+  description: "Docker registry password (Nexus Docker repo)"
+  type: "variable"
+  protected: true
+  masked: true
+  scope: "environment"
+
+# Database Configuration (for testing)
+TEST_DATABASE_URL:
+  description: "PostgreSQL database URL for testing"
+  type: "variable"
+  protected: false
+  masked: false
+  scope: "environment"
+  default: "postgresql://test_user:test_password@postgres:5432/dinner_first_test"
+
+# Application Configuration
+APP_SECRET_KEY:
+  description: "Application secret key for JWT tokens"
+  type: "variable"
+  protected: true
+  masked: true
+  scope: "environment"
+
+# External Service API Keys
+GOOGLE_MAPS_API_KEY:
+  description: "Google Maps API key for location services"
+  type: "variable"
+  protected: true
+  masked: true
+  scope: "environment"
+
+SENDGRID_API_KEY:
+  description: "SendGrid API key for email notifications"
+  type: "variable"
+  protected: true
+  masked: true
+  scope: "environment"
+
+# Monitoring Configuration
+GRAFANA_API_KEY:
+  description: "Grafana API key for dashboard management"
+  type: "variable"
+  protected: true
+  masked: true
+  scope: "environment"
+
+PROMETHEUS_BEARER_TOKEN:
+  description: "Prometheus bearer token for metrics access"
+  type: "variable"
+  protected: true
+  masked: true
+  scope: "environment"
+
+# Deployment Configuration
+KUBECONFIG_STAGING:
+  description: "Kubernetes configuration for staging environment"
+  type: "file"
+  protected: true
+  masked: false
+  scope: "environment"
+  environment: "staging"
+
+KUBECONFIG_PRODUCTION:
+  description: "Kubernetes configuration for production environment"
+  type: "file"
+  protected: true
+  masked: false
+  scope: "environment"
+  environment: "production"
+
+# SSL/TLS Certificates
+TLS_CERT_STAGING:
+  description: "TLS certificate for staging environment"
+  type: "file"
+  protected: true
+  masked: false
+  scope: "environment"
+  environment: "staging"
+
+TLS_KEY_STAGING:
+  description: "TLS private key for staging environment"
+  type: "file"
+  protected: true
+  masked: true
+  scope: "environment"
+  environment: "staging"
+
+TLS_CERT_PRODUCTION:
+  description: "TLS certificate for production environment"
+  type: "file"
+  protected: true
+  masked: false
+  scope: "environment"
+  environment: "production"
+
+TLS_KEY_PRODUCTION:
+  description: "TLS private key for production environment"
+  type: "file"
+  protected: true
+  masked: true
+  scope: "environment"
+  environment: "production"
+
+# Analytics and Tracking
+GOOGLE_ANALYTICS_ID:
+  description: "Google Analytics tracking ID"
+  type: "variable"
+  protected: false
+  masked: false
+  scope: "environment"
+
+MIXPANEL_TOKEN:
+  description: "Mixpanel analytics token"
+  type: "variable"
+  protected: true
+  masked: true
+  scope: "environment"
+
+# Push Notification Configuration
+VAPID_PUBLIC_KEY:
+  description: "VAPID public key for push notifications"
+  type: "variable"
+  protected: false
+  masked: false
+  scope: "environment"
+
+VAPID_PRIVATE_KEY:
+  description: "VAPID private key for push notifications"
+  type: "variable"
+  protected: true
+  masked: true
+  scope: "environment"
+
+VAPID_SUBJECT:
+  description: "VAPID subject (email) for push notifications"
+  type: "variable"
+  protected: false
+  masked: false
+  scope: "environment"
+  default: "mailto:admin@dinner_first.app"
+
+# Redis Configuration
+REDIS_PASSWORD:
+  description: "Redis password for session storage and caching"
+  type: "variable"
+  protected: true
+  masked: true
+  scope: "environment"
+
+# MinIO Configuration
+MINIO_ACCESS_KEY:
+  description: "MinIO access key for object storage"
+  type: "variable"
+  protected: true
+  masked: false
+  scope: "environment"
+
+MINIO_SECRET_KEY:
+  description: "MinIO secret key for object storage"
+  type: "variable"
+  protected: true
+  masked: true
+  scope: "environment"
+
+# Slack Notifications
+SLACK_WEBHOOK_URL:
+  description: "Slack webhook URL for deployment notifications"
+  type: "variable"
+  protected: true
+  masked: true
+  scope: "environment"
+
+# Email Configuration
+SMTP_HOST:
+  description: "SMTP host for email sending"
+  type: "variable"
+  protected: false
+  masked: false
+  scope: "environment"
+
+SMTP_PORT:
+  description: "SMTP port for email sending"
+  type: "variable"
+  protected: false
+  masked: false
+  scope: "environment"
+  default: "587"
+
+SMTP_USERNAME:
+  description: "SMTP username for email authentication"
+  type: "variable"
+  protected: true
+  masked: false
+  scope: "environment"
+
+SMTP_PASSWORD:
+  description: "SMTP password for email authentication"
+  type: "variable"
+  protected: true
+  masked: true
+  scope: "environment"
+
+# CDN Configuration
+CDN_URL:
+  description: "CDN URL for static asset delivery"
+  type: "variable"
+  protected: false
+  masked: false
+  scope: "environment"
+
+CDN_API_KEY:
+  description: "CDN API key for cache purging"
+  type: "variable"
+  protected: true
+  masked: true
+  scope: "environment"
+
+# Environment-specific Domain Configuration
+STAGING_DOMAIN:
+  description: "Staging environment domain"
+  type: "variable"
+  protected: false
+  masked: false
+  scope: "environment"
+  environment: "staging"
+  default: "staging.dinner_first.app"
+
+PRODUCTION_DOMAIN:
+  description: "Production environment domain"
+  type: "variable"
+  protected: false
+  masked: false
+  scope: "environment"
+  environment: "production"
+  default: "dinner_first.app"
+
+# Feature Flags
+ENABLE_FEATURE_REVELATIONS:
+  description: "Enable revelations feature"
+  type: "variable"
+  protected: false
+  masked: false
+  scope: "environment"
+  default: "true"
+
+ENABLE_FEATURE_VIDEO_CALLS:
+  description: "Enable video calls feature"
+  type: "variable"
+  protected: false
+  masked: false
+  scope: "environment"
+  default: "false"
+
+ENABLE_FEATURE_PREMIUM:
+  description: "Enable premium features"
+  type: "variable"
+  protected: false
+  masked: false
+  scope: "environment"
+  default: "true"
+
+# Performance Configuration
+MAX_UPLOAD_SIZE:
+  description: "Maximum file upload size in MB"
+  type: "variable"
+  protected: false
+  masked: false
+  scope: "environment"
+  default: "10"
+
+SESSION_TIMEOUT:
+  description: "Session timeout in minutes"
+  type: "variable"
+  protected: false
+  masked: false
+  scope: "environment"
+  default: "1440"  # 24 hours
+
+RATE_LIMIT_PER_MINUTE:
+  description: "Rate limit per minute per IP"
+  type: "variable"
+  protected: false
+  masked: false
+  scope: "environment"
+  default: "100"

@@ -6,7 +6,7 @@ import { environment } from '@environments/environment';
 import { StorageService } from '@core/services/storage.service';
 
 /**
- * Authentication service for the Dinner1 "Soul Before Skin" dating application.
+ * Authentication service for the Dinner First "Soul Before Skin" dating application.
  * 
  * Handles user authentication, registration, and session management with:
  * - JWT token-based authentication

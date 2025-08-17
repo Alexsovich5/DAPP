@@ -1,0 +1,143 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dinner-first.fullname" . }}-frontend
+  labels:
+    {{- include "dinner-first.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount.frontend }}
+  {{- end }}
+  strategy:
+    {{- toYaml .Values.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "dinner-first.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "dinner-first.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: frontend
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "dinner-first.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.initContainers.dbMigration.enabled }}
+      initContainers:
+        - name: wait-for-backend
+          image: busybox:latest
+          command: ['sh', '-c']
+          args:
+            - |
+              echo "Waiting for backend to be ready..."
+              until wget -q --spider http://{{ include "dinner-first.fullname" . }}-backend:{{ .Values.service.backend.port }}/health; do
+                echo "Backend not ready, waiting..."
+                sleep 5
+              done
+              echo "Backend is ready!"
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+      {{- end }}
+      containers:
+        - name: frontend
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.frontend.repository }}:{{ .Values.image.frontend.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.frontend.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.frontend.targetPort }}
+              protocol: TCP
+          env:
+            - name: NODE_ENV
+              value: {{ .Values.env.frontend.NODE_ENV | quote }}
+            - name: API_URL
+              value: {{ .Values.env.frontend.API_URL | quote }}
+            - name: ENABLE_PWA
+              value: {{ .Values.env.frontend.ENABLE_PWA | quote }}
+            - name: ENABLE_ANALYTICS
+              value: {{ .Values.env.frontend.ENABLE_ANALYTICS | quote }}
+            {{- if .Values.externalServices.vault.enabled }}
+            - name: GOOGLE_MAPS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.external.googleMapsApiKey }}
+                  key: api-key
+            {{- end }}
+          {{- if .Values.healthChecks.frontend.livenessProbe }}
+          livenessProbe:
+            {{- toYaml .Values.healthChecks.frontend.livenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.healthChecks.frontend.readinessProbe }}
+          readinessProbe:
+            {{- toYaml .Values.healthChecks.frontend.readinessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources.frontend | nindent 12 }}
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+              readOnly: true
+            - name: app-config
+              mountPath: /usr/share/nginx/html/assets/config
+              readOnly: true
+            {{- if .Values.persistence.enabled }}
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+            {{- end }}
+        {{- if .Values.sidecars.logShipper.enabled }}
+        - name: log-shipper
+          image: {{ .Values.sidecars.logShipper.image }}
+          resources:
+            {{- toYaml .Values.sidecars.logShipper.resources | nindent 12 }}
+          volumeMounts:
+            - name: log-config
+              mountPath: /fluent-bit/etc/fluent-bit.conf
+              subPath: fluent-bit.conf
+            - name: varlog
+              mountPath: /var/log
+              readOnly: true
+        {{- end }}
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: {{ include "dinner-first.fullname" . }}-nginx-config
+        - name: app-config
+          configMap:
+            name: {{ include "dinner-first.fullname" . }}-app-config
+        {{- if .Values.sidecars.logShipper.enabled }}
+        - name: log-config
+          configMap:
+            name: {{ include "dinner-first.fullname" . }}-log-config
+        - name: varlog
+          hostPath:
+            path: /var/log
+        {{- end }}
+        {{- if .Values.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "dinner-first.fullname" . }}-data
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

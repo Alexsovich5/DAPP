@@ -62,12 +62,20 @@ export class DiscoverService extends BaseService {
   }
 
   getMutualInterests(profileId: string): Observable<string[]> {
-    // TODO: Implement backend endpoint for mutual interests
-    return of([]);
+    return this.http.get<string[]>(`${this.apiUrl}/mutual-interests/${profileId}`).pipe(
+      catchError(this.handleError<string[]>('get mutual interests', []))
+    );
   }
 
-  getMatchPercentage(profileId: string): Observable<number> {
-    // TODO: Implement backend endpoint for match percentage calculation
-    return of(0);
+  getMatchPercentage(profileId: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/match-percentage/${profileId}`).pipe(
+      map(response => ({
+        percentage: response.match_percentage,
+        breakdown: response.breakdown,
+        rating: response.compatibility_rating,
+        mutualInterestsCount: response.mutual_interests_count
+      })),
+      catchError(this.handleError<any>('get match percentage', { percentage: 0, breakdown: {}, rating: 'Unknown', mutualInterestsCount: 0 }))
+    );
   }
 }
