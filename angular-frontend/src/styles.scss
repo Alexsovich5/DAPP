@@ -35,10 +35,42 @@
     .mat-input-element {
       color: var(--text-primary) !important;
     }
+    
+    .mat-form-field-outline {
+      color: var(--border-color) !important;
+    }
+    
+    .mat-form-field-outline-thick {
+      color: var(--primary-color) !important;
+    }
   }
   
   .mat-icon {
     color: var(--text-primary) !important;
+  }
+  
+  .mat-divider {
+    border-top-color: var(--border-color) !important;
+  }
+  
+  .mat-progress-bar {
+    background-color: var(--surface-color) !important;
+  }
+  
+  .mat-stepper-horizontal {
+    background-color: var(--card-background) !important;
+  }
+  
+  .mat-step-header {
+    color: var(--text-primary) !important;
+  }
+  
+  .mat-checkbox {
+    color: var(--text-primary) !important;
+  }
+  
+  .mat-error {
+    color: var(--error-text) !important;
   }
 }
 
@@ -104,11 +136,16 @@ body {
 
 // Legacy color mappings for backward compatibility
 :root {
-  // Map legacy colors to accessible variants
+  // Map legacy colors to accessible variants for new features
   --primary-color: var(--interactive-primary);
+  --primary-color-rgb: 236, 72, 153;
   --accent-color: var(--interactive-accent);
+  --accent-color-rgb: 139, 92, 246;
   --background-color: var(--background-primary);
   --surface-color: var(--background-secondary);
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
   --card-background: var(--background-primary);
   --header-background: var(--background-primary);
   --shadow-color: rgba(0, 0, 0, 0.1);
@@ -118,11 +155,16 @@ body {
 }
 
 .dark-theme {
-  // Dark theme legacy mappings
+  // Dark theme legacy mappings with explicit colors for compatibility
   --primary-color: var(--interactive-primary);
+  --primary-color-rgb: 244, 114, 182;
   --accent-color: var(--interactive-accent);
+  --accent-color-rgb: 167, 139, 250;
   --background-color: var(--background-primary);
   --surface-color: var(--background-secondary);
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --border-color: #374151;
   --card-background: var(--background-primary);
   --header-background: var(--background-primary);
   --shadow-color: rgba(0, 0, 0, 0.3);
