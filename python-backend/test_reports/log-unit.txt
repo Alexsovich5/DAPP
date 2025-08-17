@@ -1,0 +1,127 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.3, pytest-8.4.0, pluggy-1.6.0 -- /Users/alex/Desktop/Projects/DAPP/python-backend/venv/bin/python3.13
+cachedir: .pytest_cache
+metadata: {'Python': '3.13.3', 'Platform': 'macOS-15.6-arm64-arm-64bit-Mach-O', 'Packages': {'pytest': '8.4.0', 'pluggy': '1.6.0'}, 'Plugins': {'Faker': '37.5.3', 'anyio': '4.9.0', 'html': '4.1.1', 'asyncio': '1.1.0', 'xdist': '3.8.0', 'json-report': '1.5.0', 'metadata': '3.1.1', 'cov': '6.2.1', 'benchmark': '5.1.0'}}
+benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /Users/alex/Desktop/Projects/DAPP/python-backend
+configfile: pytest.ini
+plugins: Faker-37.5.3, anyio-4.9.0, html-4.1.1, asyncio-1.1.0, xdist-3.8.0, json-report-1.5.0, metadata-3.1.1, cov-6.2.1, benchmark-5.1.0
+asyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 1658 items / 1388 deselected / 270 selected
+
+tests/test_ab_testing.py::TestABTestingFramework::test_experiment_creation PASSED [  0%]
+tests/test_ab_testing.py::TestABTestingFramework::test_experiment_variant_management PASSED [  0%]
+tests/test_ab_testing.py::TestABTestingFramework::test_user_experiment_assignment PASSED [  1%]
+tests/test_ab_testing.py::TestABTestingFramework::test_consistent_user_assignment PASSED [  1%]
+tests/test_ab_testing.py::TestABTestingFramework::test_experiment_traffic_allocation PASSED [  1%]
+tests/test_ab_testing.py::TestExperimentMetricsTracking::test_conversion_event_tracking FAILED [  2%]
+tests/test_ab_testing.py::TestExperimentMetricsTracking::test_experiment_performance_analysis FAILED [  2%]
+tests/test_ab_testing.py::TestExperimentMetricsTracking::test_statistical_significance_calculation PASSED [  2%]
+tests/test_ab_testing.py::TestExperimentMetricsTracking::test_experiment_segmentation_analysis PASSED [  3%]
+tests/test_ab_testing.py::TestExperimentFeatureIntegration::test_photo_reveal_timing_experiment ERROR [  3%]
+tests/test_ab_testing.py::TestExperimentSafety::test_experiment_traffic_limits ERROR [  4%]
+tests/test_ab_testing.py::TestExperimentSafety::test_experiment_variant_validation ERROR [  4%]
+tests/test_ab_testing.py::TestExperimentSafety::test_experiment_date_validation ERROR [  4%]
+tests/test_ab_testing.py::TestExperimentSafety::test_experiment_performance_monitoring ERROR [  5%]
+tests/test_ab_testing.py::TestExperimentReporting::test_experiment_summary_report ERROR [  5%]
+tests/test_auth_enhanced.py::TestJWTTokenManagement::test_access_token_creation_and_validation FAILED [  5%]
+tests/test_auth_enhanced.py::TestJWTTokenManagement::test_refresh_token_creation FAILED [  6%]
+
+==================================== ERRORS ====================================
+_ ERROR at setup of TestExperimentFeatureIntegration.test_photo_reveal_timing_experiment _
+file /Users/alex/Desktop/Projects/DAPP/python-backend/tests/test_ab_testing.py, line 560
+      @pytest.mark.unit
+      @pytest.mark.ab_testing
+      def test_photo_reveal_timing_experiment(self, ab_service, soul_connection_data):
+E       fixture 'ab_service' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_faker, _session_scoped_runner, ab_testing_service, ai_matching_service, analytics_service, anyio_backend, anyio_backend_name, anyio_backend_options, async_ai_service, async_client, async_client_with_db, async_db_session, async_performance_monitor, async_realtime_service, async_test_data_generator, auth_headers, authenticated_user, benchmark, benchmark_weave, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, client, complete_revelation_cycle, cov, db_session, doctest_namespace, event_loop, event_loop_policy, extra, extras, factories, faker, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, high_compatibility_users, include_metadata_in_junit_xml, json_metadata, low_compatibility_users, matching_users, message_service, metadata, mock_redis_async, monkeypatch, multi_stage_connections, no_cover, performance_config, performance_test_data, push_notification_service, pytestconfig, realtime_service, record_property, record_testsuite_property, record_xml_attribute, recwarn, revelation_service, security_test_data, soul_compatibility_service, soul_connection_data, test_db, test_match, test_profile, test_user, testrun_uid, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory, websocket_test_client, websocket_test_data, worker_id
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/alex/Desktop/Projects/DAPP/python-backend/tests/test_ab_testing.py:560
+____ ERROR at setup of TestExperimentSafety.test_experiment_traffic_limits _____
+file /Users/alex/Desktop/Projects/DAPP/python-backend/tests/test_ab_testing.py, line 595
+      @pytest.mark.unit
+      @pytest.mark.ab_testing
+      @pytest.mark.security
+      def test_experiment_traffic_limits(self, ab_service):
+E       fixture 'ab_service' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_faker, _session_scoped_runner, ab_testing_service, ai_matching_service, analytics_service, anyio_backend, anyio_backend_name, anyio_backend_options, async_ai_service, async_client, async_client_with_db, async_db_session, async_performance_monitor, async_realtime_service, async_test_data_generator, auth_headers, authenticated_user, benchmark, benchmark_weave, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, client, complete_revelation_cycle, cov, db_session, doctest_namespace, event_loop, event_loop_policy, extra, extras, factories, faker, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, high_compatibility_users, include_metadata_in_junit_xml, json_metadata, low_compatibility_users, matching_users, message_service, metadata, mock_redis_async, monkeypatch, multi_stage_connections, no_cover, performance_config, performance_test_data, push_notification_service, pytestconfig, realtime_service, record_property, record_testsuite_property, record_xml_attribute, recwarn, revelation_service, security_test_data, soul_compatibility_service, soul_connection_data, test_db, test_match, test_profile, test_user, testrun_uid, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory, websocket_test_client, websocket_test_data, worker_id
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/alex/Desktop/Projects/DAPP/python-backend/tests/test_ab_testing.py:595
+__ ERROR at setup of TestExperimentSafety.test_experiment_variant_validation ___
+file /Users/alex/Desktop/Projects/DAPP/python-backend/tests/test_ab_testing.py, line 613
+      @pytest.mark.unit
+      @pytest.mark.ab_testing
+      @pytest.mark.security
+      def test_experiment_variant_validation(self, ab_service):
+E       fixture 'ab_service' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_faker, _session_scoped_runner, ab_testing_service, ai_matching_service, analytics_service, anyio_backend, anyio_backend_name, anyio_backend_options, async_ai_service, async_client, async_client_with_db, async_db_session, async_performance_monitor, async_realtime_service, async_test_data_generator, auth_headers, authenticated_user, benchmark, benchmark_weave, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, client, complete_revelation_cycle, cov, db_session, doctest_namespace, event_loop, event_loop_policy, extra, extras, factories, faker, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, high_compatibility_users, include_metadata_in_junit_xml, json_metadata, low_compatibility_users, matching_users, message_service, metadata, mock_redis_async, monkeypatch, multi_stage_connections, no_cover, performance_config, performance_test_data, push_notification_service, pytestconfig, realtime_service, record_property, record_testsuite_property, record_xml_attribute, recwarn, revelation_service, security_test_data, soul_compatibility_service, soul_connection_data, test_db, test_match, test_profile, test_user, testrun_uid, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory, websocket_test_client, websocket_test_data, worker_id
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/alex/Desktop/Projects/DAPP/python-backend/tests/test_ab_testing.py:613
+____ ERROR at setup of TestExperimentSafety.test_experiment_date_validation ____
+file /Users/alex/Desktop/Projects/DAPP/python-backend/tests/test_ab_testing.py, line 630
+      @pytest.mark.unit
+      @pytest.mark.ab_testing
+      def test_experiment_date_validation(self, ab_service):
+E       fixture 'ab_service' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_faker, _session_scoped_runner, ab_testing_service, ai_matching_service, analytics_service, anyio_backend, anyio_backend_name, anyio_backend_options, async_ai_service, async_client, async_client_with_db, async_db_session, async_performance_monitor, async_realtime_service, async_test_data_generator, auth_headers, authenticated_user, benchmark, benchmark_weave, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, client, complete_revelation_cycle, cov, db_session, doctest_namespace, event_loop, event_loop_policy, extra, extras, factories, faker, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, high_compatibility_users, include_metadata_in_junit_xml, json_metadata, low_compatibility_users, matching_users, message_service, metadata, mock_redis_async, monkeypatch, multi_stage_connections, no_cover, performance_config, performance_test_data, push_notification_service, pytestconfig, realtime_service, record_property, record_testsuite_property, record_xml_attribute, recwarn, revelation_service, security_test_data, soul_compatibility_service, soul_connection_data, test_db, test_match, test_profile, test_user, testrun_uid, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory, websocket_test_client, websocket_test_data, worker_id
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/alex/Desktop/Projects/DAPP/python-backend/tests/test_ab_testing.py:630
+_ ERROR at setup of TestExperimentSafety.test_experiment_performance_monitoring _
+file /Users/alex/Desktop/Projects/DAPP/python-backend/tests/test_ab_testing.py, line 645
+      @pytest.mark.unit
+      @pytest.mark.ab_testing
+      def test_experiment_performance_monitoring(self, ab_service):
+E       fixture 'ab_service' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_faker, _session_scoped_runner, ab_testing_service, ai_matching_service, analytics_service, anyio_backend, anyio_backend_name, anyio_backend_options, async_ai_service, async_client, async_client_with_db, async_db_session, async_performance_monitor, async_realtime_service, async_test_data_generator, auth_headers, authenticated_user, benchmark, benchmark_weave, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, client, complete_revelation_cycle, cov, db_session, doctest_namespace, event_loop, event_loop_policy, extra, extras, factories, faker, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, high_compatibility_users, include_metadata_in_junit_xml, json_metadata, low_compatibility_users, matching_users, message_service, metadata, mock_redis_async, monkeypatch, multi_stage_connections, no_cover, performance_config, performance_test_data, push_notification_service, pytestconfig, realtime_service, record_property, record_testsuite_property, record_xml_attribute, recwarn, revelation_service, security_test_data, soul_compatibility_service, soul_connection_data, test_db, test_match, test_profile, test_user, testrun_uid, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory, websocket_test_client, websocket_test_data, worker_id
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/alex/Desktop/Projects/DAPP/python-backend/tests/test_ab_testing.py:645
+___ ERROR at setup of TestExperimentReporting.test_experiment_summary_report ___
+file /Users/alex/Desktop/Projects/DAPP/python-backend/tests/test_ab_testing.py, line 676
+      @pytest.mark.unit
+      @pytest.mark.ab_testing
+      def test_experiment_summary_report(self, ab_service):
+E       fixture 'ab_service' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_faker, _session_scoped_runner, ab_testing_service, ai_matching_service, analytics_service, anyio_backend, anyio_backend_name, anyio_backend_options, async_ai_service, async_client, async_client_with_db, async_db_session, async_performance_monitor, async_realtime_service, async_test_data_generator, auth_headers, authenticated_user, benchmark, benchmark_weave, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, client, complete_revelation_cycle, cov, db_session, doctest_namespace, event_loop, event_loop_policy, extra, extras, factories, faker, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, high_compatibility_users, include_metadata_in_junit_xml, json_metadata, low_compatibility_users, matching_users, message_service, metadata, mock_redis_async, monkeypatch, multi_stage_connections, no_cover, performance_config, performance_test_data, push_notification_service, pytestconfig, realtime_service, record_property, record_testsuite_property, record_xml_attribute, recwarn, revelation_service, security_test_data, soul_compatibility_service, soul_connection_data, test_db, test_match, test_profile, test_user, testrun_uid, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory, websocket_test_client, websocket_test_data, worker_id
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/Users/alex/Desktop/Projects/DAPP/python-backend/tests/test_ab_testing.py:676
+=================================== FAILURES ===================================
+_________ TestExperimentMetricsTracking.test_conversion_event_tracking _________
+tests/test_ab_testing.py:278: in test_conversion_event_tracking
+    ab_service.create_variant(experiment.id, "control", {}, 0.5)
+                              ^^^^^^^^^^^^^
+E   AttributeError: 'coroutine' object has no attribute 'id'
+______ TestExperimentMetricsTracking.test_experiment_performance_analysis ______
+tests/test_ab_testing.py:314: in test_experiment_performance_analysis
+    control_variant = ab_service.create_variant(experiment.id, "control", {}, 0.5)
+                                                ^^^^^^^^^^^^^
+E   AttributeError: 'coroutine' object has no attribute 'id'
+_______ TestJWTTokenManagement.test_access_token_creation_and_validation _______
+tests/test_auth_enhanced.py:42: in test_access_token_creation_and_validation
+    assert "iat" in decoded  # Issued at time
+    ^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: assert 'iat' in {'sub': 'test@example.com', 'user_id': 1, 'exp': 1755500852}
+______________ TestJWTTokenManagement.test_refresh_token_creation ______________
+tests/test_auth_enhanced.py:50: in test_refresh_token_creation
+    refresh_token = create_refresh_token(user_data)
+                    ^^^^^^^^^^^^^^^^^^^^
+E   NameError: name 'create_refresh_token' is not defined
+- generated xml file: /Users/alex/Desktop/Projects/DAPP/python-backend/test_reports/junit-unit.xml -
+=========================== short test summary info ============================
+FAILED tests/test_ab_testing.py::TestExperimentMetricsTracking::test_conversion_event_tracking - AttributeError: 'coroutine' object has no attribute 'id'
+FAILED tests/test_ab_testing.py::TestExperimentMetricsTracking::test_experiment_performance_analysis - AttributeError: 'coroutine' object has no attribute 'id'
+FAILED tests/test_auth_enhanced.py::TestJWTTokenManagement::test_access_token_creation_and_validation - AssertionError: assert 'iat' in {'sub': 'test@example.com', 'user_id': 1, 'exp': 1755500852}
+FAILED tests/test_auth_enhanced.py::TestJWTTokenManagement::test_refresh_token_creation - NameError: name 'create_refresh_token' is not defined
+ERROR tests/test_ab_testing.py::TestExperimentFeatureIntegration::test_photo_reveal_timing_experiment
+ERROR tests/test_ab_testing.py::TestExperimentSafety::test_experiment_traffic_limits
+ERROR tests/test_ab_testing.py::TestExperimentSafety::test_experiment_variant_validation
+ERROR tests/test_ab_testing.py::TestExperimentSafety::test_experiment_date_validation
+ERROR tests/test_ab_testing.py::TestExperimentSafety::test_experiment_performance_monitoring
+ERROR tests/test_ab_testing.py::TestExperimentReporting::test_experiment_summary_report
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 10 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
+============ 4 failed, 7 passed, 1388 deselected, 6 errors in 9.22s ============

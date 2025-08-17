@@ -265,6 +265,26 @@ def get_potential_matches(
     return [match[0] for match in scored_matches[skip : skip + limit]]
 
 
+@router.get("/search")
+def search_users(
+    q: str = None,
+    limit: int = 10,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Search users by username or other criteria"""
+    if not q:
+        return []
+    
+    users = db.query(User).filter(
+        User.username.ilike(f"%{q}%"),
+        User.id != current_user.id,
+        User.is_active == True
+    ).limit(limit).all()
+    
+    return users
+
+
 @router.get("/{user_id}", response_model=UserSchema)
 def get_user(
     user_id: int,
@@ -461,25 +481,7 @@ def _get_compatibility_rating(percentage: int) -> str:
         return "Low Compatibility"
 
 
-# Additional endpoint stubs for coverage
-@router.get("/search")
-def search_users(
-    q: str = None,
-    limit: int = 10,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Search users by username or other criteria"""
-    if not q:
-        return []
-    
-    users = db.query(User).filter(
-        User.username.ilike(f"%{q}%"),
-        User.id != current_user.id,
-        User.is_active == True
-    ).limit(limit).all()
-    
-    return users
+# Search route moved above to avoid conflict with /{user_id}
 
 
 @router.get("/me/stats")

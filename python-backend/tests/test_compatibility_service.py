@@ -2,10 +2,17 @@
 Compatibility Service Tests - High-impact coverage for matching algorithms
 """
 import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock, MagicMock, patch
 from app.services.compatibility import (
     CompatibilityCalculator,
     get_compatibility_calculator
+)
+from app.services.soul_compatibility_service import (
+    calculate_interest_similarity,
+    calculate_values_compatibility,
+    calculate_age_compatibility,
+    calculate_demographic_compatibility,
+    SoulCompatibilityService
 )
 from app.models.user import User
 from app.models.profile import Profile
@@ -79,14 +86,14 @@ class TestDemographicCompatibility:
 
     def test_age_compatibility_perfect_match(self):
         """Test age compatibility for same age users"""
-        from app.services.compatibility import calculate_age_compatibility
+        from app.services.soul_compatibility_service import calculate_age_compatibility
         
         score = calculate_age_compatibility(25, 25)
         assert score == 1.0
 
     def test_age_compatibility_close_ages(self):
         """Test age compatibility for close ages"""
-        from app.services.compatibility import calculate_age_compatibility
+        from app.services.soul_compatibility_service import calculate_age_compatibility
         
         # Within 2 years
         score = calculate_age_compatibility(25, 27)
@@ -98,7 +105,7 @@ class TestDemographicCompatibility:
 
     def test_age_compatibility_large_difference(self):
         """Test age compatibility for large age differences"""
-        from app.services.compatibility import calculate_age_compatibility
+        from app.services.soul_compatibility_service import calculate_age_compatibility
         
         # 15 year difference
         score = calculate_age_compatibility(25, 40)
@@ -115,7 +122,7 @@ class TestDemographicCompatibility:
         user2.location = "San Francisco"
         
         # Mock the location compatibility function
-        with pytest.mock.patch('app.services.compatibility.calculate_location_compatibility') as mock_loc:
+        with patch('app.services.soul_compatibility_service.calculate_demographic_compatibility') as mock_loc:
             mock_loc.return_value = 1.0
             
             score = calculate_demographic_compatibility(user1, user2)
@@ -150,8 +157,8 @@ class TestCompatibilityCalculator:
         user2.emotional_profile.core_values = {"loyalty": "essential"}
         
         # Mock the individual calculation functions
-        with pytest.mock.patch.multiple(
-            'app.services.compatibility',
+        with patch.multiple(
+            'app.services.soul_compatibility_service',
             calculate_interest_similarity=Mock(return_value=0.5),
             calculate_values_compatibility=Mock(return_value=0.7),
             calculate_demographic_compatibility=Mock(return_value=0.6)
@@ -194,7 +201,7 @@ class TestValuesCompatibility:
 
     def test_calculate_values_compatibility_basic(self):
         """Test basic values compatibility calculation"""
-        from app.services.compatibility import calculate_values_compatibility
+        from app.services.soul_compatibility_service import calculate_values_compatibility
         
         user1_values = {
             "relationship_values": "I value commitment and honesty",
@@ -212,7 +219,7 @@ class TestValuesCompatibility:
 
     def test_values_compatibility_empty_responses(self):
         """Test values compatibility with empty responses"""
-        from app.services.compatibility import calculate_values_compatibility
+        from app.services.soul_compatibility_service import calculate_values_compatibility
         
         score = calculate_values_compatibility({}, {})
         assert score == 0.0
@@ -224,7 +231,7 @@ class TestValuesCompatibility:
 
     def test_values_compatibility_keyword_matching(self):
         """Test that keyword matching works in values compatibility"""
-        from app.services.compatibility import calculate_values_compatibility
+        from app.services.soul_compatibility_service import calculate_values_compatibility
         
         # Values with clear keyword overlaps
         user1_values = {
@@ -268,7 +275,7 @@ class TestCompatibilityIntegration:
         user2.location = "San Francisco, CA"
         
         # Test with mocked demographic function
-        with pytest.mock.patch('app.services.compatibility.calculate_demographic_compatibility') as mock_demo:
+        with patch('app.services.soul_compatibility_service.calculate_demographic_compatibility') as mock_demo:
             mock_demo.return_value = 0.8
             
             result = calc.calculate_overall_compatibility(user1, user2)
@@ -296,7 +303,7 @@ class TestCompatibilityIntegration:
         user2.emotional_profile.interests = None
         user2.emotional_profile.core_values = None
         
-        with pytest.mock.patch('app.services.compatibility.calculate_demographic_compatibility') as mock_demo:
+        with patch('app.services.soul_compatibility_service.calculate_demographic_compatibility') as mock_demo:
             mock_demo.return_value = 0.0
             
             result = calc.calculate_overall_compatibility(user1, user2)

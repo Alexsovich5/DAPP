@@ -1,0 +1,170 @@
+version: '3.8'
+
+# Docker Compose configuration for testing environment
+# Provides isolated services for comprehensive testing
+
+services:
+  # Main test database
+  test-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: testdb
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5433:5432"
+    volumes:
+      - test_db_data:/var/lib/postgresql/data
+      - ./scripts/init-test-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d testdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+  # Redis for caching and session tests
+  test-redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - test_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - test-network
+
+  # Test runner service
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      - TESTING=1
+      - CI=1
+      - DATABASE_URL=postgresql://testuser:testpass@test-db:5432/testdb
+      - TEST_DATABASE_URL=postgresql://testuser:testpass@test-db:5432/testdb
+      - REDIS_URL=redis://test-redis:6379
+      - ALLOW_DB_DROP=1
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+      - test_reports:/app/test_reports
+      - test_coverage:/app/htmlcov
+    depends_on:
+      test-db:
+        condition: service_healthy
+      test-redis:
+        condition: service_healthy
+    working_dir: /app
+    command: ["./scripts/run-tests.sh", "all"]
+    networks:
+      - test-network
+
+  # Separate service for unit tests (faster, no external deps)
+  unit-test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      - TESTING=1
+      - CI=1
+      - TEST_DATABASE_URL=sqlite:///./test_unit.db
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+      - test_reports:/app/test_reports
+    working_dir: /app
+    command: ["./scripts/run-tests.sh", "unit"]
+    networks:
+      - test-network
+
+  # Async test runner with specialized configuration
+  async-test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      - TESTING=1
+      - CI=1
+      - TEST_DATABASE_URL=sqlite+aiosqlite:///./test_async.db
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+      - test_reports:/app/test_reports
+    working_dir: /app
+    command: ["./scripts/run-tests.sh", "async"]
+    networks:
+      - test-network
+
+  # Performance test runner
+  performance-test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      - TESTING=1
+      - CI=1
+      - TEST_DATABASE_URL=sqlite:///./test_performance.db
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+      - test_reports:/app/test_reports
+    working_dir: /app
+    command: ["./scripts/run-tests.sh", "performance"]
+    networks:
+      - test-network
+
+  # Security scanner
+  security-scanner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      - TESTING=1
+      - CI=1
+    volumes:
+      - .:/app
+      - test_reports:/app/test_reports
+    working_dir: /app
+    command: ["./scripts/run-tests.sh", "security"]
+    networks:
+      - test-network
+
+  # Test report server (for viewing results)
+  test-reports:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - test_reports:/usr/share/nginx/html/reports:ro
+      - test_coverage:/usr/share/nginx/html/coverage:ro
+      - ./scripts/nginx-test-reports.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - test-runner
+    networks:
+      - test-network
+
+volumes:
+  test_db_data:
+    driver: local
+  test_redis_data:
+    driver: local
+  test_reports:
+    driver: local
+  test_coverage:
+    driver: local
+
+networks:
+  test-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -15,6 +15,13 @@ class RevelationType(str, enum.Enum):
     PHOTO_REVEAL = "photo_reveal"
 
 
+class RevelationStatus(str, enum.Enum):
+    DRAFT = "draft"
+    SHARED = "shared"
+    PRIVATE = "private"
+    ARCHIVED = "archived"
+
+
 class DailyRevelation(Base):
     __tablename__ = "daily_revelations"
 

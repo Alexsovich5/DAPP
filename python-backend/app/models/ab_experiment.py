@@ -74,3 +74,26 @@ class ExperimentVariant(Base):
     
     # Relationships
     experiment = relationship("ABExperiment", back_populates="variants")
+
+
+class UserExperiment(Base):
+    """User participation in AB experiments"""
+    __tablename__ = "user_experiments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    experiment_id = Column(Integer, ForeignKey("ab_experiments.id"), nullable=False)
+    variant_id = Column(Integer, ForeignKey("experiment_variants.id"), nullable=False)
+    
+    # Participation tracking
+    assigned_at = Column(DateTime, default=datetime.utcnow)
+    first_exposure_at = Column(DateTime)
+    conversion_at = Column(DateTime)
+    has_converted = Column(Boolean, default=False)
+    
+    # Metadata
+    user_agent = Column(String(500))
+    session_id = Column(String(100))
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

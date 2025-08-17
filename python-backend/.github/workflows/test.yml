@@ -1,0 +1,515 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, development, feature/* ]
+  pull_request:
+    branches: [ main, development ]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+  TESTING: '1'
+
+jobs:
+  # Security and code quality checks
+  security-checks:
+    runs-on: ubuntu-latest
+    name: Security & Code Quality
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-security-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-security-
+            ${{ runner.os }}-pip-
+      
+      - name: Install security tools
+        run: |
+          pip install safety bandit semgrep
+          pip install -r requirements.txt
+      
+      - name: Run safety check for vulnerabilities
+        run: safety check --json --output safety-report.json || true
+      
+      - name: Run bandit security linter
+        run: bandit -r app/ -f json -o bandit-report.json || true
+      
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            safety-report.json
+            bandit-report.json
+          retention-days: 30
+
+  # Lint and code style checks
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint & Code Style
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-lint-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-lint-
+            ${{ runner.os }}-pip-
+      
+      - name: Install lint dependencies
+        run: |
+          pip install black isort flake8 mypy
+          pip install -r requirements.txt
+      
+      - name: Check code formatting with black
+        run: black --check --diff app/ tests/
+      
+      - name: Check import sorting with isort
+        run: isort --check-only --diff app/ tests/
+      
+      - name: Run flake8 linter
+        run: flake8 app/ tests/ --max-line-length=100 --extend-ignore=E203,W503
+      
+      - name: Run mypy type checker
+        run: mypy app/ --ignore-missing-imports || true
+
+  # Unit tests with multiple Python versions
+  unit-tests:
+    runs-on: ubuntu-latest
+    name: Unit Tests (Python ${{ matrix.python-version }})
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Create test database
+        run: |
+          # Create test database directory
+          mkdir -p test_data
+          export TEST_DATABASE_URL="sqlite:///./test_data/test.db"
+      
+      - name: Run unit tests
+        env:
+          TEST_DATABASE_URL: "sqlite:///./test_data/test.db"
+          TESTING: "1"
+        run: |
+          pytest tests/ -m "unit" \
+            --cov=app \
+            --cov-report=xml:coverage-unit-${{ matrix.python-version }}.xml \
+            --cov-report=html:htmlcov-unit-${{ matrix.python-version }} \
+            --junit-xml=junit-unit-${{ matrix.python-version }}.xml \
+            -v --tb=short
+      
+      - name: Upload unit test coverage
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: unit-coverage-${{ matrix.python-version }}
+          path: |
+            coverage-unit-${{ matrix.python-version }}.xml
+            htmlcov-unit-${{ matrix.python-version }}/
+            junit-unit-${{ matrix.python-version }}.xml
+          retention-days: 30
+
+  # Integration tests with database
+  integration-tests:
+    runs-on: ubuntu-latest
+    name: Integration Tests
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_USER: testuser
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-integration-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-integration-
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U testuser; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+      
+      - name: Run database migrations
+        env:
+          DATABASE_URL: "postgresql://testuser:testpass@localhost:5432/testdb"
+          TEST_DATABASE_URL: "postgresql://testuser:testpass@localhost:5432/testdb"
+          TESTING: "1"
+        run: |
+          alembic upgrade head
+      
+      - name: Run integration tests
+        env:
+          DATABASE_URL: "postgresql://testuser:testpass@localhost:5432/testdb"
+          TEST_DATABASE_URL: "postgresql://testuser:testpass@localhost:5432/testdb"
+          REDIS_URL: "redis://localhost:6379"
+          TESTING: "1"
+          ALLOW_DB_DROP: "1"
+        run: |
+          pytest tests/ -m "integration" \
+            --cov=app \
+            --cov-report=xml:coverage-integration.xml \
+            --cov-report=html:htmlcov-integration \
+            --junit-xml=junit-integration.xml \
+            -v --tb=short --maxfail=10
+      
+      - name: Upload integration test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: integration-test-results
+          path: |
+            coverage-integration.xml
+            htmlcov-integration/
+            junit-integration.xml
+          retention-days: 30
+
+  # Async and WebSocket tests
+  async-tests:
+    runs-on: ubuntu-latest
+    name: Async & WebSocket Tests
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-async-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-async-
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run async infrastructure tests
+        env:
+          TEST_DATABASE_URL: "sqlite+aiosqlite:///./test_async.db"
+          TESTING: "1"
+        run: |
+          pytest tests/test_async_infrastructure.py \
+            --cov=app \
+            --cov-report=xml:coverage-async.xml \
+            --cov-report=html:htmlcov-async \
+            --junit-xml=junit-async.xml \
+            -v --tb=short
+      
+      - name: Run WebSocket tests
+        env:
+          TEST_DATABASE_URL: "sqlite:///./test_websocket.db"
+          TESTING: "1"
+        run: |
+          pytest tests/ -m "websocket" \
+            --cov=app \
+            --cov-append \
+            --cov-report=xml:coverage-websocket.xml \
+            --cov-report=html:htmlcov-websocket \
+            --junit-xml=junit-websocket.xml \
+            -v --tb=short || true
+      
+      - name: Upload async test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: async-test-results
+          path: |
+            coverage-async.xml
+            coverage-websocket.xml
+            htmlcov-async/
+            htmlcov-websocket/
+            junit-async.xml
+            junit-websocket.xml
+          retention-days: 30
+
+  # Performance and load tests
+  performance-tests:
+    runs-on: ubuntu-latest
+    name: Performance Tests
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development')
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-perf-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-perf-
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run performance tests
+        env:
+          TEST_DATABASE_URL: "sqlite:///./test_performance.db"
+          TESTING: "1"
+        run: |
+          pytest tests/ -m "performance" \
+            --benchmark-only \
+            --benchmark-json=benchmark-results.json \
+            --junit-xml=junit-performance.xml \
+            -v --tb=short || true
+      
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-results
+          path: |
+            benchmark-results.json
+            junit-performance.xml
+          retention-days: 30
+
+  # End-to-end API tests
+  e2e-tests:
+    runs-on: ubuntu-latest
+    name: End-to-End API Tests
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_USER: testuser
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-e2e-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-e2e-
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Start FastAPI server
+        env:
+          DATABASE_URL: "postgresql://testuser:testpass@localhost:5432/testdb"
+          TESTING: "1"
+        run: |
+          alembic upgrade head
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          sleep 10
+      
+      - name: Run E2E API tests
+        env:
+          API_BASE_URL: "http://localhost:8000"
+          DATABASE_URL: "postgresql://testuser:testpass@localhost:5432/testdb"
+          TESTING: "1"
+        run: |
+          pytest tests/test_api_integration.py \
+            --junit-xml=junit-e2e.xml \
+            -v --tb=short || true
+      
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: e2e-test-results
+          path: junit-e2e.xml
+          retention-days: 30
+
+  # Comprehensive test report
+  test-report:
+    runs-on: ubuntu-latest
+    name: Test Report
+    needs: [security-checks, lint, unit-tests, integration-tests, async-tests, performance-tests, e2e-tests]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download all test artifacts
+        uses: actions/download-artifact@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install report dependencies
+        run: |
+          pip install coverage pytest-html junitparser
+      
+      - name: Combine coverage reports
+        run: |
+          # Combine all coverage.xml files
+          find . -name "coverage-*.xml" -exec cp {} . \;
+          coverage combine --keep || true
+          coverage xml -o combined-coverage.xml || true
+          coverage html -d combined-htmlcov || true
+      
+      - name: Generate test report
+        run: |
+          # Create a comprehensive test report
+          echo "# Test Suite Results" > test-report.md
+          echo "" >> test-report.md
+          echo "## Test Status" >> test-report.md
+          echo "- Security Checks: ${{ needs.security-checks.result }}" >> test-report.md
+          echo "- Lint & Code Style: ${{ needs.lint.result }}" >> test-report.md
+          echo "- Unit Tests: ${{ needs.unit-tests.result }}" >> test-report.md
+          echo "- Integration Tests: ${{ needs.integration-tests.result }}" >> test-report.md
+          echo "- Async Tests: ${{ needs.async-tests.result }}" >> test-report.md
+          echo "- Performance Tests: ${{ needs.performance-tests.result }}" >> test-report.md
+          echo "- E2E Tests: ${{ needs.e2e-tests.result }}" >> test-report.md
+          echo "" >> test-report.md
+          echo "## Coverage Summary" >> test-report.md
+          coverage report --format=markdown >> test-report.md || echo "Coverage data not available" >> test-report.md
+      
+      - name: Upload comprehensive test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: comprehensive-test-report
+          path: |
+            test-report.md
+            combined-coverage.xml
+            combined-htmlcov/
+          retention-days: 30
+      
+      - name: Comment PR with test results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'test-report.md';
+            if (fs.existsSync(reportPath)) {
+              const report = fs.readFileSync(reportPath, 'utf8');
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: report
+              });
+            }
+
+  # Notify on failure
+  notify-failure:
+    runs-on: ubuntu-latest
+    name: Notify on Failure
+    needs: [security-checks, lint, unit-tests, integration-tests, async-tests]
+    if: failure() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development')
+    steps:
+      - name: Notify failure
+        run: |
+          echo "Test suite failed on ${{ github.ref }}"
+          echo "Check the failed jobs for details"
+          # Here you could add Slack, email, or other notifications

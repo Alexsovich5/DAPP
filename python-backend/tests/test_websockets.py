@@ -354,7 +354,7 @@ class TestPresenceStatus:
     
     @pytest.mark.asyncio
     @pytest.mark.unit
-    def test_user_online_status_tracking(self, connection_manager):
+    async def test_user_online_status_tracking(self, connection_manager, db_session):
         """Test tracking user online/offline status"""
         user_id = 1
         mock_websocket = AsyncMock()
@@ -363,11 +363,11 @@ class TestPresenceStatus:
         assert connection_manager.is_user_online(user_id) == False
         
         # Connect user
-        connection_manager.connect(mock_websocket, user_id)
+        await connection_manager.connect(mock_websocket, user_id, db_session)
         assert connection_manager.is_user_online(user_id) == True
         
         # Disconnect user
-        connection_manager.disconnect(user_id)
+        await connection_manager.disconnect(user_id, db_session)
         assert connection_manager.is_user_online(user_id) == False
 
     @pytest.mark.asyncio
@@ -389,14 +389,14 @@ class TestPresenceStatus:
 
     @pytest.mark.asyncio
     @pytest.mark.unit
-    def test_last_seen_timestamp_tracking(self, connection_manager):
+    async def test_last_seen_timestamp_tracking(self, connection_manager, db_session):
         """Test tracking when user was last seen online"""
         user_id = 1
         mock_websocket = AsyncMock()
         
         # Connect and disconnect user
-        connection_manager.connect(mock_websocket, user_id)
-        connection_manager.disconnect(user_id)
+        await connection_manager.connect(mock_websocket, user_id, db_session)
+        await connection_manager.disconnect(user_id, db_session)
         
         last_seen = connection_manager.get_last_seen(user_id)
         assert last_seen is not None
@@ -644,7 +644,7 @@ class TestWebSocketPerformance:
     
     @pytest.mark.asyncio
     @pytest.mark.performance
-    def test_concurrent_websocket_connections(self, connection_manager, performance_config):
+    async def test_concurrent_websocket_connections(self, connection_manager, performance_config, db_session):
         """Test handling multiple concurrent WebSocket connections"""
         concurrent_connections = []
         max_connections = performance_config.get("concurrent_users", 50)
@@ -654,7 +654,7 @@ class TestWebSocketPerformance:
             mock_websocket = AsyncMock()
             user_id = i + 1
             
-            connection_manager.connect(mock_websocket, user_id)
+            await connection_manager.connect(mock_websocket, user_id, db_session)
             concurrent_connections.append((mock_websocket, user_id))
         
         # All connections should be active
@@ -704,7 +704,7 @@ class TestWebSocketPerformance:
 
     @pytest.mark.asyncio
     @pytest.mark.performance
-    def test_websocket_memory_usage(self, connection_manager):
+    async def test_websocket_memory_usage(self, connection_manager, db_session):
         """Test WebSocket memory usage with many connections"""
         import sys
         
@@ -713,7 +713,7 @@ class TestWebSocketPerformance:
         # Create initial connections
         for i in range(initial_connections):
             mock_websocket = AsyncMock()
-            connection_manager.connect(mock_websocket, i + 1)
+            await connection_manager.connect(mock_websocket, i + 1, db_session)
         
         # Memory usage should be reasonable
         connection_count = len(connection_manager.active_connections)
@@ -721,7 +721,7 @@ class TestWebSocketPerformance:
         
         # Clean up connections
         for i in range(initial_connections):
-            connection_manager.disconnect(i + 1)
+            await connection_manager.disconnect(i + 1, db_session)
         
         # Memory should be freed
         assert len(connection_manager.active_connections) == 0

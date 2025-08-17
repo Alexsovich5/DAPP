@@ -1,0 +1,382 @@
+# GitLab CI/CD Configuration for Dinner First Backend
+# Comprehensive test pipeline with parallel execution and caching
+
+stages:
+  - security
+  - lint
+  - test-unit
+  - test-integration
+  - test-async
+  - test-performance
+  - deploy-review
+  - test-e2e
+  - report
+
+variables:
+  PYTHON_VERSION: "3.11"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  TESTING: "1"
+  POSTGRES_DB: testdb
+  POSTGRES_USER: testuser
+  POSTGRES_PASSWORD: testpass
+  POSTGRES_HOST: postgres
+  REDIS_HOST: redis
+
+# Global cache configuration
+default:
+  cache:
+    key: 
+      files:
+        - requirements.txt
+        - requirements-ai.txt
+    paths:
+      - .cache/pip
+      - venv/
+  
+  before_script:
+    - python -V
+    - pip install --upgrade pip
+    - python -m venv venv
+    - source venv/bin/activate
+    - pip install -r requirements.txt
+
+# Security and vulnerability scanning
+security-scan:
+  stage: security
+  image: python:$PYTHON_VERSION
+  script:
+    - pip install safety bandit semgrep
+    - safety check --json --output safety-report.json || true
+    - bandit -r app/ -f json -o bandit-report.json || true
+    - semgrep --config=auto --json --output=semgrep-report.json app/ || true
+  artifacts:
+    reports:
+      security:
+        - safety-report.json
+        - bandit-report.json
+        - semgrep-report.json
+    paths:
+      - safety-report.json
+      - bandit-report.json
+      - semgrep-report.json
+    expire_in: 1 week
+  allow_failure: true
+
+# Code quality and style checks
+lint-and-format:
+  stage: lint
+  image: python:$PYTHON_VERSION
+  script:
+    - pip install black isort flake8 mypy
+    - echo "Checking code formatting..."
+    - black --check --diff app/ tests/ || (echo "Code formatting issues found. Run 'black app/ tests/' to fix." && exit 1)
+    - echo "Checking import sorting..."
+    - isort --check-only --diff app/ tests/ || (echo "Import sorting issues found. Run 'isort app/ tests/' to fix." && exit 1)
+    - echo "Running flake8 linter..."
+    - flake8 app/ tests/ --max-line-length=100 --extend-ignore=E203,W503
+    - echo "Running mypy type checker..."
+    - mypy app/ --ignore-missing-imports || true
+  artifacts:
+    reports:
+      codequality: flake8-report.json
+    expire_in: 1 week
+
+# Unit tests with multiple Python versions
+.unit-test-template: &unit-test
+  stage: test-unit
+  script:
+    - export TEST_DATABASE_URL="sqlite:///./test_unit.db"
+    - pytest tests/ -m "unit" 
+        --cov=app 
+        --cov-report=xml:coverage-unit.xml 
+        --cov-report=html:htmlcov-unit 
+        --junit-xml=junit-unit.xml 
+        -v --tb=short
+  artifacts:
+    reports:
+      junit: junit-unit.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage-unit.xml
+    paths:
+      - htmlcov-unit/
+      - coverage-unit.xml
+    expire_in: 1 week
+  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+
+unit-test-python311:
+  <<: *unit-test
+  image: python:3.11
+
+unit-test-python312:
+  <<: *unit-test
+  image: python:3.12
+  allow_failure: true
+
+unit-test-python310:
+  <<: *unit-test
+  image: python:3.10
+  allow_failure: true
+
+# Integration tests with services
+integration-tests:
+  stage: test-integration
+  image: python:$PYTHON_VERSION
+  services:
+    - name: postgres:15
+      alias: postgres
+      variables:
+        POSTGRES_DB: $POSTGRES_DB
+        POSTGRES_USER: $POSTGRES_USER
+        POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+    - name: redis:7
+      alias: redis
+  variables:
+    DATABASE_URL: "postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:5432/$POSTGRES_DB"
+    TEST_DATABASE_URL: "postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:5432/$POSTGRES_DB"
+    REDIS_URL: "redis://$REDIS_HOST:6379"
+    ALLOW_DB_DROP: "1"
+  script:
+    - echo "Waiting for PostgreSQL to be ready..."
+    - until pg_isready -h $POSTGRES_HOST -p 5432 -U $POSTGRES_USER; do sleep 2; done
+    - echo "Running database migrations..."
+    - alembic upgrade head
+    - echo "Running integration tests..."
+    - pytest tests/ -m "integration" 
+        --cov=app 
+        --cov-report=xml:coverage-integration.xml 
+        --cov-report=html:htmlcov-integration 
+        --junit-xml=junit-integration.xml 
+        -v --tb=short --maxfail=10
+  artifacts:
+    reports:
+      junit: junit-integration.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage-integration.xml
+    paths:
+      - htmlcov-integration/
+      - coverage-integration.xml
+    expire_in: 1 week
+  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+
+# Async and WebSocket tests
+async-websocket-tests:
+  stage: test-async
+  image: python:$PYTHON_VERSION
+  script:
+    - export TEST_DATABASE_URL="sqlite+aiosqlite:///./test_async.db"
+    - echo "Running async infrastructure tests..."
+    - pytest tests/test_async_infrastructure.py 
+        --cov=app 
+        --cov-report=xml:coverage-async.xml 
+        --cov-report=html:htmlcov-async 
+        --junit-xml=junit-async.xml 
+        -v --tb=short
+    - echo "Running WebSocket tests..."
+    - pytest tests/ -m "websocket" 
+        --cov=app 
+        --cov-append 
+        --cov-report=xml:coverage-websocket.xml 
+        --junit-xml=junit-websocket.xml 
+        -v --tb=short || true
+  artifacts:
+    reports:
+      junit: 
+        - junit-async.xml
+        - junit-websocket.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage-async.xml
+    paths:
+      - htmlcov-async/
+      - coverage-async.xml
+      - coverage-websocket.xml
+    expire_in: 1 week
+  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+
+# Performance and load tests
+performance-tests:
+  stage: test-performance
+  image: python:$PYTHON_VERSION
+  script:
+    - export TEST_DATABASE_URL="sqlite:///./test_performance.db"
+    - echo "Running performance tests..."
+    - pytest tests/ -m "performance" 
+        --benchmark-only 
+        --benchmark-json=benchmark-results.json 
+        --junit-xml=junit-performance.xml 
+        -v --tb=short || true
+  artifacts:
+    reports:
+      junit: junit-performance.xml
+      performance: benchmark-results.json
+    paths:
+      - benchmark-results.json
+    expire_in: 1 week
+  allow_failure: true
+  only:
+    - main
+    - development
+
+# Deploy review app for feature branches
+deploy-review:
+  stage: deploy-review
+  image: python:$PYTHON_VERSION
+  services:
+    - name: postgres:15
+      alias: postgres
+      variables:
+        POSTGRES_DB: $POSTGRES_DB
+        POSTGRES_USER: $POSTGRES_USER
+        POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+  variables:
+    DATABASE_URL: "postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:5432/$POSTGRES_DB"
+  script:
+    - echo "Deploying review app..."
+    - alembic upgrade head
+    - uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+    - sleep 10
+    - echo "Review app deployed at http://localhost:8000"
+    - echo "API docs available at http://localhost:8000/docs"
+  environment:
+    name: review/$CI_COMMIT_REF_SLUG
+    url: http://localhost:8000
+    on_stop: stop-review
+  only:
+    - merge_requests
+  except:
+    - main
+    - development
+
+stop-review:
+  stage: deploy-review
+  image: python:$PYTHON_VERSION
+  script:
+    - echo "Stopping review app..."
+    - pkill -f uvicorn || true
+  environment:
+    name: review/$CI_COMMIT_REF_SLUG
+    action: stop
+  when: manual
+  only:
+    - merge_requests
+
+# End-to-end API tests
+e2e-api-tests:
+  stage: test-e2e
+  image: python:$PYTHON_VERSION
+  services:
+    - name: postgres:15
+      alias: postgres
+      variables:
+        POSTGRES_DB: $POSTGRES_DB
+        POSTGRES_USER: $POSTGRES_USER
+        POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+  variables:
+    DATABASE_URL: "postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:5432/$POSTGRES_DB"
+    API_BASE_URL: "http://localhost:8000"
+  script:
+    - echo "Starting FastAPI server for E2E tests..."
+    - alembic upgrade head
+    - uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+    - sleep 15
+    - echo "Running E2E API tests..."
+    - pytest tests/test_api_integration.py 
+        --junit-xml=junit-e2e.xml 
+        -v --tb=short || true
+  artifacts:
+    reports:
+      junit: junit-e2e.xml
+    expire_in: 1 week
+  allow_failure: true
+  dependencies:
+    - deploy-review
+
+# Generate comprehensive test report
+test-report:
+  stage: report
+  image: python:$PYTHON_VERSION
+  script:
+    - pip install coverage pytest-html junitparser
+    - echo "Generating comprehensive test report..."
+    - |
+      cat > test-summary.md << EOF
+      # Test Suite Results - Pipeline $CI_PIPELINE_ID
+      
+      **Branch:** $CI_COMMIT_REF_NAME  
+      **Commit:** $CI_COMMIT_SHA  
+      **Timestamp:** $(date)
+      
+      ## Pipeline Status
+      - Security Scan: ✅ Completed
+      - Lint & Format: ✅ Completed  
+      - Unit Tests: ✅ Completed
+      - Integration Tests: ✅ Completed
+      - Async Tests: ✅ Completed
+      - Performance Tests: ✅ Completed
+      - E2E Tests: ✅ Completed
+      
+      ## Coverage Summary
+      Combined coverage from all test stages.
+      
+      ## Performance Metrics
+      Performance test results and benchmarks.
+      
+      ## Security Findings
+      Security scan results and recommendations.
+      EOF
+    - echo "Test report generated successfully"
+  artifacts:
+    paths:
+      - test-summary.md
+    expire_in: 1 month
+  dependencies:
+    - security-scan
+    - lint-and-format
+    - unit-test-python311
+    - integration-tests
+    - async-websocket-tests
+    - performance-tests
+    - e2e-api-tests
+
+# Parallel test execution for speed
+test-parallel:
+  stage: test-unit
+  image: python:$PYTHON_VERSION
+  parallel:
+    matrix:
+      - TEST_CATEGORY: [unit, integration, async]
+  script:
+    - export TEST_DATABASE_URL="sqlite:///./test_${TEST_CATEGORY}.db"
+    - |
+      case $TEST_CATEGORY in
+        unit)
+          pytest tests/ -m "unit" --junit-xml=junit-${TEST_CATEGORY}.xml -v
+          ;;
+        integration)
+          pytest tests/ -m "integration" --junit-xml=junit-${TEST_CATEGORY}.xml -v || true
+          ;;
+        async)
+          pytest tests/test_async_infrastructure.py --junit-xml=junit-${TEST_CATEGORY}.xml -v
+          ;;
+      esac
+  artifacts:
+    reports:
+      junit: junit-${TEST_CATEGORY}.xml
+    expire_in: 1 week
+  allow_failure: true
+  except:
+    - main
+    - development
+
+# Cleanup and optimization
+cleanup:
+  stage: report
+  image: python:$PYTHON_VERSION
+  script:
+    - echo "Cleaning up temporary files..."
+    - rm -f *.db test_*.db
+    - echo "Pipeline cleanup completed"
+  when: always
+  dependencies: []

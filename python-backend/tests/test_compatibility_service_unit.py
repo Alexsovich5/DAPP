@@ -264,16 +264,16 @@ class TestCompatibilityCalculator:
         result = calculator.calculate_overall_compatibility(user1, user2)
         
         assert result["total_compatibility"] < 70  # Should be a lower match
-        assert result["match_quality"] in ["poor", "fair", "good"]
+        assert result["match_quality"] in ["Low Compatibility", "Fair Match", "Good Match"]
     
     def test_get_match_quality_labels(self, calculator):
         """Test match quality label assignment"""
-        assert calculator.get_match_quality_label(0.9) == "excellent"
-        assert calculator.get_match_quality_label(0.8) == "very_good"
-        assert calculator.get_match_quality_label(0.7) == "very_good"
-        assert calculator.get_match_quality_label(0.6) == "good"
-        assert calculator.get_match_quality_label(0.5) == "fair"
-        assert calculator.get_match_quality_label(0.3) == "poor"
+        assert calculator.get_match_quality_label(0.9) == "Excellent Match"
+        assert calculator.get_match_quality_label(0.8) == "Great Match"
+        assert calculator.get_match_quality_label(0.7) == "Good Match"
+        assert calculator.get_match_quality_label(0.6) == "Fair Match"
+        assert calculator.get_match_quality_label(0.5) == "Fair Match"
+        assert calculator.get_match_quality_label(0.3) == "Low Compatibility"
     
     @pytest.mark.performance
     def test_performance_large_datasets(self, calculator):

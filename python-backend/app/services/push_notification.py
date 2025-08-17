@@ -37,6 +37,16 @@ class NotificationPriority(Enum):
     NORMAL = "normal"
     LOW = "low"
 
+class NotificationChannel(Enum):
+    FCM = "fcm"
+    APNS = "apns"
+    WEB_PUSH = "web_push"
+
+class DeviceType(Enum):
+    IOS = "ios"
+    ANDROID = "android"
+    WEB = "web"
+
 @dataclass
 class NotificationPayload:
     title: str
@@ -51,6 +61,14 @@ class NotificationPayload:
     silent: bool = False
     vibrate: List[int] = None
     timestamp: int = None
+
+@dataclass
+class NotificationResult:
+    success: bool
+    message: str = ""
+    sent_count: int = 0
+    failed_count: int = 0
+    errors: List[str] = None
 
 class PushSubscription(Base):
     __tablename__ = "push_subscriptions"

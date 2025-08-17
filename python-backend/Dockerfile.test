@@ -1,0 +1,49 @@
+# Test-specific Dockerfile
+# Optimized for running tests in CI/CD environments
+
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    TESTING=1 \
+    CI=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    postgresql-client \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app directory
+WORKDIR /app
+
+# Copy requirements first for better caching
+COPY requirements.txt requirements-ai.txt* ./
+
+# Install Python dependencies
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt && \
+    if [ -f requirements-ai.txt ]; then pip install -r requirements-ai.txt; fi && \
+    # Install additional test dependencies
+    pip install pytest-xdist pytest-html pytest-json-report safety bandit
+
+# Copy application code
+COPY . .
+
+# Make scripts executable
+RUN chmod +x scripts/*.sh
+
+# Create necessary directories
+RUN mkdir -p test_reports test_data logs
+
+# Health check for test environment
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import app.main; print('App importable')" || exit 1
+
+# Default command
+CMD ["./scripts/run-tests.sh", "all"]

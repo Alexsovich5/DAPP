@@ -18,6 +18,21 @@ from app.models.realtime_state import (
     UserPresenceStatus, ConnectionEnergyLevel
 )
 
+# Photo reveal models
+from app.models.photo_reveal import (
+    UserPhoto, PhotoRevealTimeline, PhotoRevealRequest, PhotoRevealPermission,
+    PhotoRevealEvent, PhotoModerationLog, PhotoRevealStage, PhotoConsentType,
+    PhotoPrivacyLevel, RevealStatus, PhotoReveal
+)
+
+# AI and personalization models
+from app.models.ai_models import UserProfile
+from app.models.personalization_models import UserPersonalizationProfile
+from app.models.ui_personalization_models import UserUIProfile
+
+# AB Testing models
+from app.models.ab_experiment import ABExperiment, ExperimentVariant, UserExperiment
+
 # Make all models available when importing from app.models
 __all__ = [
     # Core models
@@ -34,5 +49,16 @@ __all__ = [
     # Real-time models
     "UserPresence", "ConnectionRealTimeState", "LiveTypingSession", 
     "RealtimeNotification", "WebSocketConnection", "AnimationEvent",
-    "UserPresenceStatus"
+    "UserPresenceStatus",
+    
+    # Photo reveal models
+    "UserPhoto", "PhotoRevealTimeline", "PhotoRevealRequest", "PhotoRevealPermission",
+    "PhotoRevealEvent", "PhotoModerationLog", "PhotoRevealStage", "PhotoConsentType",
+    "PhotoPrivacyLevel", "RevealStatus", "PhotoReveal",
+    
+    # AI and personalization models
+    "UserProfile", "UserPersonalizationProfile", "UserUIProfile",
+    
+    # AB Testing models
+    "ABExperiment", "ExperimentVariant", "UserExperiment"
 ]

@@ -276,16 +276,18 @@ class CompatibilityCalculator:
 
     def get_match_quality_label(self, score: float) -> str:
         """Convert compatibility score to descriptive label."""
-        if score >= 0.85:
-            return "excellent"
-        elif score >= 0.70:
-            return "very_good"
-        elif score >= 0.55:
-            return "good"
-        elif score >= 0.40:
-            return "fair"
+        if score >= 0.95:
+            return "Soulmate Match"
+        elif score >= 0.85:
+            return "Excellent Match"
+        elif score >= 0.75:
+            return "Great Match"
+        elif score >= 0.65:
+            return "Good Match"
+        elif score >= 0.50:
+            return "Fair Match"
         else:
-            return "poor"
+            return "Low Compatibility"
 
     def _generate_compatibility_explanation(self, total: float, interests: float, values: float, demographics: float) -> str:
         """Generate human-readable explanation of compatibility."""

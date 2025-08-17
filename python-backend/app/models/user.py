@@ -101,3 +101,7 @@ class User(Base):
     # Phase 6: Personalization relationships
     personalization_profile = relationship("UserPersonalizationProfile", back_populates="user", uselist=False)
     ui_profile = relationship("UserUIProfile", back_populates="user", uselist=False)
+    
+    def __str__(self):
+        """String representation of the User"""
+        return f"User(id={self.id}, username={self.username}, email={self.email})"

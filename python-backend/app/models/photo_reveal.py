@@ -38,6 +38,15 @@ class PhotoPrivacyLevel(Enum):
     FULLY_REVEALED = "fully_revealed"        # Complete clear photo
 
 
+class RevealStatus(Enum):
+    """Photo reveal status for testing compatibility"""
+    HIDDEN = "hidden"
+    CONSENT_REQUESTED = "consent_requested"
+    CONSENTED = "consented"
+    DECLINED = "declined"
+    REVEALED = "revealed"
+
+
 class UserPhoto(Base):
     """User photo storage with privacy controls"""
     __tablename__ = "user_photos"
@@ -393,3 +402,7 @@ class PhotoModerationLog(Base):
     
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+
+# Backward compatibility alias for tests
+PhotoReveal = PhotoRevealTimeline
