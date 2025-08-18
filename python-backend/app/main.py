@@ -21,6 +21,8 @@ from app.api.v1.routers import (
     personalization,
     adaptive_revelations,
     ui_personalization,
+    emotional_depth,
+    enhanced_matching,
     # enhanced_communication,  # Temporarily disabled - file missing
     # social_proof,  # Temporarily disabled - file missing
     # advanced_ai_matching,  # Temporarily disabled - file missing
@@ -135,6 +137,20 @@ v1_app.include_router(
     ui_personalization.router,
     prefix="/ui-personalization",
     tags=["ui-personalization"],
+)
+
+# Advanced Soul Matching System - Emotional Depth Analysis
+v1_app.include_router(
+    emotional_depth.router,
+    prefix="/emotional-depth",
+    tags=["emotional-depth"],
+)
+
+# Advanced Soul Matching System - Enhanced Match Quality
+v1_app.include_router(
+    enhanced_matching.router,
+    prefix="/enhanced-matching",
+    tags=["enhanced-matching"],
 )
 
 # Phase 7: Hybrid Advanced Features - Temporarily disabled
