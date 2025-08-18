@@ -1,0 +1,285 @@
+# Promtail Configuration for Dinner First Log Collection
+# Comprehensive log collection for SRE observability
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Application logs from Dinner First backend
+  - job_name: dinner-first-backend
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: dinner-first-backend
+          service: backend-api
+          environment: production
+          __path__: /app/logs/*.log
+    
+    pipeline_stages:
+      # Parse JSON logs
+      - json:
+          expressions:
+            timestamp: timestamp
+            level: level
+            message: message
+            request_id: request_id
+            user_id: user_id
+            endpoint: endpoint
+            status_code: status_code
+            response_time: response_time
+      
+      # Extract labels from log data
+      - labels:
+          level:
+          service:
+          request_id:
+          endpoint:
+          
+      # Add timestamp parsing
+      - timestamp:
+          source: timestamp
+          format: RFC3339
+
+  # Frontend application logs
+  - job_name: dinner-first-frontend
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: dinner-first-frontend
+          service: angular-frontend
+          environment: production
+          __path__: /app/logs/frontend/*.log
+
+    pipeline_stages:
+      - regex:
+          expression: '(?P<timestamp>\S+\s+\S+) \[(?P<level>\w+)\] (?P<message>.*)'
+      - labels:
+          level:
+      - timestamp:
+          source: timestamp
+          format: '2006/01/02 15:04:05'
+
+  # Database logs (PostgreSQL)
+  - job_name: postgres-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: postgres
+          service: database
+          environment: production
+          __path__: /app/logs/postgres/*.log
+    
+    pipeline_stages:
+      - regex:
+          expression: '(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3} \w+) \[(?P<pid>\d+)\] (?P<level>\w+): (?P<message>.*)'
+      - labels:
+          level:
+          pid:
+      - timestamp:
+          source: timestamp
+          format: '2006-01-02 15:04:05.000 MST'
+
+  # Redis logs
+  - job_name: redis-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: redis
+          service: cache
+          environment: production
+          __path__: /app/logs/redis/*.log
+    
+    pipeline_stages:
+      - regex:
+          expression: '(?P<pid>\d+):(?P<role>\w) (?P<timestamp>\d{2} \w{3} \d{4} \d{2}:\d{2}:\d{2}.\d{3}) (?P<level>.) (?P<message>.*)'
+      - labels:
+          level:
+          role:
+      - timestamp:
+          source: timestamp
+          format: '02 Jan 2006 15:04:05.000'
+
+  # Container logs via Docker
+  - job_name: docker-containers
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: label
+            values: ["logging=promtail"]
+    
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)' 
+        target_label: 'container_name'
+        replacement: '$1'
+      
+      - source_labels: ['__meta_docker_container_log_stream']
+        target_label: 'log_stream'
+      
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
+        target_label: 'service_name'
+
+    pipeline_stages:
+      # Parse Docker log format
+      - json:
+          expressions:
+            output: log
+            stream: stream
+            time: time
+      
+      - labels:
+          stream:
+      
+      - timestamp:
+          source: time
+          format: RFC3339Nano
+      
+      - output:
+          source: output
+
+  # Nginx access logs
+  - job_name: nginx-access
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx
+          service: reverse-proxy
+          log_type: access
+          environment: production
+          __path__: /app/logs/nginx/access.log
+    
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<remote_addr>[\d\.]+) - (?P<remote_user>\S+) \[(?P<time_local>[^\]]+)\] "(?P<method>\S+) (?P<request>\S+) (?P<protocol>\S+)" (?P<status>\d+) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)" "(?P<request_time>[\d\.]+)"'
+      
+      - labels:
+          method:
+          status:
+          request:
+      
+      - timestamp:
+          source: time_local
+          format: '02/Jan/2006:15:04:05 -0700'
+
+  # Nginx error logs  
+  - job_name: nginx-error
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx
+          service: reverse-proxy
+          log_type: error
+          environment: production
+          __path__: /app/logs/nginx/error.log
+    
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}) \[(?P<level>\w+)\] (?P<message>.*)'
+      
+      - labels:
+          level:
+      
+      - timestamp:
+          source: timestamp
+          format: '2006/01/02 15:04:05'
+
+  # System logs (syslog)
+  - job_name: system-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: system
+          service: operating-system
+          environment: production
+          __path__: /host/var/log/syslog
+    
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\w{3} \d{2} \d{2}:\d{2}:\d{2}) (?P<hostname>\S+) (?P<service>\S+)\[?(?P<pid>\d+)?\]?: (?P<message>.*)'
+      
+      - labels:
+          hostname:
+          service:
+      
+      - timestamp:
+          source: timestamp
+          format: 'Jan 02 15:04:05'
+          # Note: This assumes current year, you may need to adjust based on your syslog format
+
+  # Dating platform specific logs - Soul connections
+  - job_name: soul-connections
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: soul-connections
+          service: matching-engine  
+          feature: soul-before-skin
+          environment: production
+          __path__: /app/logs/soul_connections/*.log
+    
+    pipeline_stages:
+      - json:
+          expressions:
+            timestamp: timestamp
+            level: level
+            user1_id: user1_id
+            user2_id: user2_id
+            compatibility_score: compatibility_score
+            connection_stage: connection_stage
+            event_type: event_type
+            message: message
+      
+      - labels:
+          level:
+          event_type:
+          connection_stage:
+      
+      - timestamp:
+          source: timestamp
+          format: RFC3339
+
+  # A/B testing logs
+  - job_name: ab-testing
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: ab-testing
+          service: experimentation
+          feature: feature-flags
+          environment: production
+          __path__: /app/logs/ab_testing/*.log
+    
+    pipeline_stages:
+      - json:
+          expressions:
+            timestamp: timestamp
+            experiment_name: experiment_name
+            variant: variant
+            user_id: user_id
+            conversion: conversion
+            metric_value: metric_value
+      
+      - labels:
+          experiment_name:
+          variant:
+      
+      - timestamp:
+          source: timestamp
+          format: RFC3339

@@ -1,0 +1,266 @@
+/* Advanced Swipe Gesture Styles for Mobile-First UX */
+
+/* Swipe Container Base Styles */
+.swipe-container {
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y; /* Allow vertical scrolling, horizontal for swipe */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Swipeable Card Styles */
+.swipeable-card {
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  will-change: transform;
+  transform-origin: center center;
+  
+  &.swiping {
+    transition: none; /* Disable transition during active swipe */
+  }
+  
+  &.swipe-left {
+    transform: translateX(-100%) rotate(-30deg);
+    opacity: 0;
+  }
+  
+  &.swipe-right {
+    transform: translateX(100%) rotate(30deg);
+    opacity: 0;
+  }
+  
+  &.swipe-up {
+    transform: translateY(-100%) scale(0.8);
+    opacity: 0;
+  }
+  
+  &.swipe-down {
+    transform: translateY(100%) scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* Swipe Action Indicators */
+.swipe-indicators {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 10;
+  
+  .indicator {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.2s ease;
+    border: 2px solid;
+    
+    &.active {
+      opacity: 1;
+      transform: scale(1);
+    }
+    
+    &.pass {
+      background-color: rgba(239, 68, 68, 0.1);
+      border-color: #ef4444;
+      color: #dc2626;
+    }
+    
+    &.like {
+      background-color: rgba(34, 197, 94, 0.1);
+      border-color: #22c55e;
+      color: #16a34a;
+    }
+    
+    &.super-like {
+      background-color: rgba(59, 130, 246, 0.1);
+      border-color: #3b82f6;
+      color: #2563eb;
+    }
+    
+    &.soul-connect {
+      background-color: rgba(147, 51, 234, 0.1);
+      border-color: var(--soul-purple-500);
+      color: var(--soul-purple-600);
+    }
+  }
+}
+
+/* Swipe Progress Indicators */
+.swipe-progress {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+  
+  .progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    
+    &.active {
+      background-color: var(--soul-purple-400);
+      transform: scale(1.2);
+    }
+    
+    &.completed {
+      background-color: var(--success-500);
+    }
+  }
+}
+
+/* Advanced Swipe Physics */
+.elastic-swipe {
+  &.resistance {
+    transition: transform 0.1s ease-out;
+  }
+  
+  &.snap-back {
+    animation: snapBack 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+}
+
+@keyframes snapBack {
+  0% { transform: var(--swipe-transform); }
+  100% { transform: translate(0, 0) rotate(0); }
+}
+
+/* Touch Feedback Effects */
+.touch-feedback {
+  position: relative;
+  overflow: hidden;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    transition: all 0.6s ease;
+    pointer-events: none;
+  }
+  
+  &.touch-active::after {
+    width: 200px;
+    height: 200px;
+  }
+}
+
+/* Swipe Action Buttons */
+.swipe-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+  
+  .action-button {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    
+    &:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+    
+    &.pass {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+      color: white;
+    }
+    
+    &.super-like {
+      background: linear-gradient(135deg, #4fc3f7, #29b6f6);
+      color: white;
+    }
+    
+    &.like {
+      background: linear-gradient(135deg, #66bb6a, #4caf50);
+      color: white;
+    }
+    
+    &.soul-connect {
+      background: linear-gradient(135deg, var(--soul-purple-400), var(--soul-purple-600));
+      color: white;
+    }
+  }
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .swipe-container {
+    padding: 0 12px;
+  }
+  
+  .swipe-indicators {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    
+    .indicator {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+  }
+  
+  .swipe-actions {
+    .action-button {
+      width: 48px;
+      height: 48px;
+      font-size: 20px;
+    }
+  }
+}
+
+/* Dark Theme Adjustments */
+.dark-theme {
+  .swipe-indicators .indicator {
+    &.pass {
+      background-color: rgba(239, 68, 68, 0.2);
+    }
+    
+    &.like {
+      background-color: rgba(34, 197, 94, 0.2);
+    }
+    
+    &.super-like {
+      background-color: rgba(59, 130, 246, 0.2);
+    }
+    
+    &.soul-connect {
+      background-color: rgba(147, 51, 234, 0.2);
+    }
+  }
+  
+  .touch-feedback::after {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  }
+}

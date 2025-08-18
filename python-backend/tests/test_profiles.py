@@ -2,11 +2,11 @@ import pytest  # noqa: F401
 from fastapi import status
 
 
-def test_create_profile(client, test_user):
+def test_create_profile(client, authenticated_user):
     """Test profile creation"""
     response = client.post(
         "/api/v1/profiles",
-        headers={"Authorization": f"Bearer {test_user['access_token']}"},
+        headers=authenticated_user["headers"],
         json={
             "full_name": "New Test User",
             "bio": "I love food and meeting new people",
@@ -22,24 +22,24 @@ def test_create_profile(client, test_user):
     assert data["cuisine_preferences"] == "Italian, French"
 
 
-def test_get_my_profile(client, test_user):
+def test_get_my_profile(client, authenticated_user):
     """Test getting user's own profile"""
     response = client.get(
         "/api/v1/profiles/me",
-        headers={"Authorization": f"Bearer {test_user['access_token']}"},
+        headers=authenticated_user["headers"],
     )
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert data["full_name"] == "Test User"
-    assert data["bio"] == "Test bio"
-    assert data["cuisine_preferences"] == "Italian, Japanese"
+    assert data["full_name"] == "Soul User"
+    assert data["bio"] == "Connection before appearance, soul before skin"
+    assert data["cuisine_preferences"] == "All cuisines"
 
 
-def test_update_profile(client, test_user):
+def test_update_profile(client, authenticated_user):
     """Test profile update"""
     response = client.put(
         "/api/v1/profiles/me",
-        headers={"Authorization": f"Bearer {test_user['access_token']}"},
+        headers=authenticated_user["headers"],
         json={
             "full_name": "Updated Name",
             "bio": "Updated bio",

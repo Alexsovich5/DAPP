@@ -1,0 +1,188 @@
+# Prometheus Configuration for Dinner First SRE Monitoring
+# Comprehensive metrics collection for dating platform observability
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'dinner-first-production'
+    replica: 'prometheus-1'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Load alerting rules
+rule_files:
+  - "/etc/prometheus/alerts/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  # Dinner First Backend API
+  - job_name: 'dinner-first-backend'
+    static_configs:
+      - targets: ['dinner-first-backend:5000']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'backend-api'
+
+  # Dinner First Frontend (Angular with SSR)
+  - job_name: 'dinner-first-frontend'
+    static_configs:
+      - targets: ['dinner-first-frontend:4200']
+    metrics_path: /api/metrics
+    scrape_interval: 30s
+    honor_labels: true
+
+  # PostgreSQL Database Metrics
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'postgresql'
+
+  # Redis Cache Metrics  
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'redis-cache'
+
+  # Node Exporter for system metrics
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'system-node'
+
+  # Docker container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'container-metrics'
+
+  # Nginx reverse proxy metrics
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'nginx-proxy'
+
+  # Loki for log-based metrics
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['loki:3100']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  # Vector log processor metrics
+  - job_name: 'vector'
+    static_configs:
+      - targets: ['vector:9599']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  # Grafana metrics
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']
+    metrics_path: /metrics
+    scrape_interval: 60s
+
+  # Dating Platform Specific: Soul Connection Engine
+  - job_name: 'soul-matching-engine'
+    static_configs:
+      - targets: ['dinner-first-backend:5000']
+    metrics_path: /metrics/soul-connections
+    scrape_interval: 15s
+    params:
+      module: ['soul_matching']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'soul-matching'
+
+  # Dating Platform Specific: A/B Testing Metrics
+  - job_name: 'ab-testing-metrics'
+    static_configs:
+      - targets: ['dinner-first-backend:5000']
+    metrics_path: /metrics/ab-testing
+    scrape_interval: 30s
+    params:
+      module: ['experimentation']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'ab-testing'
+
+  # Application Performance Monitoring
+  - job_name: 'apm-metrics'
+    static_configs:
+      - targets: ['dinner-first-backend:5000']
+    metrics_path: /metrics/performance
+    scrape_interval: 15s
+    honor_labels: true
+
+  # Real-time WebSocket connections
+  - job_name: 'websocket-metrics'
+    static_configs:
+      - targets: ['dinner-first-backend:5000']
+    metrics_path: /metrics/websockets
+    scrape_interval: 30s
+
+  # Business KPI Metrics (Daily Active Users, Matches, etc.)
+  - job_name: 'business-kpis'
+    static_configs:
+      - targets: ['dinner-first-backend:5000']
+    metrics_path: /metrics/business
+    scrape_interval: 60s
+    honor_labels: true
+
+# Remote write for long-term storage (optional)
+# remote_write:
+#   - url: "https://prometheus-remote-write.example.com/api/v1/write"
+#     basic_auth:
+#       username: "dinner_first"
+#       password: "your_remote_write_password"
+
+# Remote read for federated queries (optional)  
+# remote_read:
+#   - url: "https://prometheus-remote-read.example.com/api/v1/read"
+#     basic_auth:
+#       username: "dinner_first"
+#       password: "your_remote_read_password"

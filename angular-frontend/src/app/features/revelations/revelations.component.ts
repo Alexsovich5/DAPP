@@ -4,17 +4,18 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ActivatedRoute, Router } from '@angular/router';
 import { RevelationService } from '../../core/services/revelation.service';
 import { SoulConnectionService } from '../../core/services/soul-connection.service';
-import { 
-  RevelationPrompt, 
-  DailyRevelation, 
+import { RevelationsEmptyStateComponent } from './revelations-empty-state.component';
+import {
+  RevelationPrompt,
+  DailyRevelation,
   RevelationTimelineResponse as RevelationTimeline,
-  RevelationType 
+  RevelationType
 } from '../../core/interfaces/revelation.interfaces';
 
 @Component({
   selector: 'app-revelations',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RevelationsEmptyStateComponent],
   template: `
     <div class="revelations-container">
       <header class="revelations-header">
@@ -33,12 +34,13 @@ import {
           <span class="completion-status" [class.complete]="timeline.is_cycle_complete">
             {{timeline.is_cycle_complete ? 'Cycle Complete! 🎉' : 'In Progress...'}}
           </span>
+          <span class="streak-badge" *ngIf="streakCount > 0">🔥 {{streakCount}} day streak</span>
         </div>
-        
+
         <div class="progress-visual">
           <div class="day-circles">
-            <div 
-              *ngFor="let day of [1,2,3,4,5,6,7]" 
+            <div
+              *ngFor="let day of [1,2,3,4,5,6,7]"
               class="day-circle"
               [class.completed]="day < timeline.current_day"
               [class.current]="day === timeline.current_day"
@@ -49,12 +51,17 @@ import {
             </div>
           </div>
           <div class="progress-line">
-            <div 
-              class="progress-fill" 
+            <div
+              class="progress-fill"
               [style.width.%]="((timeline.current_day - 1) / 6) * 100"
             ></div>
           </div>
         </div>
+      </div>
+
+      <!-- Celebration overlay -->
+      <div class="confetti-overlay" *ngIf="showCelebrate || timeline?.is_cycle_complete">
+        <div class="confetti" *ngFor="let i of confettiPieces"></div>
       </div>
 
       <!-- Current Day Prompt -->
@@ -64,7 +71,7 @@ import {
             <h3>Today's Revelation Prompt</h3>
             <span class="prompt-type">{{formatRevelationType(currentPrompt.revelation_type)}}</span>
           </div>
-          
+
           <div class="prompt-content">
             <p class="prompt-text">{{currentPrompt.prompt_text}}</p>
             <div class="example-response">
@@ -76,7 +83,7 @@ import {
           <form [formGroup]="revelationForm" (ngSubmit)="shareRevelation()" class="revelation-form">
             <div class="form-group">
               <label for="revelation-content">Your Revelation:</label>
-              <textarea 
+              <textarea
                 id="revelation-content"
                 formControlName="content"
                 placeholder="Share something meaningful from your heart..."
@@ -89,8 +96,8 @@ import {
             </div>
 
             <div class="form-actions">
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 class="share-btn"
                 [disabled]="revelationForm.invalid || submitting"
               >
@@ -99,16 +106,22 @@ import {
               </button>
             </div>
           </form>
+
+          <!-- What's next tip -->
+          <div class="whats-next" *ngIf="whatsNext">
+            <h4>What’s next?</h4>
+            <p>{{whatsNext}}</p>
+          </div>
         </div>
       </div>
 
       <!-- Revelations Timeline -->
       <div class="revelations-timeline" *ngIf="timeline && timeline.revelations.length > 0">
         <h3>Your Revelation Journey</h3>
-        
+
         <div class="timeline-container">
-          <div 
-            *ngFor="let revelation of sortedRevelations" 
+          <div
+            *ngFor="let revelation of sortedRevelations"
             class="revelation-item"
             [class.sent]="revelation.sender_id === currentUserId"
             [class.received]="revelation.sender_id !== currentUserId"
@@ -121,7 +134,7 @@ import {
               </div>
               <span class="timestamp">{{formatDate(revelation.created_at)}}</span>
             </div>
-            
+
             <div class="revelation-content">
               <p>{{revelation.content}}</p>
             </div>
@@ -145,7 +158,7 @@ import {
             <h3>🎉 Photo Reveal Day!</h3>
             <p>You've completed your 7-day revelation journey. Ready to see each other?</p>
           </div>
-          
+
           <div class="mutual-consent" *ngIf="!photoRevealed">
             <div class="consent-status">
               <div class="consent-item">
@@ -161,8 +174,8 @@ import {
                 </span>
               </div>
             </div>
-            
-            <button 
+
+            <button
               class="consent-btn"
               [class.agreed]="userConsent"
               (click)="togglePhotoConsent()"
@@ -180,6 +193,14 @@ import {
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- Empty State for No Connections -->
+      <div class="empty-revelations" *ngIf="!loading && !connectionId">
+        <app-revelations-empty-state
+          (startJourney)="startRevelationJourney()"
+          (learnAboutRevelations)="learnAboutRevelations()">
+        </app-revelations-empty-state>
       </div>
 
       <div class="loading-spinner" *ngIf="loading">
@@ -262,6 +283,15 @@ import {
       color: #48bb78;
     }
 
+    .streak-badge {
+      background: #fff5f5;
+      color: #c53030;
+      border: 1px solid #fed7d7;
+      padding: 0.25rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+    }
+
     .progress-visual {
       position: relative;
     }
@@ -331,6 +361,30 @@ import {
       transition: width 0.5s ease;
     }
 
+    /* Celebration overlay */
+    .confetti-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 2000;
+    }
+    .confetti {
+      position: absolute;
+      top: -10px;
+      left: calc(50% - 2px);
+      width: 6px;
+      height: 12px;
+      background: hsl(var(--hue, 200), 80%, 60%);
+      opacity: 0.9;
+      transform: translateX(var(--x, 0));
+      animation: confetti-fall 1200ms ease-out forwards;
+    }
+    @keyframes confetti-fall {
+      0% { transform: translate(var(--x, 0), 0) rotate(0deg); }
+      100% { transform: translate(var(--x, 0), 110vh) rotate(540deg); opacity: 0.7; }
+    }
+
     .current-prompt {
       margin-bottom: 2rem;
     }
@@ -394,6 +448,18 @@ import {
       margin: 0;
       font-style: italic;
       color: #4a5568;
+    }
+
+    .whats-next {
+      margin-top: 1rem;
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    .whats-next h4 {
+      margin: 0 0 0.5rem 0;
+      color: #2d3748;
     }
 
     .revelation-form {
@@ -705,24 +771,24 @@ import {
       .revelations-container {
         padding: 0.5rem;
       }
-      
+
       .revelation-progress {
         padding: 1rem;
       }
-      
+
       .day-circles {
         overflow-x: auto;
         gap: 0.5rem;
       }
-      
+
       .revelation-item.sent {
         margin-left: 0;
       }
-      
+
       .revelation-item.received {
         margin-right: 0;
       }
-      
+
       .consent-status {
         flex-direction: column;
         gap: 1rem;
@@ -742,6 +808,10 @@ export class RevelationsComponent implements OnInit {
   userConsent = false;
   partnerConsent = false;
   photoRevealed = false;
+  streakCount = 0;
+  showCelebrate = false;
+  confettiPieces = Array.from({ length: 24 }).map((_, i) => i);
+  whatsNext: string | null = null;
 
   constructor(
     private revelationService: RevelationService,
@@ -768,15 +838,16 @@ export class RevelationsComponent implements OnInit {
     if (!this.connectionId) return;
 
     this.loading = true;
-    
+
     // Load timeline and current prompt
     const timeline$ = this.revelationService.getRevelationTimeline(this.connectionId);
     const prompts$ = this.revelationService.getRevelationPrompts();
-    
+
     timeline$.subscribe({
       next: (timeline) => {
         this.timeline = timeline;
-        
+        this.updateStreakAndTips();
+
         if (!timeline.is_cycle_complete && timeline.current_day <= 7) {
           prompts$.subscribe({
             next: (prompts) => {
@@ -804,9 +875,30 @@ export class RevelationsComponent implements OnInit {
     });
   }
 
+  private updateStreakAndTips(): void {
+    if (!this.timeline) return;
+    const day = this.timeline.current_day;
+    this.streakCount = Math.max(0, day - 1);
+    // Show celebration on day edges and completion
+    this.showCelebrate = day === 7 || this.timeline.is_cycle_complete || day === 1;
+    // Minimal reduced-motion guard via CSS is assumed; could be toggled via settings service
+
+    // Provide contextual next-step tips
+    const tips: Record<number, string> = {
+      1: 'Reflect on your core values and keep it authentic. Tomorrow builds on this.',
+      2: 'Share a story with a feeling. Specifics create connection.',
+      3: 'Dreams reveal alignment. Be bold about where you’re headed.',
+      4: 'Lightness matters. A moment that made you truly laugh works great.',
+      5: 'Vulnerability is strength. Keep it respectful and honest.',
+      6: 'Describe your ideal connection in everyday terms.',
+      7: 'If you both consent, photos reveal today. Keep the good vibes going.'
+    };
+    this.whatsNext = tips[day] || null;
+  }
+
   get sortedRevelations(): DailyRevelation[] {
     if (!this.timeline) return [];
-    return [...this.timeline.revelations].sort((a, b) => 
+    return [...this.timeline.revelations].sort((a, b) =>
       a.day_number - b.day_number || new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     );
   }
@@ -825,7 +917,7 @@ export class RevelationsComponent implements OnInit {
   }
 
   formatRevelationType(type: string): string {
-    return type.split('_').map(word => 
+    return type.split('_').map(word =>
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
   }
@@ -846,7 +938,7 @@ export class RevelationsComponent implements OnInit {
     }
 
     this.submitting = true;
-    
+
     const revelationData = {
       connection_id: this.connectionId,
       day_number: this.currentPrompt.day_number,
@@ -886,7 +978,7 @@ export class RevelationsComponent implements OnInit {
 
   async togglePhotoConsent() {
     this.userConsent = !this.userConsent;
-    
+
     // In real app, update this via API
     if (this.userConsent && this.partnerConsent) {
       this.photoRevealed = true;
@@ -898,6 +990,14 @@ export class RevelationsComponent implements OnInit {
     this.router.navigate(['/profile'], {
       queryParams: { userId: 'partner' }
     });
+  }
+
+  startRevelationJourney() {
+    this.router.navigate(['/discover']);
+  }
+
+  learnAboutRevelations() {
+    this.router.navigate(['/help/revelations']);
   }
 
   goBack() {

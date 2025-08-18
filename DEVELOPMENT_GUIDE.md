@@ -1,8 +1,8 @@
-# Development Guide - Dinner1 "Soul Before Skin" Dating App
+# Development Guide - Dinner First "Soul Before Skin" Dating App
 
 ## Overview
 
-This guide provides comprehensive instructions for developing and maintaining the Dinner1 dating application, which prioritizes emotional connections through progressive revelation before physical attraction.
+This guide provides comprehensive instructions for developing and maintaining the Dinner First dating application, which prioritizes emotional connections through progressive revelation before physical attraction.
 
 ## Architecture Overview
 
@@ -33,7 +33,7 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # Database setup
-createdb dinner1
+createdb dinner_first
 alembic upgrade head
 
 # Run development server
@@ -50,7 +50,7 @@ ng serve --port 5001  # Must use port 5001 for CORS
 ### Environment Variables
 Create `.env` in `backend_py/`:
 ```
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/dinner1
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/dinner_first
 SECRET_KEY=your_jwt_secret_here
 CORS_ORIGINS=http://localhost:4200,http://localhost:5001
 COMPATIBILITY_THRESHOLD=50

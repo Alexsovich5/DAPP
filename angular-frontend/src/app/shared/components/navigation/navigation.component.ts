@@ -10,94 +10,158 @@ import { Observable } from 'rxjs';
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <nav class="main-navigation" *ngIf="isLoggedIn$ | async">
+    <nav
+      class="main-navigation"
+      *ngIf="isLoggedIn$ | async"
+      role="navigation"
+      aria-label="Main navigation">
       <div class="nav-container">
         <div class="nav-brand">
-          <a routerLink="/" class="brand-link">
-            <span class="brand-icon">💫</span>
-            <span class="brand-text">Dinner1</span>
+          <a
+            routerLink="/"
+            class="brand-link"
+            aria-label="Dinner First home page">
+            <span class="brand-icon" aria-hidden="true">💫</span>
+            <span class="brand-text">Dinner First</span>
           </a>
         </div>
 
-        <div class="nav-menu" [class.mobile-open]="mobileMenuOpen">
-          <a 
-            routerLink="/discover" 
+        <div
+          class="nav-menu"
+          [class.mobile-open]="mobileMenuOpen"
+          role="menubar"
+          [attr.aria-expanded]="mobileMenuOpen"
+          aria-label="Main menu">
+          <a
+            routerLink="/discover"
             routerLinkActive="active"
             class="nav-link"
+            role="menuitem"
+            aria-label="Discover soul connections"
+            [attr.aria-current]="isActiveRoute('/discover') ? 'page' : null"
             (click)="closeMobileMenu()"
+            (keydown.enter)="closeMobileMenu()"
+            (keydown.space)="closeMobileMenu()"
           >
-            <span class="nav-icon">🔍</span>
+            <span class="nav-icon" aria-hidden="true">🔍</span>
             <span class="nav-text">Discover</span>
           </a>
 
-          <a 
-            routerLink="/matches" 
+          <a
+            routerLink="/conversations"
             routerLinkActive="active"
             class="nav-link"
+            role="menuitem"
+            [attr.aria-label]="getConversationsAriaLabel()"
+            [attr.aria-current]="isActiveRoute('/conversations') ? 'page' : null"
             (click)="closeMobileMenu()"
+            (keydown.enter)="closeMobileMenu()"
+            (keydown.space)="closeMobileMenu()"
           >
-            <span class="nav-icon">💫</span>
-            <span class="nav-text">Connections</span>
-          </a>
-
-          <a 
-            routerLink="/messages" 
-            routerLinkActive="active"
-            class="nav-link"
-            (click)="closeMobileMenu()"
-          >
-            <span class="nav-icon">💬</span>
-            <span class="nav-text">Messages</span>
-          </a>
-
-          <a 
-            routerLink="/revelations" 
-            routerLinkActive="active"
-            class="nav-link revelation-link"
-            (click)="closeMobileMenu()"
-          >
-            <span class="nav-icon">✨</span>
-            <span class="nav-text">Revelations</span>
-          </a>
-
-          <a 
-            routerLink="/notifications" 
-            routerLinkActive="active"
-            class="nav-link notification-link"
-            (click)="closeMobileMenu()"
-          >
-            <span class="nav-icon">🔔</span>
-            <span class="nav-text">Notifications</span>
-            <span class="notification-badge" *ngIf="(unreadCount$ | async) > 0">
+            <span class="nav-icon" aria-hidden="true">💬</span>
+            <span class="nav-text">Conversations</span>
+            <span
+              class="notification-badge"
+              *ngIf="(unreadCount$ | async) && (unreadCount$ | async)! > 0"
+              [attr.aria-label]="(unreadCount$ | async) + ' unread messages'"
+              role="status">
               {{unreadCount$ | async}}
             </span>
           </a>
+
+          <a
+            routerLink="/revelations"
+            routerLinkActive="active"
+            class="nav-link revelation-link"
+            role="menuitem"
+            aria-label="Daily revelations journey"
+            [attr.aria-current]="isActiveRoute('/revelations') ? 'page' : null"
+            (click)="closeMobileMenu()"
+            (keydown.enter)="closeMobileMenu()"
+            (keydown.space)="closeMobileMenu()"
+          >
+            <span class="nav-icon" aria-hidden="true">✨</span>
+            <span class="nav-text">Revelations</span>
+          </a>
+
         </div>
 
         <div class="nav-actions">
-          <div class="user-menu" [class.open]="userMenuOpen" (click)="toggleUserMenu()">
-            <div class="user-avatar">
-              <span>{{getUserInitial()}}</span>
+          <div
+            class="user-menu"
+            [class.open]="userMenuOpen"
+            role="button"
+            tabindex="0"
+            [attr.aria-expanded]="userMenuOpen"
+            aria-haspopup="true"
+            aria-label="User menu"
+            (click)="toggleUserMenu()"
+            (keydown.enter)="toggleUserMenu()"
+            (keydown.space)="toggleUserMenu(); $event.preventDefault()"
+            (keydown.escape)="closeUserMenu()"
+            (keydown.arrowdown)="openUserMenuAndFocus()"
+            (blur)="onUserMenuBlur($event)">
+            <div class="user-avatar" [attr.aria-label]="'User avatar for ' + getUserInitial()">
+              <span aria-hidden="true">{{getUserInitial()}}</span>
             </div>
-            <div class="user-dropdown" *ngIf="userMenuOpen">
-              <a routerLink="/profile" class="dropdown-item" (click)="closeUserMenu()">
-                <span>👤</span> Profile
+            <div
+              class="user-dropdown"
+              *ngIf="userMenuOpen"
+              role="menu"
+              aria-label="User menu options"
+              (keydown)="handleDropdownKeydown($event)">
+              <a
+                routerLink="/profile"
+                class="dropdown-item"
+                role="menuitem"
+                tabindex="0"
+                aria-label="View and edit your profile"
+                (click)="closeUserMenu()"
+                (keydown.enter)="closeUserMenu()">
+                <span aria-hidden="true">👤</span> Profile
               </a>
-              <a routerLink="/settings" class="dropdown-item" (click)="closeUserMenu()">
-                <span>⚙️</span> Settings
+              <a
+                routerLink="/settings"
+                class="dropdown-item"
+                role="menuitem"
+                tabindex="0"
+                aria-label="Application settings and preferences"
+                (click)="closeUserMenu()"
+                (keydown.enter)="closeUserMenu()">
+                <span aria-hidden="true">⚙️</span> Settings
               </a>
-              <div class="dropdown-divider"></div>
-              <button class="dropdown-item logout-btn" (click)="logout()">
-                <span>🚪</span> Logout
+              <div class="dropdown-divider" role="separator"></div>
+              <button
+                class="dropdown-item logout-btn"
+                role="menuitem"
+                tabindex="0"
+                aria-label="Sign out of your account"
+                (click)="logout()"
+                (keydown.enter)="logout()">
+                <span aria-hidden="true">🚪</span> Logout
               </button>
             </div>
           </div>
 
-          <button class="mobile-menu-btn" (click)="toggleMobileMenu()">
-            <span class="hamburger" [class.open]="mobileMenuOpen">
+          <button
+            class="mobile-menu-btn"
+            type="button"
+            [attr.aria-expanded]="mobileMenuOpen"
+            aria-controls="mobile-navigation-menu"
+            aria-label="Toggle mobile navigation menu"
+            (click)="toggleMobileMenu()"
+            (keydown.enter)="toggleMobileMenu()"
+            (keydown.space)="toggleMobileMenu(); $event.preventDefault()">
+            <span
+              class="hamburger"
+              [class.open]="mobileMenuOpen"
+              aria-hidden="true">
               <span></span>
               <span></span>
               <span></span>
+            </span>
+            <span class="sr-only">
+              {{mobileMenuOpen ? 'Close' : 'Open'}} navigation menu
             </span>
           </button>
         </div>
@@ -191,7 +255,7 @@ import { Observable } from 'rxjs';
       background: rgba(255, 215, 0, 0.1);
     }
 
-    .notification-link {
+    .nav-link {
       position: relative;
     }
 
@@ -202,14 +266,15 @@ import { Observable } from 'rxjs';
       background: #f56565;
       color: white;
       border-radius: 50%;
-      width: 18px;
-      height: 18px;
-      font-size: 0.7rem;
+      width: 20px;
+      height: 20px;
+      font-size: 0.75rem;
       font-weight: bold;
       display: flex;
       align-items: center;
       justify-content: center;
       border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .nav-actions {
@@ -331,13 +396,14 @@ import { Observable } from 'rxjs';
         right: 0;
         background: white;
         flex-direction: column;
-        padding: 1rem;
+        padding: 1.5rem;
         border-bottom: 1px solid #e2e8f0;
         transform: translateY(-100%);
         opacity: 0;
         visibility: hidden;
         transition: all 0.3s ease;
-        gap: 1rem;
+        gap: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
 
       .nav-menu.mobile-open {
@@ -350,12 +416,23 @@ import { Observable } from 'rxjs';
         flex-direction: row;
         justify-content: flex-start;
         width: 100%;
-        padding: 1rem;
+        padding: 1.25rem 1rem;
         gap: 1rem;
+        min-height: 56px;
+        border-radius: 12px;
+        font-size: 1.1rem;
+      }
+
+      .nav-icon {
+        font-size: 1.5rem;
+        min-width: 24px;
       }
 
       .mobile-menu-btn {
         display: block;
+        padding: 0.75rem;
+        min-height: 44px;
+        min-width: 44px;
       }
 
       .brand-text {
@@ -363,18 +440,123 @@ import { Observable } from 'rxjs';
       }
 
       .nav-text {
-        font-size: 1rem;
+        font-size: 1.1rem;
+        font-weight: 500;
+      }
+
+      .notification-badge {
+        position: static;
+        margin-left: auto;
+        width: 24px;
+        height: 24px;
+        font-size: 0.85rem;
       }
     }
 
     @media (max-width: 480px) {
       .nav-container {
-        padding: 0.5rem 1rem;
+        padding: 0.75rem 1rem;
+      }
+
+      .brand-link {
+        font-size: 1.1rem;
+      }
+
+      .brand-icon {
+        font-size: 1.4rem;
       }
 
       .brand-text {
         display: none;
       }
+
+      .nav-link {
+        padding: 1.5rem 1rem;
+        min-height: 60px;
+      }
+
+      .nav-text {
+        font-size: 1.2rem;
+      }
+
+      .nav-icon {
+        font-size: 1.6rem;
+      }
+    }
+
+    /* Accessibility styles */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* Focus styles for keyboard navigation */
+    .nav-link:focus,
+    .brand-link:focus,
+    .user-menu:focus,
+    .mobile-menu-btn:focus,
+    .dropdown-item:focus {
+      outline: 2px solid #667eea;
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    /* High contrast focus indicator */
+    @media (prefers-contrast: high) {
+      .nav-link:focus,
+      .brand-link:focus,
+      .user-menu:focus,
+      .mobile-menu-btn:focus,
+      .dropdown-item:focus {
+        outline: 3px solid #000000;
+        outline-offset: 2px;
+      }
+    }
+
+    /* Ensure interactive elements meet minimum size requirements */
+    .nav-link,
+    .user-menu,
+    .mobile-menu-btn,
+    .dropdown-item {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    /* Improve color contrast for text */
+    .nav-link {
+      color: #4a5568; /* Improved contrast ratio */
+    }
+
+    .nav-link:hover {
+      color: #2d3748; /* Higher contrast on hover */
+    }
+
+    .nav-link.active {
+      color: #2d3748; /* Higher contrast for active state */
+      font-weight: 600;
+    }
+
+    /* Ensure notification badge has sufficient contrast */
+    .notification-badge {
+      background: #e53e3e; /* Improved contrast */
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    /* Focus management for dropdown */
+    .user-dropdown {
+      outline: none;
+    }
+
+    .user-dropdown:focus-within {
+      box-shadow: 0 0 0 2px #667eea;
     }
   `]
 })
@@ -417,8 +599,24 @@ export class NavigationComponent implements OnInit {
     return 'U';
   }
 
+  isActiveRoute(route: string): boolean {
+    return this.router.url === route;
+  }
+
+  getConversationsAriaLabel(): string {
+    const unreadCount = this.notificationService.getCurrentUnreadCount();
+    return unreadCount > 0
+      ? `Conversations with ${unreadCount} unread messages`
+      : 'Conversations';
+  }
+
   toggleMobileMenu() {
     this.mobileMenuOpen = !this.mobileMenuOpen;
+
+    // Announce state change to screen readers
+    this.announceToScreenReader(
+      this.mobileMenuOpen ? 'Mobile menu opened' : 'Mobile menu closed'
+    );
   }
 
   closeMobileMenu() {
@@ -427,18 +625,98 @@ export class NavigationComponent implements OnInit {
 
   toggleUserMenu() {
     this.userMenuOpen = !this.userMenuOpen;
+
+    // Focus first menu item when opening
+    if (this.userMenuOpen) {
+      setTimeout(() => {
+        const firstMenuItem = document.querySelector('.user-dropdown .dropdown-item') as HTMLElement;
+        firstMenuItem?.focus();
+      }, 0);
+    }
+  }
+
+  openUserMenuAndFocus() {
+    this.userMenuOpen = true;
+    setTimeout(() => {
+      const firstMenuItem = document.querySelector('.user-dropdown .dropdown-item') as HTMLElement;
+      firstMenuItem?.focus();
+    }, 0);
   }
 
   closeUserMenu() {
     this.userMenuOpen = false;
   }
 
+  onUserMenuBlur(event: FocusEvent) {
+    // Close menu if focus moves outside the user menu area
+    setTimeout(() => {
+      const activeElement = document.activeElement;
+      const userMenu = document.querySelector('.user-menu');
+
+      if (!userMenu?.contains(activeElement)) {
+        this.closeUserMenu();
+      }
+    }, 0);
+  }
+
+  handleDropdownKeydown(event: KeyboardEvent) {
+    const menuItems = Array.from(document.querySelectorAll('.user-dropdown .dropdown-item')) as HTMLElement[];
+    const currentIndex = menuItems.findIndex(item => item === document.activeElement);
+
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        const nextIndex = (currentIndex + 1) % menuItems.length;
+        menuItems[nextIndex]?.focus();
+        break;
+
+      case 'ArrowUp':
+        event.preventDefault();
+        const prevIndex = currentIndex <= 0 ? menuItems.length - 1 : currentIndex - 1;
+        menuItems[prevIndex]?.focus();
+        break;
+
+      case 'Escape':
+        event.preventDefault();
+        this.closeUserMenu();
+        (document.querySelector('.user-menu') as HTMLElement | null)?.focus();
+        break;
+
+      case 'Home':
+        event.preventDefault();
+        menuItems[0]?.focus();
+        break;
+
+      case 'End':
+        event.preventDefault();
+        menuItems[menuItems.length - 1]?.focus();
+        break;
+    }
+  }
+
+  private announceToScreenReader(message: string) {
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.className = 'sr-only';
+    announcement.textContent = message;
+
+    document.body.appendChild(announcement);
+
+    // Remove after announcement
+    setTimeout(() => {
+      document.body.removeChild(announcement);
+    }, 1000);
+  }
+
   async logout() {
     try {
       await this.authService.logout();
+      this.announceToScreenReader('You have been logged out successfully');
       this.router.navigate(['/']);
     } catch (error) {
       console.error('Logout failed:', error);
+      this.announceToScreenReader('Logout failed. Please try again.');
     }
   }
 }

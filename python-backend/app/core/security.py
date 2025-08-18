@@ -46,9 +46,56 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.now(timezone.utc) + timedelta(
             minutes=ACCESS_TOKEN_EXPIRE_MINUTES
         )
-    to_encode.update({"exp": expire})
+    
+    # Add standard JWT claims
+    now = datetime.now(timezone.utc)
+    to_encode.update({
+        "exp": expire,
+        "iat": now,  # Issued at time
+        "nbf": now   # Not before time
+    })
+    
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+
+def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """Create a new JWT refresh token with longer expiration."""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        # Refresh tokens expire after 7 days by default
+        expire = datetime.now(timezone.utc) + timedelta(days=7)
+    
+    # Add standard JWT claims
+    now = datetime.now(timezone.utc)
+    to_encode.update({
+        "exp": expire,
+        "iat": now,  # Issued at time
+        "nbf": now,  # Not before time
+        "type": "refresh"  # Token type
+    })
+    
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+def verify_token(token: str) -> Optional[dict]:
+    """Verify and decode a JWT token."""
+    # Handle invalid input types
+    if not isinstance(token, str) or not token:
+        return None
+        
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        # Check if token has required claims
+        if "sub" not in payload or "exp" not in payload:
+            return None
+        return payload
+    except JWTError as e:
+        logger.debug(f"Token verification failed: {e}")
+        return None
 
 
 def get_password_hash(password: str) -> str:
@@ -68,3 +115,24 @@ def decode_access_token(token: str) -> Optional[dict]:
         return payload
     except JWTError:
         return None
+
+
+def validate_password_strength(password: str) -> bool:
+    """Validate password strength for security requirements."""
+    if len(password) < 8:
+        return False
+    
+    # Check for common weak passwords
+    weak_patterns = ['password', 'qwerty', '12345678', 'abc123']
+    if password.lower() in weak_patterns:
+        return False
+    
+    # Password should not be all digits or all letters
+    if password.isdigit() or password.isalpha():
+        return False
+    
+    # Check for repeated characters
+    if len(set(password)) < 4:  # Too many repeated characters
+        return False
+    
+    return True

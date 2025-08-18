@@ -1,4 +1,4 @@
-# Dinner1 Angular Implementation Documentation
+# Dinner First Angular Implementation Documentation
 
 ## Table of Contents
 1. [Project Overview](#project-overview)
@@ -19,7 +19,7 @@
 
 ## Project Overview
 
-Dinner1 is a dating application focused on matching users based on their dining and food preferences. This Angular implementation is designed with a modular architecture, robust state management, and responsive UI components.
+Dinner First is a dating application focused on matching users based on their dining and food preferences. This Angular implementation is designed with a modular architecture, robust state management, and responsive UI components.
 
 **Key Features:**
 - User authentication (registration, login, password recovery)
@@ -72,8 +72,8 @@ Dinner1 is a dating application focused on matching users based on their dining 
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-organization/dinner1-app.git
-cd dinner1-app/interface/Angular
+git clone https://github.com/your-organization/dinner_first-app.git
+cd dinner_first-app/interface/Angular
 ```
 
 2. Install dependencies:

@@ -1,7 +1,7 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { StorageService } from '@core/services/storage.service';
+import { StorageService } from './storage.service';
 
 export type Theme = 'light' | 'dark';
 

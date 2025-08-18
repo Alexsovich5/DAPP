@@ -11,7 +11,11 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { ChatService } from '../../core/services/chat.service';
+import { ChatService, TypingUser } from '../../core/services/chat.service';
+import { AuthService } from '../../core/services/auth.service';
+import { TypingIndicatorComponent } from '../../shared/components/typing-indicator/typing-indicator.component';
+import { Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 interface Message {
   id: string;
@@ -45,7 +49,8 @@ interface ChatUser {
     MatProgressBarModule,
     MatToolbarModule,
     MatDividerModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    TypingIndicatorComponent
   ]
 })
 export class ChatComponent implements OnInit, OnDestroy {
@@ -59,9 +64,16 @@ export class ChatComponent implements OnInit, OnDestroy {
   error: string | null = null;
   userId: string | null = null;
 
+  // Typing indicator properties
+  typingUsers: TypingUser[] = [];
+  private typingHandler?: (inputValue: string) => void;
+  private subscriptions = new Subscription();
+  private currentUserId: string | null = null;
+
   constructor(
     private fb: FormBuilder,
     private chatService: ChatService,
+    private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router
   ) {
@@ -71,9 +83,18 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Get current user ID from auth service
+    this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        this.currentUserId = user.id.toString();
+        this.chatService.setCurrentUser(this.currentUserId);
+      }
+    });
+
     this.userId = this.route.snapshot.paramMap.get('id');
     if (this.userId) {
       this.loadChatData();
+      this.setupTypingIndicators();
     } else {
       this.error = 'Invalid chat. Please go back to matches.';
       this.isLoading = false;
@@ -81,6 +102,14 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // Cleanup subscriptions
+    this.subscriptions.unsubscribe();
+
+    // Stop any active typing indicators
+    if (this.userId) {
+      this.chatService.stopTyping(this.userId);
+    }
+
     // Cleanup any subscriptions or WebSocket connections
     this.chatService.disconnect();
   }
@@ -105,28 +134,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
-  onSendMessage(): void {
-    if (!this.chatForm.valid || this.isSending) return;
-
-    const message = this.chatForm.get('message')?.value.trim();
-    if (!message) return;
-
-    this.isSending = true;
-
-    this.chatService.sendMessage(this.userId!, message).subscribe({
-      next: (newMessage) => {
-        this.messages = [...this.messages, newMessage];
-        this.chatForm.reset();
-        this.scrollToBottom();
-      },
-      error: (err) => {
-        this.error = 'Failed to send message. Please try again.';
-      },
-      complete: () => {
-        this.isSending = false;
-      }
-    });
-  }
 
   private scrollToBottom(): void {
     setTimeout(() => {
@@ -174,5 +181,115 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   navigateToPreferences(): void {
     this.router.navigate(['/preferences']);
+  }
+
+  // === TYPING INDICATOR METHODS ===
+
+  private setupTypingIndicators(): void {
+    // Set current user ID in chat service
+    if (this.currentUserId) {
+      this.chatService.setCurrentUserId(this.currentUserId);
+    }
+
+    // Subscribe to enhanced typing users for this chat
+    this.subscriptions.add(
+      this.chatService.getEnhancedTypingUsers().subscribe(users => {
+        this.typingUsers = users;
+        // Scroll to bottom when typing indicators appear/disappear
+        if (users.length > 0) {
+          setTimeout(() => this.scrollToBottom(), 100);
+        }
+      })
+    );
+
+    // Setup connection activity tracking
+    this.setupConnectionActivity();
+
+    // Setup typing detection for message input
+    this.setupTypingDetection();
+  }
+
+  private setupConnectionActivity(): void {
+    // Mock connection activity for demonstration
+    // In real implementation, this would come from API/WebSocket
+    if (this.userId && this.chatPartner) {
+      this.chatService.updateConnectionActivity(this.userId, {
+        connectionStage: 'soul_discovery', // This should come from actual connection data
+        compatibilityScore: 85, // This should come from actual compatibility calculation
+        lastActivity: new Date(),
+        connectionEnergy: 'high'
+      });
+
+      // Set initial emotional state (could be determined by mood selector)
+      this.chatService.setEmotionalState(this.userId, 'contemplative');
+    }
+  }
+
+  private setupTypingDetection(): void {
+    if (!this.userId) return;
+
+    // Create enhanced current user data for typing indicators
+    const currentUserData: TypingUser = {
+      id: this.currentUserId || '',
+      name: 'You', // This should come from user profile
+      avatar: undefined, // Optional avatar URL
+      connectionStage: 'soul_discovery', // Should come from connection data
+      emotionalState: 'contemplative', // Should come from mood selector
+      compatibilityScore: 85 // Should come from compatibility calculation
+    };
+
+    // Create typing handler
+    this.typingHandler = this.chatService.createTypingHandler(this.userId, currentUserData);
+
+    // Subscribe to form control changes
+    this.subscriptions.add(
+      this.chatForm.get('message')?.valueChanges.pipe(
+        debounceTime(100), // Small debounce for performance
+        distinctUntilChanged()
+      ).subscribe(value => {
+        if (this.typingHandler) {
+          this.typingHandler(value || '');
+        }
+      }) || new Subscription()
+    );
+  }
+
+  // Enhanced message sending to stop typing indicator
+  onSendMessage(): void {
+    if (!this.chatForm.valid || this.isSending) return;
+
+    const message = this.chatForm.get('message')?.value.trim();
+    if (!message) return;
+
+    // Stop typing indicator before sending
+    if (this.userId) {
+      this.chatService.stopTyping(this.userId);
+    }
+
+    this.isSending = true;
+
+    this.chatService.sendMessage(this.userId!, message).subscribe({
+      next: (newMessage) => {
+        this.messages = [...this.messages, newMessage];
+        this.chatForm.reset();
+        this.scrollToBottom();
+      },
+      error: (err) => {
+        this.error = 'Failed to send message. Please try again.';
+      },
+      complete: () => {
+        this.isSending = false;
+      }
+    });
+  }
+
+  // Method to check if someone is typing
+  get hasTypingUsers(): boolean {
+    return this.typingUsers.length > 0;
+  }
+
+  // Method to get typing indicator position class
+  get typingIndicatorClass(): string {
+    return this.hasTypingUsers ? 'typing-visible' : 'typing-hidden';
   }
 }

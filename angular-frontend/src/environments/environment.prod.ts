@@ -1,8 +1,8 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.dinner1.com/api/v1', // Production API URL
-  tokenKey: 'dinner1_auth_token',
-  socketUrl: 'wss://api.dinner1.com', // Secure WebSocket for production
+  apiUrl: 'https://api.dinner-first.com/api/v1', // Production API URL
+  tokenKey: 'dinner_first_auth_token',
+  socketUrl: 'wss://api.dinner-first.com', // Secure WebSocket for production
   
   // UI Configuration
   ui: {

@@ -808,7 +808,7 @@ export class SettingsComponent implements OnInit {
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
     
-    const exportFileDefaultName = `dinner1-data-${new Date().toISOString().split('T')[0]}.json`;
+    const exportFileDefaultName = `dinner_first-data-${new Date().toISOString().split('T')[0]}.json`;
     
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);

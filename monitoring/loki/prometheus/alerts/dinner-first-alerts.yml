@@ -1,0 +1,278 @@
+# Prometheus Alert Rules for Dinner First Dating Platform
+# Comprehensive SRE alerting for soul-before-skin features
+
+groups:
+  # System Health Alerts
+  - name: system.rules
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.job }} has been down for more than 1 minute"
+          runbook_url: "https://wiki.dinnerfirst.app/runbooks/service-down"
+          dashboard_url: "https://grafana.dinnerfirst.app/d/system-overview"
+
+      - alert: HighCPUUsage
+        expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for more than 5 minutes"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 85% for more than 5 minutes"
+
+      - alert: DiskSpaceLow
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Disk space critically low"
+          description: "Disk usage is above 90% on {{ $labels.mountpoint }}"
+
+  # Application Performance Alerts
+  - name: application.rules
+    rules:
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(dinner_first_request_duration_seconds_bucket[5m])) > 2
+        for: 3m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is above 2 seconds"
+          current_value: "{{ $value }}s"
+          threshold: "2s"
+
+      - alert: HighErrorRate
+        expr: (rate(dinner_first_requests_total{status=~"5.."}[5m]) / rate(dinner_first_requests_total[5m])) * 100 > 5
+        for: 2m
+        labels:
+          severity: critical
+          category: reliability
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is above 5% for {{ $labels.service }}"
+          error_rate: "{{ $value }}%"
+          
+      - alert: LowRequestVolume
+        expr: rate(dinner_first_requests_total[5m]) < 0.1
+        for: 10m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Low request volume"
+          description: "Request volume is unusually low, potential issue or traffic drop"
+
+  # Database Alerts
+  - name: database.rules
+    rules:
+      - alert: PostgreSQLDown
+        expr: postgres_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database is not responding"
+
+      - alert: HighDatabaseConnections
+        expr: postgres_stat_database_numbackends / postgres_settings_max_connections * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "High database connection usage"
+          description: "Database connections are above 80% of maximum"
+
+      - alert: SlowDatabaseQueries
+        expr: increase(postgres_stat_database_tup_fetched[5m]) / increase(postgres_stat_database_tup_returned[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "Database queries are running slowly"
+          description: "High ratio of tuples fetched to returned, indicating inefficient queries"
+
+  # Soul Before Skin Dating Features
+  - name: soul_connections.rules
+    rules:
+      - alert: LowMatchingRate
+        expr: rate(dinner_first_matches_created_total[1h]) < 0.01
+        for: 15m
+        labels:
+          severity: warning
+          category: business
+          feature_area: soul_connections
+        annotations:
+          summary: "Soul connection matching rate is low"
+          description: "Match creation rate is below normal threshold"
+          user_impact: "Users may not be finding compatible matches"
+          business_impact: "Potential decrease in user engagement"
+
+      - alert: HighMatchRejectionRate  
+        expr: (rate(dinner_first_matches_rejected_total[1h]) / rate(dinner_first_matches_created_total[1h])) * 100 > 70
+        for: 10m
+        labels:
+          severity: warning
+          category: product
+          feature_area: soul_connections
+        annotations:
+          summary: "High match rejection rate in soul connections"
+          description: "{{ $value }}% of matches are being rejected"
+          user_impact: "Poor match quality affecting user experience"
+
+      - alert: RevelationSystemFailure
+        expr: rate(dinner_first_revelations_failed_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+          category: product
+          feature_area: revelations
+        annotations:
+          summary: "Daily revelation system experiencing failures"
+          description: "Revelation processing is failing at an elevated rate"
+
+      - alert: LowPhotoRevealRate
+        expr: rate(dinner_first_photo_reveals_total[24h]) < 10
+        for: 30m
+        labels:
+          severity: warning
+          category: business
+          feature_area: photo_reveal
+        annotations:
+          summary: "Low photo reveal rate"
+          description: "Photo reveal feature usage is below normal levels"
+          trend: "declining"
+
+  # WebSocket and Real-time Features
+  - name: realtime.rules
+    rules:
+      - alert: HighWebSocketDisconnections
+        expr: rate(dinner_first_websocket_disconnections_total[5m]) > 1
+        for: 3m
+        labels:
+          severity: warning
+          category: connectivity
+        annotations:
+          summary: "High WebSocket disconnection rate"
+          description: "Users are experiencing frequent disconnections from real-time features"
+
+      - alert: MessageDeliveryDelay
+        expr: histogram_quantile(0.95, rate(dinner_first_message_delivery_duration_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "Message delivery is slow"
+          description: "95th percentile message delivery time exceeds 5 seconds"
+
+  # Security Alerts
+  - name: security.rules
+    rules:
+      - alert: SuspiciousLoginActivity
+        expr: increase(dinner_first_failed_login_attempts_total[5m]) > 20
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+          security_type: authentication
+        annotations:
+          summary: "Suspicious login activity detected"
+          description: "High number of failed login attempts from {{ $labels.source_ip }}"
+
+      - alert: UnauthorizedAPIAccess
+        expr: rate(dinner_first_requests_total{status="401"}[5m]) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+          category: security
+          security_type: authorization
+        annotations:
+          summary: "High rate of unauthorized API access"
+          description: "Elevated 401 responses indicating potential security issue"
+
+      - alert: DataExfiltrationAttempt
+        expr: rate(dinner_first_data_export_requests_total[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+          security_type: data_protection
+        annotations:
+          summary: "Potential data exfiltration attempt"
+          description: "Unusual data export activity detected"
+
+  # Business KPI Alerts
+  - name: business_kpis.rules
+    rules:
+      - alert: DailyActiveUsersLow
+        expr: dinner_first_daily_active_users < 100
+        for: 1h
+        labels:
+          severity: warning
+          category: business
+          type: business_kpi
+        annotations:
+          summary: "Daily active users below target"
+          description: "DAU is {{ $value }}, below target of 100"
+          metric_name: "daily_active_users"
+          target_value: "100"
+
+      - alert: ConversionRateDrop
+        expr: (dinner_first_successful_matches_total / dinner_first_total_users) * 100 < 5
+        for: 2h
+        labels:
+          severity: warning
+          category: business
+          type: business_kpi
+        annotations:
+          summary: "Match conversion rate below target"
+          description: "Conversion rate has dropped to {{ $value }}%"
+          business_impact: "Revenue and user engagement affected"
+
+  # A/B Testing Alerts
+  - name: ab_testing.rules
+    rules:
+      - alert: ABTestSkewDetected
+        expr: abs(dinner_first_ab_test_variant_ratio - 0.5) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          category: experimentation
+        annotations:
+          summary: "A/B test traffic skew detected"
+          description: "Traffic distribution between variants is uneven: {{ $value }}"
+
+      - alert: ABTestConversionAnomaly
+        expr: abs(dinner_first_ab_test_variant_a_conversion - dinner_first_ab_test_variant_b_conversion) > 0.2
+        for: 30m
+        labels:
+          severity: warning
+          category: experimentation
+        annotations:
+          summary: "Significant A/B test conversion difference"
+          description: "Large conversion difference detected between test variants"
