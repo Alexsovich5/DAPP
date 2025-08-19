@@ -40,11 +40,11 @@ class PhotoPrivacyLevel(Enum):
 
 class RevealStatus(Enum):
     """Photo reveal status for testing compatibility"""
-    HIDDEN = "hidden"
-    CONSENT_REQUESTED = "consent_requested"
+    PENDING = "pending"
     CONSENTED = "consented"
     DECLINED = "declined"
     REVEALED = "revealed"
+    EXPIRED = "expired"
 
 
 class UserPhoto(Base):
@@ -404,5 +404,17 @@ class PhotoModerationLog(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
 
-# Backward compatibility alias for tests
-PhotoReveal = PhotoRevealTimeline
+# Test-compatible PhotoReveal class
+class PhotoReveal(Base):
+    """Simple photo reveal model for testing compatibility"""
+    __tablename__ = "simple_photo_reveals"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    connection_id = Column(Integer, ForeignKey("soul_connections.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    photo_url = Column(String, nullable=False)
+    reveal_status = Column(String, default="pending")
+    revealed_at = Column(DateTime)
+    
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

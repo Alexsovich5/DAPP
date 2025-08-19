@@ -109,8 +109,7 @@ def create_revelation(
         # Verify connection exists and user is part of it
         connection = db.query(SoulConnection).filter(
             SoulConnection.id == revelation_data.connection_id,
-            ((SoulConnection.user1_id == current_user.id) | (SoulConnection.user2_id == current_user.id)),
-            SoulConnection.status == "active"
+            ((SoulConnection.user1_id == current_user.id) | (SoulConnection.user2_id == current_user.id))
         ).first()
         
         if not connection:

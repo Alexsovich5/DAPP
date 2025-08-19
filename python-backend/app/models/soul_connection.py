@@ -11,6 +11,7 @@ class ConnectionStage(str, enum.Enum):
     DEEPER_CONNECTION = "deeper_connection"
     PHOTO_REVEAL = "photo_reveal"
     DINNER_PLANNING = "dinner_planning"
+    RELATIONSHIP_BUILDING = "relationship_building"
     COMPLETED = "completed"
 
 

@@ -475,6 +475,13 @@ def push_notification_service():
     return PushNotificationService()
 
 
+@pytest.fixture
+def photo_reveal_service(db_session):
+    """Photo reveal service fixture"""
+    from app.services.photo_reveal_service import PhotoRevealService
+    return PhotoRevealService(db_session)
+
+
 # === ASYNC TESTING INFRASTRUCTURE ===
 
 @pytest.fixture
