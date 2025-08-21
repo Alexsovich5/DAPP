@@ -18,6 +18,9 @@ from app.services.message_service import get_message_service
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["messages"])
 
+# Initialize message service
+message_service = get_message_service()
+
 
 # Pydantic models for request/response
 
@@ -321,6 +324,119 @@ async def get_message_statistics(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get statistics"
+        )
+
+
+@router.get("/last/{connection_id}")
+async def get_last_message(
+    connection_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get the last message for a specific connection
+    """
+    try:
+        from app.models.message import Message
+        from app.models.soul_connection import SoulConnection
+        from sqlalchemy import or_, desc
+        
+        # Verify user has access to this connection
+        connection = db.query(SoulConnection).filter(
+            SoulConnection.id == connection_id,
+            or_(
+                SoulConnection.user1_id == current_user.id,
+                SoulConnection.user2_id == current_user.id
+            )
+        ).first()
+        
+        if not connection:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Connection not found or access denied"
+            )
+        
+        # Get the last message in this connection
+        last_message = db.query(Message).filter(
+            Message.connection_id == connection_id
+        ).order_by(desc(Message.created_at)).first()
+        
+        if last_message:
+            return {
+                "success": True,
+                "content": last_message.content,
+                "sender_id": last_message.sender_id,
+                "created_at": last_message.created_at.isoformat(),
+                "emotional_state": last_message.emotional_state
+            }
+        else:
+            return {
+                "success": True,
+                "content": "Start your conversation...",
+                "sender_id": None,
+                "created_at": None,
+                "emotional_state": None
+            }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting last message: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get last message"
+        )
+
+
+@router.get("/unread-count/{connection_id}")
+async def get_unread_count(
+    connection_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get unread message count for a specific connection
+    """
+    try:
+        from app.models.message import Message
+        from app.models.soul_connection import SoulConnection
+        from sqlalchemy import or_
+        
+        # Verify user has access to this connection
+        connection = db.query(SoulConnection).filter(
+            SoulConnection.id == connection_id,
+            or_(
+                SoulConnection.user1_id == current_user.id,
+                SoulConnection.user2_id == current_user.id
+            )
+        ).first()
+        
+        if not connection:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Connection not found or access denied"
+            )
+        
+        # Count unread messages sent by the other user
+        unread_count = db.query(Message).filter(
+            Message.connection_id == connection_id,
+            Message.sender_id != current_user.id,
+            Message.is_read == False
+        ).count()
+        
+        return {
+            "success": True,
+            "connection_id": connection_id,
+            "unread_count": unread_count
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting unread count: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get unread count"
         )
 
 

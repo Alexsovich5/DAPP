@@ -479,11 +479,12 @@ def get_today_prompt(
 @router.post("/photo-consent/{connection_id}")
 def give_photo_consent(
     connection_id: int,
+    consent_data: Dict[str, Any] = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    Give consent for photo reveal.
+    Give consent for photo reveal with enhanced mutual consent workflow.
     """
     try:
         connection = db.query(SoulConnection).filter(
@@ -495,16 +496,44 @@ def give_photo_consent(
         if not connection:
             raise HTTPException(status_code=404, detail="Connection not found")
         
+        # Import revelation service for validation
+        from app.services.revelation_service import RevelationService
+        revelation_service = RevelationService(db)
+        
+        # Check photo reveal eligibility before allowing consent
+        eligibility = revelation_service.check_photo_reveal_eligibility(db, connection_id)
+        if not eligibility["eligible"]:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Not eligible for photo reveal: {eligibility['reason']}"
+            )
+        
+        # Get consent details from request data
+        consent_given = consent_data.get("consent", True) if consent_data else True
+        consent_message = consent_data.get("message", "") if consent_data else ""
+        
         # Update consent based on which user is giving it
-        if hasattr(connection, 'user1_photo_consent') and hasattr(connection, 'user2_photo_consent'):
+        user_consent_field = "user1_photo_consent" if connection.user1_id == current_user.id else "user2_photo_consent"
+        user_consent_status_field = "user1_consent_status" if connection.user1_id == current_user.id else "user2_consent_status"
+        
+        if hasattr(connection, user_consent_field):
+            setattr(connection, user_consent_field, consent_given)
+        
+        # Update consent status in photo timeline if exists
+        from app.models.photo_reveal import PhotoRevealTimeline
+        timeline = db.query(PhotoRevealTimeline).filter(
+            PhotoRevealTimeline.connection_id == connection_id
+        ).first()
+        
+        if timeline:
             if connection.user1_id == current_user.id:
-                connection.user1_photo_consent = True
+                timeline.user1_consent_status = "granted" if consent_given else "declined"
             else:
-                connection.user2_photo_consent = True
+                timeline.user2_consent_status = "granted" if consent_given else "declined"
         
         # Update user's global photo sharing consent if field exists
         if hasattr(current_user, 'photo_sharing_consent'):
-            current_user.photo_sharing_consent = True
+            current_user.photo_sharing_consent = consent_given
         
         # Check if both have consented
         mutual_consent = False
@@ -513,20 +542,72 @@ def give_photo_consent(
         elif hasattr(connection, 'user1_photo_consent') and hasattr(connection, 'user2_photo_consent'):
             mutual_consent = connection.user1_photo_consent and connection.user2_photo_consent
         
-        if mutual_consent:
+        # Update timeline mutual consent status
+        if timeline and mutual_consent:
+            timeline.mutual_consent_achieved = True
+            timeline.consent_achieved_at = datetime.utcnow()
+            
+            # Update connection stage progression
             if hasattr(connection, 'photo_revealed_at'):
                 connection.photo_revealed_at = datetime.utcnow()
             if hasattr(connection, 'connection_stage'):
                 connection.connection_stage = "dinner_planning"
+                
+            # Update timeline tracking
+            revelation_service.update_connection_timeline(db, connection_id, "photo_reveal_consented")
+        
+        # Record consent event for analytics
+        from app.models.photo_reveal import PhotoRevealEvent
+        if timeline:
+            consent_event = PhotoRevealEvent.create_event(
+                timeline_id=timeline.id,
+                connection_id=connection_id,
+                event_type="consent_given" if consent_given else "consent_declined",
+                user_id=current_user.id,
+                event_data={
+                    "consent_type": "timeline_based",
+                    "has_message": bool(consent_message),
+                    "partner_id": connection.get_partner_id(current_user.id)
+                },
+                description=f"Photo reveal consent {'granted' if consent_given else 'declined'}"
+            )
+            db.add(consent_event)
         
         db.commit()
         
-        return {
+        # Get updated status
+        partner_id = connection.get_partner_id(current_user.id)
+        partner_consent = False
+        if hasattr(connection, 'user1_photo_consent') and hasattr(connection, 'user2_photo_consent'):
+            partner_consent = (
+                connection.user2_photo_consent if connection.user1_id == current_user.id 
+                else connection.user1_photo_consent
+            )
+        
+        response_data = {
             "success": True,
+            "userConsent": consent_given,
+            "partnerConsent": partner_consent,
             "mutualConsent": mutual_consent,
             "photoRevealed": mutual_consent,
-            "message": "Photos revealed!" if mutual_consent else "Waiting for partner's consent"
+            "connectionStage": getattr(connection, 'connection_stage', 'photo_reveal'),
+            "message": (
+                "Photos revealed! You can now see each other." if mutual_consent 
+                else "Consent recorded. Waiting for partner's consent." if consent_given
+                else "Photo reveal consent declined."
+            )
         }
+        
+        # Add timeline data if available
+        if timeline:
+            response_data["timeline"] = {
+                "daysUntilReveal": timeline.calculate_days_until_reveal(),
+                "revelationsCompleted": timeline.revelations_completed,
+                "progressPercentage": timeline.get_reveal_progress_percentage(),
+                "consentAchievedAt": timeline.consent_achieved_at.isoformat() if timeline.consent_achieved_at else None
+            }
+        
+        return response_data
         
     except HTTPException:
         raise
@@ -595,3 +676,777 @@ def get_revelation_analytics(
     except Exception as e:
         logger.error(f"Error getting revelation analytics: {str(e)}")
         raise HTTPException(status_code=500, detail="Error getting analytics")
+
+
+@router.get("/streak/{connection_id}")
+def get_revelation_streak(
+    connection_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get revelation sharing streak for a specific connection.
+    """
+    try:
+        # Verify connection access
+        connection = db.query(SoulConnection).filter(
+            SoulConnection.id == connection_id,
+            ((SoulConnection.user1_id == current_user.id) | (SoulConnection.user2_id == current_user.id))
+        ).first()
+        
+        if not connection:
+            raise HTTPException(status_code=404, detail="Connection not found")
+        
+        # Import revelation service
+        from app.services.revelation_service import RevelationService
+        revelation_service = RevelationService(db)
+        
+        # Calculate streak data
+        streak_data = revelation_service.calculate_revelation_streak(db, current_user.id, connection_id)
+        
+        # Get partner streak for comparison
+        partner_id = connection.get_partner_id(current_user.id)
+        partner_streak_data = revelation_service.calculate_revelation_streak(db, partner_id, connection_id)
+        
+        return {
+            "connectionId": connection_id,
+            "userStreak": streak_data,
+            "partnerStreak": partner_streak_data,
+            "mutualStreak": min(streak_data["current_streak"], partner_streak_data["current_streak"]),
+            "streakComparison": {
+                "userLongest": streak_data["longest_streak"],
+                "partnerLongest": partner_streak_data["longest_streak"],
+                "bothConsistent": streak_data["current_streak"] > 0 and partner_streak_data["current_streak"] > 0
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting revelation streak: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error getting streak data")
+
+
+@router.get("/global-streak")
+def get_global_revelation_streak(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get user's global revelation streak across all connections.
+    """
+    try:
+        from app.services.revelation_service import RevelationService
+        revelation_service = RevelationService(db)
+        
+        # Get global streak data
+        global_streak = revelation_service.get_global_revelation_streak(db, current_user.id)
+        
+        # Get individual connection streaks for detailed view
+        connections = db.query(SoulConnection).filter(
+            (SoulConnection.user1_id == current_user.id) | (SoulConnection.user2_id == current_user.id)
+        ).all()
+        
+        connection_streaks = []
+        for connection in connections:
+            streak_data = revelation_service.calculate_revelation_streak(db, current_user.id, connection.id)
+            
+            # Get partner info
+            partner_id = connection.get_partner_id(current_user.id)
+            partner = db.query(User).filter(User.id == partner_id).first()
+            
+            connection_streaks.append({
+                "connectionId": connection.id,
+                "partnerName": partner.first_name if partner else "Unknown",
+                "currentStreak": streak_data["current_streak"],
+                "longestStreak": streak_data["longest_streak"],
+                "totalDays": streak_data["total_days"],
+                "streakPercentage": streak_data["streak_percentage"]
+            })
+        
+        return {
+            "globalStats": global_streak,
+            "connectionBreakdown": connection_streaks,
+            "achievements": {
+                "consistentSharer": global_streak["longest_overall_streak"] >= 5,
+                "perfectWeek": global_streak["longest_overall_streak"] >= 7,
+                "multiConnection": global_streak["total_connections_with_streaks"] > 1
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting global revelation streak: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error getting global streak data")
+
+
+@router.get("/reminder-check/{connection_id}")
+def check_revelation_reminder_needed(
+    connection_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Check if revelation reminders are needed for a connection.
+    Used by background task scheduler.
+    """
+    try:
+        # Verify connection access
+        connection = db.query(SoulConnection).filter(
+            SoulConnection.id == connection_id,
+            ((SoulConnection.user1_id == current_user.id) | (SoulConnection.user2_id == current_user.id))
+        ).first()
+        
+        if not connection:
+            raise HTTPException(status_code=404, detail="Connection not found")
+        
+        from app.services.revelation_service import RevelationService
+        revelation_service = RevelationService(db)
+        
+        reminder_data = revelation_service.check_revelation_reminder_eligibility(db, connection_id)
+        
+        return {
+            "connectionId": connection_id,
+            **reminder_data
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error checking reminder eligibility: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error checking reminder eligibility")
+
+
+@router.post("/scheduler/start")
+async def start_revelation_scheduler(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Start the revelation reminder scheduler (admin only).
+    """
+    try:
+        # Check if user has admin privileges (simplified check)
+        if not hasattr(current_user, 'is_admin') or not current_user.is_admin:
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        from app.services.revelation_scheduler import get_revelation_scheduler
+        scheduler = get_revelation_scheduler()
+        
+        if scheduler.is_running:
+            return {"success": False, "message": "Scheduler already running"}
+        
+        # Start scheduler in background
+        import asyncio
+        asyncio.create_task(scheduler.start_scheduler())
+        
+        return {
+            "success": True,
+            "message": "Revelation scheduler started",
+            "status": scheduler.get_scheduler_status()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error starting revelation scheduler: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error starting scheduler")
+
+
+@router.post("/scheduler/stop")
+async def stop_revelation_scheduler(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Stop the revelation reminder scheduler (admin only).
+    """
+    try:
+        # Check if user has admin privileges (simplified check)
+        if not hasattr(current_user, 'is_admin') or not current_user.is_admin:
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        from app.services.revelation_scheduler import get_revelation_scheduler
+        scheduler = get_revelation_scheduler()
+        
+        await scheduler.stop_scheduler()
+        
+        return {
+            "success": True,
+            "message": "Revelation scheduler stopped",
+            "status": scheduler.get_scheduler_status()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error stopping revelation scheduler: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error stopping scheduler")
+
+
+@router.get("/scheduler/status")
+def get_scheduler_status(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get revelation scheduler status.
+    """
+    try:
+        from app.services.revelation_scheduler import get_revelation_scheduler
+        scheduler = get_revelation_scheduler()
+        
+        return {
+            "schedulerStatus": scheduler.get_scheduler_status(),
+            "features": {
+                "dailyReminders": True,
+                "streakMaintenance": True,
+                "pushNotifications": True
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting scheduler status: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error getting scheduler status")
+
+
+@router.post("/scheduler/trigger-reminders")
+async def trigger_daily_reminders(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Manually trigger daily revelation reminders (admin only).
+    """
+    try:
+        # Check if user has admin privileges
+        if not hasattr(current_user, 'is_admin') or not current_user.is_admin:
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        from app.services.revelation_scheduler import get_revelation_scheduler
+        scheduler = get_revelation_scheduler()
+        
+        result = await scheduler.trigger_daily_reminders(db)
+        
+        return {
+            "triggerResult": result,
+            "message": "Daily reminders triggered manually"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error triggering daily reminders: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error triggering daily reminders")
+
+
+@router.post("/scheduler/trigger-streak-maintenance")
+async def trigger_streak_maintenance(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Manually trigger streak maintenance (admin only).
+    """
+    try:
+        # Check if user has admin privileges
+        if not hasattr(current_user, 'is_admin') or not current_user.is_admin:
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        from app.services.revelation_scheduler import get_revelation_scheduler
+        scheduler = get_revelation_scheduler()
+        
+        result = await scheduler.trigger_streak_maintenance(db)
+        
+        return {
+            "triggerResult": result,
+            "message": "Streak maintenance triggered manually"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error triggering streak maintenance: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error triggering streak maintenance")
+
+
+@router.get("/progress/{connection_id}")
+def get_revelation_progress(
+    connection_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get detailed revelation progress with timeline visualization data.
+    """
+    try:
+        # Verify connection access
+        connection = db.query(SoulConnection).filter(
+            SoulConnection.id == connection_id,
+            ((SoulConnection.user1_id == current_user.id) | (SoulConnection.user2_id == current_user.id))
+        ).first()
+        
+        if not connection:
+            raise HTTPException(status_code=404, detail="Connection not found")
+        
+        from app.services.revelation_service import RevelationService
+        revelation_service = RevelationService(db)
+        
+        # Calculate comprehensive progress data
+        progress_data = revelation_service.calculate_revelation_progress(db, connection_id)
+        
+        if "error" in progress_data:
+            raise HTTPException(status_code=500, detail=progress_data["error"])
+        
+        return {
+            "success": True,
+            "progressData": progress_data,
+            "lastUpdated": connection.updated_at.isoformat() if connection.updated_at else None
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting revelation progress: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error getting progress data")
+
+
+@router.post("/timeline/update/{connection_id}")
+def update_connection_timeline(
+    connection_id: int,
+    stage_update: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Update connection timeline with stage progression.
+    """
+    try:
+        # Verify connection access
+        connection = db.query(SoulConnection).filter(
+            SoulConnection.id == connection_id,
+            ((SoulConnection.user1_id == current_user.id) | (SoulConnection.user2_id == current_user.id))
+        ).first()
+        
+        if not connection:
+            raise HTTPException(status_code=404, detail="Connection not found")
+        
+        from app.services.revelation_service import RevelationService
+        revelation_service = RevelationService(db)
+        
+        # Update timeline
+        result = revelation_service.update_connection_timeline(db, connection_id, stage_update)
+        
+        if not result.get("success"):
+            raise HTTPException(status_code=400, detail=result.get("error", "Failed to update timeline"))
+        
+        return {
+            "success": True,
+            "timelineUpdate": result,
+            "message": f"Timeline updated: {stage_update}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating connection timeline: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error updating timeline")
+
+
+@router.post("/advance-day/{connection_id}")
+def advance_revelation_day(
+    connection_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Manually advance revelation day (admin only for testing).
+    """
+    try:
+        # Check if user has admin privileges
+        if not hasattr(current_user, 'is_admin') or not current_user.is_admin:
+            raise HTTPException(status_code=403, detail="Admin access required")
+        
+        # Verify connection access
+        connection = db.query(SoulConnection).filter(
+            SoulConnection.id == connection_id,
+            ((SoulConnection.user1_id == current_user.id) | (SoulConnection.user2_id == current_user.id))
+        ).first()
+        
+        if not connection:
+            raise HTTPException(status_code=404, detail="Connection not found")
+        
+        from app.services.revelation_service import RevelationService
+        revelation_service = RevelationService(db)
+        
+        # Advance day
+        result = revelation_service.advance_revelation_day(db, connection_id)
+        
+        if not result.get("success"):
+            raise HTTPException(status_code=400, detail=result.get("error", "Failed to advance day"))
+        
+        return {
+            "success": True,
+            "dayAdvancement": result,
+            "message": result.get("message", "Day advanced successfully")
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error advancing revelation day: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error advancing revelation day")
+
+
+@router.get("/insights/{connection_id}")
+def get_revelation_insights(
+    connection_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get personalized insights about revelation progress and quality.
+    """
+    try:
+        # Verify connection access
+        connection = db.query(SoulConnection).filter(
+            SoulConnection.id == connection_id,
+            ((SoulConnection.user1_id == current_user.id) | (SoulConnection.user2_id == current_user.id))
+        ).first()
+        
+        if not connection:
+            raise HTTPException(status_code=404, detail="Connection not found")
+        
+        from app.services.revelation_service import RevelationService
+        revelation_service = RevelationService(db)
+        
+        # Get progress data which includes insights
+        progress_data = revelation_service.calculate_revelation_progress(db, connection_id)
+        
+        if "error" in progress_data:
+            raise HTTPException(status_code=500, detail=progress_data["error"])
+        
+        # Extract and enhance insights
+        insights = progress_data.get("insights", [])
+        statistics = progress_data.get("statistics", {})
+        quality_metrics = progress_data.get("quality_metrics", {})
+        
+        # Generate actionable recommendations
+        recommendations = []
+        
+        if statistics.get("mutual_completion_percentage", 0) < 50:
+            recommendations.append({
+                "type": "engagement",
+                "title": "Boost Mutual Sharing",
+                "description": "Encourage your partner to share more by being vulnerable first",
+                "action": "Share a deeper revelation today"
+            })
+        
+        if quality_metrics.get("average_length", 0) < 50:
+            recommendations.append({
+                "type": "depth",
+                "title": "Add More Detail",
+                "description": "Share more context and emotion in your revelations",
+                "action": "Write at least 100 characters in your next revelation"
+            })
+        
+        if quality_metrics.get("consistency", 0) < 0.7:
+            recommendations.append({
+                "type": "consistency",
+                "title": "Stay Consistent",
+                "description": "Regular sharing builds stronger emotional bonds",
+                "action": "Set a daily reminder to share your revelation"
+            })
+        
+        return {
+            "connectionId": connection_id,
+            "insights": insights,
+            "statistics": statistics,
+            "qualityMetrics": quality_metrics,
+            "recommendations": recommendations,
+            "connectionHealth": {
+                "score": round((statistics.get("mutual_completion_percentage", 0) + quality_metrics.get("emotional_depth", 0) * 100) / 2, 1),
+                "status": "excellent" if statistics.get("mutual_completion_percentage", 0) >= 80 else "good" if statistics.get("mutual_completion_percentage", 0) >= 60 else "developing"
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting revelation insights: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error getting insights")
+
+
+@router.get("/photo-consent/status/{connection_id}")
+def get_photo_consent_status(
+    connection_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get detailed photo consent status for mutual consent workflow.
+    """
+    try:
+        # Verify connection access
+        connection = db.query(SoulConnection).filter(
+            SoulConnection.id == connection_id,
+            ((SoulConnection.user1_id == current_user.id) | (SoulConnection.user2_id == current_user.id))
+        ).first()
+        
+        if not connection:
+            raise HTTPException(status_code=404, detail="Connection not found")
+        
+        # Get photo timeline if exists
+        from app.models.photo_reveal import PhotoRevealTimeline
+        timeline = db.query(PhotoRevealTimeline).filter(
+            PhotoRevealTimeline.connection_id == connection_id
+        ).first()
+        
+        # Check photo reveal eligibility
+        from app.services.revelation_service import RevelationService
+        revelation_service = RevelationService(db)
+        eligibility = revelation_service.check_photo_reveal_eligibility(db, connection_id)
+        
+        # Get partner info
+        partner_id = connection.get_partner_id(current_user.id)
+        partner = db.query(User).filter(User.id == partner_id).first()
+        
+        # Build consent status
+        user_consent = False
+        partner_consent = False
+        
+        if hasattr(connection, 'user1_photo_consent') and hasattr(connection, 'user2_photo_consent'):
+            if connection.user1_id == current_user.id:
+                user_consent = connection.user1_photo_consent
+                partner_consent = connection.user2_photo_consent
+            else:
+                user_consent = connection.user2_photo_consent
+                partner_consent = connection.user1_photo_consent
+        
+        # Get timeline consent status
+        timeline_consent = {}
+        if timeline:
+            timeline_consent = {
+                "user1Status": timeline.user1_consent_status,
+                "user2Status": timeline.user2_consent_status,
+                "mutualConsentAchieved": timeline.mutual_consent_achieved,
+                "consentAchievedAt": timeline.consent_achieved_at.isoformat() if timeline.consent_achieved_at else None,
+                "photosRevealed": timeline.photos_revealed,
+                "photoRevealCompletedAt": timeline.photo_reveal_completed_at.isoformat() if timeline.photo_reveal_completed_at else None
+            }
+        
+        return {
+            "connectionId": connection_id,
+            "eligibility": eligibility,
+            "consent": {
+                "userConsent": user_consent,
+                "partnerConsent": partner_consent,
+                "mutualConsent": user_consent and partner_consent,
+                "canGiveConsent": eligibility["eligible"] and not user_consent,
+                "waitingForPartner": user_consent and not partner_consent
+            },
+            "timeline": timeline_consent,
+            "partner": {
+                "id": partner_id,
+                "name": partner.first_name if partner else "Unknown"
+            },
+            "connectionStage": getattr(connection, 'connection_stage', 'revelation_phase'),
+            "photoRevealedAt": connection.photo_revealed_at.isoformat() if hasattr(connection, 'photo_revealed_at') and connection.photo_revealed_at else None
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting photo consent status: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error getting consent status")
+
+
+@router.post("/photo-consent/withdraw/{connection_id}")
+def withdraw_photo_consent(
+    connection_id: int,
+    withdrawal_data: Dict[str, Any] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Withdraw photo reveal consent with proper mutual consent handling.
+    """
+    try:
+        # Verify connection access
+        connection = db.query(SoulConnection).filter(
+            SoulConnection.id == connection_id,
+            ((SoulConnection.user1_id == current_user.id) | (SoulConnection.user2_id == current_user.id))
+        ).first()
+        
+        if not connection:
+            raise HTTPException(status_code=404, detail="Connection not found")
+        
+        # Get withdrawal reason
+        withdrawal_reason = withdrawal_data.get("reason", "") if withdrawal_data else ""
+        
+        # Update consent status
+        if hasattr(connection, 'user1_photo_consent') and hasattr(connection, 'user2_photo_consent'):
+            if connection.user1_id == current_user.id:
+                connection.user1_photo_consent = False
+            else:
+                connection.user2_photo_consent = False
+        
+        # Update timeline consent status
+        from app.models.photo_reveal import PhotoRevealTimeline
+        timeline = db.query(PhotoRevealTimeline).filter(
+            PhotoRevealTimeline.connection_id == connection_id
+        ).first()
+        
+        if timeline:
+            if connection.user1_id == current_user.id:
+                timeline.user1_consent_status = "withdrawn"
+            else:
+                timeline.user2_consent_status = "withdrawn"
+            
+            # Reset mutual consent if it was previously achieved
+            if timeline.mutual_consent_achieved:
+                timeline.mutual_consent_achieved = False
+                timeline.consent_achieved_at = None
+                
+                # Revoke photo permissions if photos were revealed
+                if timeline.photos_revealed:
+                    from app.models.photo_reveal import PhotoRevealPermission
+                    permissions = db.query(PhotoRevealPermission).filter(
+                        PhotoRevealPermission.connection_id == connection_id,
+                        PhotoRevealPermission.is_active == True
+                    ).all()
+                    
+                    for permission in permissions:
+                        permission.is_active = False
+                        permission.revoked_at = datetime.utcnow()
+                    
+                    timeline.photos_revealed = False
+                    timeline.photo_reveal_completed_at = None
+                    
+                    # Update connection stage back to revelation phase
+                    if hasattr(connection, 'connection_stage'):
+                        connection.connection_stage = "revelation_phase"
+        
+        # Record withdrawal event
+        if timeline:
+            from app.models.photo_reveal import PhotoRevealEvent
+            withdrawal_event = PhotoRevealEvent.create_event(
+                timeline_id=timeline.id,
+                connection_id=connection_id,
+                event_type="consent_withdrawn",
+                user_id=current_user.id,
+                event_data={
+                    "reason": withdrawal_reason,
+                    "partner_id": connection.get_partner_id(current_user.id),
+                    "previous_mutual_consent": timeline.mutual_consent_achieved
+                },
+                description="Photo reveal consent withdrawn"
+            )
+            db.add(withdrawal_event)
+        
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": "Photo consent withdrawn successfully",
+            "mutualConsentRevoked": True,
+            "photosHidden": True,
+            "connectionStage": getattr(connection, 'connection_stage', 'revelation_phase'),
+            "canReConsent": True
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error withdrawing photo consent: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Error withdrawing consent")
+
+
+@router.get("/photo-consent/timeline/{connection_id}")
+def get_photo_consent_timeline(
+    connection_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get detailed photo consent timeline and history.
+    """
+    try:
+        # Verify connection access
+        connection = db.query(SoulConnection).filter(
+            SoulConnection.id == connection_id,
+            ((SoulConnection.user1_id == current_user.id) | (SoulConnection.user2_id == current_user.id))
+        ).first()
+        
+        if not connection:
+            raise HTTPException(status_code=404, detail="Connection not found")
+        
+        # Get photo timeline
+        from app.models.photo_reveal import PhotoRevealTimeline, PhotoRevealEvent
+        timeline = db.query(PhotoRevealTimeline).filter(
+            PhotoRevealTimeline.connection_id == connection_id
+        ).first()
+        
+        if not timeline:
+            return {
+                "connectionId": connection_id,
+                "timelineExists": False,
+                "message": "Photo timeline not yet created"
+            }
+        
+        # Get consent events
+        consent_events = db.query(PhotoRevealEvent).filter(
+            PhotoRevealEvent.timeline_id == timeline.id,
+            PhotoRevealEvent.event_type.in_([
+                "consent_requested", "consent_given", "consent_declined", 
+                "consent_withdrawn", "photos_revealed"
+            ])
+        ).order_by(PhotoRevealEvent.created_at.asc()).all()
+        
+        # Build timeline data
+        timeline_data = {
+            "connectionId": connection_id,
+            "timelineExists": True,
+            "currentStage": timeline.current_stage.value,
+            "daysUntilReveal": timeline.calculate_days_until_reveal(),
+            "revelationsCompleted": timeline.revelations_completed,
+            "minRevelationsRequired": timeline.min_revelations_required,
+            "progressPercentage": timeline.get_reveal_progress_percentage(),
+            "eligibleForReveal": timeline.is_reveal_eligible(),
+            "consentStatus": {
+                "user1Status": timeline.user1_consent_status,
+                "user2Status": timeline.user2_consent_status,
+                "mutualConsentAchieved": timeline.mutual_consent_achieved,
+                "consentAchievedAt": timeline.consent_achieved_at.isoformat() if timeline.consent_achieved_at else None
+            },
+            "photoReveal": {
+                "photosRevealed": timeline.photos_revealed,
+                "photoRevealCompletedAt": timeline.photo_reveal_completed_at.isoformat() if timeline.photo_reveal_completed_at else None,
+                "revealMethod": timeline.reveal_method.value if timeline.reveal_method else None
+            },
+            "events": []
+        }
+        
+        # Add consent events to timeline
+        for event in consent_events:
+            user = db.query(User).filter(User.id == event.user_id).first() if event.user_id else None
+            
+            timeline_data["events"].append({
+                "eventType": event.event_type,
+                "eventDescription": event.event_description,
+                "userId": event.user_id,
+                "userName": user.first_name if user else "System",
+                "eventData": event.event_data,
+                "createdAt": event.created_at.isoformat(),
+                "systemGenerated": event.system_generated
+            })
+        
+        return timeline_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting photo consent timeline: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error getting consent timeline")

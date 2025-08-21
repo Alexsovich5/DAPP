@@ -33,6 +33,12 @@ from app.models.ui_personalization_models import UserUIProfile
 # AB Testing models
 from app.models.ab_experiment import ABExperiment, ExperimentVariant, UserExperiment
 
+# Safety and moderation models
+from app.models.user_safety import (
+    UserReport, BlockedUser, UserSafetyProfile, ModerationAction,
+    ReportCategory, ReportStatus, SafetyStatus
+)
+
 # Make all models available when importing from app.models
 __all__ = [
     # Core models
@@ -60,5 +66,9 @@ __all__ = [
     "UserProfile", "UserPersonalizationProfile", "UserUIProfile",
     
     # AB Testing models
-    "ABExperiment", "ExperimentVariant", "UserExperiment"
+    "ABExperiment", "ExperimentVariant", "UserExperiment",
+    
+    # Safety and moderation models
+    "UserReport", "BlockedUser", "UserSafetyProfile", "ModerationAction",
+    "ReportCategory", "ReportStatus", "SafetyStatus"
 ]

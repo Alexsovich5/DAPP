@@ -12,6 +12,7 @@ from app.core.security import (
     create_access_token,
     get_password_hash,
     ACCESS_TOKEN_EXPIRE_MINUTES,
+    get_csrf_token_for_user,
 )
 from app.models.user import User
 from app.schemas.auth import UserCreate, Token, LoginResponse, User as UserSchema
@@ -169,8 +170,29 @@ def get_current_user_info(current_user: User = Depends(get_current_user)) -> Any
     return current_user
 
 
+@router.get("/csrf-token")
+def get_csrf_token(current_user: User = Depends(get_current_user)) -> Any:
+    """
+    Get a CSRF token for the authenticated user.
+    
+    This endpoint provides a cryptographically secure CSRF token that must be
+    included in the X-CSRF-Token header for state-changing operations.
+    """
+    csrf_token = get_csrf_token_for_user(current_user.id)
+    
+    logger.debug(f"Generated CSRF token for user {current_user.id}")
+    
+    return {
+        "csrf_token": csrf_token,
+        "user_id": current_user.id,
+        "expires_in_minutes": 60,  # Token valid for 1 hour
+        "instructions": "Include this token in the X-CSRF-Token header for POST, PUT, PATCH, DELETE requests"
+    }
+
+
 @router.options("/login")
 @router.options("/register")
+@router.options("/csrf-token")
 async def handle_auth_options():
     """Handle OPTIONS requests for authentication endpoints"""
     return {"message": "OK"}

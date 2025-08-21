@@ -377,6 +377,94 @@ class CompatibilityCalculator:
         
         return weighted_sum / weight_sum if weight_sum > 0 else 0.0
 
+    def calculate_overall_compatibility(self, user1: Dict, user2: Dict) -> Dict[str, Any]:
+        """
+        Calculate comprehensive compatibility score between two users.
+        
+        Args:
+            user1: Dictionary with user data (interests, core_values, age, location)
+            user2: Dictionary with user data (interests, core_values, age, location)
+            
+        Returns:
+            Dictionary with total compatibility score, breakdown, and match quality
+        """
+        # Calculate individual component scores
+        interest_score = self.calculate_interest_similarity(
+            user1.get('interests', []), 
+            user2.get('interests', [])
+        )
+        
+        values_score = self.calculate_values_compatibility(
+            user1.get('core_values', {}), 
+            user2.get('core_values', {})
+        )
+        
+        demographic_score = self.calculate_demographic_compatibility(user1, user2)
+        
+        # Calculate personality and communication if available
+        personality_score = 0.5  # Default neutral score
+        communication_score = 0.5  # Default neutral score
+        
+        if 'personality_traits' in user1 and 'personality_traits' in user2:
+            personality_score = self.calculate_personality_compatibility(
+                user1['personality_traits'], user2['personality_traits']
+            )
+        
+        if 'communication_style' in user1 and 'communication_style' in user2:
+            communication_score = self.calculate_communication_compatibility(
+                user1['communication_style'], user2['communication_style']
+            )
+        
+        # Calculate weighted total using defined weights
+        total_score = (
+            interest_score * self.weights["interests"] +
+            values_score * self.weights["values"] +
+            demographic_score * self.weights["demographics"] +
+            communication_score * self.weights["communication"] +
+            personality_score * self.weights["personality"]
+        )
+        
+        # Convert to percentage
+        total_compatibility = round(total_score * 100, 1)
+        
+        # Create breakdown
+        breakdown = {
+            "interests": round(interest_score * 100, 1),
+            "values": round(values_score * 100, 1),
+            "demographics": round(demographic_score * 100, 1),
+            "communication": round(communication_score * 100, 1),
+            "personality": round(personality_score * 100, 1)
+        }
+        
+        # Determine match quality
+        match_quality = self._get_match_quality_label(total_score)
+        
+        return {
+            "total_compatibility": total_compatibility,
+            "breakdown": breakdown,
+            "match_quality": match_quality,
+            "explanation": self._generate_compatibility_explanation(
+                total_score, interest_score, values_score, demographic_score
+            )
+        }
+    
+    def _get_match_quality_label(self, score: float) -> str:
+        """Convert compatibility score to quality label."""
+        if score >= 0.85:
+            return "Exceptional"
+        elif score >= 0.75:
+            return "Excellent" 
+        elif score >= 0.65:
+            return "Very Good"
+        elif score >= 0.55:
+            return "Good"
+        elif score >= 0.45:
+            return "Moderate"
+        elif score >= 0.35:
+            return "Fair"
+        else:
+            return "Limited"
+
 
 def get_compatibility_calculator() -> CompatibilityCalculator:
     """Factory function to create compatibility calculator instance."""

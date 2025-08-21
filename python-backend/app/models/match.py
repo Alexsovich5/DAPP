@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Index
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -15,12 +15,12 @@ class Match(Base):
     __tablename__ = "matches"
 
     id = Column(Integer, primary_key=True, index=True)
-    sender_id = Column(Integer, ForeignKey("users.id"))
-    receiver_id = Column(Integer, ForeignKey("users.id"))
-    status = Column(String, default=MatchStatus.PENDING)
+    sender_id = Column(Integer, ForeignKey("users.id"), index=True)
+    receiver_id = Column(Integer, ForeignKey("users.id"), index=True)
+    status = Column(String, default=MatchStatus.PENDING, index=True)
     restaurant_preference = Column(String, nullable=True)
     proposed_date = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
@@ -29,4 +29,12 @@ class Match(Base):
     )
     receiver = relationship(
         "User", foreign_keys=[receiver_id], back_populates="received_matches"
+    )
+
+    # Performance indexes for common match queries
+    __table_args__ = (
+        Index('ix_matches_sender_status', 'sender_id', 'status'),
+        Index('ix_matches_receiver_status', 'receiver_id', 'status'),
+        Index('ix_matches_status_created', 'status', 'created_at'),
+        Index('ix_matches_sender_receiver', 'sender_id', 'receiver_id'),
     )

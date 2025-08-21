@@ -78,29 +78,77 @@ class User(Base):
     email_notifications_enabled = Column(Boolean, default=True)
     revelation_reminders = Column(Boolean, default=True)
     
-    created_at = Column(DateTime, default=datetime.utcnow)
+    # Activity tracking for matching algorithms  
+    last_active_at = Column(DateTime, nullable=True, index=True)
+    is_verified = Column(Boolean, default=False, index=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(
         DateTime,
         default=datetime.utcnow,
         onupdate=datetime.utcnow,
+        index=True
     )
-    profile = relationship("Profile", uselist=False, back_populates="user")
+    
+    # Core relationships with proper cascading
+    profile = relationship("Profile", uselist=False, back_populates="user", cascade="all, delete-orphan")
     sent_matches = relationship(
-        "Match", back_populates="sender", foreign_keys="[Match.sender_id]"
+        "Match", back_populates="sender", foreign_keys="[Match.sender_id]", cascade="all, delete-orphan"
     )
     received_matches = relationship(
-        "Match", back_populates="receiver", foreign_keys="[Match.receiver_id]"
+        "Match", back_populates="receiver", foreign_keys="[Match.receiver_id]", cascade="all, delete-orphan"
     )
     
-    # Photo reveal relationships
-    photos = relationship("UserPhoto", back_populates="user")
+    # Soul connection relationships
+    soul_connections_as_user1 = relationship(
+        "SoulConnection", foreign_keys="[SoulConnection.user1_id]", cascade="all, delete-orphan"
+    )
+    soul_connections_as_user2 = relationship(
+        "SoulConnection", foreign_keys="[SoulConnection.user2_id]", cascade="all, delete-orphan"
+    )
+    initiated_connections = relationship(
+        "SoulConnection", foreign_keys="[SoulConnection.initiated_by]", cascade="all, delete-orphan"
+    )
     
-    # AI/ML relationships
-    ai_profile = relationship("UserProfile", back_populates="user", uselist=False)
+    # Message and revelation relationships
+    sent_messages = relationship("Message", foreign_keys="[Message.sender_id]", cascade="all, delete-orphan")
+    sent_revelations = relationship("DailyRevelation", foreign_keys="[DailyRevelation.sender_id]", cascade="all, delete-orphan")
     
-    # Phase 6: Personalization relationships
-    personalization_profile = relationship("UserPersonalizationProfile", back_populates="user", uselist=False)
-    ui_profile = relationship("UserUIProfile", back_populates="user", uselist=False)
+    # Photo reveal relationships with proper cascading
+    photos = relationship("UserPhoto", back_populates="user", cascade="all, delete-orphan")
+    photo_reveal_requests_made = relationship(
+        "PhotoRevealRequest", foreign_keys="[PhotoRevealRequest.requester_id]", cascade="all, delete-orphan"
+    )
+    photo_reveal_requests_received = relationship(
+        "PhotoRevealRequest", foreign_keys="[PhotoRevealRequest.photo_owner_id]", cascade="all, delete-orphan"
+    )
+    photo_permissions_granted = relationship(
+        "PhotoRevealPermission", foreign_keys="[PhotoRevealPermission.photo_owner_id]", cascade="all, delete-orphan"
+    )
+    photo_permissions_received = relationship(
+        "PhotoRevealPermission", foreign_keys="[PhotoRevealPermission.viewer_id]", cascade="all, delete-orphan"
+    )
+    
+    # Safety and moderation relationships with proper cascading
+    safety_profile = relationship("UserSafetyProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    reports_made = relationship(
+        "UserReport", foreign_keys="[UserReport.reporter_id]", back_populates="reporter", cascade="all, delete-orphan"
+    )
+    reports_received = relationship(
+        "UserReport", foreign_keys="[UserReport.reported_user_id]", back_populates="reported_user", cascade="all, delete-orphan"
+    )
+    users_blocked = relationship(
+        "BlockedUser", foreign_keys="[BlockedUser.blocker_id]", back_populates="blocker", cascade="all, delete-orphan"
+    )
+    blocked_by_users = relationship(
+        "BlockedUser", foreign_keys="[BlockedUser.blocked_user_id]", back_populates="blocked_user", cascade="all, delete-orphan"
+    )
+    moderation_actions_received = relationship(
+        "ModerationAction", foreign_keys="[ModerationAction.target_user_id]", cascade="all, delete-orphan"
+    )
+    moderation_actions_performed = relationship(
+        "ModerationAction", foreign_keys="[ModerationAction.moderator_id]"
+    )
     
     def __str__(self):
         """String representation of the User"""

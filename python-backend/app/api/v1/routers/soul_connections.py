@@ -16,9 +16,37 @@ from app.schemas.soul_connection import (
     CompatibilityResponse
 )
 from app.services.compatibility import get_compatibility_calculator
+from datetime import datetime, date
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["soul-connections"])
+
+
+def calculate_age(date_of_birth) -> int:
+    """Calculate age from date of birth"""
+    if not date_of_birth:
+        return 25  # Default age for MVP
+    
+    try:
+        if isinstance(date_of_birth, str):
+            # Parse date string (assuming YYYY-MM-DD format)
+            birth_date = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
+        elif isinstance(date_of_birth, datetime):
+            birth_date = date_of_birth.date()
+        elif isinstance(date_of_birth, date):
+            birth_date = date_of_birth
+        else:
+            return 25  # Default if unknown format
+        
+        today = date.today()
+        age = today.year - birth_date.year
+        if (today.month, today.day) < (birth_date.month, birth_date.day):
+            age -= 1
+        
+        return max(18, min(100, age))  # Clamp between 18-100
+        
+    except (ValueError, TypeError, AttributeError):
+        return 25  # Default age for MVP
 
 
 @router.get("/discover", response_model=List[DiscoveryResponse])
@@ -60,9 +88,9 @@ def discover_soul_connections(
         
         # Apply age filters if specified
         if age_range_min or age_range_max:
-            # Note: date_of_birth is stored as string, need to calculate age
-            # For MVP, we'll skip age filtering and implement in next iteration
-            pass
+            # We'll filter by age after getting users since we need to calculate age
+            # This is less efficient but ensures accuracy for MVP
+            pass  # Age filtering will be done in the loop below
         
         potential_matches = query.limit(max_results * 3).all()  # Get more for filtering
         
@@ -71,11 +99,18 @@ def discover_soul_connections(
         current_user_data = {
             'interests': current_user.interests or [],
             'core_values': current_user.core_values or {},
-            'age': 25,  # Default for MVP, calculate from date_of_birth later
+            'age': calculate_age(current_user.date_of_birth),
             'location': current_user.location or ''
         }
         
         for user in potential_matches:
+            # Apply age filtering
+            user_age = calculate_age(user.date_of_birth)
+            if age_range_min and user_age < age_range_min:
+                continue
+            if age_range_max and user_age > age_range_max:
+                continue
+            
             # Quick compatibility pre-check: skip users with no common interests
             if current_user.interests and user.interests:
                 common_interests = set(current_user.interests).intersection(set(user.interests))
@@ -84,7 +119,7 @@ def discover_soul_connections(
             user_data = {
                 'interests': user.interests or [],
                 'core_values': user.core_values or {},
-                'age': 25,  # Default for MVP
+                'age': calculate_age(user.date_of_birth),
                 'location': user.location or ''
             }
             
@@ -97,7 +132,7 @@ def discover_soul_connections(
                 # Create profile preview (limited info for soul discovery)
                 profile_preview = {
                     'first_name': user.first_name,
-                    'age': 25,  # Calculate from date_of_birth
+                    'age': calculate_age(user.date_of_birth),
                     'location': user.location,
                     'bio': user.bio[:100] + '...' if user.bio and len(user.bio) > 100 else user.bio,
                     'interests': user.interests[:3] if user.interests else [],  # Show only first 3
@@ -164,13 +199,13 @@ def initiate_soul_connection(
         current_user_data = {
             'interests': current_user.interests or [],
             'core_values': current_user.core_values or {},
-            'age': 25,  # Default for MVP
+            'age': calculate_age(current_user.date_of_birth),
             'location': current_user.location or ''
         }
         target_user_data = {
             'interests': target_user.interests or [],
             'core_values': target_user.core_values or {},
-            'age': 25,  # Default for MVP
+            'age': calculate_age(target_user.date_of_birth),
             'location': target_user.location or ''
         }
         

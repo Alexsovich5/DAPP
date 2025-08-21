@@ -332,3 +332,346 @@ class RevelationService:
             "total_revelations_shared": total_revelations_shared,
             "average_revelations_per_connection": round(total_revelations_shared / max(total_connections, 1), 1)
         }
+
+    def calculate_revelation_streak(self, db: Session, user_id: int, connection_id: int) -> Dict[str, Any]:
+        """Calculate revelation sharing streak for a user in a specific connection"""
+        connection = db.query(SoulConnection).filter(SoulConnection.id == connection_id).first()
+        if not connection:
+            return {"current_streak": 0, "longest_streak": 0, "total_days": 0}
+
+        # Get all user's revelations for this connection ordered by day
+        revelations = db.query(DailyRevelation).filter(
+            DailyRevelation.connection_id == connection_id,
+            DailyRevelation.sender_id == user_id
+        ).order_by(DailyRevelation.day_number.asc()).all()
+
+        if not revelations:
+            return {"current_streak": 0, "longest_streak": 0, "total_days": 0}
+
+        # Calculate current streak (consecutive days from most recent)
+        current_day = self.get_current_revelation_day(connection)
+        current_streak = 0
+        
+        # Check if user shared yesterday and today
+        revelation_days = set(r.day_number for r in revelations)
+        
+        # Current streak: count backwards from current day
+        for day in range(min(current_day, 7), 0, -1):
+            if day in revelation_days:
+                current_streak += 1
+            else:
+                break
+
+        # Calculate longest streak
+        longest_streak = 0
+        temp_streak = 0
+        
+        for day in range(1, 8):
+            if day in revelation_days:
+                temp_streak += 1
+                longest_streak = max(longest_streak, temp_streak)
+            else:
+                temp_streak = 0
+
+        return {
+            "current_streak": current_streak,
+            "longest_streak": longest_streak,
+            "total_days": len(revelations),
+            "streak_percentage": round((current_streak / current_day * 100), 1) if current_day > 0 else 0
+        }
+
+    def get_global_revelation_streak(self, db: Session, user_id: int) -> Dict[str, Any]:
+        """Calculate user's overall revelation streak across all connections"""
+        connections = db.query(SoulConnection).filter(
+            (SoulConnection.user1_id == user_id) | (SoulConnection.user2_id == user_id)
+        ).all()
+
+        total_streaks = []
+        active_streaks = []
+        
+        for connection in connections:
+            streak_data = self.calculate_revelation_streak(db, user_id, connection.id)
+            total_streaks.append(streak_data["longest_streak"])
+            
+            current_day = self.get_current_revelation_day(connection)
+            if current_day <= 7:  # Active connection
+                active_streaks.append(streak_data["current_streak"])
+
+        return {
+            "longest_overall_streak": max(total_streaks) if total_streaks else 0,
+            "average_streak": round(sum(total_streaks) / len(total_streaks), 1) if total_streaks else 0,
+            "active_connections_streak": sum(active_streaks),
+            "total_connections_with_streaks": len([s for s in total_streaks if s > 0])
+        }
+
+    def check_revelation_reminder_eligibility(self, db: Session, connection_id: int) -> Dict[str, Any]:
+        """Check if a connection needs revelation reminders"""
+        connection = db.query(SoulConnection).filter(SoulConnection.id == connection_id).first()
+        if not connection:
+            return {"needs_reminder": False, "reason": "Connection not found"}
+
+        current_day = self.get_current_revelation_day(connection)
+        if current_day > 7:
+            return {"needs_reminder": False, "reason": "Revelation cycle complete"}
+
+        # Check if both users haven't shared for current day
+        today_revelations = db.query(DailyRevelation).filter(
+            DailyRevelation.connection_id == connection_id,
+            DailyRevelation.day_number == current_day
+        ).all()
+
+        user1_shared = any(r.sender_id == connection.user1_id for r in today_revelations)
+        user2_shared = any(r.sender_id == connection.user2_id for r in today_revelations)
+
+        needs_reminder_user1 = not user1_shared
+        needs_reminder_user2 = not user2_shared
+
+        if not needs_reminder_user1 and not needs_reminder_user2:
+            return {"needs_reminder": False, "reason": "Both users have shared today"}
+
+        # Check last activity to avoid spam
+        hours_since_creation = (datetime.utcnow() - connection.created_at).total_seconds() / 3600
+        day_hours = (current_day - 1) * 24
+
+        # Only send reminders if it's been at least 20 hours since the day unlocked
+        if hours_since_creation < (day_hours + 20):
+            return {"needs_reminder": False, "reason": "Too early for reminder"}
+
+        return {
+            "needs_reminder": True,
+            "user1_needs_reminder": needs_reminder_user1,
+            "user2_needs_reminder": needs_reminder_user2,
+            "current_day": current_day,
+            "hours_since_unlock": hours_since_creation - day_hours
+        }
+
+    def update_connection_timeline(self, db: Session, connection_id: int, stage_update: str) -> Dict[str, Any]:
+        """Update connection timeline with stage progression"""
+        connection = db.query(SoulConnection).filter(SoulConnection.id == connection_id).first()
+        if not connection:
+            return {"success": False, "error": "Connection not found"}
+
+        # Initialize stage progression dates if not exists
+        if not connection.stage_progression_dates:
+            connection.stage_progression_dates = {}
+
+        # Update stage progression tracking
+        stage_progression = connection.stage_progression_dates.copy() if connection.stage_progression_dates else {}
+        stage_progression[stage_update] = datetime.utcnow().isoformat()
+        
+        connection.stage_progression_dates = stage_progression
+        connection.updated_at = datetime.utcnow()
+
+        # Update specific timeline fields based on stage
+        if stage_update == "revelation_started" and not connection.revelation_started_at:
+            connection.revelation_started_at = datetime.utcnow()
+        elif stage_update == "photo_reveal" and not connection.photo_revealed_at:
+            connection.photo_revealed_at = datetime.utcnow()
+
+        db.commit()
+        
+        return {
+            "success": True,
+            "connection_id": connection_id,
+            "stage_updated": stage_update,
+            "timeline": stage_progression
+        }
+
+    def calculate_revelation_progress(self, db: Session, connection_id: int) -> Dict[str, Any]:
+        """Calculate detailed revelation progress for timeline visualization"""
+        connection = db.query(SoulConnection).filter(SoulConnection.id == connection_id).first()
+        if not connection:
+            return {"error": "Connection not found"}
+
+        # Get all revelations for this connection
+        revelations = db.query(DailyRevelation).filter(
+            DailyRevelation.connection_id == connection_id
+        ).order_by(DailyRevelation.day_number.asc()).all()
+
+        current_day = self.get_current_revelation_day(connection)
+        
+        # Build comprehensive timeline data
+        timeline_data = {
+            "connection_id": connection_id,
+            "current_day": current_day,
+            "total_days": 7,
+            "days_completed": min(current_day - 1, 7),
+            "progression_data": []
+        }
+
+        # Calculate progress for each day
+        for day in range(1, 8):
+            day_revelations = [r for r in revelations if r.day_number == day]
+            user1_revelation = next((r for r in day_revelations if r.sender_id == connection.user1_id), None)
+            user2_revelation = next((r for r in day_revelations if r.sender_id == connection.user2_id), None)
+            
+            day_info = self.get_revelation_for_day(day)
+            
+            # Calculate day completion status
+            is_unlocked = day <= current_day
+            user1_shared = bool(user1_revelation)
+            user2_shared = bool(user2_revelation)
+            both_shared = user1_shared and user2_shared
+            
+            day_progress = {
+                "day": day,
+                "is_unlocked": is_unlocked,
+                "is_current": day == current_day,
+                "prompt": day_info["prompt"] if day_info else "",
+                "type": day_info["type"].value if day_info else "",
+                "completion_status": {
+                    "user1_shared": user1_shared,
+                    "user2_shared": user2_shared,
+                    "both_shared": both_shared,
+                    "completion_percentage": (int(user1_shared) + int(user2_shared)) * 50
+                },
+                "timing": {
+                    "user1_shared_at": user1_revelation.created_at.isoformat() if user1_revelation else None,
+                    "user2_shared_at": user2_revelation.created_at.isoformat() if user2_revelation else None,
+                    "time_to_mutual_share": self._calculate_mutual_share_time(user1_revelation, user2_revelation)
+                },
+                "content_preview": {
+                    "user1_content": user1_revelation.content[:50] + "..." if user1_revelation and len(user1_revelation.content) > 50 else user1_revelation.content if user1_revelation else None,
+                    "user2_content": user2_revelation.content[:50] + "..." if user2_revelation and len(user2_revelation.content) > 50 else user2_revelation.content if user2_revelation else None
+                }
+            }
+            
+            timeline_data["progression_data"].append(day_progress)
+
+        # Calculate overall statistics
+        total_revelations = len(revelations)
+        user1_revelations = len([r for r in revelations if r.sender_id == connection.user1_id])
+        user2_revelations = len([r for r in revelations if r.sender_id == connection.user2_id])
+        
+        mutual_days = len(set(r.day_number for r in revelations if r.sender_id == connection.user1_id) & 
+                         set(r.day_number for r in revelations if r.sender_id == connection.user2_id))
+
+        timeline_data["statistics"] = {
+            "total_revelations_shared": total_revelations,
+            "user1_revelations": user1_revelations,
+            "user2_revelations": user2_revelations,
+            "mutual_sharing_days": mutual_days,
+            "overall_completion_percentage": round((total_revelations / 14) * 100, 1),
+            "user1_completion_percentage": round((user1_revelations / 7) * 100, 1),
+            "user2_completion_percentage": round((user2_revelations / 7) * 100, 1),
+            "mutual_completion_percentage": round((mutual_days / 7) * 100, 1)
+        }
+
+        # Calculate quality metrics
+        timeline_data["quality_metrics"] = self._calculate_revelation_quality_metrics(revelations, connection)
+
+        # Generate insights and recommendations
+        timeline_data["insights"] = self._generate_timeline_insights(timeline_data, connection)
+
+        return timeline_data
+
+    def _calculate_mutual_share_time(self, revelation1, revelation2) -> Optional[str]:
+        """Calculate time difference between two revelations"""
+        if not revelation1 or not revelation2:
+            return None
+        
+        time_diff = abs((revelation1.created_at - revelation2.created_at).total_seconds())
+        
+        if time_diff < 3600:  # Less than 1 hour
+            return f"{int(time_diff // 60)} minutes"
+        elif time_diff < 86400:  # Less than 1 day
+            return f"{int(time_diff // 3600)} hours"
+        else:
+            return f"{int(time_diff // 86400)} days"
+
+    def _calculate_revelation_quality_metrics(self, revelations: List, connection) -> Dict[str, Any]:
+        """Calculate quality metrics for revelations"""
+        if not revelations:
+            return {"average_length": 0, "emotional_depth": 0, "consistency": 0}
+
+        # Calculate average content length
+        total_length = sum(len(r.content) for r in revelations)
+        average_length = total_length / len(revelations)
+
+        # Simple emotional depth scoring based on content length and keywords
+        emotional_keywords = ["feel", "love", "hope", "dream", "fear", "joy", "pain", "heart", "soul", "connection"]
+        emotional_score = 0
+        
+        for revelation in revelations:
+            content_lower = revelation.content.lower()
+            keyword_count = sum(1 for keyword in emotional_keywords if keyword in content_lower)
+            length_score = min(len(revelation.content) / 100, 1.0)  # Normalize to 0-1
+            emotional_score += (keyword_count * 0.1) + (length_score * 0.5)
+
+        emotional_depth = min(emotional_score / len(revelations), 1.0)
+
+        # Calculate consistency (how regularly revelations are shared)
+        days_with_revelations = len(set(r.day_number for r in revelations))
+        consistency = days_with_revelations / 7.0
+
+        return {
+            "average_length": round(average_length, 1),
+            "emotional_depth": round(emotional_depth, 2),
+            "consistency": round(consistency, 2),
+            "total_emotional_keywords": sum(1 for r in revelations for keyword in emotional_keywords if keyword in r.content.lower())
+        }
+
+    def _generate_timeline_insights(self, timeline_data: Dict, connection) -> List[str]:
+        """Generate insights and recommendations based on timeline data"""
+        insights = []
+        stats = timeline_data["statistics"]
+        quality = timeline_data["quality_metrics"]
+        
+        # Completion insights
+        if stats["mutual_completion_percentage"] >= 80:
+            insights.append("🌟 Excellent mutual engagement! You're both deeply invested in this connection.")
+        elif stats["mutual_completion_percentage"] >= 60:
+            insights.append("💫 Strong connection building! Keep sharing your authentic selves.")
+        elif stats["mutual_completion_percentage"] >= 40:
+            insights.append("🌱 Growing connection! Consider encouraging more mutual sharing.")
+        else:
+            insights.append("💭 Early stages! Take time to share more deeply with each other.")
+
+        # Quality insights
+        if quality["emotional_depth"] >= 0.7:
+            insights.append("❤️ Your revelations show deep emotional openness and vulnerability.")
+        elif quality["average_length"] >= 150:
+            insights.append("📝 You're sharing detailed, thoughtful revelations - great depth!")
+
+        # Consistency insights
+        if quality["consistency"] >= 0.8:
+            insights.append("⭐ Consistent sharing pattern shows strong commitment to connection.")
+        elif quality["consistency"] < 0.5:
+            insights.append("📅 Try to share more regularly to maintain connection momentum.")
+
+        # Timing insights
+        current_day = timeline_data["current_day"]
+        if current_day == 7:
+            insights.append("🎉 You've reached the photo reveal day! A beautiful milestone.")
+        elif current_day >= 5:
+            insights.append("✨ Almost at the finish line! The deepest revelations are happening.")
+        elif current_day >= 3:
+            insights.append("🚀 Halfway through the journey! Your connection is deepening.")
+
+        return insights[:4]  # Return top 4 insights
+
+    def advance_revelation_day(self, db: Session, connection_id: int) -> Dict[str, Any]:
+        """Manually advance revelation day (for testing or admin use)"""
+        connection = db.query(SoulConnection).filter(SoulConnection.id == connection_id).first()
+        if not connection:
+            return {"success": False, "error": "Connection not found"}
+
+        if connection.reveal_day >= 7:
+            return {"success": False, "error": "Revelation cycle already complete"}
+
+        old_day = connection.reveal_day
+        connection.reveal_day = min(connection.reveal_day + 1, 7)
+        connection.updated_at = datetime.utcnow()
+
+        # Update timeline
+        self.update_connection_timeline(db, connection_id, f"day_{connection.reveal_day}_unlocked")
+
+        db.commit()
+
+        return {
+            "success": True,
+            "connection_id": connection_id,
+            "previous_day": old_day,
+            "current_day": connection.reveal_day,
+            "message": f"Advanced from Day {old_day} to Day {connection.reveal_day}"
+        }

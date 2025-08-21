@@ -25,6 +25,7 @@ from app.api.v1.routers import (
     notifications,
     monitoring,
     websocket,
+    discovery,
 )
 from app.api.v1.routers import chat as chat_router
 from app.api.v1.routers import safety as safety_router
@@ -133,6 +134,13 @@ v1_app.include_router(
     ai_matching.router,
     prefix="/ai-matching",
     tags=["ai-matching"],
+)
+
+# Local Discovery & Compatibility Algorithms
+v1_app.include_router(
+    discovery.router,
+    prefix="/discovery",
+    tags=["discovery"],
 )
 
 # Phase 6: Advanced Personalization & Content Intelligence
