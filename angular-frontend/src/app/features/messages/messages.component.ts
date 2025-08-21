@@ -673,7 +673,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
         partnerName: this.getPartnerName(connection),
         lastMessage: 'Loading...', // Will be updated by async call
         lastMessageTime: new Date(connection.updated_at || connection.created_at),
-        unreadCount: this.chatService.getUnreadCount(connection.id),
+        unreadCount: this.chatService.getUnreadCountSync(connection.id),
         connectionStage: connection.connection_stage,
         revelationDay: connection.reveal_day,
         compatibilityScore: connection.compatibility_score,
@@ -681,7 +681,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
         isTyping: false
       };
 
-      // Get real last message asynchronously
+      // Get real last message and unread count asynchronously
       this.chatService.getLastMessage(connection.id).subscribe({
         next: (lastMessage) => {
           preview.lastMessage = lastMessage;
@@ -689,6 +689,19 @@ export class MessagesComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.warn(`Could not load last message for connection ${connection.id}:`, error);
           preview.lastMessage = 'Start your conversation...';
+        }
+      });
+
+      // Get real unread count asynchronously
+      this.chatService.getUnreadCount(connection.id).subscribe({
+        next: (unreadCount) => {
+          preview.unreadCount = unreadCount;
+          // Re-apply filter to update UI if needed
+          this.applyFilter();
+        },
+        error: (error) => {
+          console.warn(`Could not load unread count for connection ${connection.id}:`, error);
+          preview.unreadCount = 0;
         }
       });
 

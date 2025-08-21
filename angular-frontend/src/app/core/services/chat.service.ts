@@ -464,9 +464,20 @@ export class ChatService {
   /**
    * Get unread message count for a conversation
    */
-  getUnreadCount(connectionId: number): number {
-    // In production, this would come from the backend
-    // For now, return 0 to eliminate random mock data
+  getUnreadCount(connectionId: number): Observable<number> {
+    return this.http.get<any>(`${environment.apiUrl}/messages/unread-count/${connectionId}`).pipe(
+      map(response => response.unread_count || 0),
+      catchError(() => of(0))
+    );
+  }
+
+  /**
+   * Get unread count synchronously (cached/optimistic)
+   * This is used for immediate UI updates
+   */
+  getUnreadCountSync(connectionId: number): number {
+    // Return cached value or 0 for immediate UI rendering
+    // This could be enhanced with local caching
     return 0;
   }
 
