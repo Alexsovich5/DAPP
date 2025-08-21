@@ -105,7 +105,7 @@ jobs:
         image: postgres:15
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: test_password
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: dinner_first_test
         options: >-
           --health-cmd pg_isready
@@ -155,8 +155,8 @@ jobs:
       - name: Create test environment file
         run: |
           cat > .env.test << EOF
-          DATABASE_URL=postgresql://postgres:test_password@localhost:5432/dinner_first_test
-          SECRET_KEY=test-secret-key-for-ci-very-long-and-secure
+          DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@localhost:5432/dinner_first_test
+          SECRET_KEY=${CI_SECRET_KEY:-test-secret-key-for-ci-very-long-and-secure}
           CORS_ORIGINS=http://localhost:4200,http://localhost:5001
           REDIS_URL=redis://localhost:6379/1
           ENVIRONMENT=testing
@@ -180,7 +180,7 @@ jobs:
 
       - name: Run database migrations
         env:
-          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/dinner_first_test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/dinner_first_test
         run: |
           # Create alembic.ini if it doesn't exist properly
           if [ ! -f alembic.ini ] || ! grep -q "sqlalchemy.url" alembic.ini; then
@@ -190,7 +190,7 @@ jobs:
           script_location = alembic
           prepend_sys_path = .
           version_path_separator = os
-          sqlalchemy.url = postgresql://postgres:test_password@localhost:5432/dinner_first_test
+          sqlalchemy.url = postgresql://postgres:postgres@localhost:5432/dinner_first_test
           
           [post_write_hooks]
           
@@ -235,7 +235,7 @@ jobs:
 
       - name: Run unit tests
         env:
-          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/dinner_first_test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/dinner_first_test
           SECRET_KEY: test-secret-key-for-ci-very-long-and-secure
           CORS_ORIGINS: http://localhost:4200,http://localhost:5001
           REDIS_URL: redis://localhost:6379/1

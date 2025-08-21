@@ -153,7 +153,7 @@ docker pull <account>.dkr.ecr.us-east-1.amazonaws.com/dinner1-backend:latest
 # Create environment file
 cat > /opt/dinner1/.env << EOF
 ENVIRONMENT=$ENVIRONMENT
-DATABASE_URL=postgresql://dinner1_user:secure_password@$DB_ENDPOINT:5432/dinner1
+DATABASE_URL=postgresql://dinner1_user:${DB_PASSWORD}@$DB_ENDPOINT:5432/dinner1
 REDIS_URL=redis://$REDIS_ENDPOINT:6379/0
 
 # Security
