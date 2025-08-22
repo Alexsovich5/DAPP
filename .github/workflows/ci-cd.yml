@@ -5,10 +5,10 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop, staging]
+    branches: [main, development, staging]
     tags: ["v*"]
   pull_request:
-    branches: [main, develop]
+    branches: [main, development]
 
 env:
   REGISTRY: ghcr.io
@@ -168,7 +168,8 @@ jobs:
       - name: Run integration tests
         run: |
           cd python-backend
-          pytest tests/integration/ -v --tb=short
+          # Run integration-style tests (user flows and system tests)
+          pytest tests/test_integration_user_flows.py tests/test_soul_connections.py -v --tb=short
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v3
@@ -321,7 +322,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy to Staging
     needs: [build-images]
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/development'
     environment: staging
 
     steps:
@@ -447,7 +448,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Performance Tests
     needs: [deploy-staging]
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/development'
 
     steps:
       - name: Checkout code
