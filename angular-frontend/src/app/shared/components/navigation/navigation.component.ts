@@ -170,9 +170,9 @@ import { Observable } from 'rxjs';
   `,
   styles: [`
     .main-navigation {
-      background: white;
-      border-bottom: 1px solid #e2e8f0;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      background: var(--card-background);
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: 0 2px 8px var(--shadow-color);
       position: sticky;
       top: 0;
       z-index: 1000;
@@ -197,14 +197,14 @@ import { Observable } from 'rxjs';
       align-items: center;
       gap: 0.5rem;
       text-decoration: none;
-      color: #2d3748;
+      color: var(--text-primary);
       font-weight: 700;
       font-size: 1.2rem;
       transition: color 0.2s ease;
     }
 
     .brand-link:hover {
-      color: #667eea;
+      color: var(--primary-color);
     }
 
     .brand-icon {
@@ -223,7 +223,7 @@ import { Observable } from 'rxjs';
       align-items: center;
       gap: 0.25rem;
       text-decoration: none;
-      color: #718096;
+      color: var(--text-secondary);
       transition: all 0.2s ease;
       padding: 0.5rem;
       border-radius: 8px;
@@ -231,13 +231,13 @@ import { Observable } from 'rxjs';
     }
 
     .nav-link:hover {
-      color: #667eea;
-      background: rgba(102, 126, 234, 0.05);
+      color: var(--primary-color);
+      background: rgba(var(--primary-color-rgb, 102, 126, 234), 0.05);
     }
 
     .nav-link.active {
-      color: #667eea;
-      background: rgba(102, 126, 234, 0.1);
+      color: var(--primary-color);
+      background: rgba(var(--primary-color-rgb, 102, 126, 234), 0.1);
     }
 
     .nav-icon {
@@ -263,7 +263,7 @@ import { Observable } from 'rxjs';
       position: absolute;
       top: -2px;
       right: -2px;
-      background: #f56565;
+      background: var(--error-text);
       color: white;
       border-radius: 50%;
       width: 20px;
@@ -273,7 +273,7 @@ import { Observable } from 'rxjs';
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 2px solid white;
+      border: 2px solid var(--card-background);
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
@@ -292,7 +292,7 @@ import { Observable } from 'rxjs';
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -310,10 +310,10 @@ import { Observable } from 'rxjs';
       top: 100%;
       right: 0;
       margin-top: 0.5rem;
-      background: white;
-      border: 1px solid #e2e8f0;
+      background: var(--card-background);
+      border: 1px solid var(--border-color);
       border-radius: 8px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 8px 25px var(--shadow-color);
       min-width: 180px;
       overflow: hidden;
       z-index: 1001;
@@ -325,7 +325,7 @@ import { Observable } from 'rxjs';
       gap: 0.75rem;
       padding: 0.75rem 1rem;
       text-decoration: none;
-      color: #4a5568;
+      color: var(--text-primary);
       transition: background 0.2s ease;
       border: none;
       background: none;
@@ -336,17 +336,17 @@ import { Observable } from 'rxjs';
     }
 
     .dropdown-item:hover {
-      background: #f7fafc;
+      background: var(--surface-color);
     }
 
     .logout-btn:hover {
-      background: #fed7d7;
-      color: #c53030;
+      background: var(--error-background);
+      color: var(--error-text);
     }
 
     .dropdown-divider {
       height: 1px;
-      background: #e2e8f0;
+      background: var(--border-color);
       margin: 0.5rem 0;
     }
 
@@ -368,7 +368,7 @@ import { Observable } from 'rxjs';
     .hamburger span {
       width: 20px;
       height: 2px;
-      background: #718096;
+      background: var(--text-secondary);
       transition: all 0.3s ease;
     }
 
@@ -394,10 +394,10 @@ import { Observable } from 'rxjs';
         top: 70px;
         left: 0;
         right: 0;
-        background: white;
+        background: var(--card-background);
         flex-direction: column;
         padding: 1.5rem;
-        border-bottom: 1px solid #e2e8f0;
+        border-bottom: 1px solid var(--border-color);
         transform: translateY(-100%);
         opacity: 0;
         visibility: hidden;

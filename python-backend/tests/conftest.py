@@ -60,9 +60,13 @@ def db_session(test_db):
     # Clean up by deleting test data (committed, so auth can see it during test)
     try:
         from sqlalchemy import text
-        # Delete test user and related data
-        session.execute(text("DELETE FROM profiles WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%test.com')"))
-        session.execute(text("DELETE FROM users WHERE email LIKE '%test.com'"))
+        # Delete test data in proper order (respect foreign keys)
+        session.execute(text("DELETE FROM daily_revelations WHERE sender_id IN (SELECT id FROM users WHERE email LIKE '%example.com')"))
+        session.execute(text("DELETE FROM messages WHERE sender_id IN (SELECT id FROM users WHERE email LIKE '%example.com')"))
+        session.execute(text("DELETE FROM soul_connections WHERE user1_id IN (SELECT id FROM users WHERE email LIKE '%example.com') OR user2_id IN (SELECT id FROM users WHERE email LIKE '%example.com')"))
+        session.execute(text("DELETE FROM matches WHERE sender_id IN (SELECT id FROM users WHERE email LIKE '%example.com') OR receiver_id IN (SELECT id FROM users WHERE email LIKE '%example.com')"))
+        session.execute(text("DELETE FROM profiles WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%example.com')"))
+        session.execute(text("DELETE FROM users WHERE email LIKE '%example.com'"))
         session.commit()
         session.close()
     except Exception as e:
@@ -99,9 +103,12 @@ def client(db_session) -> Generator:
 @pytest.fixture
 def test_user(db_session) -> Dict[str, str]:
     """Create a test user and return credentials"""
+    import uuid
+    unique_id = str(uuid.uuid4())[:8]
+    
     user = User(
-        email="test@example.com",
-        username="testuser",
+        email=f"test_{unique_id}@example.com",
+        username=f"testuser_{unique_id}",
         hashed_password=get_password_hash("testpassword"),
         is_active=True,
         emotional_onboarding_completed=True,
@@ -115,6 +122,7 @@ def test_user(db_session) -> Dict[str, str]:
         "user_id": user.id, 
         "token": token, 
         "email": user.email,
+        "username": user.username,
         "password": "testpassword"  # Store the original password for tests
     }
 
