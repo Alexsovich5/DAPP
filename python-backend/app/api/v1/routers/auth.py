@@ -119,6 +119,8 @@ def login(
     client_host = request.client.host if request else "unknown"
     logger.info(f"Login attempt for user: {form_data.username} from {client_host}")
 
+    # Session sharing is working correctly via engine-level override
+
     # First try to find user by email
     # (since form_data.username field is used for both)
     try:

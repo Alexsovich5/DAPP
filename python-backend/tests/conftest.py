@@ -11,6 +11,61 @@ from httpx import AsyncClient
 # Set test database URL BEFORE importing app modules
 os.environ["DATABASE_URL"] = "postgresql://postgres@localhost/test_dinner_app"
 
+# === ENGINE-LEVEL DATABASE OVERRIDE ===
+# Create test database engine and session BEFORE importing app modules
+# This ensures both test fixtures and API endpoints use the same session
+
+TEST_DATABASE_URL = "postgresql://postgres@localhost/test_dinner_app"
+
+# Create test engine with same configuration as production
+test_engine = create_engine(
+    TEST_DATABASE_URL,
+    pool_size=5,  # Increased pool size for test compatibility
+    max_overflow=10,  # Allow some overflow for test scenarios
+    pool_timeout=30,
+    pool_recycle=3600,
+    pool_pre_ping=True,
+    connect_args={
+        "connect_timeout": 10,
+        "application_name": "dinner_app_test",
+    },
+    echo=False,  # Set to True for SQL debugging
+)
+
+# Create test session factory
+TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+
+# Global test session that will be shared between fixtures and API
+_test_db_session = None
+
+def get_test_db():
+    """Test database session that returns the same session for fixtures and API"""
+    global _test_db_session
+    if _test_db_session is None:
+        _test_db_session = TestSessionLocal()
+    return _test_db_session
+
+# === PATCH DATABASE MODULE ===
+# Import and patch the database module before importing app components
+import app.core.database as db_module
+
+# Replace production engine and session with test versions
+db_module.engine = test_engine
+db_module.SessionLocal = TestSessionLocal
+
+# Override get_db to use our shared test session
+def patched_get_db():
+    """Patched get_db that yields the shared test session"""
+    global _test_db_session
+    if _test_db_session is None:
+        _test_db_session = TestSessionLocal()
+    
+    # Always yield the same session object
+    yield _test_db_session
+
+db_module.get_db = patched_get_db
+
+# Now import app components - they will use our patched database
 from app.core.database import Base, get_db
 from app.main import app
 from app.core.security import create_access_token, get_password_hash
@@ -25,79 +80,73 @@ from tests.factories import (
     setup_factories, create_complete_soul_connection
 )
 
-# Test database URL
-TEST_DATABASE_URL = "postgresql://postgres@localhost/test_dinner_app"
-
-# Create test database engine
-engine = create_engine(TEST_DATABASE_URL)
-
-# Create test SessionLocal class
-TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
 @pytest.fixture(scope="session")
 def test_db():
-    """Create test database and tables"""
+    """Create test database and tables using our test engine"""
     if database_exists(TEST_DATABASE_URL):
         drop_database(TEST_DATABASE_URL)
 
     create_database(TEST_DATABASE_URL)
-    Base.metadata.create_all(bind=engine)
-    yield engine
+    Base.metadata.create_all(bind=test_engine)
+    yield test_engine
     drop_database(TEST_DATABASE_URL)
 
 
 @pytest.fixture
 def db_session(test_db):
-    """Create a database session that commits data so authentication can see it"""
-    session = TestSessionLocal()
+    """Return the shared test database session used by both fixtures and API"""
+    global _test_db_session
     
-    # Setup factories with this session
-    setup_factories(session)
+    # Initialize the shared session if not already created
+    if _test_db_session is None:
+        _test_db_session = TestSessionLocal()
+    
+    # Setup factories with the shared session
+    setup_factories(_test_db_session)
 
-    yield session
+    yield _test_db_session
 
-    # Clean up by deleting test data (committed, so auth can see it during test)
+    # Clean up test data but keep the session alive for API calls
     try:
         from sqlalchemy import text
-        # Delete test data in proper order (respect foreign keys)
-        session.execute(text("DELETE FROM daily_revelations WHERE sender_id IN (SELECT id FROM users WHERE email LIKE '%example.com')"))
-        session.execute(text("DELETE FROM messages WHERE sender_id IN (SELECT id FROM users WHERE email LIKE '%example.com')"))
-        session.execute(text("DELETE FROM soul_connections WHERE user1_id IN (SELECT id FROM users WHERE email LIKE '%example.com') OR user2_id IN (SELECT id FROM users WHERE email LIKE '%example.com')"))
-        session.execute(text("DELETE FROM matches WHERE sender_id IN (SELECT id FROM users WHERE email LIKE '%example.com') OR receiver_id IN (SELECT id FROM users WHERE email LIKE '%example.com')"))
-        session.execute(text("DELETE FROM profiles WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%example.com')"))
-        session.execute(text("DELETE FROM users WHERE email LIKE '%example.com'"))
-        session.commit()
-        session.close()
+        # Clean up in proper foreign key order to prevent constraint violations
+        
+        # 1. Delete dependent tables first
+        _test_db_session.execute(text("DELETE FROM photo_reveal_events WHERE timeline_id IN (SELECT id FROM photo_reveal_timelines WHERE connection_id IN (SELECT id FROM soul_connections WHERE user1_id IN (SELECT id FROM users WHERE email LIKE '%example.com' OR email LIKE '%test.com') OR user2_id IN (SELECT id FROM users WHERE email LIKE '%example.com' OR email LIKE '%test.com')))"))
+        _test_db_session.execute(text("DELETE FROM photo_reveal_timelines WHERE connection_id IN (SELECT id FROM soul_connections WHERE user1_id IN (SELECT id FROM users WHERE email LIKE '%example.com' OR email LIKE '%test.com') OR user2_id IN (SELECT id FROM users WHERE email LIKE '%example.com' OR email LIKE '%test.com'))"))
+        _test_db_session.execute(text("DELETE FROM daily_revelations WHERE connection_id IN (SELECT id FROM soul_connections WHERE user1_id IN (SELECT id FROM users WHERE email LIKE '%example.com' OR email LIKE '%test.com') OR user2_id IN (SELECT id FROM users WHERE email LIKE '%example.com' OR email LIKE '%test.com'))"))
+        _test_db_session.execute(text("DELETE FROM messages WHERE connection_id IN (SELECT id FROM soul_connections WHERE user1_id IN (SELECT id FROM users WHERE email LIKE '%example.com' OR email LIKE '%test.com') OR user2_id IN (SELECT id FROM users WHERE email LIKE '%example.com' OR email LIKE '%test.com'))"))
+        
+        # 2. Delete connection-related tables
+        _test_db_session.execute(text("DELETE FROM soul_connections WHERE user1_id IN (SELECT id FROM users WHERE email LIKE '%example.com' OR email LIKE '%test.com') OR user2_id IN (SELECT id FROM users WHERE email LIKE '%example.com' OR email LIKE '%test.com')"))
+        _test_db_session.execute(text("DELETE FROM matches WHERE sender_id IN (SELECT id FROM users WHERE email LIKE '%example.com' OR email LIKE '%test.com') OR receiver_id IN (SELECT id FROM users WHERE email LIKE '%example.com' OR email LIKE '%test.com')"))
+        
+        # 3. Delete user-specific tables
+        _test_db_session.execute(text("DELETE FROM profiles WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%example.com' OR email LIKE '%test.com')"))
+        
+        # 4. Finally delete users
+        _test_db_session.execute(text("DELETE FROM users WHERE email LIKE '%example.com' OR email LIKE '%test.com' OR username LIKE 'souluser%' OR username LIKE 'test_%'"))
+        
+        _test_db_session.commit()
+        # DON'T close the session - it needs to stay alive for API calls
     except Exception as e:
         print(f"Cleanup error: {e}")
         try:
-            session.rollback()
-            session.close()
+            _test_db_session.rollback()
         except:
             pass
 
 
 @pytest.fixture
 def client(db_session) -> Generator:
-    """Create a test client that uses test database"""
-    
-    def override_get_db():
-        """Override database dependency to use test database engine"""
-        session = TestSessionLocal()
-        try:
-            yield session
-        finally:
-            session.close()
-
-    # Override the database dependency to use test database
-    app.dependency_overrides[get_db] = override_get_db
+    """Create a test client that uses the patched database session"""
+    # No need for dependency overrides - the database module is already patched
+    # Both this client and the db_session fixture use the same shared session
     
     with TestClient(app) as test_client:
         yield test_client
     
-    # Clear overrides
-    app.dependency_overrides.clear()
+    # No cleanup needed - session sharing is handled at the engine level
 
 
 @pytest.fixture

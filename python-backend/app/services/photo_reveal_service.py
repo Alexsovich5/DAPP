@@ -71,7 +71,8 @@ class ConsentRequestResult:
 class PhotoRevealService:
     """Comprehensive photo reveal and consent management service"""
     
-    def __init__(self):
+    def __init__(self, db: Session = None):
+        self.db = db
         self.max_photos_per_user = 6
         self.supported_formats = ['jpg', 'jpeg', 'png', 'webp']
         self.max_file_size = 10 * 1024 * 1024  # 10MB
@@ -942,6 +943,233 @@ class PhotoRevealService:
     async def _send_photo_reveal_notifications(self, timeline: PhotoRevealTimeline, db: Session):
         """Send notifications for completed photo reveal"""
         logger.info(f"Photo reveal notifications sent for connection {timeline.connection_id}")
+
+    # === SYNC METHODS FOR TESTING ===
+    # These methods are synchronous wrappers for the async functionality
+    # Used primarily by tests that expect sync interfaces
+
+    def give_consent(self, connection_id: int, user_id: int) -> bool:
+        """Synchronous wrapper for giving photo reveal consent"""
+        try:
+            if not self.db:
+                raise ValueError("Database session not provided")
+            
+            # Find the connection to validate it exists
+            connection = self.db.query(SoulConnection).filter(
+                SoulConnection.id == connection_id
+            ).first()
+            
+            if not connection:
+                raise ValueError(f"Connection {connection_id} not found")
+            
+            # Validate user is part of this connection
+            if user_id not in [connection.user1_id, connection.user2_id]:
+                raise ValueError("User not part of this connection")
+            
+            # Get or create photo reveal timeline
+            timeline = self.db.query(PhotoRevealTimeline).filter(
+                PhotoRevealTimeline.connection_id == connection_id
+            ).first()
+            
+            if not timeline:
+                timeline = PhotoRevealTimeline(
+                    connection_id=connection_id,
+                    connection_started_at=datetime.utcnow(),
+                    current_stage=PhotoRevealStage.HIDDEN
+                )
+                self.db.add(timeline)
+                self.db.flush()  # Get the ID
+            
+            # Update consent status based on which user is giving consent
+            if user_id == connection.user1_id:
+                timeline.user1_consent_status = "granted"
+            elif user_id == connection.user2_id:
+                timeline.user2_consent_status = "granted"
+            
+            # Check if mutual consent is achieved
+            if (timeline.user1_consent_status == "granted" and 
+                timeline.user2_consent_status == "granted"):
+                timeline.mutual_consent_achieved = True
+                timeline.consent_achieved_at = datetime.utcnow()
+                timeline.current_stage = PhotoRevealStage.MUTUAL_CONSENT
+            
+            self.db.commit()
+            logger.info(f"Consent given by user {user_id} for connection {connection_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error giving consent: {str(e)}")
+            if self.db:
+                self.db.rollback()
+            raise
+
+    def reveal_photo(self, connection_id: int, user_id: int, photo_url: str, force_reveal: bool = False) -> bool:
+        """Synchronous wrapper for revealing photos with consent validation"""
+        try:
+            if not self.db:
+                raise ValueError("Database session not provided")
+            
+            # Find the connection
+            connection = self.db.query(SoulConnection).filter(
+                SoulConnection.id == connection_id
+            ).first()
+            
+            if not connection:
+                raise ValueError(f"Connection {connection_id} not found")
+            
+            # Validate user is part of this connection
+            if user_id not in [connection.user1_id, connection.user2_id]:
+                raise ValueError("User not part of this connection")
+            
+            # Get or create photo reveal timeline
+            timeline = self.db.query(PhotoRevealTimeline).filter(
+                PhotoRevealTimeline.connection_id == connection_id
+            ).first()
+            
+            if not timeline:
+                timeline = PhotoRevealTimeline(
+                    connection_id=connection_id,
+                    connection_started_at=datetime.utcnow(),
+                    current_stage=PhotoRevealStage.HIDDEN
+                )
+                self.db.add(timeline)
+                self.db.flush()  # Get the ID
+            
+            if not force_reveal:
+                # Check for user's own consent
+                user_consent_status = None
+                if user_id == connection.user1_id:
+                    user_consent_status = timeline.user1_consent_status
+                elif user_id == connection.user2_id:
+                    user_consent_status = timeline.user2_consent_status
+                
+                if user_consent_status != "granted":
+                    raise ValueError("consent required - user has not given consent")
+                
+                # Check for mutual consent
+                if not timeline.mutual_consent_achieved:
+                    raise ValueError("mutual consent required - other user has not given consent")
+            
+            # Create photo reveal event
+            reveal_event = PhotoRevealEvent(
+                timeline_id=timeline.id,
+                connection_id=connection_id,
+                event_type="photo_reveal",
+                user_id=user_id,
+                event_data={
+                    "photo_url": photo_url,
+                    "reveal_type": "manual" if not force_reveal else "forced"
+                },
+                created_at=datetime.utcnow()
+            )
+            
+            self.db.add(reveal_event)
+            
+            # Update timeline status
+            timeline.photos_revealed = True
+            timeline.photo_reveal_completed_at = datetime.utcnow()
+            timeline.current_stage = PhotoRevealStage.REVEALED
+            
+            self.db.commit()
+            
+            logger.info(f"Photo revealed by user {user_id} for connection {connection_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error revealing photo: {str(e)}")
+            if self.db:
+                self.db.rollback()
+            raise
+
+    def can_reveal_photo(self, connection_id: int, user_id: int) -> bool:
+        """Check if user can reveal photos for this connection"""
+        try:
+            if not self.db:
+                return False
+            
+            timeline = self.db.query(PhotoRevealTimeline).filter(
+                PhotoRevealTimeline.connection_id == connection_id
+            ).first()
+            
+            if not timeline:
+                return False
+                
+            # Check if 7 days have passed or if manual consent is achieved
+            if timeline.photos_revealed:
+                return False  # Already revealed
+                
+            # Check days requirement (simplified)
+            days_passed = (datetime.utcnow() - timeline.connection_started_at).days
+            if days_passed >= 7:
+                return True
+                
+            # Check mutual consent
+            return timeline.mutual_consent_achieved
+            
+        except Exception:
+            return False
+
+    def can_reveal_based_on_revelations(self, connection_id: int, user_id: int) -> bool:
+        """Check if enough revelations have been completed for photo reveal"""
+        try:
+            if not self.db:
+                return False
+            
+            timeline = self.db.query(PhotoRevealTimeline).filter(
+                PhotoRevealTimeline.connection_id == connection_id
+            ).first()
+            
+            if not timeline:
+                return False
+                
+            return timeline.revelations_completed >= timeline.min_revelations_required
+            
+        except Exception:
+            return False
+
+    def withdraw_consent(self, connection_id: int, user_id: int) -> dict:
+        """Withdraw photo reveal consent"""
+        try:
+            if not self.db:
+                raise ValueError("Database session not provided")
+            
+            connection = self.db.query(SoulConnection).filter(
+                SoulConnection.id == connection_id
+            ).first()
+            
+            if not connection:
+                raise ValueError(f"Connection {connection_id} not found")
+            
+            timeline = self.db.query(PhotoRevealTimeline).filter(
+                PhotoRevealTimeline.connection_id == connection_id
+            ).first()
+            
+            if not timeline:
+                raise ValueError("Photo reveal timeline not found")
+            
+            # Update consent status
+            if user_id == connection.user1_id:
+                timeline.user1_consent_status = "withdrawn"
+            elif user_id == connection.user2_id:
+                timeline.user2_consent_status = "withdrawn"
+            else:
+                raise ValueError("User not part of this connection")
+            
+            timeline.mutual_consent_achieved = False
+            timeline.current_stage = PhotoRevealStage.DECLINED
+            
+            self.db.commit()
+            
+            return {
+                "success": True,
+                "message": "Consent withdrawn successfully",
+                "reveal_status": "withdrawn"
+            }
+            
+        except Exception as e:
+            if self.db:
+                self.db.rollback()
+            raise
 
 
 # Global service instance

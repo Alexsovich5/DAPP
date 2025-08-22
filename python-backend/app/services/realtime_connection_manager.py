@@ -98,6 +98,21 @@ class RealtimeConnectionManager:
         
         logger.info("Real-time Connection Manager initialized")
     
+    @property
+    def user_connections(self) -> Dict[int, WebSocket]:
+        """Backward compatibility property for tests"""
+        return self.active_connections
+    
+    async def send_personal_message(self, user_id: int, message: str):
+        """Backward compatibility method for tests"""
+        realtime_msg = RealtimeMessage(
+            type=MessageType.NEW_MESSAGE,
+            data={"text": message},
+            user_id=user_id,
+            timestamp=datetime.utcnow()
+        )
+        await self.send_to_user(user_id, realtime_msg)
+    
     async def connect(self, websocket: WebSocket, user_id: int, db: Session):
         """Handle new WebSocket connection"""
         try:
