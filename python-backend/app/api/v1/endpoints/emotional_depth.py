@@ -3,19 +3,18 @@ Emotional Depth API Endpoints
 Advanced psychological profiling and depth compatibility analysis
 """
 
-from typing import Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 import logging
+from typing import Any, Dict, List
 
-from app.api.deps import get_db, get_current_user
+from app.api.deps import get_current_user, get_db
 from app.models.user import User
 from app.services.emotional_depth_service import (
-    emotional_depth_service, 
-    EmotionalDepthMetrics, 
-    DepthCompatibilityScore,
-    EmotionalDepthLevel
+    EmotionalDepthLevel,
+    EmotionalDepthMetrics,
+    emotional_depth_service,
 )
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +25,7 @@ router = APIRouter()
 async def analyze_user_emotional_depth(
     user_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Analyze emotional depth for a specific user.
@@ -37,22 +36,21 @@ async def analyze_user_emotional_depth(
         target_user = db.query(User).filter(User.id == user_id).first()
         if not target_user:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
             )
-        
+
         # Authorization check - can only analyze own profile or matched users
         if current_user.id != user_id:
             # TODO: Add logic to check if users are matched
             # For now, only allow self-analysis
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not authorized to analyze this user's emotional depth"
+                detail="Not authorized to analyze this user's emotional depth",
             )
-        
+
         # Perform emotional depth analysis
         depth_metrics = emotional_depth_service.analyze_emotional_depth(target_user, db)
-        
+
         # Convert to response format
         return {
             "user_id": user_id,
@@ -69,28 +67,30 @@ async def analyze_user_emotional_depth(
                 "communication_depth": depth_metrics.communication_depth,
                 "confidence": depth_metrics.confidence,
                 "text_quality": depth_metrics.text_quality,
-                "response_richness": depth_metrics.response_richness
+                "response_richness": depth_metrics.response_richness,
             },
             "insights": {
-                "vulnerability_types": [vt.value for vt in depth_metrics.vulnerability_types],
+                "vulnerability_types": [
+                    vt.value for vt in depth_metrics.vulnerability_types
+                ],
                 "depth_indicators": depth_metrics.depth_indicators,
                 "maturity_signals": depth_metrics.maturity_signals,
-                "authenticity_markers": depth_metrics.authenticity_markers
+                "authenticity_markers": depth_metrics.authenticity_markers,
             },
             "analysis_metadata": {
                 "timestamp": "2024-01-01T00:00:00Z",  # TODO: Add actual timestamp
                 "algorithm_version": "1.0",
-                "confidence_level": depth_metrics.confidence
-            }
+                "confidence_level": depth_metrics.confidence,
+            },
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error analyzing emotional depth for user {user_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error analyzing emotional depth"
+            detail="Error analyzing emotional depth",
         )
 
 
@@ -99,7 +99,7 @@ async def analyze_depth_compatibility(
     user1_id: int,
     user2_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Analyze emotional depth compatibility between two users.
@@ -110,22 +110,24 @@ async def analyze_depth_compatibility(
         if current_user.id not in [user1_id, user2_id]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not authorized to analyze compatibility between these users"
+                detail="Not authorized to analyze compatibility between these users",
             )
-        
+
         # Get both users
         user1 = db.query(User).filter(User.id == user1_id).first()
         user2 = db.query(User).filter(User.id == user2_id).first()
-        
+
         if not user1 or not user2:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="One or both users not found"
+                detail="One or both users not found",
             )
-        
+
         # Calculate depth compatibility
-        compatibility = emotional_depth_service.calculate_depth_compatibility(user1, user2, db)
-        
+        compatibility = emotional_depth_service.calculate_depth_compatibility(
+            user1, user2, db
+        )
+
         # Convert to response format
         return {
             "user1_id": user1_id,
@@ -134,7 +136,7 @@ async def analyze_depth_compatibility(
                 "overall_compatibility": compatibility.compatibility_score,
                 "depth_harmony": compatibility.depth_harmony,
                 "vulnerability_match": compatibility.vulnerability_match,
-                "growth_alignment": compatibility.growth_alignment
+                "growth_alignment": compatibility.growth_alignment,
             },
             "individual_depths": {
                 "user1": {
@@ -142,121 +144,149 @@ async def analyze_depth_compatibility(
                     "depth_level": compatibility.user1_depth.depth_level.value,
                     "vulnerability_score": compatibility.user1_depth.vulnerability_score,
                     "authenticity_score": compatibility.user1_depth.authenticity_score,
-                    "growth_mindset": compatibility.user1_depth.growth_mindset
+                    "growth_mindset": compatibility.user1_depth.growth_mindset,
                 },
                 "user2": {
                     "overall_depth": compatibility.user2_depth.overall_depth,
                     "depth_level": compatibility.user2_depth.depth_level.value,
                     "vulnerability_score": compatibility.user2_depth.vulnerability_score,
                     "authenticity_score": compatibility.user2_depth.authenticity_score,
-                    "growth_mindset": compatibility.user2_depth.growth_mindset
-                }
+                    "growth_mindset": compatibility.user2_depth.growth_mindset,
+                },
             },
             "relationship_insights": {
                 "connection_potential": compatibility.connection_potential,
                 "recommended_approach": compatibility.recommended_approach,
-                "depth_growth_timeline": compatibility.depth_growth_timeline
+                "depth_growth_timeline": compatibility.depth_growth_timeline,
             },
             "analysis_metadata": {
                 "timestamp": "2024-01-01T00:00:00Z",  # TODO: Add actual timestamp
-                "algorithm_version": "1.0"
-            }
+                "algorithm_version": "1.0",
+            },
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error analyzing depth compatibility: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error analyzing emotional depth compatibility"
+            detail="Error analyzing emotional depth compatibility",
         )
 
 
 @router.get("/summary/me", response_model=Dict[str, Any])
 async def get_my_emotional_depth_summary(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     """
     Get a summary of the current user's emotional depth profile.
     """
     try:
         # Analyze current user's emotional depth
-        depth_metrics = emotional_depth_service.analyze_emotional_depth(current_user, db)
-        
+        depth_metrics = emotional_depth_service.analyze_emotional_depth(
+            current_user, db
+        )
+
         # Generate personalized insights
         insights = _generate_personal_insights(depth_metrics)
-        
+
         # Generate recommendations
         recommendations = _generate_depth_recommendations(depth_metrics)
-        
+
         return {
             "emotional_depth_summary": {
                 "overall_depth": depth_metrics.overall_depth,
                 "depth_level": depth_metrics.depth_level.value,
-                "depth_level_description": _get_depth_level_description(depth_metrics.depth_level),
+                "depth_level_description": _get_depth_level_description(
+                    depth_metrics.depth_level
+                ),
                 "key_strengths": depth_metrics.depth_indicators[:3],
                 "growth_areas": _identify_growth_areas(depth_metrics),
-                "emotional_vocabulary_richness": _classify_vocabulary_richness(depth_metrics.emotional_vocabulary),
-                "vulnerability_comfort": _classify_vulnerability_level(depth_metrics.vulnerability_score),
-                "authenticity_level": _classify_authenticity_level(depth_metrics.authenticity_score)
+                "emotional_vocabulary_richness": _classify_vocabulary_richness(
+                    depth_metrics.emotional_vocabulary
+                ),
+                "vulnerability_comfort": _classify_vulnerability_level(
+                    depth_metrics.vulnerability_score
+                ),
+                "authenticity_level": _classify_authenticity_level(
+                    depth_metrics.authenticity_score
+                ),
             },
             "personal_insights": insights,
             "recommendations": recommendations,
             "profile_completeness": {
                 "confidence": depth_metrics.confidence,
                 "text_quality": depth_metrics.text_quality,
-                "suggestions": _get_profile_improvement_suggestions(depth_metrics)
-            }
+                "suggestions": _get_profile_improvement_suggestions(depth_metrics),
+            },
         }
-        
+
     except Exception as e:
         logger.error(f"Error getting emotional depth summary: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error retrieving emotional depth summary"
+            detail="Error retrieving emotional depth summary",
         )
 
 
 # Helper functions for response formatting
 
+
 def _generate_personal_insights(depth_metrics: EmotionalDepthMetrics) -> List[str]:
     """Generate personalized insights based on depth analysis"""
     insights = []
-    
+
     if depth_metrics.vulnerability_score >= 70:
-        insights.append("You show remarkable openness and vulnerability in your communication")
+        insights.append(
+            "You show remarkable openness and vulnerability in your communication"
+        )
     elif depth_metrics.vulnerability_score >= 50:
-        insights.append("You demonstrate healthy emotional openness with room for deeper sharing")
+        insights.append(
+            "You demonstrate healthy emotional openness with room for deeper sharing"
+        )
     else:
-        insights.append("Consider sharing more personal experiences to deepen connections")
-    
+        insights.append(
+            "Consider sharing more personal experiences to deepen connections"
+        )
+
     if depth_metrics.growth_mindset >= 70:
-        insights.append("Your growth mindset indicates strong potential for relationship development")
-    
+        insights.append(
+            "Your growth mindset indicates strong potential for relationship development"
+        )
+
     if depth_metrics.empathy_indicators >= 70:
-        insights.append("You show strong empathy and consideration for others' perspectives")
-    
+        insights.append(
+            "You show strong empathy and consideration for others' perspectives"
+        )
+
     return insights[:3]  # Return top 3 insights
 
 
 def _generate_depth_recommendations(depth_metrics: EmotionalDepthMetrics) -> List[str]:
     """Generate recommendations for emotional depth development"""
     recommendations = []
-    
+
     if depth_metrics.emotional_vocabulary < 10:
-        recommendations.append("Expand your emotional vocabulary by exploring feeling words and expressions")
-    
+        recommendations.append(
+            "Expand your emotional vocabulary by exploring feeling words and expressions"
+        )
+
     if depth_metrics.vulnerability_score < 50:
-        recommendations.append("Practice sharing personal experiences and feelings to deepen connections")
-    
+        recommendations.append(
+            "Practice sharing personal experiences and feelings to deepen connections"
+        )
+
     if depth_metrics.growth_mindset < 60:
-        recommendations.append("Focus on self-reflection and personal development activities")
-    
+        recommendations.append(
+            "Focus on self-reflection and personal development activities"
+        )
+
     if not recommendations:
-        recommendations.append("Continue developing your emotional intelligence through meaningful conversations")
-    
+        recommendations.append(
+            "Continue developing your emotional intelligence through meaningful conversations"
+        )
+
     return recommendations
 
 
@@ -267,7 +297,7 @@ def _get_depth_level_description(depth_level: EmotionalDepthLevel) -> str:
         EmotionalDepthLevel.EMERGING: "You show growing emotional intelligence and self-awareness",
         EmotionalDepthLevel.MODERATE: "You demonstrate good emotional depth and understanding",
         EmotionalDepthLevel.DEEP: "You exhibit high emotional sophistication and depth",
-        EmotionalDepthLevel.PROFOUND: "You show exceptional emotional depth and wisdom"
+        EmotionalDepthLevel.PROFOUND: "You show exceptional emotional depth and wisdom",
     }
     return descriptions.get(depth_level, "Developing emotional awareness")
 
@@ -311,33 +341,37 @@ def _classify_authenticity_level(auth_score: float) -> str:
 def _identify_growth_areas(depth_metrics: EmotionalDepthMetrics) -> List[str]:
     """Identify specific growth areas"""
     growth_areas = []
-    
+
     if depth_metrics.emotional_vocabulary < 8:
         growth_areas.append("Emotional vocabulary expansion")
-    
+
     if depth_metrics.vulnerability_score < 60:
         growth_areas.append("Comfort with vulnerability")
-    
+
     if depth_metrics.empathy_indicators < 60:
         growth_areas.append("Empathy and perspective-taking")
-    
+
     if depth_metrics.growth_mindset < 60:
         growth_areas.append("Growth mindset development")
-    
+
     return growth_areas[:3]  # Top 3 growth areas
 
 
-def _get_profile_improvement_suggestions(depth_metrics: EmotionalDepthMetrics) -> List[str]:
+def _get_profile_improvement_suggestions(
+    depth_metrics: EmotionalDepthMetrics,
+) -> List[str]:
     """Get suggestions for improving profile completeness"""
     suggestions = []
-    
+
     if depth_metrics.confidence < 60:
-        suggestions.append("Share more detailed responses to increase analysis accuracy")
-    
+        suggestions.append(
+            "Share more detailed responses to increase analysis accuracy"
+        )
+
     if depth_metrics.text_quality == "insufficient":
         suggestions.append("Provide richer, more detailed answers to profile questions")
-    
+
     if depth_metrics.response_richness < 100:
         suggestions.append("Consider adding more personal examples and experiences")
-    
+
     return suggestions

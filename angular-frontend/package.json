@@ -7,8 +7,10 @@
     "dev": "nx serve",
     "start": "nx serve",
     "test": "nx test",
+    "test:ci": "nx test --watch=false --browsers=ChromeHeadless --code-coverage",
     "lint": "nx lint",
-    "e2e": "nx e2e"
+    "e2e": "nx e2e",
+    "e2e:ci": "nx e2e --watch=false"
   },
   "private": true,
   "dependencies": {
