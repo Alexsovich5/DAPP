@@ -89,8 +89,8 @@ class MockWebSocket {
   // Test helper methods
   simulateMessage(data: any) {
     if (this.onmessage) {
-      this.onmessage(new MessageEvent('message', { 
-        data: JSON.stringify(data) 
+      this.onmessage(new MessageEvent('message', {
+        data: JSON.stringify(data)
       }));
     }
   }
@@ -139,10 +139,10 @@ describe('WebSocketService', () => {
     (global as any).WebSocket = MockWebSocket;
 
     // Default auth mocks
-    authService.getCurrentUser.and.returnValue(of({ 
-      id: 1, 
-      email: 'test@example.com', 
-      first_name: 'Test' 
+    authService.getCurrentUser.and.returnValue(of({
+      id: 1,
+      email: 'test@example.com',
+      first_name: 'Test'
     }));
     authService.getToken.and.returnValue('mock-jwt-token');
   });
@@ -158,7 +158,7 @@ describe('WebSocketService', () => {
 
     it('should establish WebSocket connection', (done) => {
       service.connect();
-      
+
       service.connectionStatus$.subscribe(status => {
         if (status.isConnected) {
           expect(status.isConnected).toBe(true);
@@ -170,17 +170,17 @@ describe('WebSocketService', () => {
 
     it('should include authentication token in connection', () => {
       service.connect();
-      
+
       // Verify WebSocket was created with correct URL including token
       expect(service.isConnected()).toBeDefined();
     });
 
     it('should handle connection errors', (done) => {
       service.connect();
-      
+
       // Get the mock WebSocket instance
       const ws = (service as any).websocket as MockWebSocket;
-      
+
       service.connectionStatus$.subscribe(status => {
         if (!status.isConnected && status.reconnectAttempts > 0) {
           expect(notificationService.showWarning).toHaveBeenCalledWith(
@@ -196,7 +196,7 @@ describe('WebSocketService', () => {
 
     it('should automatically reconnect on connection loss', (done) => {
       service.connect();
-      
+
       let connectionCount = 0;
       service.connectionStatus$.subscribe(status => {
         if (status.isConnected) {
@@ -217,7 +217,7 @@ describe('WebSocketService', () => {
 
     it('should respect maximum reconnection attempts', (done) => {
       service.connect();
-      
+
       let errorCount = 0;
       service.connectionStatus$.subscribe(status => {
         if (status.reconnectAttempts >= 5 && !status.isConnected) {
@@ -241,16 +241,16 @@ describe('WebSocketService', () => {
           }, 10);
         }
       };
-      
+
       setTimeout(simulateFailure, 50);
     });
 
     it('should disconnect cleanly', () => {
       service.connect();
-      
+
       setTimeout(() => {
         service.disconnect();
-        
+
         service.connectionStatus$.subscribe(status => {
           expect(status.isConnected).toBe(false);
           expect(status.connectionQuality).toBe('disconnected');
@@ -260,7 +260,7 @@ describe('WebSocketService', () => {
 
     it('should measure connection latency', (done) => {
       service.connect();
-      
+
       setTimeout(() => {
         service.measureLatency().then(latency => {
           expect(latency).toBeGreaterThan(0);
@@ -272,7 +272,7 @@ describe('WebSocketService', () => {
 
     it('should update connection quality based on latency', (done) => {
       service.connect();
-      
+
       setTimeout(() => {
         service.connectionStatus$.subscribe(status => {
           if (status.latency !== undefined) {
@@ -286,7 +286,7 @@ describe('WebSocketService', () => {
             done();
           }
         });
-        
+
         // Trigger latency measurement
         service.measureLatency();
       }, 20);
@@ -312,7 +312,7 @@ describe('WebSocketService', () => {
 
       spyOn(service as any, 'sendMessage').and.callThrough();
       service.sendMessage(testMessage);
-      
+
       expect((service as any).sendMessage).toHaveBeenCalledWith(testMessage);
     });
 
@@ -340,11 +340,11 @@ describe('WebSocketService', () => {
 
     it('should handle malformed messages gracefully', () => {
       const ws = (service as any).websocket as MockWebSocket;
-      
+
       // Send malformed JSON
       spyOn(console, 'error').and.stub();
       ws.onmessage!(new MessageEvent('message', { data: 'invalid-json' }));
-      
+
       expect(console.error).toHaveBeenCalled();
     });
 
@@ -387,17 +387,17 @@ describe('WebSocketService', () => {
 
     it('should queue messages when disconnected', (done) => {
       service.disconnect();
-      
+
       const testMessage = {
         type: 'queued_message',
         data: { content: 'Queued while offline' }
       };
 
       service.sendMessage(testMessage);
-      
+
       // Reconnect and verify message is sent
       service.connect();
-      
+
       service.connectionStatus$.subscribe(status => {
         if (status.isConnected) {
           // Verify queued message was sent
@@ -444,9 +444,9 @@ describe('WebSocketService', () => {
 
     it('should send typing indicator', () => {
       spyOn(service, 'sendMessage').and.callThrough();
-      
+
       service.sendTypingIndicator(1, true);
-      
+
       expect(service.sendMessage).toHaveBeenCalledWith({
         type: 'typing_indicator',
         data: {
@@ -482,12 +482,12 @@ describe('WebSocketService', () => {
 
     it('should auto-stop typing indicator after timeout', (done) => {
       service.sendTypingIndicator(1, true);
-      
+
       // Verify stop typing is sent after timeout
       setTimeout(() => {
         spyOn(service, 'sendMessage').and.callThrough();
         service.stopTypingIndicator(1);
-        
+
         expect(service.sendMessage).toHaveBeenCalledWith({
           type: 'typing_indicator',
           data: {
@@ -502,12 +502,12 @@ describe('WebSocketService', () => {
 
     it('should debounce typing indicators', () => {
       spyOn(service, 'sendMessage').and.callThrough();
-      
+
       // Rapid typing events
       service.sendTypingIndicator(1, true);
       service.sendTypingIndicator(1, true);
       service.sendTypingIndicator(1, true);
-      
+
       // Should only send one message due to debouncing
       expect(service.sendMessage).toHaveBeenCalledTimes(1);
     });
@@ -584,9 +584,9 @@ describe('WebSocketService', () => {
 
     it('should update own presence status', () => {
       spyOn(service, 'sendMessage').and.callThrough();
-      
+
       service.updatePresenceStatus('active');
-      
+
       expect(service.sendMessage).toHaveBeenCalledWith({
         type: 'presence_update',
         data: {
@@ -624,22 +624,22 @@ describe('WebSocketService', () => {
 
     it('should auto-update presence based on page visibility', () => {
       spyOn(service, 'updatePresenceStatus').and.callThrough();
-      
+
       // Simulate page becoming hidden
       Object.defineProperty(document, 'hidden', {
         writable: true,
         value: true
       });
-      
+
       // Trigger visibility change
       service.handleVisibilityChange();
-      
+
       expect(service.updatePresenceStatus).toHaveBeenCalledWith('away');
     });
 
     it('should track activity status transitions', () => {
       const statusHistory: string[] = [];
-      
+
       service.onPresenceUpdate().subscribe(presence => {
         statusHistory.push(presence.activity_status);
       });
@@ -647,7 +647,7 @@ describe('WebSocketService', () => {
       // Simulate status changes
       const ws = (service as any).websocket as MockWebSocket;
       const statusChanges = ['active', 'idle', 'away', 'offline'];
-      
+
       statusChanges.forEach((status, index) => {
         setTimeout(() => {
           ws.simulateMessage({
@@ -810,7 +810,7 @@ describe('WebSocketService', () => {
       };
 
       service.connect();
-      
+
       expect(notificationService.showError).toHaveBeenCalledWith(
         'Unable to establish real-time connection. Please check your internet connection.'
       );
@@ -818,9 +818,9 @@ describe('WebSocketService', () => {
 
     it('should handle authentication failures', (done) => {
       authService.getToken.and.returnValue(null);
-      
+
       service.connect();
-      
+
       service.connectionStatus$.subscribe(status => {
         if (status.reconnectAttempts > 0 && !status.isConnected) {
           expect(notificationService.showError).toHaveBeenCalledWith(
@@ -833,12 +833,12 @@ describe('WebSocketService', () => {
 
     it('should handle network connectivity issues', (done) => {
       service.connect();
-      
+
       setTimeout(() => {
         // Simulate network failure
         const ws = (service as any).websocket as MockWebSocket;
         ws.simulateClose(1006, 'Network error'); // Abnormal closure
-        
+
         service.connectionStatus$.subscribe(status => {
           if (!status.isConnected) {
             expect(status.connectionQuality).toBe('disconnected');
@@ -853,15 +853,15 @@ describe('WebSocketService', () => {
 
     it('should implement exponential backoff for reconnection', (done) => {
       service.connect();
-      
+
       const reconnectionTimes: number[] = [];
       let startTime = Date.now();
-      
+
       service.connectionStatus$.subscribe(status => {
         if (status.reconnectAttempts > 0) {
           reconnectionTimes.push(Date.now() - startTime);
           startTime = Date.now();
-          
+
           if (status.reconnectAttempts >= 3) {
             // Verify exponential backoff
             expect(reconnectionTimes[1]).toBeGreaterThan(reconnectionTimes[0]);
@@ -879,7 +879,7 @@ describe('WebSocketService', () => {
             ws.simulateClose(1006, 'Connection failed');
           }
         };
-        
+
         [100, 200, 400].forEach((delay, index) => {
           setTimeout(simulateFailure, delay * (index + 1));
         });
@@ -888,20 +888,20 @@ describe('WebSocketService', () => {
 
     it('should clear pending operations on disconnect', () => {
       service.connect();
-      
+
       // Add some pending operations
       const pendingMessage = { type: 'test', data: {} };
       service.sendMessage(pendingMessage);
-      
+
       service.disconnect();
-      
+
       expect((service as any).pendingOperations.size).toBe(0);
       expect((service as any).messageQueue.length).toBe(0);
     });
 
     it('should validate message format before processing', () => {
       service.connect();
-      
+
       const invalidMessages = [
         null,
         undefined,
@@ -912,11 +912,11 @@ describe('WebSocketService', () => {
       ];
 
       spyOn(console, 'warn').and.stub();
-      
+
       const ws = (service as any).websocket as MockWebSocket;
       invalidMessages.forEach(message => {
-        ws.onmessage!(new MessageEvent('message', { 
-          data: JSON.stringify(message) 
+        ws.onmessage!(new MessageEvent('message', {
+          data: JSON.stringify(message)
         }));
       });
 
@@ -927,7 +927,7 @@ describe('WebSocketService', () => {
   describe('Performance and Memory Management', () => {
     it('should limit message history size', () => {
       service.connect();
-      
+
       // Send many messages to test history limit
       for (let i = 0; i < 1500; i++) {
         const message = {
@@ -935,7 +935,7 @@ describe('WebSocketService', () => {
           data: { id: i },
           timestamp: new Date().toISOString()
         };
-        
+
         const ws = (service as any).websocket as MockWebSocket;
         ws.simulateMessage(message);
       }
@@ -946,32 +946,32 @@ describe('WebSocketService', () => {
 
     it('should cleanup event listeners on destroy', () => {
       service.connect();
-      
+
       spyOn(window, 'removeEventListener').and.callThrough();
-      
+
       service.ngOnDestroy();
-      
+
       expect(window.removeEventListener).toHaveBeenCalledWith(
-        'beforeunload', 
+        'beforeunload',
         jasmine.any(Function)
       );
       expect(window.removeEventListener).toHaveBeenCalledWith(
-        'visibilitychange', 
+        'visibilitychange',
         jasmine.any(Function)
       );
     });
 
     it('should debounce presence updates', () => {
       service.connect();
-      
+
       spyOn(service, 'sendMessage').and.callThrough();
-      
+
       // Rapid presence updates
       service.updatePresenceStatus('active');
       service.updatePresenceStatus('idle');
       service.updatePresenceStatus('active');
       service.updatePresenceStatus('idle');
-      
+
       // Should be debounced to single call
       setTimeout(() => {
         expect(service.sendMessage).toHaveBeenCalledTimes(1);
@@ -981,7 +981,7 @@ describe('WebSocketService', () => {
     it('should implement connection pooling for multiple connections', () => {
       const connection1 = service.getConnectionPool().get('connection-1');
       const connection2 = service.getConnectionPool().get('connection-2');
-      
+
       expect(connection1).toBeDefined();
       expect(connection2).toBeDefined();
       expect(connection1).not.toBe(connection2);
@@ -989,7 +989,7 @@ describe('WebSocketService', () => {
 
     it('should measure and report performance metrics', (done) => {
       service.connect();
-      
+
       service.getPerformanceMetrics().then(metrics => {
         expect(metrics.averageLatency).toBeDefined();
         expect(metrics.messagesSent).toBeDefined();
@@ -1004,9 +1004,9 @@ describe('WebSocketService', () => {
     it('should include JWT token in connection headers', () => {
       const mockToken = 'jwt.token.here';
       authService.getToken.and.returnValue(mockToken);
-      
+
       service.connect();
-      
+
       // Verify connection was made with token
       const connectionUrl = (service as any).getConnectionUrl();
       expect(connectionUrl).toContain(mockToken);
@@ -1014,7 +1014,7 @@ describe('WebSocketService', () => {
 
     it('should handle token expiration during connection', (done) => {
       service.connect();
-      
+
       setTimeout(() => {
         // Simulate token expiration
         const ws = (service as any).websocket as MockWebSocket;
@@ -1023,7 +1023,7 @@ describe('WebSocketService', () => {
           data: { error: 'Token expired' },
           timestamp: new Date().toISOString()
         });
-        
+
         service.connectionStatus$.subscribe(status => {
           if (!status.isConnected) {
             expect(notificationService.showError).toHaveBeenCalledWith(
@@ -1037,7 +1037,7 @@ describe('WebSocketService', () => {
 
     it('should validate message source and authenticity', () => {
       service.connect();
-      
+
       const suspiciousMessage = {
         type: 'malicious_message',
         data: {
@@ -1048,16 +1048,16 @@ describe('WebSocketService', () => {
       };
 
       spyOn(service, 'validateMessageSecurity').and.returnValue(false);
-      
+
       const ws = (service as any).websocket as MockWebSocket;
       ws.simulateMessage(suspiciousMessage);
-      
+
       expect(service.validateMessageSecurity).toHaveBeenCalled();
     });
 
     it('should implement rate limiting for outgoing messages', () => {
       service.connect();
-      
+
       const rateLimitedMessages = [];
       for (let i = 0; i < 100; i++) {
         const result = service.sendMessage({
@@ -1073,7 +1073,7 @@ describe('WebSocketService', () => {
 
     it('should encrypt sensitive message content', () => {
       service.connect();
-      
+
       const sensitiveMessage = {
         type: 'private_revelation',
         data: {
@@ -1084,7 +1084,7 @@ describe('WebSocketService', () => {
 
       spyOn(service, 'encryptMessage').and.returnValue('encrypted_content');
       service.sendMessage(sensitiveMessage);
-      
+
       expect(service.encryptMessage).toHaveBeenCalledWith(sensitiveMessage.data.content);
     });
   });
@@ -1092,9 +1092,9 @@ describe('WebSocketService', () => {
   describe('Cross-Browser Compatibility', () => {
     it('should handle browsers without WebSocket support', () => {
       (global as any).WebSocket = undefined;
-      
+
       service.connect();
-      
+
       expect(notificationService.showError).toHaveBeenCalledWith(
         'Your browser does not support real-time features. Please update your browser.'
       );
@@ -1102,7 +1102,7 @@ describe('WebSocketService', () => {
 
     it('should handle different WebSocket close codes', () => {
       service.connect();
-      
+
       const closeCodes = [
         { code: 1000, reason: 'Normal closure' },
         { code: 1001, reason: 'Going away' },
@@ -1115,7 +1115,7 @@ describe('WebSocketService', () => {
         setTimeout(() => {
           const ws = (service as any).websocket as MockWebSocket;
           ws.simulateClose(code, reason);
-          
+
           if (code === 1000 || code === 1001) {
             // Normal closure - don't reconnect
             expect(service.shouldReconnect(code)).toBe(false);
@@ -1129,7 +1129,7 @@ describe('WebSocketService', () => {
 
     it('should adapt to different network conditions', (done) => {
       service.connect();
-      
+
       // Mock different connection qualities
       const networkConditions = [
         { latency: 50, quality: 'excellent' },

@@ -162,13 +162,13 @@ export class ABAnalyticsService {
   getFunnelAnalysis(testId: string, funnelSteps: string[]): Record<string, any[]> {
     const events = this.getTestEvents(testId);
     const variants = new Set(events.map(e => e.variantId));
-    
+
     const funnelData: Record<string, any[]> = {};
-    
+
     variants.forEach(variantId => {
       const variantEvents = events.filter(e => e.variantId === variantId);
       const userSessions = this.groupEventsByUser(variantEvents);
-      
+
       funnelData[variantId] = this.calculateFunnel(userSessions, funnelSteps);
     });
 
@@ -201,16 +201,16 @@ export class ABAnalyticsService {
     return testConfig.variants.map(variant => {
       const variantEvents = events.filter(e => e.variantId === variant.id);
       const participants = new Set(variantEvents.map(e => e.userId)).size;
-      
+
       // Calculate event summaries
       const eventSummaries = this.calculateEventSummaries(variantEvents, participants);
-      
+
       // Calculate conversion rate (primary metric events / participants)
       const primaryMetricDef = METRIC_DEFINITIONS[testConfig.primaryMetric];
       let conversionRate = 0;
-      
+
       if (primaryMetricDef && primaryMetricDef.numeratorEvents) {
-        const conversions = variantEvents.filter(e => 
+        const conversions = variantEvents.filter(e =>
           primaryMetricDef.numeratorEvents!.includes(e.eventType)
         ).length;
         conversionRate = participants > 0 ? (conversions / participants) * 100 : 0;
@@ -248,7 +248,7 @@ export class ABAnalyticsService {
     const values = events
       .map(e => e.eventData?.value)
       .filter(v => typeof v === 'number') as number[];
-    
+
     if (values.length === 0) {
       return 0;
     }
@@ -284,7 +284,7 @@ export class ABAnalyticsService {
         }
       } else if (metricDef.valueEvents) {
         // Average value calculation
-        const eventSummary = variant.events.find(e => 
+        const eventSummary = variant.events.find(e =>
           metricDef.valueEvents!.includes(e.eventType)
         );
         value = eventSummary?.averageValue || 0;
@@ -299,11 +299,11 @@ export class ABAnalyticsService {
     });
 
     // Find winner and calculate improvement
-    const controlVariant = variants.find(v => 
+    const controlVariant = variants.find(v =>
       variantMetrics.find(vm => vm.variantId === v.variantId)?.variantName.includes('Control') ||
       v.variantId === 'control'
     );
-    
+
     const winner = this.findWinner(variants);
     const improvement = controlVariant && winner && winner.variantId !== controlVariant.variantId
       ? ((winner.value - controlVariant.value) / controlVariant.value) * 100
@@ -344,7 +344,7 @@ export class ABAnalyticsService {
       return undefined;
     }
 
-    return variants.reduce((best, current) => 
+    return variants.reduce((best, current) =>
       current.value > best.value ? current : best
     );
   }
@@ -375,7 +375,7 @@ export class ABAnalyticsService {
 
     const controlVariant = metric.variants[0];
     const testVariant = metric.variants[1];
-    
+
     if (!controlVariant || !testVariant) {
       return 0;
     }
@@ -391,31 +391,31 @@ export class ABAnalyticsService {
     }
 
     const zScore = diff / pooledSE;
-    
+
     // Convert z-score to confidence level (simplified)
     if (zScore >= 1.96) return 95; // 95% confidence
     if (zScore >= 1.645) return 90; // 90% confidence
     if (zScore >= 1.282) return 80; // 80% confidence
-    
+
     return Math.min(80, zScore * 40); // Rough approximation
   }
 
   private getRecommendedAction(
-    metric: MetricResult, 
+    metric: MetricResult,
     significance: number
   ): 'continue' | 'conclude_winner' | 'conclude_no_winner' | 'extend_test' {
     if (significance >= 95 && metric.improvement && metric.improvement > 5) {
       return 'conclude_winner';
     }
-    
+
     if (significance >= 95 && (!metric.improvement || Math.abs(metric.improvement) < 2)) {
       return 'conclude_no_winner';
     }
-    
+
     if (significance < 80) {
       return 'extend_test';
     }
-    
+
     return 'continue';
   }
 
@@ -431,7 +431,7 @@ export class ABAnalyticsService {
 
   private calculateFunnel(userSessions: Record<string, ABTestEvent[]>, steps: string[]): any[] {
     const userCount = Object.keys(userSessions).length;
-    
+
     return steps.map((step, index) => {
       const usersAtStep = Object.values(userSessions).filter(events =>
         events.some(event => event.eventType === step)
@@ -441,7 +441,7 @@ export class ABAnalyticsService {
         step,
         users: usersAtStep,
         conversionRate: userCount > 0 ? (usersAtStep / userCount) * 100 : 0,
-        dropoffRate: index > 0 ? 
+        dropoffRate: index > 0 ?
           ((steps[index - 1] ? userCount - usersAtStep : 0) / userCount) * 100 : 0
       };
     });
@@ -450,7 +450,7 @@ export class ABAnalyticsService {
   private convertToCSV(analytics: ABTestMetrics): string {
     const headers = [
       'Variant ID',
-      'Variant Name', 
+      'Variant Name',
       'Participants',
       'Conversion Rate (%)',
       'Primary Metric Value'

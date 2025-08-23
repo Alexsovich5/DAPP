@@ -525,7 +525,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Initialize A/B testing
     this.initializeABTesting();
-    
+
     // Check authentication and onboarding status
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
@@ -1444,7 +1444,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   private handlePassAction(discovery: DiscoveryResponse): void {
     // Track A/B test interaction
     this.trackCardInteraction(discovery, 'card_passed');
-    
+
     // Remove from discoveries list
     const removedIndex = this.discoveries.findIndex(d => d.user_id === discovery.user_id);
     this.discoveries = this.discoveries.filter(d => d.user_id !== discovery.user_id);

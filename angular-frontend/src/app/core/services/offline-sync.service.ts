@@ -39,7 +39,7 @@ export class OfflineSyncService {
   private readonly OFFLINE_ACTIONS_KEY = 'dinner_first_offline_actions';
   private readonly OFFLINE_DATA_KEY = 'dinner_first_offline_data';
   private readonly SYNC_STATUS_KEY = 'dinner_first_sync_status';
-  
+
   private syncStatusSubject = new BehaviorSubject<SyncStatus>({
     isOnline: navigator.onLine,
     pendingActions: 0,
@@ -81,10 +81,10 @@ export class OfflineSyncService {
   private monitorConnectionStatus(): void {
     const online$ = fromEvent(window, 'online').pipe(map(() => true));
     const offline$ = fromEvent(window, 'offline').pipe(map(() => false));
-    
+
     merge(online$, offline$).subscribe(isOnline => {
       this.updateSyncStatus({ isOnline });
-      
+
       if (isOnline) {
         this.syncPendingActions();
       }
@@ -103,9 +103,9 @@ export class OfflineSyncService {
 
     this.syncQueue.push(offlineAction);
     await this.savePendingActions();
-    
-    this.updateSyncStatus({ 
-      pendingActions: this.syncQueue.length 
+
+    this.updateSyncStatus({
+      pendingActions: this.syncQueue.length
     });
 
     // Try immediate sync if online
@@ -186,11 +186,11 @@ export class OfflineSyncService {
       const sortedActions = this.syncQueue.sort((a, b) => {
         const priorityOrder = { high: 3, medium: 2, low: 1 };
         const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
-        
+
         if (priorityDiff !== 0) {
           return priorityDiff;
         }
-        
+
         return a.timestamp - b.timestamp;
       });
 
@@ -201,7 +201,7 @@ export class OfflineSyncService {
       const batchSize = 5;
       for (let i = 0; i < sortedActions.length; i += batchSize) {
         const batch = sortedActions.slice(i, i + batchSize);
-        
+
         await Promise.allSettled(
           batch.map(async (action) => {
             try {
@@ -209,7 +209,7 @@ export class OfflineSyncService {
               successfulActions.push(action.id);
             } catch (error) {
               action.retryCount++;
-              
+
               if (action.retryCount < action.maxRetries) {
                 failedActions.push(action);
               } else {
@@ -362,7 +362,7 @@ export class OfflineSyncService {
 
   async removeOptimisticUpdate(id: string, type: 'message' | 'revelation'): Promise<void> {
     const data = await this.getOfflineData();
-    
+
     if (type === 'message') {
       data.messages = data.messages.filter(msg => msg.id !== id);
     } else if (type === 'revelation') {
@@ -386,10 +386,10 @@ export class OfflineSyncService {
     try {
       const data = await this.getOfflineData();
       const actions = await this.storage.getItem(this.OFFLINE_ACTIONS_KEY) || [];
-      
+
       const dataSize = JSON.stringify(data).length;
       const actionsSize = JSON.stringify(actions).length;
-      
+
       return dataSize + actionsSize;
     } catch (error) {
       return 0;
@@ -418,7 +418,7 @@ export class OfflineSyncService {
       case 'message':
         // Server data wins for messages (they have definitive timestamp)
         return serverData;
-        
+
       case 'profile':
         // Merge profile data, preferring most recent updates
         return {
@@ -430,11 +430,11 @@ export class OfflineSyncService {
             interests: localData.interests
           } : {})
         };
-        
+
       case 'revelation':
         // Server data wins for revelations
         return serverData;
-        
+
       default:
         // Default: server data wins
         return serverData;
@@ -453,16 +453,16 @@ export class OfflineSyncService {
   private async loadPendingActions(): Promise<void> {
     const actions = await this.storage.getItem(this.OFFLINE_ACTIONS_KEY) || [];
     this.syncQueue = actions;
-    
-    this.updateSyncStatus({ 
-      pendingActions: this.syncQueue.length 
+
+    this.updateSyncStatus({
+      pendingActions: this.syncQueue.length
     });
   }
 
   private updateSyncStatus(updates: Partial<SyncStatus>): void {
     const currentStatus = this.syncStatusSubject.value;
     const newStatus = { ...currentStatus, ...updates };
-    
+
     this.syncStatusSubject.next(newStatus);
     this.saveSyncStatus(newStatus);
   }

@@ -9,79 +9,79 @@
 
 /* Dark theme override for Material components */
 .dark-theme {
-  
+
   // Override Material colors for dark mode
   .mat-toolbar {
     background-color: var(--header-background) !important;
     color: var(--text-primary) !important;
   }
-  
+
   .mat-card {
     background-color: var(--card-background) !important;
     color: var(--text-primary) !important;
   }
-  
+
   .mat-button, .mat-raised-button, .mat-stroked-button {
     color: var(--text-primary) !important;
   }
-  
+
   .mat-form-field {
     color: var(--text-primary) !important;
-    
+
     .mat-form-field-label {
       color: var(--text-secondary) !important;
     }
-    
+
     .mat-input-element {
       color: var(--text-primary) !important;
     }
-    
+
     .mat-form-field-outline {
       color: var(--border-color) !important;
     }
-    
+
     .mat-form-field-outline-thick {
       color: var(--primary-color) !important;
     }
   }
-  
+
   .mat-icon {
     color: var(--text-primary) !important;
   }
-  
+
   .mat-divider {
     border-top-color: var(--border-color) !important;
   }
-  
+
   .mat-progress-bar {
     background-color: var(--surface-color) !important;
   }
-  
+
   .mat-stepper-horizontal {
     background-color: var(--card-background) !important;
   }
-  
+
   .mat-step-header {
     color: var(--text-primary) !important;
   }
-  
+
   .mat-checkbox {
     color: var(--text-primary) !important;
   }
-  
+
   .mat-error {
     color: var(--error-text) !important;
   }
 }
 
 // Global styles
-html, body { 
-  height: 100%; 
+html, body {
+  height: 100%;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-body { 
-  margin: 0; 
+body {
+  margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
   line-height: 1.6;
   -webkit-text-size-adjust: 100%;
@@ -92,43 +92,43 @@ body {
   body {
     font-size: 16px; // Prevents zoom on iOS
   }
-  
+
   h1 {
     font-size: 2rem;
     line-height: 1.2;
   }
-  
+
   h2 {
     font-size: 1.75rem;
     line-height: 1.3;
   }
-  
+
   h3 {
     font-size: 1.5rem;
     line-height: 1.3;
   }
-  
+
   p {
     font-size: 1.1rem;
     line-height: 1.6;
   }
-  
+
   button {
     min-height: 44px;
     min-width: 44px;
     font-size: 1rem;
   }
-  
+
   .mat-button, .mat-raised-button, .mat-stroked-button {
     min-height: 48px !important;
     font-size: 1.1rem !important;
     padding: 0.75rem 1.5rem !important;
   }
-  
+
   .mat-form-field {
     font-size: 1.1rem !important;
   }
-  
+
   input, textarea, select {
     font-size: 16px !important; // Prevents zoom on iOS
   }
@@ -194,7 +194,7 @@ body {
     outline: 3px solid currentColor;
     outline-offset: 2px;
   }
-  
+
   button, a, input, textarea, select {
     border: 2px solid currentColor !important;
   }
@@ -224,12 +224,12 @@ button {
   cursor: pointer;
   min-height: 44px;
   min-width: 44px;
-  
+
   &:disabled {
     cursor: not-allowed;
     opacity: 0.6;
   }
-  
+
   &:focus {
     @include focus-ring-primary;
   }
@@ -239,11 +239,11 @@ button {
 input, textarea, select {
   font-size: 16px; // Prevents zoom on iOS
   min-height: 44px;
-  
+
   &:focus {
     @include focus-ring-primary;
   }
-  
+
   &:invalid {
     border-color: var(--status-error);
     box-shadow: 0 0 0 1px var(--status-error);
@@ -255,15 +255,15 @@ a {
   color: var(--interactive-primary);
   text-decoration: underline;
   text-decoration-skip-ink: auto;
-  
+
   &:hover {
     color: var(--interactive-primary-hover);
   }
-  
+
   &:focus {
     @include focus-ring-primary;
   }
-  
+
   // Skip link for screen readers
   &.skip-link {
     position: absolute;
@@ -276,7 +276,7 @@ a {
     text-decoration: none;
     border-radius: 4px;
     border: 2px solid var(--interactive-primary);
-    
+
     &:focus {
       top: 6px;
     }
@@ -292,7 +292,7 @@ p, li, td, th {
 h1, h2, h3, h4, h5, h6 {
   line-height: 1.3;
   margin-bottom: 0.75em;
-  
+
   &:first-child {
     margin-top: 0;
   }
@@ -301,7 +301,7 @@ h1, h2, h3, h4, h5, h6 {
 // Lists accessibility
 ul, ol {
   padding-left: 1.5em;
-  
+
   li {
     margin-bottom: 0.25em;
   }
@@ -311,18 +311,18 @@ ul, ol {
 table {
   border-collapse: collapse;
   width: 100%;
-  
+
   th, td {
     padding: 0.75rem;
     text-align: left;
     border: 1px solid var(--border-medium);
   }
-  
+
   th {
     background-color: var(--background-secondary);
     font-weight: 600;
   }
-  
+
   caption {
     @include text-primary;
     font-weight: 600;
@@ -335,15 +335,15 @@ table {
 .mat-button, .mat-raised-button, .mat-stroked-button, .mat-flat-button {
   min-height: 44px !important;
   @include text-primary;
-  
+
   &:focus {
     @include focus-ring-primary;
   }
-  
+
   &.mat-primary {
     @include interactive-primary;
   }
-  
+
   &.mat-accent {
     @include interactive-accent;
   }
@@ -353,15 +353,15 @@ table {
   .mat-form-field-label {
     @include text-secondary;
   }
-  
+
   .mat-input-element {
     @include text-primary;
-    
+
     &:focus {
       @include focus-ring-primary;
     }
   }
-  
+
   &.mat-focused .mat-form-field-label {
     color: var(--interactive-primary) !important;
   }
@@ -383,16 +383,16 @@ table {
   ::-webkit-scrollbar {
     width: 8px;
   }
-  
+
   ::-webkit-scrollbar-track {
     background: var(--background-secondary);
   }
-  
+
   ::-webkit-scrollbar-thumb {
     background: var(--border-medium);
     border-radius: 4px;
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
     background: var(--border-strong);
   }

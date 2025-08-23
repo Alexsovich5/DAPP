@@ -387,7 +387,7 @@ describe('ConnectionManagementComponent', () => {
 
       const pendingTab = fixture.debugElement.query(By.css('mat-tab[data-tab="pending"]'));
       const badge = pendingTab.query(By.css('mat-badge'));
-      
+
       expect(badge).toBeTruthy();
       expect(component.pendingRequestsCount).toBe(mockPendingRequests.length);
     }));
@@ -397,7 +397,7 @@ describe('ConnectionManagementComponent', () => {
       tick();
 
       const tabGroup = fixture.debugElement.query(By.css('mat-tab-group'));
-      
+
       // Switch to pending tab
       tabGroup.triggerEventHandler('selectedIndexChange', { index: 1 });
       fixture.detectChanges();
@@ -584,7 +584,7 @@ describe('ConnectionManagementComponent', () => {
     it('should resume connection', fakeAsync(() => {
       const pausedConnection = { ...mockActiveConnections[0], connection_stage: 'paused' as any };
       soulConnectionService.resumeConnection.and.returnValue(of({ success: true }));
-      
+
       fixture.detectChanges();
       tick();
 
@@ -701,9 +701,9 @@ describe('ConnectionManagementComponent', () => {
     }));
 
     it('should accept connection request', fakeAsync(() => {
-      soulConnectionService.acceptConnection.and.returnValue(of({ 
-        success: true, 
-        connection_id: 3 
+      soulConnectionService.acceptConnection.and.returnValue(of({
+        success: true,
+        connection_id: 3
       }));
 
       fixture.detectChanges();
@@ -722,8 +722,8 @@ describe('ConnectionManagementComponent', () => {
     }));
 
     it('should decline connection request with reason', fakeAsync(() => {
-      const dialogRef = { 
-        afterClosed: () => of({ declined: true, reason: 'Not feeling the connection' }) 
+      const dialogRef = {
+        afterClosed: () => of({ declined: true, reason: 'Not feeling the connection' })
       };
       dialog.open.and.returnValue(dialogRef as any);
       soulConnectionService.declineConnection.and.returnValue(of({ success: true }));
@@ -983,7 +983,7 @@ describe('ConnectionManagementComponent', () => {
       const searchInput = fixture.debugElement.query(By.css('.search-input'));
       searchInput.nativeElement.value = 'Emma';
       searchInput.triggerEventHandler('input', { target: { value: 'Emma' } });
-      
+
       tick(300); // Debounce delay
 
       const filteredConnections = component.getFilteredConnections();
@@ -1087,7 +1087,7 @@ describe('ConnectionManagementComponent', () => {
       tick();
 
       const searchInput = fixture.debugElement.query(By.css('.search-input'));
-      
+
       // Rapid typing
       searchInput.triggerEventHandler('input', { target: { value: 'E' } });
       searchInput.triggerEventHandler('input', { target: { value: 'Em' } });
@@ -1134,7 +1134,7 @@ describe('ConnectionManagementComponent', () => {
       tick();
 
       const firstConnection = fixture.debugElement.query(By.css('.connection-card'));
-      
+
       firstConnection.triggerEventHandler('keydown.enter', {});
       expect(component.openConnectionDetails).toHaveBeenCalledWith(mockActiveConnections[0]);
 
@@ -1186,7 +1186,7 @@ describe('ConnectionManagementComponent', () => {
 
     it('should adapt layout for mobile screens', fakeAsync(() => {
       spyOnProperty(window, 'innerWidth').and.returnValue(375);
-      
+
       fixture.detectChanges();
       tick();
 
@@ -1211,7 +1211,7 @@ describe('ConnectionManagementComponent', () => {
       tick();
 
       const tabContainer = fixture.debugElement.query(By.css('.tab-container'));
-      
+
       // Simulate swipe left
       tabContainer.triggerEventHandler('swipeleft', {});
       expect(component.selectedTabIndex).toBe(1);

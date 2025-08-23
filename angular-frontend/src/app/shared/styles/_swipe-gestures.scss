@@ -26,7 +26,7 @@
 .swipe-active {
   transform: scale(0.98);
   transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -34,8 +34,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, 
-      var(--soul-purple-500, #a855f7) 0%, 
+    background: linear-gradient(135deg,
+      var(--soul-purple-500, #a855f7) 0%,
       var(--emotion-rose-500, #f43f5e) 100%);
     opacity: 0.05;
     pointer-events: none;
@@ -58,8 +58,8 @@
     left: 50%;
     width: 0;
     height: 0;
-    background: radial-gradient(circle, 
-      var(--primary-emotional, #ff6b9d) 0%, 
+    background: radial-gradient(circle,
+      var(--primary-emotional, #ff6b9d) 0%,
       transparent 70%);
     opacity: 0.6;
     transform: translate(-50%, -50%);
@@ -124,10 +124,10 @@
 .discovery-card {
   &.swipe-enabled {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    
+
     &.swipe-left-preview {
       transform: translateX(-20px) rotate(-5deg);
-      
+
       &::before {
         content: '💔';
         position: absolute;
@@ -141,7 +141,7 @@
 
     &.swipe-right-preview {
       transform: translateX(20px) rotate(5deg);
-      
+
       &::before {
         content: '💕';
         position: absolute;
@@ -161,10 +161,10 @@
   &.swipe-enabled {
     &.swipe-left-preview {
       transform: translateX(-40px);
-      background: linear-gradient(90deg, 
-        rgba(239, 68, 68, 0.1) 0%, 
+      background: linear-gradient(90deg,
+        rgba(239, 68, 68, 0.1) 0%,
         transparent 100%);
-      
+
       &::after {
         content: '🗑️';
         position: absolute;
@@ -178,10 +178,10 @@
 
     &.swipe-right-preview {
       transform: translateX(40px);
-      background: linear-gradient(90deg, 
-        transparent 0%, 
+      background: linear-gradient(90deg,
+        transparent 0%,
         rgba(34, 197, 94, 0.1) 100%);
-      
+
       &::after {
         content: '✅';
         position: absolute;
@@ -266,7 +266,7 @@
   .swipe-enabled {
     // Enhanced touch targets for mobile
     min-height: 44px;
-    
+
     &.discovery-card {
       &.swipe-left-preview {
         transform: translateX(-30px) rotate(-8deg);
@@ -337,8 +337,8 @@
 .dark-theme {
   .swipe-active {
     &::before {
-      background: linear-gradient(135deg, 
-        var(--soul-purple-400, #c084fc) 0%, 
+      background: linear-gradient(135deg,
+        var(--soul-purple-400, #c084fc) 0%,
         var(--emotion-rose-400, #fb7185) 100%);
     }
   }
@@ -355,7 +355,7 @@
   touch-action: auto !important;
   user-select: text !important;
   cursor: default !important;
-  
+
   &::before,
   &::after {
     display: none !important;
@@ -380,30 +380,30 @@
 
 .swipe-like {
   --swipe-feedback-color: var(--trust-forest-500, #22c55e);
-  
+
   &.swipe-success::after {
-    background: radial-gradient(circle, 
-      var(--swipe-feedback-color) 0%, 
+    background: radial-gradient(circle,
+      var(--swipe-feedback-color) 0%,
       transparent 70%);
   }
 }
 
 .swipe-pass {
   --swipe-feedback-color: var(--emotion-rose-500, #f43f5e);
-  
+
   &.swipe-success::after {
-    background: radial-gradient(circle, 
-      var(--swipe-feedback-color) 0%, 
+    background: radial-gradient(circle,
+      var(--swipe-feedback-color) 0%,
       transparent 70%);
   }
 }
 
 .swipe-superlike {
   --swipe-feedback-color: #ffd700;
-  
+
   &.swipe-success::after {
-    background: radial-gradient(circle, 
-      var(--swipe-feedback-color) 0%, 
+    background: radial-gradient(circle,
+      var(--swipe-feedback-color) 0%,
       transparent 70%);
   }
 }

@@ -46,7 +46,7 @@ export class ConversationsEmptyStateComponent {
       text: "Ask about their dreams and aspirations rather than surface topics"
     },
     {
-      icon: "🎯", 
+      icon: "🎯",
       text: "Share personal stories and experiences that shaped you"
     },
     {
@@ -69,7 +69,7 @@ export class ConversationsEmptyStateComponent {
   };
 
   secondaryAction = {
-    text: "Conversation Guide", 
+    text: "Conversation Guide",
     icon: "📖"
   };
 

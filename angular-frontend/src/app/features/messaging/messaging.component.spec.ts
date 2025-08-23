@@ -301,7 +301,7 @@ describe('MessagingComponent', () => {
       expect(messageElements.length).toBe(mockMessages.length);
 
       // Should be in chronological order
-      const timestamps = messageElements.map(el => 
+      const timestamps = messageElements.map(el =>
         el.query(By.css('.message-time')).nativeElement.textContent
       );
       expect(timestamps).toBeDefined();
@@ -366,7 +366,7 @@ describe('MessagingComponent', () => {
 
       const replyMessage = fixture.debugElement.query(By.css('.message-item[data-message-id="4"]'));
       const replyIndicator = replyMessage.query(By.css('.reply-indicator'));
-      
+
       expect(replyIndicator).toBeTruthy();
       expect(replyIndicator.nativeElement.textContent).toContain('Replying to');
     }));
@@ -425,7 +425,7 @@ describe('MessagingComponent', () => {
       // Empty message should not send
       messageInput.nativeElement.value = '';
       messageInput.triggerEventHandler('input', { target: { value: '' } });
-      
+
       expect(sendButton.nativeElement.disabled).toBe(true);
 
       // Very long message should be truncated or rejected
@@ -462,9 +462,9 @@ describe('MessagingComponent', () => {
       const messageInput = fixture.debugElement.query(By.css('.message-input'));
       messageInput.nativeElement.value = 'Line 1\nLine 2';
 
-      messageInput.triggerEventHandler('keydown.enter', { 
-        shiftKey: true, 
-        preventDefault: () => {} 
+      messageInput.triggerEventHandler('keydown.enter', {
+        shiftKey: true,
+        preventDefault: () => {}
       });
 
       // Should not send message, should add new line
@@ -478,7 +478,7 @@ describe('MessagingComponent', () => {
       const messageInput = fixture.debugElement.query(By.css('.message-input'));
       messageInput.nativeElement.value = 'Test message with character count';
       messageInput.triggerEventHandler('input', { target: { value: 'Test message with character count' } });
-      
+
       fixture.detectChanges();
 
       const characterCount = fixture.debugElement.query(By.css('.character-count'));
@@ -524,7 +524,7 @@ describe('MessagingComponent', () => {
       const quickResponses = fixture.debugElement.queryAll(By.css('.quick-response'));
       expect(quickResponses.length).toBeGreaterThan(0);
 
-      const soulResponse = quickResponses.find(response => 
+      const soulResponse = quickResponses.find(response =>
         response.nativeElement.textContent.includes('soul')
       );
       expect(soulResponse).toBeTruthy();
@@ -595,7 +595,7 @@ describe('MessagingComponent', () => {
       tick();
 
       expect(component.messages).toContain(newMessage);
-      
+
       // Should automatically scroll to bottom
       expect(component.scrollToBottom).toHaveBeenCalled();
     }));
@@ -727,9 +727,9 @@ describe('MessagingComponent', () => {
     }));
 
     it('should support message editing for own messages', fakeAsync(() => {
-      messageService.editMessage.and.returnValue(of({ 
-        success: true, 
-        message: { ...mockMessages[1], message_text: 'Edited message' } 
+      messageService.editMessage.and.returnValue(of({
+        success: true,
+        message: { ...mockMessages[1], message_text: 'Edited message' }
       }));
 
       fixture.detectChanges();
@@ -745,7 +745,7 @@ describe('MessagingComponent', () => {
       expect(editInput).toBeTruthy();
 
       editInput.nativeElement.value = 'Edited message';
-      
+
       const saveButton = fixture.debugElement.query(By.css('.save-edit'));
       saveButton.triggerEventHandler('click', {});
 
@@ -779,7 +779,7 @@ describe('MessagingComponent', () => {
       tick();
 
       const messageElement = fixture.debugElement.query(By.css('.message-item[data-message-id="1"]'));
-      
+
       messageElement.triggerEventHandler('contextmenu', { preventDefault: () => {} });
       fixture.detectChanges();
 
@@ -851,8 +851,8 @@ describe('MessagingComponent', () => {
       const suggestions = fixture.debugElement.queryAll(By.css('.suggestion-item'));
       expect(suggestions.length).toBeGreaterThan(0);
 
-      const soulSuggestion = suggestions.find(s => 
-        s.nativeElement.textContent.includes('soul') || 
+      const soulSuggestion = suggestions.find(s =>
+        s.nativeElement.textContent.includes('soul') ||
         s.nativeElement.textContent.includes('heart')
       );
       expect(soulSuggestion).toBeTruthy();
@@ -996,7 +996,7 @@ describe('MessagingComponent', () => {
       tick();
 
       const messageInput = fixture.debugElement.query(By.css('.message-input'));
-      
+
       // Rapid typing
       for (let i = 0; i < 5; i++) {
         messageInput.triggerEventHandler('input', { target: { value: `typing ${i}` } });
@@ -1122,7 +1122,7 @@ describe('MessagingComponent', () => {
 
     it('should adapt layout for mobile screens', fakeAsync(() => {
       spyOnProperty(window, 'innerWidth').and.returnValue(375);
-      
+
       fixture.detectChanges();
       tick();
 
@@ -1148,10 +1148,10 @@ describe('MessagingComponent', () => {
       tick();
 
       const messageElement = fixture.debugElement.query(By.css('.message-item'));
-      
+
       // Simulate swipe left
       messageElement.triggerEventHandler('swipeleft', {});
-      
+
       expect(component.showMessageActions).toHaveBeenCalledWith(mockMessages[0]);
     }));
 
@@ -1186,7 +1186,7 @@ describe('MessagingComponent', () => {
       expect(notificationService.showError).toHaveBeenCalledWith(
         'Failed to send message: Message send failed'
       );
-      
+
       // Should show retry option
       const retryButton = fixture.debugElement.query(By.css('.retry-send'));
       expect(retryButton).toBeTruthy();

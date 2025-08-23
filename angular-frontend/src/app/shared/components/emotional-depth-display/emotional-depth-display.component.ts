@@ -9,10 +9,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { 
-  EmotionalDepthService, 
-  EmotionalDepthSummary, 
-  EmotionalDepthMetrics 
+import {
+  EmotionalDepthService,
+  EmotionalDepthSummary,
+  EmotionalDepthMetrics
 } from '../../../core/services/emotional-depth.service';
 
 @Component({
@@ -83,8 +83,8 @@ import {
           </h4>
           <div class="chips-container">
             <mat-chip-set>
-              <mat-chip 
-                *ngFor="let strength of depthSummary.emotional_depth_summary.key_strengths" 
+              <mat-chip
+                *ngFor="let strength of depthSummary.emotional_depth_summary.key_strengths"
                 class="strength-chip">
                 {{ strength }}
               </mat-chip>
@@ -137,11 +137,11 @@ import {
             <mat-icon>assignment_turned_in</mat-icon>
             Profile Analysis
           </h4>
-          
+
           <div class="completeness-bar">
             <span class="completeness-label">Analysis Confidence</span>
-            <mat-progress-bar 
-              mode="determinate" 
+            <mat-progress-bar
+              mode="determinate"
               [value]="depthSummary.profile_completeness.confidence"
               [color]="getConfidenceColor()">
             </mat-progress-bar>
@@ -244,7 +244,7 @@ export class EmotionalDepthDisplayComponent implements OnInit, OnDestroy {
   getVulnerabilityLevel(): string {
     if (!this.depthSummary) return 'Unknown';
     const comfort = this.depthSummary.emotional_depth_summary.vulnerability_comfort;
-    
+
     if (comfort.includes('very comfortable')) return 'High';
     if (comfort.includes('moderately comfortable')) return 'Moderate';
     if (comfort.includes('developing')) return 'Developing';
@@ -254,7 +254,7 @@ export class EmotionalDepthDisplayComponent implements OnInit, OnDestroy {
   getAuthenticityLevel(): string {
     if (!this.depthSummary) return 'Unknown';
     const authenticity = this.depthSummary.emotional_depth_summary.authenticity_level;
-    
+
     if (authenticity.includes('highly authentic')) return 'High';
     if (authenticity.includes('generally authentic')) return 'Good';
     if (authenticity.includes('moderately authentic')) return 'Moderate';
@@ -264,7 +264,7 @@ export class EmotionalDepthDisplayComponent implements OnInit, OnDestroy {
   getConfidenceColor(): 'primary' | 'accent' | 'warn' {
     if (!this.depthSummary) return 'primary';
     const confidence = this.depthSummary.profile_completeness.confidence;
-    
+
     if (confidence >= 80) return 'primary';
     if (confidence >= 60) return 'accent';
     return 'warn';
@@ -273,7 +273,7 @@ export class EmotionalDepthDisplayComponent implements OnInit, OnDestroy {
   getQualityClass(): string {
     if (!this.depthSummary) return '';
     const quality = this.depthSummary.profile_completeness.text_quality;
-    
+
     return `quality-${quality.toLowerCase()}`;
   }
 

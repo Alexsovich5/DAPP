@@ -279,14 +279,14 @@ it('should handle errors gracefully', () => {
     error: { detail: 'Validation error' },
     status: 422
   });
-  
+
   spyOn(notificationService, 'showError');
-  
+
   service.getData().subscribe();
-  
+
   const req = httpMock.expectOne('/api/data');
   req.flush(null, errorResponse);
-  
+
   expect(notificationService.showError).toHaveBeenCalledWith(
     jasmine.stringContaining('Validation error')
   );

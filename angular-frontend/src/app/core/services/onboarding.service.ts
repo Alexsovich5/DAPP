@@ -52,13 +52,13 @@ export interface OnboardingState {
 })
 export class OnboardingService {
   private readonly STORAGE_KEY = 'soul-onboarding-state';
-  
+
   private stateSubject = new BehaviorSubject<OnboardingState>(this.getInitialState());
   private activeStepSubject = new BehaviorSubject<OnboardingStep | null>(null);
-  
+
   public state$ = this.stateSubject.asObservable();
   public activeStep$ = this.activeStepSubject.asObservable();
-  
+
   private tours: Map<string, OnboardingTour> = new Map();
   private currentTourSteps: OnboardingStep[] = [];
 
@@ -275,15 +275,15 @@ export class OnboardingService {
     }
 
     const currentState = this.stateSubject.value;
-    
+
     // Check if tour was already completed and user preferences
-    if (currentState.completedTours.includes(tourId) && 
+    if (currentState.completedTours.includes(tourId) &&
         currentState.userPreferences.skipIntroductions) {
       return;
     }
 
     this.currentTourSteps = tour.steps;
-    
+
     const newState: OnboardingState = {
       ...currentState,
       currentTour: tourId,
@@ -350,7 +350,7 @@ export class OnboardingService {
   skipStep(): void {
     const currentState = this.stateSubject.value;
     const currentStep = this.currentTourSteps[currentState.currentStep];
-    
+
     if (currentStep) {
       const newState: OnboardingState = {
         ...currentState,
@@ -367,7 +367,7 @@ export class OnboardingService {
    */
   completeTour(): void {
     const currentState = this.stateSubject.value;
-    
+
     if (currentState.currentTour) {
       const newState: OnboardingState = {
         ...currentState,
@@ -403,7 +403,7 @@ export class OnboardingService {
    */
   checkTourTrigger(condition: string): void {
     const currentState = this.stateSubject.value;
-    
+
     // Don't show tours if user has disabled them
     if (!currentState.userPreferences.showTutorials) {
       return;
@@ -411,7 +411,7 @@ export class OnboardingService {
 
     // Check if any tours should be triggered by this condition
     for (const [tourId, tour] of this.tours) {
-      if (tour.triggerCondition === condition && 
+      if (tour.triggerCondition === condition &&
           !currentState.completedTours.includes(tourId) &&
           !currentState.currentTour) {
         this.startTour(tourId);
@@ -487,7 +487,7 @@ export class OnboardingService {
 
     // Add highlight class
     element.classList.add('onboarding-highlight');
-    
+
     // Add focus ring for accessibility
     element.style.outline = '3px solid var(--primary-color)';
     element.style.outlineOffset = '4px';

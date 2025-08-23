@@ -1,9 +1,10 @@
-from fastapi import Request
-import time
-import logging
-from typing import Callable
 import json
+import logging
+import time
 import uuid
+from typing import Callable
+
+from fastapi import Request
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

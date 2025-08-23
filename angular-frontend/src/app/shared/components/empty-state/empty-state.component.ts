@@ -7,22 +7,22 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
   standalone: true,
   imports: [CommonModule, SoulOrbComponent],
   template: `
-    <div 
-      class="empty-state-container" 
+    <div
+      class="empty-state-container"
       [ngClass]="[theme, size]"
       role="region"
       [attr.aria-label]="getAriaLabel()"
       [attr.aria-describedby]="descriptionId">
-      
+
       <!-- Animated illustration -->
-      <div 
+      <div
         class="empty-state-illustration"
         role="img"
         [attr.aria-label]="getIllustrationAriaLabel()"
         aria-hidden="false">
         <!-- Soul orb animation for some states -->
-        <div 
-          *ngIf="showSoulOrb" 
+        <div
+          *ngIf="showSoulOrb"
           class="soul-orb-display"
           role="img"
           aria-label="Soul energy visualization">
@@ -37,18 +37,18 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
         </div>
 
         <!-- SVG illustrations for different states -->
-        <div 
-          *ngIf="illustration" 
+        <div
+          *ngIf="illustration"
           class="svg-illustration"
           role="img"
           [attr.aria-label]="getIllustrationAriaLabel()">
-          <svg 
-            [attr.width]="illustrationSize" 
-            [attr.height]="illustrationSize" 
+          <svg
+            [attr.width]="illustrationSize"
+            [attr.height]="illustrationSize"
             viewBox="0 0 200 200"
             role="img"
             [attr.aria-label]="getIllustrationAriaLabel()">
-            
+
             <!-- Discovery illustration -->
             <g *ngIf="illustration === 'discovery'">
               <defs>
@@ -89,7 +89,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
                 </radialGradient>
               </defs>
               <circle cx="100" cy="100" r="90" fill="url(#revelation-gradient)" class="revelation-glow"/>
-              <path d="M 100 40 L 110 70 L 140 70 L 118 90 L 128 120 L 100 105 L 72 120 L 82 90 L 60 70 L 90 70 Z" 
+              <path d="M 100 40 L 110 70 L 140 70 L 118 90 L 128 120 L 100 105 L 72 120 L 82 90 L 60 70 L 90 70 Z"
                     fill="#ffd700" stroke="#ffffff" stroke-width="2" class="star-sparkle"/>
               <text x="100" y="170" text-anchor="middle" font-size="20" fill="#c084fc" aria-hidden="true">✨</text>
             </g>
@@ -119,39 +119,39 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 
       <!-- Content -->
       <div class="empty-state-content">
-        <h2 
+        <h2
           class="empty-state-title"
           [id]="titleId">
           {{title}}
         </h2>
-        <p 
+        <p
           class="empty-state-description"
           [id]="descriptionId">
           {{description}}
         </p>
-        
+
         <!-- Tips or additional info -->
-        <div 
-          *ngIf="tips?.length" 
+        <div
+          *ngIf="tips?.length"
           class="empty-state-tips"
           role="region"
           [attr.aria-labelledby]="tipsHeaderId">
-          <h3 
+          <h3
             class="tips-title"
             [id]="tipsHeaderId">
             {{tipsTitle || 'Tips to get started:'}}
           </h3>
-          <ul 
+          <ul
             class="tips-list"
             role="list"
             [attr.aria-describedby]="tipsHeaderId">
-            <li 
-              *ngFor="let tip of tips; trackBy: trackTip; let i = index" 
+            <li
+              *ngFor="let tip of tips; trackBy: trackTip; let i = index"
               class="tip-item"
               role="listitem"
               [attr.aria-label]="getTipAriaLabel(tip, i)">
-              <span 
-                class="tip-icon" 
+              <span
+                class="tip-icon"
                 aria-hidden="true">
                 {{tip.icon || '💡'}}
               </span>
@@ -161,25 +161,25 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
         </div>
 
         <!-- Progress indicator -->
-        <div 
-          *ngIf="showProgress" 
+        <div
+          *ngIf="showProgress"
           class="progress-section"
           role="region"
           aria-label="Progress information">
-          <div 
+          <div
             class="progress-bar"
             role="progressbar"
             [attr.aria-valuenow]="progressValue"
             aria-valuemin="0"
             aria-valuemax="100"
             [attr.aria-valuetext]="getProgressAriaText()">
-            <div 
-              class="progress-fill" 
+            <div
+              class="progress-fill"
               [style.width.%]="progressValue"
               aria-hidden="true">
             </div>
           </div>
-          <p 
+          <p
             class="progress-text"
             [id]="progressTextId"
             aria-live="polite">
@@ -188,12 +188,12 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
         </div>
 
         <!-- Action buttons -->
-        <div 
-          class="empty-state-actions" 
+        <div
+          class="empty-state-actions"
           *ngIf="primaryAction || secondaryAction"
           role="group"
           aria-label="Available actions">
-          <button 
+          <button
             *ngIf="primaryAction"
             type="button"
             class="action-btn primary"
@@ -202,16 +202,16 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
             (click)="onPrimaryAction()"
             (keydown)="handleActionKeydown($event, 'primary')"
             [disabled]="primaryActionDisabled">
-            <span 
-              *ngIf="primaryAction.icon" 
+            <span
+              *ngIf="primaryAction.icon"
               class="btn-icon"
               aria-hidden="true">
               {{primaryAction.icon}}
             </span>
             <span class="btn-text">{{primaryAction.text}}</span>
           </button>
-          
-          <button 
+
+          <button
             *ngIf="secondaryAction"
             type="button"
             class="action-btn secondary"
@@ -220,8 +220,8 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
             (click)="onSecondaryAction()"
             (keydown)="handleActionKeydown($event, 'secondary')"
             [disabled]="secondaryActionDisabled">
-            <span 
-              *ngIf="secondaryAction.icon" 
+            <span
+              *ngIf="secondaryAction.icon"
               class="btn-icon"
               aria-hidden="true">
               {{secondaryAction.icon}}
@@ -564,16 +564,16 @@ export class EmptyStateComponent {
   @Input() size: 'small' | 'medium' | 'large' = 'medium';
   @Input() title: string = 'Nothing here yet';
   @Input() description: string = 'Content will appear here when available.';
-  
+
   // Accessibility inputs
   @Input() ariaLabel?: string;
   @Input() headingLevel: 2 | 3 | 4 = 2;
-  
+
   // Illustration options
   @Input() illustration?: 'discovery' | 'conversations' | 'revelations' | 'profile';
   @Input() customIcon?: string;
   @Input() iconSize: number = 4;
-  
+
   // Soul orb options
   @Input() showSoulOrb: boolean = false;
   @Input() soulOrbType: 'primary' | 'secondary' | 'neutral' = 'primary';
@@ -582,22 +582,22 @@ export class EmptyStateComponent {
   @Input() soulOrbEnergy: number = 2;
   @Input() showParticles: boolean = true;
   @Input() showSparkles: boolean = true;
-  
+
   // Tips
   @Input() tips: Array<{icon?: string, text: string}> = [];
   @Input() tipsTitle?: string;
-  
+
   // Progress
   @Input() showProgress: boolean = false;
   @Input() progressValue: number = 0;
   @Input() progressText: string = '';
-  
+
   // Actions
   @Input() primaryAction?: {text: string, icon?: string, ariaLabel?: string, description?: string};
   @Input() secondaryAction?: {text: string, icon?: string, ariaLabel?: string, description?: string};
   @Input() primaryActionDisabled: boolean = false;
   @Input() secondaryActionDisabled: boolean = false;
-  
+
   @Output() primaryActionClick = new EventEmitter<void>();
   @Output() secondaryActionClick = new EventEmitter<void>();
 
@@ -679,7 +679,7 @@ export class EmptyStateComponent {
         }
         this.announceAction(`${actionType} action activated`);
         break;
-        
+
       case 'ArrowLeft':
       case 'ArrowUp':
         event.preventDefault();
@@ -687,7 +687,7 @@ export class EmptyStateComponent {
         prevButton?.focus();
         this.announceAction('Previous action button');
         break;
-        
+
       case 'ArrowRight':
       case 'ArrowDown':
         event.preventDefault();
@@ -695,13 +695,13 @@ export class EmptyStateComponent {
         nextButton?.focus();
         this.announceAction('Next action button');
         break;
-        
+
       case 'Home':
         event.preventDefault();
         actionButtons[0]?.focus();
         this.announceAction('First action button');
         break;
-        
+
       case 'End':
         event.preventDefault();
         actionButtons[actionButtons.length - 1]?.focus();
@@ -719,9 +719,9 @@ export class EmptyStateComponent {
     announcement.setAttribute('aria-atomic', 'true');
     announcement.className = 'sr-only';
     announcement.textContent = message;
-    
+
     document.body.appendChild(announcement);
-    
+
     setTimeout(() => {
       if (announcement.parentNode) {
         document.body.removeChild(announcement);

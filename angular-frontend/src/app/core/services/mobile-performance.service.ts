@@ -128,16 +128,16 @@ export class MobilePerformanceService {
     const measureFPS = () => {
       frameCount++;
       const currentTime = performance.now();
-      
+
       if (currentTime - lastTime >= measureInterval) {
         const fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
-        
+
         this.updateMetrics({ frameRate: fps });
-        
+
         frameCount = 0;
         lastTime = currentTime;
       }
-      
+
       this.animationFrameId = requestAnimationFrame(measureFPS);
     };
 
@@ -152,9 +152,9 @@ export class MobilePerformanceService {
           const usedMemory = memory.usedJSHeapSize;
           const totalMemory = memory.totalJSHeapSize;
           const memoryUsage = usedMemory / totalMemory;
-          
+
           this.updateMetrics({ memoryUsage });
-          
+
           // Trigger cleanup if memory usage is high
           if (memoryUsage > this.defaultMemoryConfig.criticalMemoryThreshold) {
             this.performEmergencyCleanup();
@@ -207,10 +207,10 @@ export class MobilePerformanceService {
     config: Partial<ImageOptimizationConfig> = {}
   ): Promise<string> {
     const finalConfig = { ...this.defaultImageConfig, ...config };
-    
+
     try {
       let img: HTMLImageElement;
-      
+
       if (typeof imageElement === 'string') {
         img = new Image();
         img.src = imageElement;
@@ -223,7 +223,7 @@ export class MobilePerformanceService {
       }
 
       // Check if image needs optimization
-      if (img.naturalWidth <= finalConfig.maxWidth && 
+      if (img.naturalWidth <= finalConfig.maxWidth &&
           img.naturalHeight <= finalConfig.maxHeight) {
         return img.src;
       }
@@ -241,7 +241,7 @@ export class MobilePerformanceService {
   ): Promise<string> {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    
+
     if (!ctx) {
       throw new Error('Canvas context not available');
     }
@@ -272,9 +272,9 @@ export class MobilePerformanceService {
     ctx.drawImage(img, 0, 0, maxWidth, maxHeight);
 
     // Return optimized image as data URL
-    const mimeType = config.format === 'webp' ? 'image/webp' : 
+    const mimeType = config.format === 'webp' ? 'image/webp' :
                     config.format === 'png' ? 'image/png' : 'image/jpeg';
-    
+
     return canvas.toDataURL(mimeType, config.quality);
   }
 
@@ -363,20 +363,20 @@ export class MobilePerformanceService {
     // Create a low-quality placeholder
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    
+
     if (!ctx) return;
 
     canvas.width = 40;
     canvas.height = 30;
-    
+
     // Create a simple gradient placeholder
     const gradient = ctx.createLinearGradient(0, 0, 40, 30);
     gradient.addColorStop(0, '#f0f0f0');
     gradient.addColorStop(1, '#e0e0e0');
-    
+
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 40, 30);
-    
+
     img.src = canvas.toDataURL();
     img.classList.add('placeholder');
   }
@@ -386,7 +386,7 @@ export class MobilePerformanceService {
    */
   async preloadCriticalImages(imageUrls: string[]): Promise<void> {
     const deviceInfo = this.mobileFeatures.getDeviceInfo();
-    
+
     // Reduce preload count for low-end devices
     const maxPreload = deviceInfo.isLowEndDevice ? 3 : 8;
     const urlsToPreload = imageUrls.slice(0, maxPreload);
@@ -404,7 +404,7 @@ export class MobilePerformanceService {
 
         const img = new Image();
         img.src = optimizedUrl;
-        
+
         return new Promise<void>((resolve) => {
           img.onload = () => {
             this.imageCache.set(url, img);
@@ -494,7 +494,7 @@ export class MobilePerformanceService {
     // Clear most of the image cache
     const currentSize = this.imageCache.size;
     const keepCount = Math.floor(currentSize * 0.3);
-    
+
     const entries = Array.from(this.imageCache.entries());
     entries.slice(0, currentSize - keepCount).forEach(([key]) => {
       this.imageCache.delete(key);
@@ -506,11 +506,11 @@ export class MobilePerformanceService {
 
   private limitImageCache(): void {
     const maxCacheItems = this.defaultMemoryConfig.profileImageCacheLimit;
-    
+
     if (this.imageCache.size > maxCacheItems) {
       const entries = Array.from(this.imageCache.entries());
       const removeCount = this.imageCache.size - maxCacheItems;
-      
+
       // Remove oldest entries (FIFO)
       entries.slice(0, removeCount).forEach(([key]) => {
         this.imageCache.delete(key);
@@ -539,11 +539,11 @@ export class MobilePerformanceService {
   private detectNetworkSpeed(): void {
     if ('connection' in navigator) {
       const connection = (navigator as any).connection;
-      
+
       if (connection) {
         const updateNetworkSpeed = () => {
           let speed: 'slow' | 'medium' | 'fast' = 'medium';
-          
+
           if (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
             speed = 'slow';
           } else if (connection.effectiveType === '3g') {
@@ -551,7 +551,7 @@ export class MobilePerformanceService {
           } else {
             speed = 'fast';
           }
-          
+
           this.updateMetrics({ networkSpeed: speed });
         };
 
@@ -563,9 +563,9 @@ export class MobilePerformanceService {
 
   private detectDeviceCapabilities(): void {
     const deviceInfo = this.mobileFeatures.getDeviceInfo();
-    
+
     // Detect low-end device based on various factors
-    const isLowEndDevice = 
+    const isLowEndDevice =
       deviceInfo.screenSize.width < 400 ||
       navigator.hardwareConcurrency <= 2 ||
       (navigator as any).deviceMemory <= 2;
@@ -613,19 +613,19 @@ export class MobilePerformanceService {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
-    
+
     if (this.memoryCleanupTimer) {
       clearInterval(this.memoryCleanupTimer);
     }
-    
+
     if (this.performanceObserver) {
       this.performanceObserver.disconnect();
     }
-    
+
     if (this.intersectionObserver) {
       this.intersectionObserver.disconnect();
     }
-    
+
     this.imageCache.clear();
   }
 }

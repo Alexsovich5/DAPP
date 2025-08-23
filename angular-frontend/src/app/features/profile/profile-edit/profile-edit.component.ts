@@ -48,7 +48,7 @@ export class ProfileEditComponent implements OnInit {
 
   readonly genderOptions = [
     'male',
-    'female', 
+    'female',
     'non-binary',
     'other',
     'prefer-not-to-say'
@@ -103,16 +103,16 @@ export class ProfileEditComponent implements OnInit {
   private minimumAgeValidator() {
     return (control: any) => {
       if (!control.value) return null;
-      
+
       const birthDate = new Date(control.value);
       const today = new Date();
       const age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
-      
+
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
         return age < 18 ? { underage: true } : null;
       }
-      
+
       return age < 18 ? { underage: true } : null;
     };
   }
@@ -150,10 +150,10 @@ export class ProfileEditComponent implements OnInit {
 
   addInterest(interest: string): void {
     if (!interest.trim()) return;
-    
+
     const currentInterests = this.profileForm.get('interests')?.value || [];
     const interestToAdd = interest.trim().toLowerCase();
-    
+
     if (!currentInterests.includes(interestToAdd)) {
       this.profileForm.patchValue({
         interests: [...currentInterests, interestToAdd]
@@ -178,7 +178,7 @@ export class ProfileEditComponent implements OnInit {
       this.error = null;
 
       const formData = this.profileForm.value;
-      
+
       // Format date for backend
       if (formData.date_of_birth instanceof Date) {
         formData.date_of_birth = formData.date_of_birth.toISOString().split('T')[0];
@@ -223,13 +223,13 @@ export class ProfileEditComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
-      
+
       // Validate file type
       if (!file.type.startsWith('image/')) {
         this.uploadError = 'Please select an image file';
         return;
       }
-      
+
       // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
         this.uploadError = 'File size must be less than 5MB';

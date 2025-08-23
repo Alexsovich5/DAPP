@@ -3,7 +3,7 @@
 ## ✅ All Linting Issues Resolved
 
 ### Tools Used:
-- **flake8** - PEP 8 style guide enforcement  
+- **flake8** - PEP 8 style guide enforcement
 - **black** - Code formatting
 - **Custom security scanner** - Security best practices check
 - **Syntax validator** - Python syntax verification
@@ -21,7 +21,7 @@
 
 **Files Affected:**
 - `app/api/v1/routers/auth.py` - 6 formatting fixes
-- `app/core/security.py` - 2 formatting fixes  
+- `app/core/security.py` - 2 formatting fixes
 - `app/core/database.py` - 2 formatting fixes
 - `run.py` - 1 formatting fix
 - `app/schemas/profile.py` - Auto-formatted

@@ -56,21 +56,21 @@ export interface GestureConfig {
   swipeThreshold: number;
   swipeVelocityThreshold: number;
   swipeMaxTime: number;
-  
+
   // Pinch configuration
   pinchThreshold: number;
-  
+
   // Long press configuration
   longPressTime: number;
   longPressMoveThreshold: number;
-  
+
   // Drag configuration
   dragThreshold: number;
-  
+
   // Tap configuration
   tapThreshold: number;
   doubleTapTime: number;
-  
+
   // General
   preventDefault: boolean;
   stopPropagation: boolean;
@@ -453,10 +453,10 @@ export class GestureService {
     }
   }
 
-  private emitSwipeGesture(element: HTMLElement, event: NormalizedEvent, gestureState: GestureState, 
+  private emitSwipeGesture(element: HTMLElement, event: NormalizedEvent, gestureState: GestureState,
                           config: GestureConfig, deltaX: number, deltaY: number, velocity: number): void {
     const swipeDirection = this.getSwipeDirection(deltaX, deltaY);
-    
+
     const swipeEvent: SwipeEvent = {
       type: 'swipe',
       element,
@@ -514,8 +514,8 @@ export class GestureService {
   }
 
   private isSwipeGesture(distance: number, velocity: number, duration: number, config: GestureConfig): boolean {
-    return distance > config.swipeThreshold && 
-           velocity > config.swipeVelocityThreshold && 
+    return distance > config.swipeThreshold &&
+           velocity > config.swipeVelocityThreshold &&
            duration < config.swipeMaxTime;
   }
 
@@ -533,7 +533,7 @@ export class GestureService {
 
   private getDirection(deltaX: number, deltaY: number): Direction {
     const threshold = 10;
-    
+
     return {
       horizontal: Math.abs(deltaX) > threshold ? (deltaX > 0 ? 'right' : 'left') : 'none',
       vertical: Math.abs(deltaY) > threshold ? (deltaY > 0 ? 'down' : 'up') : 'none'

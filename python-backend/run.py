@@ -1,6 +1,7 @@
+import logging
+
 import uvicorn
 from app.core.database import create_tables
-import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

@@ -4,12 +4,12 @@
 # ECS Cluster
 resource "aws_ecs_cluster" "main" {
   name = "${var.app_name}-${var.environment}"
-  
+
   setting {
     name  = "containerInsights"
     value = "enabled"
   }
-  
+
   tags = {
     Name = "${var.app_name}-${var.environment}-cluster"
   }
@@ -18,7 +18,7 @@ resource "aws_ecs_cluster" "main" {
 # ECS Task Execution Role
 resource "aws_iam_role" "ecs_task_execution" {
   name = "${var.app_name}-${var.environment}-ecs-task-execution"
-  
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -41,7 +41,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
 # ECS Task Role
 resource "aws_iam_role" "ecs_task" {
   name = "${var.app_name}-${var.environment}-ecs-task"
-  
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -60,7 +60,7 @@ resource "aws_iam_role" "ecs_task" {
 resource "aws_iam_role_policy" "ecs_task" {
   name = "${var.app_name}-${var.environment}-ecs-task-policy"
   role = aws_iam_role.ecs_task.id
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -106,7 +106,7 @@ resource "aws_secretsmanager_secret_version" "jwt_secret" {
 resource "aws_cloudwatch_log_group" "backend" {
   name              = "/ecs/${var.app_name}-${var.environment}-backend"
   retention_in_days = 30
-  
+
   tags = {
     Name = "${var.app_name}-${var.environment}-backend-logs"
   }
@@ -115,7 +115,7 @@ resource "aws_cloudwatch_log_group" "backend" {
 resource "aws_cloudwatch_log_group" "frontend" {
   name              = "/ecs/${var.app_name}-${var.environment}-frontend"
   retention_in_days = 30
-  
+
   tags = {
     Name = "${var.app_name}-${var.environment}-frontend-logs"
   }
@@ -130,19 +130,19 @@ resource "aws_ecs_task_definition" "backend" {
   memory                   = 1024
   execution_role_arn       = aws_iam_role.ecs_task_execution.arn
   task_role_arn           = aws_iam_role.ecs_task.arn
-  
+
   container_definitions = jsonencode([
     {
       name  = "backend"
       image = "${aws_ecr_repository.backend.repository_url}:latest"
-      
+
       portMappings = [
         {
           containerPort = 8000
           protocol      = "tcp"
         }
       ]
-      
+
       environment = [
         {
           name  = "ENVIRONMENT"
@@ -173,7 +173,7 @@ resource "aws_ecs_task_definition" "backend" {
           value = var.aws_region
         }
       ]
-      
+
       secrets = [
         {
           name      = "DATABASE_PASSWORD"
@@ -184,7 +184,7 @@ resource "aws_ecs_task_definition" "backend" {
           valueFrom = aws_secretsmanager_secret.jwt_secret.arn
         }
       ]
-      
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -193,7 +193,7 @@ resource "aws_ecs_task_definition" "backend" {
           awslogs-stream-prefix = "ecs"
         }
       }
-      
+
       healthCheck = {
         command = ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
         interval    = 30
@@ -203,7 +203,7 @@ resource "aws_ecs_task_definition" "backend" {
       }
     }
   ])
-  
+
   tags = {
     Name = "${var.app_name}-${var.environment}-backend-task"
   }
@@ -217,19 +217,19 @@ resource "aws_ecs_task_definition" "frontend" {
   cpu                      = 256
   memory                   = 512
   execution_role_arn       = aws_iam_role.ecs_task_execution.arn
-  
+
   container_definitions = jsonencode([
     {
       name  = "frontend"
       image = "${aws_ecr_repository.frontend.repository_url}:latest"
-      
+
       portMappings = [
         {
           containerPort = 80
           protocol      = "tcp"
         }
       ]
-      
+
       environment = [
         {
           name  = "ENVIRONMENT"
@@ -240,7 +240,7 @@ resource "aws_ecs_task_definition" "frontend" {
           value = "https://${var.domain_name}/api/v1"
         }
       ]
-      
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -249,7 +249,7 @@ resource "aws_ecs_task_definition" "frontend" {
           awslogs-stream-prefix = "ecs"
         }
       }
-      
+
       healthCheck = {
         command = ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
         interval    = 30
@@ -259,7 +259,7 @@ resource "aws_ecs_task_definition" "frontend" {
       }
     }
   ])
-  
+
   tags = {
     Name = "${var.app_name}-${var.environment}-frontend-task"
   }
@@ -268,15 +268,15 @@ resource "aws_ecs_task_definition" "frontend" {
 # ECR Repositories
 resource "aws_ecr_repository" "backend" {
   name = "${var.app_name}/${var.environment}/backend"
-  
+
   image_scanning_configuration {
     scan_on_push = true
   }
-  
+
   encryption_configuration {
     encryption_type = "AES256"
   }
-  
+
   tags = {
     Name = "${var.app_name}-${var.environment}-backend-repo"
   }
@@ -284,15 +284,15 @@ resource "aws_ecr_repository" "backend" {
 
 resource "aws_ecr_repository" "frontend" {
   name = "${var.app_name}/${var.environment}/frontend"
-  
+
   image_scanning_configuration {
     scan_on_push = true
   }
-  
+
   encryption_configuration {
     encryption_type = "AES256"
   }
-  
+
   tags = {
     Name = "${var.app_name}-${var.environment}-frontend-repo"
   }
@@ -305,24 +305,24 @@ resource "aws_ecs_service" "backend" {
   task_definition = aws_ecs_task_definition.backend.arn
   desired_count   = 2
   launch_type     = "FARGATE"
-  
+
   network_configuration {
     subnets         = aws_subnet.private[*].id
     security_groups = [aws_security_group.app.id]
   }
-  
+
   load_balancer {
     target_group_arn = aws_lb_target_group.backend.arn
     container_name   = "backend"
     container_port   = 8000
   }
-  
+
   service_registries {
     registry_arn = aws_service_discovery_service.backend.arn
   }
-  
+
   depends_on = [aws_lb_listener.backend]
-  
+
   tags = {
     Name = "${var.app_name}-${var.environment}-backend-service"
   }
@@ -334,20 +334,20 @@ resource "aws_ecs_service" "frontend" {
   task_definition = aws_ecs_task_definition.frontend.arn
   desired_count   = 2
   launch_type     = "FARGATE"
-  
+
   network_configuration {
     subnets         = aws_subnet.private[*].id
     security_groups = [aws_security_group.app.id]
   }
-  
+
   load_balancer {
     target_group_arn = aws_lb_target_group.frontend.arn
     container_name   = "frontend"
     container_port   = 80
   }
-  
+
   depends_on = [aws_lb_listener.frontend]
-  
+
   tags = {
     Name = "${var.app_name}-${var.environment}-frontend-service"
   }
@@ -357,7 +357,7 @@ resource "aws_ecs_service" "frontend" {
 resource "aws_service_discovery_private_dns_namespace" "main" {
   name = "${var.app_name}.local"
   vpc  = aws_vpc.main.id
-  
+
   tags = {
     Name = "${var.app_name}-${var.environment}-namespace"
   }
@@ -365,18 +365,18 @@ resource "aws_service_discovery_private_dns_namespace" "main" {
 
 resource "aws_service_discovery_service" "backend" {
   name = "backend"
-  
+
   dns_config {
     namespace_id = aws_service_discovery_private_dns_namespace.main.id
-    
+
     dns_records {
       ttl  = 10
       type = "A"
     }
-    
+
     routing_policy = "MULTIVALUE"
   }
-  
+
   health_check_grace_period_seconds = 30
 }
 
@@ -387,7 +387,7 @@ resource "aws_lb_target_group" "backend" {
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
   target_type = "ip"
-  
+
   health_check {
     enabled             = true
     healthy_threshold   = 2
@@ -399,7 +399,7 @@ resource "aws_lb_target_group" "backend" {
     timeout             = 5
     unhealthy_threshold = 2
   }
-  
+
   tags = {
     Name = "${var.app_name}-${var.environment}-backend-tg"
   }
@@ -411,7 +411,7 @@ resource "aws_lb_target_group" "frontend" {
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
   target_type = "ip"
-  
+
   health_check {
     enabled             = true
     healthy_threshold   = 2
@@ -423,7 +423,7 @@ resource "aws_lb_target_group" "frontend" {
     timeout             = 5
     unhealthy_threshold = 2
   }
-  
+
   tags = {
     Name = "${var.app_name}-${var.environment}-frontend-tg"
   }
@@ -436,7 +436,7 @@ resource "aws_lb_listener" "backend" {
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS-1-2-2017-01"
   certificate_arn   = aws_acm_certificate.main.arn
-  
+
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.backend.arn
@@ -447,10 +447,10 @@ resource "aws_lb_listener" "frontend" {
   load_balancer_arn = aws_lb.main.arn
   port              = "80"
   protocol          = "HTTP"
-  
+
   default_action {
     type = "redirect"
-    
+
     redirect {
       port        = "443"
       protocol    = "HTTPS"
@@ -474,12 +474,12 @@ resource "aws_appautoscaling_policy" "backend_up" {
   resource_id        = aws_appautoscaling_target.backend.resource_id
   scalable_dimension = aws_appautoscaling_target.backend.scalable_dimension
   service_namespace  = aws_appautoscaling_target.backend.service_namespace
-  
+
   step_scaling_policy_configuration {
     adjustment_type         = "ChangeInCapacity"
     cooldown               = 300
     metric_aggregation_type = "Average"
-    
+
     step_adjustment {
       metric_interval_lower_bound = 0
       scaling_adjustment         = 1
@@ -493,12 +493,12 @@ resource "aws_appautoscaling_policy" "backend_down" {
   resource_id        = aws_appautoscaling_target.backend.resource_id
   scalable_dimension = aws_appautoscaling_target.backend.scalable_dimension
   service_namespace  = aws_appautoscaling_target.backend.service_namespace
-  
+
   step_scaling_policy_configuration {
     adjustment_type         = "ChangeInCapacity"
     cooldown               = 300
     metric_aggregation_type = "Average"
-    
+
     step_adjustment {
       metric_interval_upper_bound = 0
       scaling_adjustment         = -1
@@ -517,15 +517,15 @@ variable "domain_name" {
 resource "aws_acm_certificate" "main" {
   domain_name       = var.domain_name
   validation_method = "DNS"
-  
+
   subject_alternative_names = [
     "*.${var.domain_name}"
   ]
-  
+
   lifecycle {
     create_before_destroy = true
   }
-  
+
   tags = {
     Name = "${var.app_name}-${var.environment}-cert"
   }

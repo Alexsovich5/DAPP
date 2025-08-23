@@ -1,7 +1,8 @@
-from pydantic import BaseModel
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
 from app.models.match import MatchStatus
+from pydantic import BaseModel
 
 
 class MatchBase(BaseModel):

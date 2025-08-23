@@ -11,8 +11,8 @@ SONAR_TOKEN:
   protected: true
   masked: true
   scope: "environment"
-  
-# Nexus Repository Configuration  
+
+# Nexus Repository Configuration
 NEXUS_USER:
   description: "Nexus Repository username for artifact storage"
   type: "variable"

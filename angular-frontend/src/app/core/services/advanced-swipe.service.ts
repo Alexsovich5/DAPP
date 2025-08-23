@@ -34,28 +34,28 @@ export interface AdvancedSwipeConfig {
   threshold: number;
   velocityThreshold: number;
   timeThreshold: number;
-  
+
   // Elastic physics
   elasticZone: number; // Distance where elastic behavior starts
   maxElasticDistance: number; // Maximum elastic stretch
   elasticResistance: number; // Resistance factor (0-1)
   snapBackDuration: number; // Snap-back animation duration
-  
+
   // Haptic feedback
   hapticFeedback: boolean;
   hapticIntensity: 'light' | 'medium' | 'heavy';
   progressiveHaptics: boolean; // Haptics get stronger with distance
-  
+
   // Visual feedback
   visualFeedback: boolean;
   showProgress: boolean;
   ghostElement: boolean; // Show preview of action
-  
+
   // Soul-themed enhancements
   soulTheme: 'discovery' | 'revelation' | 'connection' | 'energy';
   connectionEnergy: 'low' | 'medium' | 'high' | 'soulmate';
   compatibilityScore?: number; // Affects swipe sensitivity
-  
+
   // Advanced options
   enabledDirections: ('left' | 'right' | 'up' | 'down')[];
   preventDefaultEvents: boolean;
@@ -105,7 +105,7 @@ export class AdvancedSwipeService {
   private swipeZones = new Map<string, AdvancedSwipeZone>();
   private isSwipeInProgress = new BehaviorSubject<boolean>(false);
   private currentSwipeData = new BehaviorSubject<ElasticSwipeEvent | null>(null);
-  
+
   public swipeInProgress$ = this.isSwipeInProgress.asObservable();
   public currentSwipe$ = this.currentSwipeData.asObservable();
 
@@ -123,7 +123,7 @@ export class AdvancedSwipeService {
     config: Partial<AdvancedSwipeConfig> = {}
   ): void {
     const mergedConfig = { ...this.defaultConfig, ...config };
-    
+
     const zone: AdvancedSwipeZone = {
       id,
       element,
@@ -181,12 +181,12 @@ export class AdvancedSwipeService {
       startTime = Date.now();
       isSwipeActive = true;
       lastHapticDistance = 0;
-      
+
       this.isSwipeInProgress.next(true);
-      
+
       // Add soul-themed visual feedback
       element.classList.add('soul-swipe-active', `theme-${zone.config.soulTheme}`);
-      
+
       if (zone.config.preventDefaultEvents) {
         event.preventDefault();
       }
@@ -210,7 +210,7 @@ export class AdvancedSwipeService {
       const currentPosition = this.getEventPosition(event);
       const rawDelta = this.calculateDelta(startPosition!, currentPosition);
       const direction = this.getSwipeDirection(rawDelta);
-      
+
       // Apply dead zone
       if (Math.abs(rawDelta.x) < zone.config.deadZone && Math.abs(rawDelta.y) < zone.config.deadZone) {
         return;
@@ -308,13 +308,13 @@ export class AdvancedSwipeService {
   }
 
   private calculateElasticPhysics(
-    delta: { x: number; y: number }, 
+    delta: { x: number; y: number },
     config: AdvancedSwipeConfig,
     direction: 'left' | 'right' | 'up' | 'down'
   ): ElasticPhysicsData {
     const primaryAxis = ['left', 'right'].includes(direction) ? Math.abs(delta.x) : Math.abs(delta.y);
     const rawDistance = primaryAxis;
-    
+
     let adjustedDistance = rawDistance;
     let elasticProgress = 0;
     let resistance = 1;
@@ -324,14 +324,14 @@ export class AdvancedSwipeService {
       // Calculate elastic behavior
       const elasticDistance = rawDistance - config.elasticZone;
       const maxElastic = config.maxElasticDistance - config.elasticZone;
-      
+
       elasticProgress = Math.min(elasticDistance / maxElastic, 1);
       resistance = 1 - (config.elasticResistance * elasticProgress);
-      
+
       // Apply elastic damping
       const dampedElasticDistance = elasticDistance * resistance;
       adjustedDistance = config.elasticZone + dampedElasticDistance;
-      
+
       // Check if should trigger action
       shouldTrigger = rawDistance > config.threshold;
     }
@@ -345,12 +345,12 @@ export class AdvancedSwipeService {
   }
 
   private applyElasticTransform(
-    element: HTMLElement, 
-    elasticData: ElasticPhysicsData, 
+    element: HTMLElement,
+    elasticData: ElasticPhysicsData,
     zone: AdvancedSwipeZone
   ): void {
     const { distance, elasticProgress } = elasticData;
-    
+
     // Calculate transform values
     const scale = 1 - (elasticProgress * 0.02); // Subtle scale effect
     const opacity = 1 - (elasticProgress * 0.1); // Slight fade in elastic zone
@@ -363,9 +363,9 @@ export class AdvancedSwipeService {
     element.style.transition = 'none';
 
     // Update zone state
-    zone.currentTransform = { 
-      x: distance, 
-      y: 0 
+    zone.currentTransform = {
+      x: distance,
+      y: 0
     };
 
     // Add visual feedback classes
@@ -382,13 +382,13 @@ export class AdvancedSwipeService {
 
     // Calculate spring animation
     const springConfig = this.getSpringConfigForEnergy(zone.config.connectionEnergy);
-    
+
     element.style.transition = `
       transform ${zone.config.snapBackDuration}ms ${springConfig},
       opacity ${zone.config.snapBackDuration}ms ease-out,
       filter ${zone.config.snapBackDuration}ms ease-out
     `;
-    
+
     // Animate back to origin
     element.style.transform = 'translateX(0) scale(1)';
     element.style.opacity = '1';
@@ -404,8 +404,8 @@ export class AdvancedSwipeService {
   }
 
   private executeSwipeAction(
-    action: SwipeAction, 
-    event: ElasticSwipeEvent, 
+    action: SwipeAction,
+    event: ElasticSwipeEvent,
     zone: AdvancedSwipeZone
   ): void {
     // Trigger action haptic pattern
@@ -417,7 +417,7 @@ export class AdvancedSwipeService {
 
     // Add success visual feedback
     zone.element.classList.add('swipe-action-success', `action-${action.id}`);
-    
+
     setTimeout(() => {
       zone.element.classList.remove('swipe-action-success', `action-${action.id}`);
     }, 300);
@@ -437,11 +437,11 @@ export class AdvancedSwipeService {
   }
 
   private calculateEnergyLevel(
-    distance: number, 
+    distance: number,
     config: AdvancedSwipeConfig
   ): 'low' | 'medium' | 'high' | 'soulmate' {
     const ratio = distance / config.threshold;
-    
+
     if (ratio < 0.5) return 'low';
     if (ratio < 1.2) return 'medium';
     if (ratio < 2.0) return 'high';
@@ -449,7 +449,7 @@ export class AdvancedSwipeService {
   }
 
   private triggerProgressiveHaptic(
-    elasticProgress: number, 
+    elasticProgress: number,
     config: AdvancedSwipeConfig
   ): void {
     const intensity = elasticProgress > 0.7 ? 'heavy' : elasticProgress > 0.4 ? 'medium' : 'light';
@@ -467,10 +467,10 @@ export class AdvancedSwipeService {
 
   private setupVisualFeedback(zone: AdvancedSwipeZone): void {
     const element = zone.element;
-    
+
     // Add CSS classes for styling
     element.classList.add('advanced-swipe-zone', `energy-${zone.config.connectionEnergy}`);
-    
+
     // Create action indicators if enabled
     if (zone.config.showProgress) {
       this.createActionIndicators(zone);
@@ -488,12 +488,12 @@ export class AdvancedSwipeService {
         <div class="progress-ring">
           <svg width="40" height="40">
             <circle cx="20" cy="20" r="18" stroke="${action.color}" stroke-width="2" fill="none" opacity="0.3"/>
-            <circle cx="20" cy="20" r="18" stroke="${action.color}" stroke-width="3" fill="none" 
+            <circle cx="20" cy="20" r="18" stroke="${action.color}" stroke-width="3" fill="none"
                     stroke-dasharray="113" stroke-dashoffset="113" class="progress"/>
           </svg>
         </div>
       `;
-      
+
       zone.element.appendChild(indicator);
     });
   }
@@ -546,8 +546,8 @@ export class AdvancedSwipeService {
   }
 
   private resetSwipeState(
-    zone: AdvancedSwipeZone, 
-    startPosition: { x: number; y: number } | null, 
+    zone: AdvancedSwipeZone,
+    startPosition: { x: number; y: number } | null,
     isSwipeActive: boolean
   ): void {
     // Reset internal state variables in the calling context
@@ -566,17 +566,17 @@ export class AdvancedSwipeService {
     if (zone) {
       // Clean up visual elements
       zone.element.classList.remove(
-        'advanced-swipe-zone', 
+        'advanced-swipe-zone',
         'soul-swipe-active',
         `energy-${zone.config.connectionEnergy}`,
         `theme-${zone.config.soulTheme}`
       );
-      
+
       // Remove action indicators
       zone.element.querySelectorAll('.swipe-action-indicator').forEach(indicator => {
         indicator.remove();
       });
-      
+
       this.swipeZones.delete(id);
     }
   }

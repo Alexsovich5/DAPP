@@ -16,11 +16,11 @@ export interface SoulConnection {
   user2_profile?: UserProfile;
 }
 
-export type ConnectionStage = 
-  | 'soul_discovery' 
-  | 'revelation_phase' 
-  | 'photo_reveal' 
-  | 'dinner_planning' 
+export type ConnectionStage =
+  | 'soul_discovery'
+  | 'revelation_phase'
+  | 'photo_reveal'
+  | 'dinner_planning'
   | 'completed';
 
 export interface CompatibilityBreakdown {

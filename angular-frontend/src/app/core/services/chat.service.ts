@@ -89,7 +89,7 @@ export class ChatService {
   private setupWebSocket(): void {
     const socketUrl = `${environment.socketUrl}/chat`;
     console.log('Connecting to WebSocket:', socketUrl);
-    
+
     this.socket$ = webSocket({
       url: socketUrl,
       openObserver: {

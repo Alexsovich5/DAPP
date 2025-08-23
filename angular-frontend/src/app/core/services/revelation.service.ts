@@ -130,7 +130,7 @@ export class RevelationService {
    */
   getProgressPercentage(timeline: RevelationTimelineResponse): number {
     if (timeline.is_cycle_complete) return 100;
-    
+
     const totalDays = environment.soulBeforeSkin.revelationCycleDays;
     const currentDay = Math.min(timeline.current_day, totalDays);
     return Math.round((currentDay / totalDays) * 100);
@@ -142,11 +142,11 @@ export class RevelationService {
   canShareRevelation(timeline: RevelationTimelineResponse, dayNumber: number, userId: number): boolean {
     // Can share if it's the current day or earlier, and user hasn't shared for this day yet
     if (dayNumber > timeline.current_day) return false;
-    
+
     const existingRevelation = timeline.revelations.find(
       r => r.day_number === dayNumber && r.sender_id === userId
     );
-    
+
     return !existingRevelation;
   }
 

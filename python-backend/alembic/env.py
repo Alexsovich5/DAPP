@@ -1,10 +1,9 @@
-from logging.config import fileConfig
 import sys
+from logging.config import fileConfig
 from pathlib import Path
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
 from alembic import context
+from sqlalchemy import engine_from_config, pool
 
 # Add parent directory to Python path so 'app' can be found
 # Needs to be done before importing from 'app'
@@ -12,9 +11,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Now imports can find 'app'
 from app.core.database import SQLALCHEMY_DATABASE_URL  # noqa: E402
-from app.models.user import Base  # noqa: E402
+
 # Import all models so Alembic can detect schema changes
-from app.models import User, Profile, Match, SoulConnection, DailyRevelation, Message  # noqa: F401
+from app.models import Profile  # noqa: F401
+from app.models import UserPersonalizationProfile  # noqa: F401
+from app.models import UserUIProfile  # noqa: F401
+from app.models import DailyRevelation, Match, Message, SoulConnection, User
+from app.models.user import Base  # noqa: E402
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -56,9 +59,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

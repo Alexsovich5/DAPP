@@ -1,19 +1,19 @@
-from typing import Any, List
-import os
+# import os
 import uuid
 from pathlib import Path
+from typing import Any, List
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from app.api.v1.deps import get_current_user
+from app.core.database import get_db
+from app.models.match import Match, MatchStatus  # Added MatchStatus import
+from app.models.profile import Profile
+from app.models.user import User
+from app.schemas.auth import User as UserSchema
+from app.schemas.auth import UserProfileUpdate
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy import and_, not_, or_
 from sqlalchemy.orm import Session
-
-from app.core.database import get_db
-from app.models.user import User
-from app.models.profile import Profile
-from app.models.match import Match, MatchStatus  # Added MatchStatus import
-from app.schemas.auth import User as UserSchema, UserProfileUpdate
-from app.api.v1.deps import get_current_user
 
 router = APIRouter(tags=["users"])
 
@@ -31,22 +31,22 @@ def update_current_user_profile(
     current_user: User = Depends(get_current_user),
 ) -> Any:
     """Update current user profile information."""
-    
+
     # Update user fields
     update_data = profile_update.dict(exclude_unset=True)
-    
+
     for field, value in update_data.items():
         if hasattr(current_user, field):
             setattr(current_user, field, value)
-    
+
     # Auto-calculate profile completion
     current_user.is_profile_complete = _calculate_profile_completeness(current_user)
-    
+
     # Save to database
     db.add(current_user)
     db.commit()
     db.refresh(current_user)
-    
+
     return current_user
 
 
@@ -59,11 +59,11 @@ def _calculate_profile_completeness(user: User) -> bool:
         user.gender,
         user.location,
     ]
-    
+
     # Check if all required fields are filled
     if not all(field for field in required_fields):
         return False
-    
+
     # Check if at least some optional fields are filled
     optional_score = 0
     if user.bio:
@@ -72,7 +72,7 @@ def _calculate_profile_completeness(user: User) -> bool:
         optional_score += 1
     if user.dietary_preferences and len(user.dietary_preferences) > 0:
         optional_score += 1
-    
+
     # Profile is complete if required fields + at least 1 optional field
     return optional_score >= 1
 
@@ -84,61 +84,60 @@ async def upload_profile_picture(
     current_user: User = Depends(get_current_user),
 ) -> Any:
     """Upload profile picture for current user."""
-    
+
     # Validate file type
-    if not file.content_type or not file.content_type.startswith('image/'):
+    if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File must be an image"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="File must be an image"
         )
-    
+
     # Validate file size (5MB limit)
     max_size = 5 * 1024 * 1024  # 5MB
     file_content = await file.read()
     if len(file_content) > max_size:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File size must be less than 5MB"
+            detail="File size must be less than 5MB",
         )
-    
+
     # Reset file pointer
     await file.seek(0)
-    
+
     # Create upload directory if it doesn't exist
     upload_dir = Path("uploads/profile_pictures")
     upload_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Generate unique filename
-    file_extension = Path(file.filename).suffix if file.filename else '.jpg'
+    file_extension = Path(file.filename).suffix if file.filename else ".jpg"
     unique_filename = f"{current_user.id}_{uuid.uuid4().hex}{file_extension}"
     file_path = upload_dir / unique_filename
-    
+
     # Save file
     try:
         with open(file_path, "wb") as buffer:
             content = await file.read()
             buffer.write(content)
-        
+
         # Update user profile picture URL
         profile_picture_url = f"/uploads/profile_pictures/{unique_filename}"
         current_user.profile_picture = profile_picture_url
-        
+
         # Update profile completeness
         current_user.is_profile_complete = _calculate_profile_completeness(current_user)
-        
+
         db.add(current_user)
         db.commit()
         db.refresh(current_user)
-        
+
         return {
             "message": "Profile picture uploaded successfully",
-            "profile_picture_url": profile_picture_url
+            "profile_picture_url": profile_picture_url,
         }
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to upload file: {str(e)}"
+            detail=f"Failed to upload file: {str(e)}",
         )
 
 
@@ -288,27 +287,24 @@ async def get_uploaded_file(
     # Security: Only allow access to files that belong to the current user
     # Extract user_id from filename (format: {user_id}_{uuid}.{ext})
     try:
-        file_user_id = int(filename.split('_')[0])
+        file_user_id = int(filename.split("_")[0])
     except (ValueError, IndexError):
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="File not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="File not found"
         )
-    
+
     # Check if user owns the file
     if file_user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
         )
-    
+
     file_path = Path("uploads/profile_pictures") / filename
     if not file_path.exists():
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="File not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="File not found"
         )
-    
+
     return FileResponse(file_path)
 
 
@@ -319,22 +315,21 @@ def get_mutual_interests(
     current_user: User = Depends(get_current_user),
 ) -> List[str]:
     """Get mutual interests between current user and specified user."""
-    
+
     # Get the other user
     other_user = db.query(User).filter(User.id == user_id).first()
     if not other_user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    
+
     # Get interests for both users
     current_interests = set(current_user.interests or [])
     other_interests = set(other_user.interests or [])
-    
+
     # Find mutual interests
     mutual = list(current_interests.intersection(other_interests))
-    
+
     return mutual
 
 
@@ -345,64 +340,72 @@ def get_match_percentage(
     current_user: User = Depends(get_current_user),
 ) -> dict:
     """Calculate match percentage between current user and specified user."""
-    
+
     # Get the other user
     other_user = db.query(User).filter(User.id == user_id).first()
     if not other_user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    
+
     # Calculate compatibility using existing scoring functions
     scores = {
         "cuisine": _calculate_cuisine_score(
             current_user.profile.cuisine_preferences if current_user.profile else "",
-            other_user.profile.cuisine_preferences if other_user.profile else ""
+            other_user.profile.cuisine_preferences if other_user.profile else "",
         ),
         "location": _calculate_location_score(
-            current_user.location or "",
-            other_user.location or ""
+            current_user.location or "", other_user.location or ""
         ),
         "dietary": _calculate_dietary_score(
             current_user.profile.dietary_restrictions if current_user.profile else "",
-            other_user.profile.dietary_restrictions if other_user.profile else ""
+            other_user.profile.dietary_restrictions if other_user.profile else "",
         ),
-        "interests": _calculate_interests_compatibility(current_user.interests, other_user.interests),
-        "values": _calculate_values_compatibility(current_user, other_user)
+        "interests": _calculate_interests_compatibility(
+            current_user.interests, other_user.interests
+        ),
+        "values": _calculate_values_compatibility(current_user, other_user),
     }
-    
+
     # Weighted average (following CLAUDE.md specification)
     weights = {
         "cuisine": 0.25,
         "location": 0.20,
         "dietary": 0.15,
         "interests": 0.25,  # Jaccard similarity from CLAUDE.md
-        "values": 0.15
+        "values": 0.15,
     }
-    
+
     total_score = sum(scores[category] * weights[category] for category in scores)
     percentage = int(total_score * 100)
-    
+
     return {
         "match_percentage": percentage,
         "breakdown": scores,
-        "mutual_interests_count": len(list(set(current_user.interests or []).intersection(set(other_user.interests or [])))),
-        "compatibility_rating": _get_compatibility_rating(percentage)
+        "mutual_interests_count": len(
+            list(
+                set(current_user.interests or []).intersection(
+                    set(other_user.interests or [])
+                )
+            )
+        ),
+        "compatibility_rating": _get_compatibility_rating(percentage),
     }
 
 
-def _calculate_interests_compatibility(interests1: List[str], interests2: List[str]) -> float:
+def _calculate_interests_compatibility(
+    interests1: List[str], interests2: List[str]
+) -> float:
     """Calculate Jaccard similarity for interests (as specified in CLAUDE.md)"""
     if not interests1 or not interests2:
         return 0.0
-    
+
     set1 = set(interests1)
     set2 = set(interests2)
-    
+
     intersection = len(set1.intersection(set2))
     union = len(set1.union(set2))
-    
+
     return intersection / union if union > 0 else 0.0
 
 
@@ -410,15 +413,30 @@ def _calculate_values_compatibility(user1: User, user2: User) -> float:
     """Calculate values compatibility based on user profiles"""
     # Simplified values compatibility based on available data
     score = 0.0
-    
+
     # Age compatibility (closer ages = higher compatibility)
     if user1.date_of_birth and user2.date_of_birth:
         from datetime import date
+
         today = date.today()
-        age1 = today.year - user1.date_of_birth.year - ((today.month, today.day) < (user1.date_of_birth.month, user1.date_of_birth.day))
-        age2 = today.year - user2.date_of_birth.year - ((today.month, today.day) < (user2.date_of_birth.month, user2.date_of_birth.day))
+        age1 = (
+            today.year
+            - user1.date_of_birth.year
+            - (
+                (today.month, today.day)
+                < (user1.date_of_birth.month, user1.date_of_birth.day)
+            )
+        )
+        age2 = (
+            today.year
+            - user2.date_of_birth.year
+            - (
+                (today.month, today.day)
+                < (user2.date_of_birth.month, user2.date_of_birth.day)
+            )
+        )
         age_diff = abs(age1 - age2)
-        
+
         if age_diff <= 2:
             score += 0.4
         elif age_diff <= 5:
@@ -427,11 +445,11 @@ def _calculate_values_compatibility(user1: User, user2: User) -> float:
             score += 0.2
         else:
             score += 0.1
-    
+
     # Gender preference compatibility (simplified)
     if user1.gender and user2.gender and user1.gender != user2.gender:
         score += 0.3  # Assume heterosexual preference for simplicity
-    
+
     # Bio similarity (if both have bios)
     if user1.bio and user2.bio:
         # Simple word overlap check
@@ -440,7 +458,7 @@ def _calculate_values_compatibility(user1: User, user2: User) -> float:
         common_words = len(words1.intersection(words2))
         if common_words > 0:
             score += min(0.3, common_words * 0.05)
-    
+
     return min(score, 1.0)
 
 

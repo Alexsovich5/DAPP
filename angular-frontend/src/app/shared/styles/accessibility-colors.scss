@@ -42,11 +42,11 @@
   --success-50: #f0fdf4;
   --success-500: #22c55e;
   --success-700: #15803d;
-  
+
   --warning-50: #fefce8;
   --warning-500: #eab308;
   --warning-700: #a16207;
-  
+
   --error-50: #fef2f2;
   --error-500: #ef4444;
   --error-700: #b91c1c;
@@ -55,23 +55,23 @@
   --background-primary: var(--neutral-50);
   --background-secondary: #ffffff;
   --background-tertiary: var(--neutral-100);
-  
+
   --text-primary: var(--neutral-900);
   --text-secondary: var(--neutral-700);
   --text-tertiary: var(--neutral-500);
-  
+
   --interactive-primary: var(--soul-purple-600);
   --interactive-primary-hover: var(--soul-purple-700);
   --interactive-accent: var(--soul-pink-500);
   --interactive-accent-hover: var(--soul-pink-600);
-  
+
   --border-light: var(--neutral-200);
   --border-medium: var(--neutral-300);
   --border-strong: var(--neutral-400);
-  
+
   --focus-ring-primary: var(--soul-purple-500);
   --focus-ring-accent: var(--soul-pink-500);
-  
+
   --status-success: var(--success-700);
   --status-warning: var(--warning-700);
   --status-error: var(--error-700);
@@ -86,23 +86,23 @@
   --background-primary: var(--neutral-900);
   --background-secondary: var(--neutral-800);
   --background-tertiary: var(--neutral-700);
-  
+
   --text-primary: var(--neutral-100);
   --text-secondary: var(--neutral-300);
   --text-tertiary: var(--neutral-400);
-  
+
   --interactive-primary: var(--soul-purple-400);
   --interactive-primary-hover: var(--soul-purple-300);
   --interactive-accent: var(--soul-pink-400);
   --interactive-accent-hover: var(--soul-pink-300);
-  
+
   --border-light: var(--neutral-700);
   --border-medium: var(--neutral-600);
   --border-strong: var(--neutral-500);
-  
+
   --focus-ring-primary: var(--soul-purple-400);
   --focus-ring-accent: var(--soul-pink-400);
-  
+
   --status-success: var(--success-500);
   --status-warning: var(--warning-500);
   --status-error: var(--error-500);
@@ -125,7 +125,7 @@
   background-color: var(--interactive-primary);
   color: white;
   border: 1px solid var(--interactive-primary);
-  
+
   &:hover {
     background-color: var(--interactive-primary-hover);
     border-color: var(--interactive-primary-hover);
@@ -136,7 +136,7 @@
   background-color: var(--interactive-accent);
   color: white;
   border: 1px solid var(--interactive-accent);
-  
+
   &:hover {
     background-color: var(--interactive-accent-hover);
     border-color: var(--interactive-accent-hover);

@@ -24,7 +24,7 @@ export class OnboardingStepGuard implements CanActivate {
     }
 
     const targetStep = route.url[0]?.path;
-    
+
     // Define step order and requirements
     const stepRequirements = {
       'emotional-questions': [],
@@ -34,19 +34,19 @@ export class OnboardingStepGuard implements CanActivate {
     };
 
     const requirements = stepRequirements[targetStep as keyof typeof stepRequirements];
-    
+
     if (!requirements) {
       return true; // Unknown step, allow for now
     }
 
     // Check if onboarding is already completed
     const isOnboardingComplete = this.storage.getItem('onboarding_completed') === 'true';
-    
+
     // Debug: Check what data we have
     const hasEmotionalData = !!this.storage.getItem('onboarding_emotional');
     const hasPersonalityData = !!this.storage.getItem('onboarding_personality');
     const hasInterestData = !!this.storage.getItem('onboarding_interests');
-    
+
     console.log('Onboarding guard debug:', {
       targetStep,
       emotionalData: hasEmotionalData,
@@ -66,14 +66,14 @@ export class OnboardingStepGuard implements CanActivate {
     }
 
     // Check if all required previous steps are completed
-    const missingRequirements = requirements.filter(req => 
+    const missingRequirements = requirements.filter(req =>
       !this.storage.getItem(req)
     );
 
     if (missingRequirements.length > 0) {
       // Redirect to first missing step
       let redirectStep = 'emotional-questions';
-      
+
       if (!this.storage.getItem('onboarding_emotional')) {
         redirectStep = 'emotional-questions';
       } else if (!this.storage.getItem('onboarding_personality')) {
@@ -81,7 +81,7 @@ export class OnboardingStepGuard implements CanActivate {
       } else if (!this.storage.getItem('onboarding_interests')) {
         redirectStep = 'interest-selection';
       }
-      
+
       console.log('Redirecting to step:', redirectStep, 'Missing:', missingRequirements);
       this.router.navigate(['/onboarding', redirectStep]);
       return false;

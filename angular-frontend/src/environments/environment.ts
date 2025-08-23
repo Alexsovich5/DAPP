@@ -3,7 +3,7 @@ export const environment = {
   apiUrl: 'http://localhost:8000/api/v1',
   tokenKey: 'dinner_first_auth_token',
   socketUrl: 'ws://localhost:8000',
-  
+
   // UI Configuration
   ui: {
     toastDuration: 5000, // Default toast display duration in ms
@@ -14,7 +14,7 @@ export const environment = {
     maxImageWidth: 1920, // Max image width for uploads
     maxImageHeight: 1080 // Max image height for uploads
   },
-  
+
   // Soul Before Skin configuration
   soulBeforeSkin: {
     revelationCycleDays: 7,
@@ -25,14 +25,14 @@ export const environment = {
     maxBioLength: 500, // Maximum biography length
     minCompatibilityScore: 30 // Minimum compatibility score to show matches
   },
-  
+
   // API Configuration
   api: {
     timeout: 30000, // Default API timeout in ms
     retryAttempts: 3, // Number of retry attempts for failed requests
     retryDelay: 1000 // Delay between retry attempts in ms
   },
-  
+
   // Security Configuration
   security: {
     sessionTimeout: 24 * 60 * 60 * 1000, // 24 hours in ms

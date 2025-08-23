@@ -16,29 +16,29 @@ import { CommonModule } from '@angular/common';
       border-radius: 8px;
       overflow: hidden;
       position: relative;
-      
+
       &.card {
         height: 200px;
         border-radius: 12px;
       }
-      
+
       &.text {
         height: 1.2em;
         border-radius: 4px;
       }
-      
+
       &.button {
         height: 48px;
         width: 120px;
         border-radius: 24px;
       }
-      
+
       &.avatar {
         width: 40px;
         height: 40px;
         border-radius: 50%;
       }
-      
+
       &.list-item {
         height: 72px;
         margin-bottom: 8px;

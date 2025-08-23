@@ -88,7 +88,7 @@ receivers:
           Severity: {{ .Labels.severity }}
           Time: {{ .StartsAt }}
           {{ end }}
-    
+
     slack_configs:
       - api_url: '${SLACK_WEBHOOK_URL}'
         channel: '#sre-alerts'
@@ -108,18 +108,18 @@ receivers:
         subject: '🚨 CRITICAL ALERT - {{ .GroupLabels.alertname }}'
         body: |
           CRITICAL SYSTEM ALERT
-          
+
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}
           Description: {{ .Annotations.description }}
           Service: {{ .Labels.service }}
           Instance: {{ .Labels.instance }}
           Time: {{ .StartsAt }}
-          
+
           Runbook: {{ .Annotations.runbook_url }}
           Dashboard: {{ .Annotations.dashboard_url }}
           {{ end }}
-    
+
     slack_configs:
       - api_url: '${SLACK_WEBHOOK_CRITICAL}'
         channel: '#critical-alerts'
@@ -133,7 +133,7 @@ receivers:
           *Severity:* {{ .Labels.severity }}
           *Runbook:* {{ .Annotations.runbook_url }}
           {{ end }}
-    
+
     # PagerDuty integration for critical alerts
     pagerduty_configs:
       - integration_key: '${PAGERDUTY_INTEGRATION_KEY}'
@@ -147,7 +147,7 @@ receivers:
         subject: '[DB] {{ .GroupLabels.alertname }} - {{ .GroupLabels.service }}'
         body: |
           Database Alert for Dinner First
-          
+
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}
           Database: {{ .Labels.database }}
@@ -162,14 +162,14 @@ receivers:
         subject: '[Product] {{ .GroupLabels.alertname }} - Soul Connections'
         body: |
           Dating Platform Feature Alert
-          
+
           {{ range .Alerts }}
           Feature Area: {{ .Labels.feature_area }}
           Alert: {{ .Annotations.summary }}
           User Impact: {{ .Annotations.user_impact }}
           Time: {{ .StartsAt }}
           {{ end }}
-    
+
     slack_configs:
       - api_url: '${SLACK_WEBHOOK_PRODUCT}'
         channel: '#product-alerts'
@@ -182,13 +182,13 @@ receivers:
         subject: '[ERROR ESCALATION] {{ .GroupLabels.alertname }}'
         body: |
           High Error Rate Detected
-          
+
           {{ range .Alerts }}
           Service: {{ .Labels.service }}
           Error Rate: {{ .Labels.error_rate }}%
           Endpoint: {{ .Labels.endpoint }}
           Time: {{ .StartsAt }}
-          
+
           Action Required: Immediate investigation needed
           {{ end }}
 
@@ -213,14 +213,14 @@ receivers:
         subject: '🔒 SECURITY ALERT - {{ .GroupLabels.alertname }}'
         body: |
           Security Alert for Dinner First
-          
+
           {{ range .Alerts }}
           Type: {{ .Labels.security_type }}
           Alert: {{ .Annotations.summary }}
           Source IP: {{ .Labels.source_ip }}
           User: {{ .Labels.user_id }}
           Time: {{ .StartsAt }}
-          
+
           Immediate Action Required
           {{ end }}
 
@@ -231,7 +231,7 @@ receivers:
         subject: '[KPI Alert] {{ .GroupLabels.alertname }}'
         body: |
           Business KPI Alert
-          
+
           {{ range .Alerts }}
           Metric: {{ .Labels.metric_name }}
           Current Value: {{ .Labels.current_value }}

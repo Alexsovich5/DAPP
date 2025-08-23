@@ -115,7 +115,7 @@ describe('RevelationService', () => {
 
     it('should validate revelation content length', () => {
       const shortContent = 'Too short';
-      
+
       expect(() => {
         service.validateRevelationContent(shortContent);
       }).toThrowError('Revelation content must be at least 50 characters for meaningful sharing');
@@ -272,7 +272,7 @@ describe('RevelationService', () => {
   describe('Revelation Prompts and Guidance', () => {
     it('should provide revelation prompts for each day', () => {
       const day1Prompt = service.getRevelationPrompt(1);
-      
+
       expect(day1Prompt.day).toBe(1);
       expect(day1Prompt.type).toBe('personal_value');
       expect(day1Prompt.title).toContain('Personal Value');
@@ -304,7 +304,7 @@ describe('RevelationService', () => {
 
     it('should provide contextual writing guidance', () => {
       const guidance = service.getRevelationWritingGuidance('personal_value');
-      
+
       expect(guidance.tone_suggestions).toContain('authentic');
       expect(guidance.content_tips).toBeInstanceOf(Array);
       expect(guidance.avoid_warnings).toContain('generic statements');
@@ -354,7 +354,7 @@ describe('RevelationService', () => {
 
     it('should get available reaction types', () => {
       const reactionTypes = service.getAvailableReactionTypes();
-      
+
       expect(reactionTypes).toContain({ type: 'heart', label: 'Heart', emoji: '❤️' });
       expect(reactionTypes).toContain({ type: 'thoughtful', label: 'Thoughtful', emoji: '🤔' });
       expect(reactionTypes).toContain({ type: 'inspiring', label: 'Inspiring', emoji: '✨' });
@@ -363,7 +363,7 @@ describe('RevelationService', () => {
 
     it('should limit reaction message length', () => {
       const longMessage = 'a'.repeat(501); // Over 500 character limit
-      
+
       expect(() => {
         service.validateReactionMessage(longMessage);
       }).toThrowError('Reaction message must be under 500 characters');
@@ -379,7 +379,7 @@ describe('RevelationService', () => {
     it('should check if day is unlocked based on connection start date', () => {
       const connectionStartDate = new Date('2025-01-15T10:00:00Z');
       const currentDate = new Date('2025-01-17T15:30:00Z'); // 2 days later
-      
+
       expect(service.isDayUnlocked(1, connectionStartDate, currentDate)).toBe(true);
       expect(service.isDayUnlocked(2, connectionStartDate, currentDate)).toBe(true);
       expect(service.isDayUnlocked(3, connectionStartDate, currentDate)).toBe(true);
@@ -389,9 +389,9 @@ describe('RevelationService', () => {
     it('should calculate time until next day unlock', () => {
       const connectionStartDate = new Date('2025-01-15T10:00:00Z');
       const currentDate = new Date('2025-01-16T08:00:00Z'); // Day 2, but early
-      
+
       const timeUntilUnlock = service.getTimeUntilDayUnlock(3, connectionStartDate, currentDate);
-      
+
       expect(timeUntilUnlock.hours).toBeGreaterThan(0);
       expect(timeUntilUnlock.totalMinutes).toBeGreaterThan(0);
       expect(timeUntilUnlock.isUnlocked).toBe(false);
@@ -401,9 +401,9 @@ describe('RevelationService', () => {
       // User timezone considerations for fair revelation scheduling
       const connectionStart = new Date('2025-01-15T10:00:00Z');
       const userTimezone = 'America/New_York';
-      
+
       const dayStatus = service.getDayStatusWithTimezone(2, connectionStart, userTimezone);
-      
+
       expect(dayStatus.day).toBe(2);
       expect(dayStatus.isUnlocked).toBeDefined();
       expect(dayStatus.unlockTime).toBeDefined();
@@ -443,7 +443,7 @@ describe('RevelationService', () => {
     it('should provide content improvement suggestions', () => {
       const genericContent = 'I like movies and food';
       const suggestions = service.getContentImprovementSuggestions(genericContent);
-      
+
       expect(suggestions.length).toBeGreaterThan(0);
       expect(suggestions[0]).toContain('specific');
       expect(suggestions.some(s => s.includes('personal'))).toBe(true);
@@ -453,9 +453,9 @@ describe('RevelationService', () => {
   describe('Revelation Analytics and Insights', () => {
     it('should analyze revelation emotional depth', () => {
       const deepRevelation = 'Losing my father taught me that every moment matters. I learned to cherish vulnerability and authentic connection because life is too precious to waste on surface-level interactions.';
-      
+
       const analysis = service.analyzeEmotionalDepth(deepRevelation);
-      
+
       expect(analysis.depth_score).toBeGreaterThan(7);
       expect(analysis.authenticity_indicators).toContain('personal experience');
       expect(analysis.emotional_themes).toContain('loss');
@@ -465,7 +465,7 @@ describe('RevelationService', () => {
     it('should provide revelation quality feedback', () => {
       const revelation = 'I believe in honesty and treating people with respect.';
       const feedback = service.getRevelationQualityFeedback(revelation);
-      
+
       expect(feedback.score).toBeLessThan(8); // Generic statement should score lower
       expect(feedback.suggestions).toContain('Add a personal story');
       expect(feedback.strengths.length).toBeGreaterThan(0);
@@ -474,7 +474,7 @@ describe('RevelationService', () => {
 
     it('should track revelation engagement metrics', () => {
       const revelationId = 1;
-      
+
       service.getRevelationEngagement(revelationId).subscribe(engagement => {
         expect(engagement.revelation_id).toBe(revelationId);
         expect(engagement.view_count).toBeDefined();
@@ -553,18 +553,18 @@ describe('RevelationService', () => {
       const prompt1 = service.getRevelationPrompt(1);
       // Second call should return cached version
       const prompt2 = service.getRevelationPrompt(1);
-      
+
       expect(prompt1).toBe(prompt2); // Should be same object reference (cached)
     });
 
     it('should debounce content moderation calls', (done) => {
       const content = 'Test content for moderation';
-      
+
       // Make multiple rapid calls
       service.moderateContent(content);
       service.moderateContent(content);
       service.moderateContent(content);
-      
+
       setTimeout(() => {
         // Should only process once due to debouncing
         expect(service['moderationCallCount']).toBe(1);

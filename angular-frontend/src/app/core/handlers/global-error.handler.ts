@@ -39,14 +39,14 @@ export class GlobalErrorHandler implements ErrorHandler {
   }
 
   private isHttpError(error: unknown): boolean {
-    return error instanceof Error && 
-           (error.name === 'HttpErrorResponse' || 
+    return error instanceof Error &&
+           (error.name === 'HttpErrorResponse' ||
             error.message.includes('Http'));
   }
 
   private isPromiseRejection(error: unknown): boolean {
-    return typeof error === 'object' && 
-           error !== null && 
+    return typeof error === 'object' &&
+           error !== null &&
            'rejection' in (error as any);
   }
 
@@ -61,7 +61,7 @@ export class GlobalErrorHandler implements ErrorHandler {
 
   private handlePromiseRejection(error: any): void {
     const rejection = error.rejection;
-    
+
     if (rejection instanceof Error) {
       this.handleJavaScriptError(rejection);
     } else if (typeof rejection === 'string') {

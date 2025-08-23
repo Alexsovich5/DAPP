@@ -49,7 +49,7 @@ import { TypingUser } from '../../core/services/chat.service';
       <section class="demo-section">
         <h2>Enhanced Swipe Gestures</h2>
         <div class="demo-cards">
-          <div 
+          <div
             class="swipe-demo-card"
             *ngFor="let demo of swipeDemos; trackBy: trackDemo; let i = index"
             [appAdvancedSwipe]
@@ -63,16 +63,16 @@ import { TypingUser } from '../../core/services/chat.service';
             <div class="card-energy-indicator" [attr.data-energy]="demo.energy">
               {{ getEnergyEmoji(demo.energy) }}
             </div>
-            
+
             <h3>{{ demo.title }}</h3>
             <p>{{ demo.description }}</p>
-            
+
             <div class="compatibility-bar">
               <div class="compatibility-fill" [style.width.%]="demo.compatibility">
                 {{ demo.compatibility }}% Match
               </div>
             </div>
-            
+
             <div class="swipe-hints">
               <span class="hint left">❌ Pass</span>
               <span class="hint right">💝 Connect</span>
@@ -85,8 +85,8 @@ import { TypingUser } from '../../core/services/chat.service';
       <section class="demo-section">
         <h2>Soul Typing Indicators</h2>
         <div class="typing-demos">
-          <div 
-            class="typing-demo" 
+          <div
+            class="typing-demo"
             *ngFor="let typing of typingDemos; trackBy: trackTyping"
           >
             <h4>{{ typing.title }}</h4>
@@ -95,15 +95,15 @@ import { TypingUser } from '../../core/services/chat.service';
               [config]="typing.config"
               [isVisible]="typing.isActive"
             ></app-soul-typing-indicator>
-            
+
             <div class="typing-controls">
-              <button 
+              <button
                 class="btn btn-sm btn-energy-medium"
                 (click)="toggleTyping(typing)"
               >
                 {{ typing.isActive ? 'Stop' : 'Start' }} Typing
               </button>
-              <button 
+              <button
                 class="btn btn-sm btn-energy-low"
                 (click)="changeTypingEnergy(typing)"
               >
@@ -119,19 +119,19 @@ import { TypingUser } from '../../core/services/chat.service';
         <h2>Soul Animation System</h2>
         <div class="animation-demos">
           <div class="animation-controls">
-            <button 
+            <button
               class="btn btn-energy-medium"
               (click)="startBreathingAnimation()"
             >
               Start Breathing
             </button>
-            <button 
+            <button
               class="btn btn-energy-high"
               (click)="createParticleSystem()"
             >
               Create Particles
             </button>
-            <button 
+            <button
               class="btn btn-energy-soulmate"
               (click)="triggerCelebration()"
             >
@@ -146,14 +146,14 @@ import { TypingUser } from '../../core/services/chat.service';
                 <span class="target-label">Breathing</span>
               </div>
             </div>
-            
+
             <div class="animation-target particle-container" #particleContainer>
               <div class="target-content">
                 <span class="target-emoji">✨</span>
                 <span class="target-label">Particles</span>
               </div>
             </div>
-            
+
             <div class="animation-target celebration-target" #celebrationTarget>
               <div class="target-content">
                 <span class="target-emoji">🎊</span>
@@ -197,39 +197,39 @@ import { TypingUser } from '../../core/services/chat.service';
       <section class="demo-section">
         <h2>Haptic Feedback</h2>
         <div class="haptic-demos">
-          <button 
+          <button
             class="btn btn-energy-low"
             (click)="triggerHaptic('light')"
           >
             Light Impact
           </button>
-          <button 
+          <button
             class="btn btn-energy-medium"
             (click)="triggerHaptic('medium')"
           >
             Medium Impact
           </button>
-          <button 
+          <button
             class="btn btn-energy-high"
             (click)="triggerHaptic('heavy')"
           >
             Heavy Impact
           </button>
-          <button 
+          <button
             class="btn btn-energy-soulmate"
             (click)="triggerHaptic('soulmate')"
           >
             Soulmate Energy
           </button>
         </div>
-        
+
         <div class="haptic-status">
           <p>
-            <strong>Haptic Support:</strong> 
+            <strong>Haptic Support:</strong>
             {{ hapticStatus?.supported ? '✅ Supported' : '❌ Not Supported' }}
           </p>
           <p>
-            <strong>Mobile Device:</strong> 
+            <strong>Mobile Device:</strong>
             {{ hapticStatus?.mobile ? '✅ Yes' : '❌ No' }}
           </p>
         </div>
@@ -521,15 +521,15 @@ import { TypingUser } from '../../core/services/chat.service';
       .showcase-header h1 {
         font-size: 2rem;
       }
-      
+
       .demo-cards {
         grid-template-columns: 1fr;
       }
-      
+
       .animation-controls {
         justify-content: center;
       }
-      
+
       .haptic-demos {
         justify-content: center;
       }
@@ -768,7 +768,7 @@ export class Phase3ShowcaseComponent implements OnInit, OnDestroy {
   // Event handlers
   onSwipeAction(event: { action: SwipeAction; event: ElasticSwipeEvent }, demo: any): void {
     console.log('Swipe action triggered:', event.action.id, 'on demo:', demo.title);
-    
+
     if (event.action.id === 'connect') {
       this.hapticService.triggerConnectionSuccess();
     } else {
@@ -804,7 +804,7 @@ export class Phase3ShowcaseComponent implements OnInit, OnDestroy {
       ).subscribe(() => {
         console.log('Breathing animation started');
       });
-      
+
       this.breatheTarget.nativeElement.classList.add('breathing');
       this.hapticService.triggerBreathingFeedback();
     }
@@ -819,7 +819,7 @@ export class Phase3ShowcaseComponent implements OnInit, OnDestroy {
       ).subscribe((animations) => {
         console.log('Particle system created with', animations.length, 'particles');
       });
-      
+
       this.hapticService.triggerSoulEnergyFeedback('high');
     }
   }
@@ -832,12 +832,12 @@ export class Phase3ShowcaseComponent implements OnInit, OnDestroy {
       ).subscribe(() => {
         console.log('Celebration animation completed');
       });
-      
+
       this.celebrationTarget.nativeElement.classList.add('celebrating');
       setTimeout(() => {
         this.celebrationTarget.nativeElement.classList.remove('celebrating');
       }, 1500);
-      
+
       this.hapticService.triggerCelebrationBurst();
     }
   }

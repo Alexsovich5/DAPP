@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Boolean
-from sqlalchemy.orm import relationship
-from datetime import datetime
 import enum
+from datetime import datetime
+
 from app.core.database import Base
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import relationship
 
 
 class RevelationType(str, enum.Enum):
@@ -21,12 +22,12 @@ class DailyRevelation(Base):
     id = Column(Integer, primary_key=True, index=True)
     connection_id = Column(Integer, ForeignKey("soul_connections.id"), nullable=False)
     sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    
+
     # Revelation details
     day_number = Column(Integer, nullable=False)  # 1-7 for the revelation cycle
     revelation_type = Column(String, nullable=False)
     content = Column(Text, nullable=False)
-    
+
     # Metadata
     is_read = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)

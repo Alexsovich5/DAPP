@@ -196,5 +196,5 @@ This navigation system is continuously improved based on user feedback and acces
 
 **Need Help?** If you encounter any accessibility issues or have suggestions for improvement, please contact our support team. We're committed to providing an excellent experience for all users.
 
-**Last Updated**: July 2025  
+**Last Updated**: July 2025
 **WCAG Compliance**: 2.1 AA Standard

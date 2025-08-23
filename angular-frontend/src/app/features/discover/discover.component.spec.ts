@@ -232,7 +232,7 @@ describe('DiscoverComponent', () => {
       // Should show different metrics
       const compatibilityLabels = fixture.debugElement.queryAll(By.css('.compatibility-metric'));
       const labelTexts = compatibilityLabels.map(label => label.nativeElement.textContent);
-      
+
       expect(labelTexts).toContain('Values');
       expect(labelTexts).toContain('Interests');
       expect(labelTexts).toContain('Communication');
@@ -376,7 +376,7 @@ describe('DiscoverComponent', () => {
       expect(component.customMessage).toBe('');
 
       fixture.detectChanges();
-      
+
       const messageInput = fixture.debugElement.query(By.css('.message-input'));
       expect(messageInput).toBeTruthy();
     });
@@ -428,7 +428,7 @@ describe('DiscoverComponent', () => {
   describe('Filtering and Preferences', () => {
     it('should apply distance filter when set', () => {
       soulConnectionService.discoverPotentialMatches.and.returnValue(of(mockPotentialMatches));
-      
+
       component.maxDistance = 10; // 10km limit
       fixture.detectChanges();
 
@@ -439,7 +439,7 @@ describe('DiscoverComponent', () => {
 
     it('should apply minimum compatibility filter', () => {
       soulConnectionService.discoverPotentialMatches.and.returnValue(of(mockPotentialMatches));
-      
+
       component.minCompatibility = 80;
       fixture.detectChanges();
 
@@ -465,11 +465,11 @@ describe('DiscoverComponent', () => {
       // Simulate mobile viewport
       spyOnProperty(window, 'innerWidth').and.returnValue(375);
       soulConnectionService.discoverPotentialMatches.and.returnValue(of(mockPotentialMatches));
-      
+
       fixture.detectChanges();
 
       expect(component.isMobile).toBe(true);
-      
+
       const mobileLayout = fixture.debugElement.query(By.css('.mobile-layout'));
       expect(mobileLayout).toBeTruthy();
     });
@@ -483,7 +483,7 @@ describe('DiscoverComponent', () => {
       component.onSwipeLeft();
       expect(component.selectedMatchIndex).toBe(1);
 
-      // Simulate swipe right  
+      // Simulate swipe right
       component.onSwipeRight();
       expect(component.selectedMatchIndex).toBe(0);
     });

@@ -42,7 +42,7 @@ export const CACHE_STRATEGIES: CacheStrategy[] = [
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     maxEntries: 100
   },
-  
+
   // API Data - Network First with fallback
   {
     name: 'api-data',
@@ -52,7 +52,7 @@ export const CACHE_STRATEGIES: CacheStrategy[] = [
     maxAge: 5 * 60 * 1000, // 5 minutes
     maxEntries: 50
   },
-  
+
   // Messages - Stale while revalidate
   {
     name: 'messages',
@@ -62,7 +62,7 @@ export const CACHE_STRATEGIES: CacheStrategy[] = [
     maxAge: 2 * 60 * 1000, // 2 minutes
     maxEntries: 100
   },
-  
+
   // User Profile Images - Cache First (long cache)
   {
     name: 'profile-images',
@@ -106,13 +106,13 @@ export class OfflineService {
     // Monitor online/offline status
     const online$ = fromEvent(window, 'online').pipe(map(() => true));
     const offline$ = fromEvent(window, 'offline').pipe(map(() => false));
-    
+
     merge(online$, offline$).pipe(
       startWith(navigator.onLine)
     ).subscribe(isOnline => {
       this.isOnlineSubject.next(isOnline);
       this.updateSyncStatus({ isOnline });
-      
+
       if (isOnline) {
         this.processPendingActions();
       }
@@ -207,7 +207,7 @@ export class OfflineService {
         const queueIndex = this.offlineQueue.findIndex(a => a.id === action.id);
         if (queueIndex !== -1) {
           this.offlineQueue[queueIndex].retryCount++;
-          
+
           // Remove if max retries exceeded
           if (this.offlineQueue[queueIndex].retryCount >= action.maxRetries) {
             console.error('Action failed after max retries:', action);
@@ -218,8 +218,8 @@ export class OfflineService {
     });
 
     this.saveOfflineQueue();
-    this.updateSyncStatus({ 
-      isSyncing: false, 
+    this.updateSyncStatus({
+      isSyncing: false,
       pendingActions: this.offlineQueue.length,
       lastSyncTime: new Date()
     });
@@ -475,7 +475,7 @@ export class OfflineService {
         const db = request.result;
         const transaction = db.transaction(['cache'], 'readwrite');
         const store = transaction.objectStore('cache');
-        
+
         const putRequest = store.put({ key, ...data });
         putRequest.onsuccess = () => resolve();
         putRequest.onerror = () => reject(putRequest.error);
@@ -499,7 +499,7 @@ export class OfflineService {
         const db = request.result;
         const transaction = db.transaction(['cache'], 'readonly');
         const store = transaction.objectStore('cache');
-        
+
         const getRequest = store.get(key);
         getRequest.onsuccess = () => {
           resolve(getRequest.result || null);
@@ -518,7 +518,7 @@ export class OfflineService {
         const db = request.result;
         const transaction = db.transaction(['cache'], 'readwrite');
         const store = transaction.objectStore('cache');
-        
+
         const deleteRequest = store.delete(key);
         deleteRequest.onsuccess = () => resolve();
         deleteRequest.onerror = () => reject(deleteRequest.error);

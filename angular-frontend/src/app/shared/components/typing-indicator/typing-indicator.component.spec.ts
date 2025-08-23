@@ -201,7 +201,7 @@ describe('TypingIndicatorComponent', () => {
 
       const indicator = fixture.debugElement.query(By.css('.typing-indicator'));
       expect(indicator).toBeTruthy();
-      
+
       if (mockTypingUsers.length === 2) {
         expect(indicator.nativeElement.textContent).toContain('Emma and Sofia are typing');
       } else if (mockTypingUsers.length === 3) {
@@ -298,7 +298,7 @@ describe('TypingIndicatorComponent', () => {
 
       const defaultAvatar = fixture.debugElement.query(By.css('.default-avatar'));
       expect(defaultAvatar).toBeTruthy();
-      
+
       const avatarInitials = defaultAvatar.query(By.css('.avatar-initials'));
       expect(avatarInitials.nativeElement.textContent).toBe('E'); // First letter of Emma
     }));
@@ -354,7 +354,7 @@ describe('TypingIndicatorComponent', () => {
       });
 
       fixture.detectChanges();
-      
+
       // Should handle all changes without errors
       expect(component.typingUsers.length).toBe(1);
       expect(component.typingUsers[0].user_name).toBe('Alexandra');
@@ -430,7 +430,7 @@ describe('TypingIndicatorComponent', () => {
 
     it('should handle click events on typing users', fakeAsync(() => {
       spyOn(component.userClicked, 'emit');
-      
+
       typingSubject.next([mockTypingUsers[0]]);
       tick();
       fixture.detectChanges();
@@ -466,7 +466,7 @@ describe('TypingIndicatorComponent', () => {
 
       const userElement = fixture.debugElement.query(By.css('.typing-user'));
       const tooltip = userElement.nativeElement.getAttribute('title');
-      
+
       expect(tooltip).toContain('Emma');
       expect(tooltip).toContain('typing for');
     }));
@@ -545,7 +545,7 @@ describe('TypingIndicatorComponent', () => {
 
     it('should cache user information for performance', () => {
       const userCache = component.getUserCache();
-      
+
       typingSubject.next([mockTypingUsers[0]]);
       fixture.detectChanges();
 
@@ -624,7 +624,7 @@ describe('TypingIndicatorComponent', () => {
 
     it('should adapt layout for mobile screens', fakeAsync(() => {
       spyOnProperty(window, 'innerWidth').and.returnValue(375);
-      
+
       component.ngOnInit();
       typingSubject.next(mockTypingUsers);
       tick();
@@ -696,7 +696,7 @@ describe('TypingIndicatorComponent', () => {
       tick();
 
       expect(component.typingUsers).toEqual([]);
-      
+
       const offlineIndicator = fixture.debugElement.query(By.css('.offline-indicator'));
       expect(offlineIndicator).toBeTruthy();
     }));
@@ -732,7 +732,7 @@ describe('TypingIndicatorComponent', () => {
       });
 
       fixture.detectChanges();
-      
+
       // Should handle all transitions smoothly
       expect(component.typingUsers.length).toBe(2);
     }));
@@ -757,9 +757,9 @@ describe('TypingIndicatorComponent', () => {
 
     it('should prevent memory leaks on component destroy', () => {
       spyOn(component['subscriptions'], 'unsubscribe');
-      
+
       component.ngOnDestroy();
-      
+
       expect(component['subscriptions'].unsubscribe).toHaveBeenCalled();
     });
 
@@ -800,13 +800,13 @@ describe('TypingIndicatorComponent', () => {
 
       const indicator = fixture.debugElement.query(By.css('.typing-indicator'));
       const computedStyles = getComputedStyle(indicator.nativeElement);
-      
+
       expect(computedStyles.getPropertyValue('--primary-color')).toBe('#6366f1');
     }));
 
     it('should support dark mode', fakeAsync(() => {
       component.config.darkMode = true;
-      
+
       typingSubject.next([mockTypingUsers[0]]);
       tick();
       fixture.detectChanges();
@@ -817,7 +817,7 @@ describe('TypingIndicatorComponent', () => {
 
     it('should allow custom dot animations', fakeAsync(() => {
       component.config.dotAnimation = 'pulse';
-      
+
       typingSubject.next([mockTypingUsers[0]]);
       tick();
       fixture.detectChanges();
@@ -830,7 +830,7 @@ describe('TypingIndicatorComponent', () => {
 
     it('should support custom user templates', fakeAsync(() => {
       component.config.customTemplate = true;
-      
+
       typingSubject.next([mockTypingUsers[0]]);
       tick();
       fixture.detectChanges();

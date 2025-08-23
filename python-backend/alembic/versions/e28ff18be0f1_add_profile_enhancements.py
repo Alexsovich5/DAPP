@@ -6,8 +6,8 @@ Create Date: 2025-04-21 12:00:00.000000
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic
@@ -27,15 +27,13 @@ def upgrade():
     # Add new columns to profiles table
     with op.batch_alter_table("profiles", schema=None) as batch_op:
         # Photo management
-        batch_op.add_column(
-            sa.Column("profile_photos", sa.JSON(), nullable=True))
+        batch_op.add_column(sa.Column("profile_photos", sa.JSON(), nullable=True))
 
         # Verification
         batch_op.add_column(
             sa.Column(
                 "verification_status",
-                sa.Enum("unverified", "pending", "verified",
-                        name="verificationstatus"),
+                sa.Enum("unverified", "pending", "verified", name="verificationstatus"),
                 nullable=False,
                 server_default="unverified",
             )
@@ -51,8 +49,7 @@ def upgrade():
         )
 
         # Enhanced preferences
-        batch_op.add_column(
-            sa.Column("cooking_level", sa.String(), nullable=True))
+        batch_op.add_column(sa.Column("cooking_level", sa.String(), nullable=True))
         batch_op.add_column(
             sa.Column("preferred_dining_time", sa.String(), nullable=True)
         )
@@ -62,14 +59,10 @@ def upgrade():
         batch_op.add_column(
             sa.Column("preferred_group_size", sa.Integer(), nullable=True)
         )
-        batch_op.add_column(
-            sa.Column("food_allergies", sa.String(), nullable=True))
-        batch_op.add_column(
-            sa.Column("special_diets", sa.String(), nullable=True))
-        batch_op.add_column(sa.Column("favorite_cuisines",
-                            sa.String(), nullable=True))
-        batch_op.add_column(
-            sa.Column("price_range", sa.String(), nullable=True))
+        batch_op.add_column(sa.Column("food_allergies", sa.String(), nullable=True))
+        batch_op.add_column(sa.Column("special_diets", sa.String(), nullable=True))
+        batch_op.add_column(sa.Column("favorite_cuisines", sa.String(), nullable=True))
+        batch_op.add_column(sa.Column("price_range", sa.String(), nullable=True))
 
 
 def downgrade():

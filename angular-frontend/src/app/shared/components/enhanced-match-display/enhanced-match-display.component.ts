@@ -106,11 +106,11 @@ export interface EnhancedMatchQuality {
 
         <!-- Main Analysis Tabs -->
         <mat-tab-group class="analysis-tabs" [selectedIndex]="selectedTabIndex" (selectedTabChange)="onTabChange($event)">
-          
+
           <!-- Overview Tab -->
           <mat-tab label="Overview">
             <div class="tab-content overview-tab">
-              
+
               <!-- Relationship Timeline -->
               <div class="timeline-section">
                 <h4 class="section-title">
@@ -128,8 +128,8 @@ export interface EnhancedMatchQuality {
                 </h4>
                 <div class="chips-container">
                   <mat-chip-set>
-                    <mat-chip 
-                      *ngFor="let strength of matchData.relationship_insights.connection_strengths" 
+                    <mat-chip
+                      *ngFor="let strength of matchData.relationship_insights.connection_strengths"
                       class="strength-chip">
                       {{ strength }}
                     </mat-chip>
@@ -168,7 +168,7 @@ export interface EnhancedMatchQuality {
 
               <!-- Component Scores -->
               <div class="components-grid">
-                
+
                 <!-- Soul Compatibility -->
                 <mat-card class="component-card soul-card">
                   <mat-card-header>
@@ -260,7 +260,7 @@ export interface EnhancedMatchQuality {
           <!-- Interaction Guidance Tab -->
           <mat-tab label="Interaction Guide">
             <div class="tab-content interaction-tab">
-              
+
               <!-- First Date Suggestion -->
               <div class="date-suggestion-section">
                 <h4 class="section-title">
@@ -279,7 +279,7 @@ export interface EnhancedMatchQuality {
                   Conversation Starters
                 </h4>
                 <div class="conversation-starters">
-                  <mat-expansion-panel 
+                  <mat-expansion-panel
                     *ngFor="let starter of matchData.interaction_guidance.conversation_starters; let i = index"
                     class="starter-panel">
                     <mat-expansion-panel-header>
@@ -398,7 +398,7 @@ export class EnhancedMatchDisplayComponent implements OnInit, OnDestroy {
   getTierDisplayName(): string {
     if (!this.matchData) return '';
     const tier = this.matchData.comprehensive_analysis.match_quality_tier;
-    return tier.replace('_', ' ').split(' ').map(word => 
+    return tier.replace('_', ' ').split(' ').map(word =>
       word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
     ).join(' ') + ' Connection';
   }
@@ -412,7 +412,7 @@ export class EnhancedMatchDisplayComponent implements OnInit, OnDestroy {
   getQualityColor(): string {
     if (!this.matchData) return '#6b7280';
     const score = this.matchData.comprehensive_analysis.total_compatibility;
-    
+
     if (score >= 95) return '#10b981'; // Emerald-500
     if (score >= 90) return '#059669'; // Emerald-600
     if (score >= 80) return '#3b82f6'; // Blue-500
@@ -425,7 +425,7 @@ export class EnhancedMatchDisplayComponent implements OnInit, OnDestroy {
   getQualityIcon(): string {
     if (!this.matchData) return 'help';
     const tier = this.matchData.comprehensive_analysis.match_quality_tier;
-    
+
     const icons: { [key: string]: string } = {
       'transcendent': 'auto_awesome',
       'exceptional': 'stars',
@@ -436,7 +436,7 @@ export class EnhancedMatchDisplayComponent implements OnInit, OnDestroy {
       'limited': 'warning',
       'incompatible': 'block'
     };
-    
+
     return icons[tier] || 'help';
   }
 
@@ -484,7 +484,7 @@ export class EnhancedMatchDisplayComponent implements OnInit, OnDestroy {
   // Helper methods
   private formatConnectionPrediction(prediction: string): string {
     const formatted = prediction.replace(/_/g, ' ').toLowerCase();
-    return formatted.split(' ').map(word => 
+    return formatted.split(' ').map(word =>
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
   }

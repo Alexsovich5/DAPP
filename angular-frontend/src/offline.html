@@ -296,11 +296,11 @@
         <div class="offline-icon">
             💔
         </div>
-        
+
         <h1 class="offline-title">You're Offline</h1>
-        
+
         <p class="offline-message">
-            Don't worry! While your heart is always online, your internet connection seems to have taken a break. 
+            Don't worry! While your heart is always online, your internet connection seems to have taken a break.
             Dinner First works offline too – you can still browse your soul connections and prepare for when you're back online.
         </p>
 
@@ -356,11 +356,11 @@
         function updateConnectionStatus() {
             const statusIndicator = document.getElementById('statusIndicator');
             const connectionStatus = document.getElementById('connectionStatus');
-            
+
             if (navigator.onLine) {
                 statusIndicator.classList.add('online');
                 connectionStatus.textContent = 'Back online! Refreshing...';
-                
+
                 // Redirect to main app when online
                 setTimeout(() => {
                     window.location.href = '/';
@@ -373,14 +373,14 @@
 
         function checkConnection() {
             updateConnectionStatus();
-            
+
             if (!navigator.onLine) {
                 // Provide feedback that check was performed
                 const button = event.target;
                 const originalText = button.textContent;
                 button.textContent = '🔍 Checking...';
                 button.disabled = true;
-                
+
                 setTimeout(() => {
                     button.textContent = originalText;
                     button.disabled = false;
@@ -403,7 +403,7 @@
         // Periodic connection check
         setInterval(() => {
             // Try to fetch a small resource to verify connection
-            fetch('/favicon.ico', { 
+            fetch('/favicon.ico', {
                 method: 'HEAD',
                 cache: 'no-cache'
             }).then(() => {

@@ -25,7 +25,7 @@ export interface SoulTypingConfig {
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div 
+    <div
       class="soul-typing-container"
       [class]="getContainerClasses()"
       [attr.aria-label]="getAriaLabel()"
@@ -41,8 +41,8 @@ export interface SoulTypingConfig {
 
       <!-- Connection Particles (for high energy connections) -->
       <div class="particle-system" *ngIf="config.showParticles">
-        <div 
-          class="particle" 
+        <div
+          class="particle"
           *ngFor="let particle of particles; trackBy: trackParticle"
           [style.--delay]="particle.delay + 's'"
           [style.--duration]="particle.duration + 's'"
@@ -57,7 +57,7 @@ export interface SoulTypingConfig {
           <div class="avatar-circle" [style.background]="getAvatarGradient()">
             <span class="avatar-initial">{{ typingUser?.name?.charAt(0) || '?' }}</span>
           </div>
-          
+
           <!-- Connection stage indicator -->
           <div class="stage-indicator" [attr.data-stage]="config.connectionStage">
             {{ getStageEmoji() }}
@@ -66,8 +66,8 @@ export interface SoulTypingConfig {
 
         <!-- Enhanced typing dots with soul theme -->
         <div class="soul-typing-dots" [attr.data-theme]="config.theme">
-          <div 
-            class="soul-dot" 
+          <div
+            class="soul-dot"
             *ngFor="let dot of dots; trackBy: trackDot; let i = index"
             [style.--dot-delay]="dot.delay + 's'"
             [style.--dot-scale]="dot.scale"
@@ -413,7 +413,7 @@ export interface SoulTypingConfig {
 
     /* Accessibility */
     @media (prefers-reduced-motion: reduce) {
-      .soul-aura *, 
+      .soul-aura *,
       .particle,
       .soul-avatar.breathing,
       .soul-dot,
@@ -439,12 +439,12 @@ export class SoulTypingIndicatorComponent implements OnInit, OnDestroy {
     animationSpeed: 1.0
   };
   @Input() isVisible = true;
-  
+
   @ViewChild('container', { static: false }) containerRef?: ElementRef<HTMLElement>;
 
   dots: Array<{ delay: number; scale: number; color: string; className: string }> = [];
   particles: Array<{ delay: number; duration: number; angle: number; id: number }> = [];
-  
+
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
@@ -470,7 +470,7 @@ export class SoulTypingIndicatorComponent implements OnInit, OnDestroy {
 
   private initializeParticles(): void {
     if (!this.config.showParticles) return;
-    
+
     const particleCount = this.getParticleCountForEnergy();
     this.particles = Array(particleCount).fill(0).map((_, i) => ({
       delay: Math.random() * 4,
@@ -513,7 +513,7 @@ export class SoulTypingIndicatorComponent implements OnInit, OnDestroy {
       high: 'linear-gradient(135deg, #e879f9, #667eea)',
       soulmate: 'linear-gradient(135deg, #ffd700, #f093fb)'
     };
-    
+
     return energyColors[this.config.connectionEnergy];
   }
 
@@ -524,7 +524,7 @@ export class SoulTypingIndicatorComponent implements OnInit, OnDestroy {
       photo_reveal: '📸',
       deeper_connection: '💫'
     };
-    
+
     return stageEmojis[this.config.connectionStage];
   }
 
@@ -536,7 +536,7 @@ export class SoulTypingIndicatorComponent implements OnInit, OnDestroy {
       peaceful: 'in thoughtful reflection...',
       sophisticated: 'crafting something special...'
     };
-    
+
     return messages[this.config.emotionalState];
   }
 
@@ -547,7 +547,7 @@ export class SoulTypingIndicatorComponent implements OnInit, OnDestroy {
       connection: 'rgba(232, 121, 249, 0.1)',
       energy: 'rgba(72, 187, 120, 0.1)'
     };
-    
+
     return colors[this.config.theme];
   }
 
@@ -558,7 +558,7 @@ export class SoulTypingIndicatorComponent implements OnInit, OnDestroy {
       connection: 4,
       energy: 6
     };
-    
+
     return counts[this.config.theme];
   }
 
@@ -569,7 +569,7 @@ export class SoulTypingIndicatorComponent implements OnInit, OnDestroy {
       connection: '#e879f9',
       energy: '#48bb78'
     };
-    
+
     return colors[this.config.theme];
   }
 
@@ -584,7 +584,7 @@ export class SoulTypingIndicatorComponent implements OnInit, OnDestroy {
       high: 6,
       soulmate: 10
     };
-    
+
     return counts[this.config.connectionEnergy];
   }
 

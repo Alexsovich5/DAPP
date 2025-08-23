@@ -143,7 +143,7 @@ describe('SoulConnectionService', () => {
 
     it('should handle discovery errors gracefully', () => {
       const errorMessage = 'Discovery service temporarily unavailable';
-      
+
       service.discoverPotentialConnections().subscribe({
         next: () => fail('Should have failed with error'),
         error: (error) => {
@@ -233,7 +233,7 @@ describe('SoulConnectionService', () => {
 
     it('should validate connection message requirements', () => {
       const shortMessage = 'Hi';
-      
+
       service.initiateConnection(2, shortMessage).subscribe({
         next: () => fail('Should have failed with validation error'),
         error: (error) => {
@@ -424,7 +424,7 @@ describe('SoulConnectionService', () => {
 
     it('should handle photo reveal consent withdrawal', () => {
       const connectionId = 1;
-      
+
       service.updatePhotoRevealConsent(connectionId, false).subscribe(result => {
         expect(result.mutual_reveal_consent).toBe(false);
       });
@@ -546,7 +546,7 @@ describe('SoulConnectionService', () => {
 
     it('should retry failed requests with exponential backoff', (done) => {
       let attempts = 0;
-      
+
       service.discoverPotentialConnections().subscribe({
         next: (matches) => {
           expect(attempts).toBe(3); // Should retry 3 times
@@ -560,7 +560,7 @@ describe('SoulConnectionService', () => {
       const expectRequest = () => {
         const req = httpMock.expectOne(`${mockApiUrl}/connections/discover`);
         attempts++;
-        
+
         if (attempts < 3) {
           req.error(new ErrorEvent('Temporary error'));
           // Schedule next expectation
@@ -569,7 +569,7 @@ describe('SoulConnectionService', () => {
           req.flush([]);
         }
       };
-      
+
       expectRequest();
     });
 
@@ -616,7 +616,7 @@ describe('SoulConnectionService', () => {
         // Should only make one request due to debouncing
         const req = httpMock.expectOne(`${mockApiUrl}/connections/discover`);
         req.flush([]);
-        
+
         expect(requestCount).toBe(0); // Requests were debounced
         done();
       }, 600); // Wait for debounce period

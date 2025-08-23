@@ -42,7 +42,7 @@ import { ABAnalyticsService, ABTestMetrics } from '../../core/services/ab-analyt
                   <mat-card-title>{{ test.name }}</mat-card-title>
                   <mat-card-subtitle>{{ test.description }}</mat-card-subtitle>
                 </mat-card-header>
-                
+
                 <mat-card-content>
                   <div class="test-status">
                     <mat-chip-set>
@@ -81,7 +81,7 @@ import { ABAnalyticsService, ABTestMetrics } from '../../core/services/ab-analyt
                     <mat-icon>download</mat-icon>
                     Export
                   </button>
-                  <button mat-button [color]="test.isActive ? 'warn' : 'primary'" 
+                  <button mat-button [color]="test.isActive ? 'warn' : 'primary'"
                           (click)="toggleTest(test.id)">
                     <mat-icon>{{ test.isActive ? 'pause' : 'play_arrow' }}</mat-icon>
                     {{ test.isActive ? 'Pause' : 'Resume' }}
@@ -100,7 +100,7 @@ import { ABAnalyticsService, ABTestMetrics } from '../../core/services/ab-analyt
                 <mat-card-header>
                   <mat-card-title>{{ analytics.testName }}</mat-card-title>
                   <mat-card-subtitle>
-                    {{ analytics.totalParticipants }} participants • 
+                    {{ analytics.totalParticipants }} participants •
                     {{ analytics.statisticalSignificance }}% confidence
                   </mat-card-subtitle>
                 </mat-card-header>
@@ -110,12 +110,12 @@ import { ABAnalyticsService, ABTestMetrics } from '../../core/services/ab-analyt
                   <div class="primary-metric">
                     <h4>{{ analytics.primaryMetric.name }}</h4>
                     <div class="metric-results">
-                      <div *ngFor="let variant of analytics.primaryMetric.variants" 
+                      <div *ngFor="let variant of analytics.primaryMetric.variants"
                            class="variant-result"
                            [class.winner]="variant.variantId === analytics.primaryMetric.winner">
                         <div class="variant-header">
                           <span class="variant-name">{{ getVariantName(analytics.testId, variant.variantId) }}</span>
-                          <mat-chip *ngIf="variant.variantId === analytics.primaryMetric.winner" 
+                          <mat-chip *ngIf="variant.variantId === analytics.primaryMetric.winner"
                                    color="primary" selected>
                             <mat-icon>emoji_events</mat-icon>
                             Winner
@@ -128,14 +128,14 @@ import { ABAnalyticsService, ABTestMetrics } from '../../core/services/ab-analyt
                             <span>±{{ variant.standardError.toFixed(2) }}% SE</span>
                           </div>
                         </div>
-                        <mat-progress-bar 
-                          mode="determinate" 
+                        <mat-progress-bar
+                          mode="determinate"
                           [value]="variant.value"
                           [color]="variant.variantId === analytics.primaryMetric.winner ? 'primary' : 'accent'">
                         </mat-progress-bar>
                       </div>
                     </div>
-                    
+
                     <div class="improvement-summary" *ngIf="analytics.primaryMetric.improvement">
                       <mat-icon>trending_up</mat-icon>
                       <span>{{ analytics.primaryMetric.improvement.toFixed(1) }}% improvement over control</span>
@@ -226,7 +226,7 @@ import { ABAnalyticsService, ABTestMetrics } from '../../core/services/ab-analyt
                     <div class="assignment-controls" *ngFor="let test of activeTests">
                       <h5>{{ test.name }}</h5>
                       <div class="variant-buttons">
-                        <button *ngFor="let variant of test.variants" 
+                        <button *ngFor="let variant of test.variants"
                                 mat-stroked-button
                                 [color]="isCurrentVariant(test.id, variant.id) ? 'primary' : ''"
                                 (click)="forceAssignment(test.id, variant.id)">

@@ -1,19 +1,22 @@
 # Monitoring and Health Check API Endpoints
 # Comprehensive system monitoring and observability
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from fastapi.responses import JSONResponse
-from typing import Dict, List, Optional
-from datetime import datetime, timedelta
-from pydantic import BaseModel
-import psutil
 import asyncio
+
+# import json
 import logging
 import time
-import json
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional
+
+import psutil
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
 
 class HealthCheckResponse(BaseModel):
     status: str
@@ -23,6 +26,7 @@ class HealthCheckResponse(BaseModel):
     services: Dict[str, Dict]
     system: Dict[str, any]
 
+
 class MetricsResponse(BaseModel):
     timestamp: datetime
     application: Dict
@@ -30,6 +34,7 @@ class MetricsResponse(BaseModel):
     database: Dict
     redis: Dict
     custom_metrics: Dict
+
 
 # Store startup time for uptime calculation
 startup_time = time.time()
@@ -43,8 +48,9 @@ metrics_store = {
     "active_users": 0,
     "database_queries": 0,
     "cache_hits": 0,
-    "cache_misses": 0
+    "cache_misses": 0,
 }
+
 
 @router.get("/health", response_model=HealthCheckResponse)
 async def health_check():
@@ -59,37 +65,41 @@ async def health_check():
             "version": "1.0.0",  # This should come from app config
             "uptime_seconds": time.time() - startup_time,
             "services": {},
-            "system": {}
+            "system": {},
         }
-        
+
         # Check database health
         db_health = await check_database_health()
         health_status["services"]["database"] = db_health
-        
+
         # Check Redis health
         redis_health = await check_redis_health()
         health_status["services"]["redis"] = redis_health
-        
+
         # Check external services
         external_health = await check_external_services()
         health_status["services"]["external"] = external_health
-        
+
         # System resource checks
         system_health = get_system_health()
         health_status["system"] = system_health
-        
+
         # Determine overall status
         overall_status = determine_overall_health_status(health_status)
         health_status["status"] = overall_status
-        
+
         # Return appropriate HTTP status
         if overall_status == "healthy":
             return JSONResponse(content=health_status, status_code=200)
         elif overall_status == "degraded":
-            return JSONResponse(content=health_status, status_code=200)  # Still 200 for degraded
+            return JSONResponse(
+                content=health_status, status_code=200
+            )  # Still 200 for degraded
         else:
-            return JSONResponse(content=health_status, status_code=503)  # Service unavailable
-            
+            return JSONResponse(
+                content=health_status, status_code=503
+            )  # Service unavailable
+
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}")
         return JSONResponse(
@@ -97,10 +107,11 @@ async def health_check():
                 "status": "unhealthy",
                 "timestamp": datetime.utcnow(),
                 "error": "Health check failed",
-                "details": str(e)
+                "details": str(e),
             },
-            status_code=503
+            status_code=503,
         )
+
 
 @router.get("/health/live")
 async def liveness_probe():
@@ -109,6 +120,7 @@ async def liveness_probe():
     Returns 200 if the application is running
     """
     return {"status": "alive", "timestamp": datetime.utcnow()}
+
 
 @router.get("/health/ready")
 async def readiness_probe():
@@ -121,22 +133,20 @@ async def readiness_probe():
         db_status = await check_database_connection()
         if not db_status["healthy"]:
             raise HTTPException(status_code=503, detail="Database not ready")
-            
+
         redis_status = await check_redis_connection()
         if not redis_status["healthy"]:
             raise HTTPException(status_code=503, detail="Redis not ready")
-        
+
         return {
             "status": "ready",
             "timestamp": datetime.utcnow(),
-            "checks": {
-                "database": db_status,
-                "redis": redis_status
-            }
+            "checks": {"database": db_status, "redis": redis_status},
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Not ready: {str(e)}")
+
 
 @router.get("/metrics", response_model=MetricsResponse)
 async def get_metrics():
@@ -146,7 +156,7 @@ async def get_metrics():
     """
     try:
         current_time = datetime.utcnow()
-        
+
         # Application metrics
         app_metrics = {
             "requests_total": metrics_store["requests_total"],
@@ -154,39 +164,40 @@ async def get_metrics():
             "average_response_time": calculate_average_response_time(),
             "error_rate": calculate_error_rate(),
             "active_users": metrics_store["active_users"],
-            "uptime_seconds": time.time() - startup_time
+            "uptime_seconds": time.time() - startup_time,
         }
-        
+
         # System metrics
         system_metrics = {
             "cpu_usage_percent": psutil.cpu_percent(interval=1),
             "memory_usage_percent": psutil.virtual_memory().percent,
-            "disk_usage_percent": psutil.disk_usage('/').percent,
+            "disk_usage_percent": psutil.disk_usage("/").percent,
             "network_io": dict(psutil.net_io_counters()._asdict()),
-            "process_count": len(psutil.pids())
+            "process_count": len(psutil.pids()),
         }
-        
+
         # Database metrics
         db_metrics = await get_database_metrics()
-        
+
         # Redis metrics
         redis_metrics = await get_redis_metrics()
-        
+
         # Custom business metrics
         custom_metrics = await get_custom_metrics()
-        
+
         return MetricsResponse(
             timestamp=current_time,
             application=app_metrics,
             system=system_metrics,
             database=db_metrics,
             redis=redis_metrics,
-            custom_metrics=custom_metrics
+            custom_metrics=custom_metrics,
         )
-        
+
     except Exception as e:
         logger.error(f"Metrics collection failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to collect metrics")
+
 
 @router.get("/metrics/prometheus")
 async def get_prometheus_metrics():
@@ -195,47 +206,68 @@ async def get_prometheus_metrics():
     """
     try:
         metrics_lines = []
-        
+
         # Application metrics
-        metrics_lines.append(f"# HELP dinner_first_requests_total Total number of requests")
+        metrics_lines.append(
+            f"# HELP dinner_first_requests_total Total number of requests"
+        )
         metrics_lines.append(f"# TYPE dinner_first_requests_total counter")
-        metrics_lines.append(f"dinner_first_requests_total {metrics_store['requests_total']}")
-        
+        metrics_lines.append(
+            f"dinner_first_requests_total {metrics_store['requests_total']}"
+        )
+
         metrics_lines.append(f"# HELP dinner_first_errors_total Total number of errors")
         metrics_lines.append(f"# TYPE dinner_first_errors_total counter")
-        metrics_lines.append(f"dinner_first_errors_total {metrics_store['errors_total']}")
-        
+        metrics_lines.append(
+            f"dinner_first_errors_total {metrics_store['errors_total']}"
+        )
+
         metrics_lines.append(f"# HELP dinner_first_active_users Number of active users")
         metrics_lines.append(f"# TYPE dinner_first_active_users gauge")
-        metrics_lines.append(f"dinner_first_active_users {metrics_store['active_users']}")
-        
+        metrics_lines.append(
+            f"dinner_first_active_users {metrics_store['active_users']}"
+        )
+
         # System metrics
-        metrics_lines.append(f"# HELP dinner_first_cpu_usage_percent CPU usage percentage")
+        metrics_lines.append(
+            f"# HELP dinner_first_cpu_usage_percent CPU usage percentage"
+        )
         metrics_lines.append(f"# TYPE dinner_first_cpu_usage_percent gauge")
         metrics_lines.append(f"dinner_first_cpu_usage_percent {psutil.cpu_percent()}")
-        
-        metrics_lines.append(f"# HELP dinner_first_memory_usage_percent Memory usage percentage")
+
+        metrics_lines.append(
+            f"# HELP dinner_first_memory_usage_percent Memory usage percentage"
+        )
         metrics_lines.append(f"# TYPE dinner_first_memory_usage_percent gauge")
-        metrics_lines.append(f"dinner_first_memory_usage_percent {psutil.virtual_memory().percent}")
-        
+        metrics_lines.append(
+            f"dinner_first_memory_usage_percent {psutil.virtual_memory().percent}"
+        )
+
         # Database metrics
         db_metrics = await get_database_metrics()
         metrics_lines.append(f"# HELP dinner_first_db_connections Database connections")
         metrics_lines.append(f"# TYPE dinner_first_db_connections gauge")
-        metrics_lines.append(f"dinner_first_db_connections {db_metrics.get('active_connections', 0)}")
-        
+        metrics_lines.append(
+            f"dinner_first_db_connections {db_metrics.get('active_connections', 0)}"
+        )
+
         # Custom business metrics
         custom_metrics = await get_custom_metrics()
         for metric_name, value in custom_metrics.items():
-            metrics_lines.append(f"# HELP dinner_first_{metric_name} {metric_name.replace('_', ' ').title()}")
+            metrics_lines.append(
+                f"# HELP dinner_first_{metric_name} {metric_name.replace('_', ' ').title()}"
+            )
             metrics_lines.append(f"# TYPE dinner_first_{metric_name} gauge")
             metrics_lines.append(f"dinner_first_{metric_name} {value}")
-        
+
         return "\n".join(metrics_lines)
-        
+
     except Exception as e:
         logger.error(f"Prometheus metrics collection failed: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to collect Prometheus metrics")
+        raise HTTPException(
+            status_code=500, detail="Failed to collect Prometheus metrics"
+        )
+
 
 @router.get("/status")
 async def get_system_status():
@@ -250,65 +282,69 @@ async def get_system_status():
                 "version": "1.0.0",
                 "environment": "production",  # This should come from config
                 "uptime": time.time() - startup_time,
-                "status": "running"
+                "status": "running",
             },
             "performance": {
                 "requests_per_minute": calculate_requests_per_minute(),
                 "average_response_time_ms": calculate_average_response_time(),
                 "error_rate_percent": calculate_error_rate() * 100,
-                "throughput": calculate_throughput()
+                "throughput": calculate_throughput(),
             },
             "resources": {
                 "cpu_usage": psutil.cpu_percent(interval=1),
                 "memory_usage": psutil.virtual_memory().percent,
-                "disk_usage": psutil.disk_usage('/').percent,
-                "network_connections": len(psutil.net_connections())
+                "disk_usage": psutil.disk_usage("/").percent,
+                "network_connections": len(psutil.net_connections()),
             },
             "services": {
                 "database": await check_database_health(),
                 "redis": await check_redis_health(),
-                "external_apis": await check_external_services()
+                "external_apis": await check_external_services(),
             },
-            "business_metrics": await get_business_metrics()
+            "business_metrics": await get_business_metrics(),
         }
-        
+
         return status
-        
+
     except Exception as e:
         logger.error(f"Status check failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to get system status")
 
+
 @router.post("/metrics/record")
-async def record_custom_metric(metric_name: str, value: float, tags: Dict[str, str] = None):
+async def record_custom_metric(
+    metric_name: str, value: float, tags: Dict[str, str] = None
+):
     """
     Record custom application metrics
     """
     try:
         timestamp = datetime.utcnow()
-        
+
         # Store metric (in production, this would go to a proper metrics store)
         metric_data = {
             "name": metric_name,
             "value": value,
             "tags": tags or {},
-            "timestamp": timestamp.isoformat()
+            "timestamp": timestamp.isoformat(),
         }
-        
+
         # For now, store in memory (use Redis or proper metrics store in production)
         if "custom_metrics" not in metrics_store:
             metrics_store["custom_metrics"] = []
-        
+
         metrics_store["custom_metrics"].append(metric_data)
-        
+
         # Keep only last 1000 metrics to prevent memory issues
         if len(metrics_store["custom_metrics"]) > 1000:
             metrics_store["custom_metrics"] = metrics_store["custom_metrics"][-1000:]
-        
+
         return {"success": True, "recorded_at": timestamp}
-        
+
     except Exception as e:
         logger.error(f"Failed to record metric {metric_name}: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to record metric")
+
 
 # Health check helper functions
 async def check_database_health():
@@ -317,128 +353,133 @@ async def check_database_health():
         # This would use your actual database connection
         # For now, simulate the check
         start_time = time.time()
-        
+
         # Simulate database query
         await asyncio.sleep(0.001)  # Simulate query time
-        
+
         response_time = (time.time() - start_time) * 1000  # Convert to ms
-        
+
         return {
             "status": "healthy",
             "response_time_ms": response_time,
-            "connection_pool": {
-                "active": 5,
-                "idle": 15,
-                "total": 20
-            },
-            "last_check": datetime.utcnow().isoformat()
+            "connection_pool": {"active": 5, "idle": 15, "total": 20},
+            "last_check": datetime.utcnow().isoformat(),
         }
-        
+
     except Exception as e:
         return {
             "status": "unhealthy",
             "error": str(e),
-            "last_check": datetime.utcnow().isoformat()
+            "last_check": datetime.utcnow().isoformat(),
         }
+
 
 async def check_redis_health():
     """Check Redis connection and basic functionality"""
     try:
         start_time = time.time()
-        
+
         # Simulate Redis ping
         await asyncio.sleep(0.001)  # Simulate ping time
-        
+
         response_time = (time.time() - start_time) * 1000
-        
+
         return {
             "status": "healthy",
             "response_time_ms": response_time,
             "memory_usage": "128MB",  # This would come from Redis INFO
             "connected_clients": 10,
-            "last_check": datetime.utcnow().isoformat()
+            "last_check": datetime.utcnow().isoformat(),
         }
-        
+
     except Exception as e:
         return {
             "status": "unhealthy",
             "error": str(e),
-            "last_check": datetime.utcnow().isoformat()
+            "last_check": datetime.utcnow().isoformat(),
         }
+
 
 async def check_external_services():
     """Check external service dependencies"""
     services = {}
-    
+
     # AWS S3 check (simulate)
     try:
         services["s3"] = {
             "status": "healthy",
             "response_time_ms": 45,
-            "last_check": datetime.utcnow().isoformat()
+            "last_check": datetime.utcnow().isoformat(),
         }
     except Exception as e:
         services["s3"] = {
             "status": "unhealthy",
             "error": str(e),
-            "last_check": datetime.utcnow().isoformat()
+            "last_check": datetime.utcnow().isoformat(),
         }
-    
+
     return services
+
 
 def get_system_health():
     """Get system resource health information"""
     try:
         cpu_percent = psutil.cpu_percent(interval=1)
         memory = psutil.virtual_memory()
-        disk = psutil.disk_usage('/')
-        
+        disk = psutil.disk_usage("/")
+
         return {
             "cpu_usage_percent": cpu_percent,
             "memory": {
                 "usage_percent": memory.percent,
                 "available_gb": round(memory.available / (1024**3), 2),
-                "total_gb": round(memory.total / (1024**3), 2)
+                "total_gb": round(memory.total / (1024**3), 2),
             },
             "disk": {
                 "usage_percent": disk.percent,
                 "free_gb": round(disk.free / (1024**3), 2),
-                "total_gb": round(disk.total / (1024**3), 2)
+                "total_gb": round(disk.total / (1024**3), 2),
             },
-            "load_average": list(psutil.getloadavg()) if hasattr(psutil, 'getloadavg') else [0, 0, 0],
-            "boot_time": psutil.boot_time()
+            "load_average": (
+                list(psutil.getloadavg())
+                if hasattr(psutil, "getloadavg")
+                else [0, 0, 0]
+            ),
+            "boot_time": psutil.boot_time(),
         }
-        
+
     except Exception as e:
         logger.error(f"System health check failed: {str(e)}")
         return {"error": str(e)}
 
+
 def determine_overall_health_status(health_data):
     """Determine overall system health status"""
-    
+
     # Check critical services
     critical_services = ["database", "redis"]
     for service in critical_services:
         if service in health_data["services"]:
             if health_data["services"][service]["status"] != "healthy":
                 return "unhealthy"
-    
+
     # Check system resources
     system = health_data.get("system", {})
     if isinstance(system, dict):
         cpu_usage = system.get("cpu_usage_percent", 0)
         memory_usage = system.get("memory", {}).get("usage_percent", 0)
         disk_usage = system.get("disk", {}).get("usage_percent", 0)
-        
+
         # Critical thresholds
         if cpu_usage > 90 or memory_usage > 95 or disk_usage > 95:
             return "unhealthy"
-        
-        # Warning thresholds  
+
+        # Warning thresholds
         if cpu_usage > 80 or memory_usage > 85 or disk_usage > 85:
             return "degraded"
-    
+
     return "healthy"
+
 
 # Metrics calculation functions
 def calculate_requests_per_second():
@@ -446,9 +487,11 @@ def calculate_requests_per_second():
     # This would be calculated from actual request timestamps
     return metrics_store["requests_total"] / max((time.time() - startup_time), 1)
 
+
 def calculate_requests_per_minute():
     """Calculate requests per minute"""
     return calculate_requests_per_second() * 60
+
 
 def calculate_average_response_time():
     """Calculate average response time in milliseconds"""
@@ -457,6 +500,7 @@ def calculate_average_response_time():
         return 0
     return sum(response_times) / len(response_times)
 
+
 def calculate_error_rate():
     """Calculate error rate as a percentage"""
     total_requests = metrics_store["requests_total"]
@@ -464,9 +508,11 @@ def calculate_error_rate():
         return 0
     return metrics_store["errors_total"] / total_requests
 
+
 def calculate_throughput():
     """Calculate current throughput (requests per second)"""
     return calculate_requests_per_second()
+
 
 async def check_database_connection():
     """Simple database connection check"""
@@ -477,6 +523,7 @@ async def check_database_connection():
     except Exception as e:
         return {"healthy": False, "error": str(e)}
 
+
 async def check_redis_connection():
     """Simple Redis connection check"""
     try:
@@ -486,6 +533,7 @@ async def check_redis_connection():
     except Exception as e:
         return {"healthy": False, "error": str(e)}
 
+
 async def get_database_metrics():
     """Get database-specific metrics"""
     return {
@@ -493,8 +541,9 @@ async def get_database_metrics():
         "query_duration_avg_ms": 12.5,
         "slow_queries": 0,
         "deadlocks": 0,
-        "cache_hit_ratio": 0.95
+        "cache_hit_ratio": 0.95,
     }
+
 
 async def get_redis_metrics():
     """Get Redis-specific metrics"""
@@ -503,8 +552,9 @@ async def get_redis_metrics():
         "memory_usage_mb": 128,
         "cache_hits": metrics_store.get("cache_hits", 0),
         "cache_misses": metrics_store.get("cache_misses", 0),
-        "evicted_keys": 0
+        "evicted_keys": 0,
     }
+
 
 async def get_custom_metrics():
     """Get application-specific business metrics"""
@@ -515,8 +565,9 @@ async def get_custom_metrics():
         "messages_sent_24h": 1543,
         "photos_uploaded_24h": 87,
         "reports_submitted_24h": 3,
-        "new_registrations_24h": 23
+        "new_registrations_24h": 23,
     }
+
 
 async def get_business_metrics():
     """Get business-specific metrics for dashboards"""
@@ -525,59 +576,60 @@ async def get_business_metrics():
             "daily_active_users": 345,
             "weekly_active_users": 1876,
             "monthly_active_users": 5432,
-            "average_session_duration_minutes": 18.5
+            "average_session_duration_minutes": 18.5,
         },
         "matching": {
             "matches_created_24h": 156,
             "match_success_rate": 0.23,
             "conversations_started_24h": 89,
-            "first_dates_scheduled_24h": 12
+            "first_dates_scheduled_24h": 12,
         },
         "safety": {
             "reports_submitted_24h": 3,
             "content_moderation_actions_24h": 15,
             "user_suspensions_24h": 1,
-            "safety_score": 0.97
+            "safety_score": 0.97,
         },
         "revenue": {  # If applicable
             "premium_subscribers": 123,
             "revenue_24h": 1250.00,
-            "conversion_rate": 0.045
-        }
+            "conversion_rate": 0.045,
+        },
     }
+
 
 # Middleware to track request metrics (this would be added to main app)
 async def track_request_metrics(request, call_next):
     """Middleware to track request metrics"""
     start_time = time.time()
-    
+
     # Increment request counter
     metrics_store["requests_total"] += 1
-    
+
     # Track requests by endpoint
     endpoint = str(request.url.path)
     if endpoint not in metrics_store["requests_by_endpoint"]:
         metrics_store["requests_by_endpoint"][endpoint] = 0
     metrics_store["requests_by_endpoint"][endpoint] += 1
-    
+
     # Process request
     try:
         response = await call_next(request)
-        
+
         # Track response time
         response_time = (time.time() - start_time) * 1000  # Convert to ms
         metrics_store["response_times"].append(response_time)
-        
+
         # Keep only last 1000 response times
         if len(metrics_store["response_times"]) > 1000:
             metrics_store["response_times"] = metrics_store["response_times"][-1000:]
-        
+
         # Track errors
         if response.status_code >= 400:
             metrics_store["errors_total"] += 1
-        
+
         return response
-        
+
     except Exception as e:
         metrics_store["errors_total"] += 1
         raise

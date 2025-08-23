@@ -1,17 +1,18 @@
+import enum
+from datetime import datetime
+
+from app.core.database import Base
 from sqlalchemy import (
+    JSON,
+    Boolean,
     Column,
+    DateTime,
+    Enum,
+    ForeignKey,
     Integer,
     String,
-    ForeignKey,
-    DateTime,
-    Boolean,
-    JSON,
-    Enum,
 )
 from sqlalchemy.orm import relationship
-from datetime import datetime
-import enum
-from app.core.database import Base
 
 
 class VerificationStatus(str, enum.Enum):

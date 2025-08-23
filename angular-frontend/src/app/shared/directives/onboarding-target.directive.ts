@@ -71,7 +71,7 @@ export class OnboardingTargetDirective implements OnInit, OnDestroy {
 
     const element = this.elementRef.nativeElement;
     element.classList.add('onboarding-highlight');
-    
+
     // Add custom styling
     element.style.position = 'relative';
     element.style.zIndex = '9990';
@@ -95,7 +95,7 @@ export class OnboardingTargetDirective implements OnInit, OnDestroy {
 
     const element = this.elementRef.nativeElement;
     element.classList.remove('onboarding-highlight');
-    
+
     // Remove custom styling
     element.style.outline = '';
     element.style.outlineOffset = '';
@@ -117,9 +117,9 @@ export class OnboardingTargetDirective implements OnInit, OnDestroy {
     const viewportWidth = window.innerWidth;
 
     // Check if element is outside viewport
-    const isOutsideViewport = rect.bottom < 0 || 
-                             rect.top > viewportHeight || 
-                             rect.right < 0 || 
+    const isOutsideViewport = rect.bottom < 0 ||
+                             rect.top > viewportHeight ||
+                             rect.right < 0 ||
                              rect.left > viewportWidth;
 
     if (isOutsideViewport) {

@@ -78,13 +78,13 @@ export interface DatingAppMetrics {
   };
 }
 
-export type EventCategory = 
-  | 'user_interaction' 
-  | 'navigation' 
-  | 'performance' 
-  | 'gesture' 
-  | 'dating_action' 
-  | 'engagement' 
+export type EventCategory =
+  | 'user_interaction'
+  | 'navigation'
+  | 'performance'
+  | 'gesture'
+  | 'dating_action'
+  | 'engagement'
   | 'error'
   | 'conversion';
 
@@ -101,7 +101,7 @@ export class MobileAnalyticsService {
   private userId?: string;
   private eventQueue: AnalyticsEvent[] = [];
   private pendingEvents: AnalyticsEvent[] = [];
-  
+
   private sessionStartTime = Date.now();
   private lastActivityTime = Date.now();
   private pageViewCount = 0;
@@ -430,7 +430,7 @@ export class MobileAnalyticsService {
    */
   trackPWAInstallation(source: 'banner' | 'menu' | 'automatic'): void {
     this.engagementMetrics.appInstalled = true;
-    
+
     this.trackEvent('pwa_install', 'conversion', {
       source,
       timeToInstall: Date.now() - this.sessionStartTime
@@ -444,7 +444,7 @@ export class MobileAnalyticsService {
    */
   trackPushNotificationPermission(granted: boolean, source: string): void {
     this.engagementMetrics.pushNotificationsEnabled = granted;
-    
+
     this.trackEvent('push_permission', 'conversion', {
       granted,
       source,
@@ -516,7 +516,7 @@ export class MobileAnalyticsService {
 
   private trackSessionEnd(): void {
     const sessionDuration = Date.now() - this.sessionStartTime;
-    
+
     this.trackEvent('session_end', 'user_interaction', {
       sessionDuration,
       pageViews: this.pageViewCount,
@@ -528,7 +528,7 @@ export class MobileAnalyticsService {
 
   private getDeviceInfo(): DeviceInfo {
     const deviceInfo = this.mobileFeatures.getDeviceInfo();
-    
+
     return {
       userAgent: navigator.userAgent,
       screenSize: deviceInfo.screenSize,
@@ -547,13 +547,13 @@ export class MobileAnalyticsService {
 
   private getBrowserName(): string {
     const userAgent = navigator.userAgent;
-    
+
     if (userAgent.includes('Chrome')) return 'Chrome';
     if (userAgent.includes('Firefox')) return 'Firefox';
     if (userAgent.includes('Safari')) return 'Safari';
     if (userAgent.includes('Edge')) return 'Edge';
     if (userAgent.includes('Opera')) return 'Opera';
-    
+
     return 'Unknown';
   }
 
@@ -601,10 +601,10 @@ export class MobileAnalyticsService {
       await this.sendEventsToServer(events);
     } catch (error) {
       console.error('Failed to send analytics events:', error);
-      
+
       // Add events back to pending queue for retry
       this.pendingEvents.push(...events);
-      
+
       // Retry pending events
       this.retryPendingEvents();
     }
@@ -641,7 +641,7 @@ export class MobileAnalyticsService {
       await this.sendEventsToServer(events);
     } catch (error) {
       console.error('Retry failed for analytics events:', error);
-      
+
       // Give up after max retries
       if (events.length < this.MAX_RETRY_ATTEMPTS * this.BATCH_SIZE) {
         // Store in localStorage as fallback
@@ -654,11 +654,11 @@ export class MobileAnalyticsService {
     try {
       const existingEvents = JSON.parse(localStorage.getItem('failed_analytics_events') || '[]');
       const allEvents = [...existingEvents, ...events];
-      
+
       // Limit stored events to prevent localStorage bloat
       const maxStoredEvents = 1000;
       const eventsToStore = allEvents.slice(-maxStoredEvents);
-      
+
       localStorage.setItem('failed_analytics_events', JSON.stringify(eventsToStore));
     } catch (error) {
       console.error('Failed to store analytics events locally:', error);
@@ -675,7 +675,7 @@ export class MobileAnalyticsService {
   destroy(): void {
     this.trackSessionEnd();
     this.flushEvents();
-    
+
     if (this.batchTimer) {
       clearInterval(this.batchTimer);
     }

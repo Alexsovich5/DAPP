@@ -7,7 +7,7 @@
 
 :root {
   // === TRUST-BUILDING COLORS ===
-  
+
   // Deep Ocean Blue - Security, Trust, Depth
   --trust-ocean-50: #f0f9ff;
   --trust-ocean-100: #e0f2fe;
@@ -88,40 +88,40 @@
   --mood-contemplative-primary: var(--soul-purple-600);
   --mood-contemplative-secondary: var(--trust-sage-600);
   --mood-contemplative-accent: var(--trust-ocean-600);
-  --mood-contemplative-background: linear-gradient(135deg, 
-    var(--soul-purple-50) 0%, 
+  --mood-contemplative-background: linear-gradient(135deg,
+    var(--soul-purple-50) 0%,
     var(--trust-sage-50) 100%);
 
   // Romantic - For connection and intimacy
   --mood-romantic-primary: var(--emotion-rose-600);
   --mood-romantic-secondary: var(--soul-purple-600);
   --mood-romantic-accent: var(--warmth-sunset-600);
-  --mood-romantic-background: linear-gradient(135deg, 
-    var(--emotion-rose-50) 0%, 
+  --mood-romantic-background: linear-gradient(135deg,
+    var(--emotion-rose-50) 0%,
     var(--soul-purple-50) 100%);
 
   // Energetic - For excitement and adventure
   --mood-energetic-primary: var(--warmth-sunset-600);
   --mood-energetic-secondary: var(--emotion-rose-600);
   --mood-energetic-accent: var(--trust-ocean-600);
-  --mood-energetic-background: linear-gradient(135deg, 
-    var(--warmth-sunset-50) 0%, 
+  --mood-energetic-background: linear-gradient(135deg,
+    var(--warmth-sunset-50) 0%,
     var(--emotion-rose-50) 100%);
 
   // Peaceful - For calm and serenity
   --mood-peaceful-primary: var(--trust-forest-600);
   --mood-peaceful-secondary: var(--trust-ocean-600);
   --mood-peaceful-accent: var(--trust-sage-600);
-  --mood-peaceful-background: linear-gradient(135deg, 
-    var(--trust-forest-50) 0%, 
+  --mood-peaceful-background: linear-gradient(135deg,
+    var(--trust-forest-50) 0%,
     var(--trust-ocean-50) 100%);
 
   // Sophisticated - For elegance and maturity
   --mood-sophisticated-primary: var(--trust-sage-700);
   --mood-sophisticated-secondary: var(--soul-purple-700);
   --mood-sophisticated-accent: var(--trust-ocean-700);
-  --mood-sophisticated-background: linear-gradient(135deg, 
-    var(--trust-sage-50) 0%, 
+  --mood-sophisticated-background: linear-gradient(135deg,
+    var(--trust-sage-50) 0%,
     var(--soul-purple-50) 100%);
 
   // === COMPATIBILITY SCORE COLORS ===
@@ -130,42 +130,42 @@
   --compatibility-soulmate-primary: #ffd700; // Golden
   --compatibility-soulmate-secondary: #ff6b9d; // Rose
   --compatibility-soulmate-glow: rgba(255, 215, 0, 0.4);
-  --compatibility-soulmate-gradient: linear-gradient(135deg, 
+  --compatibility-soulmate-gradient: linear-gradient(135deg,
     #ffd700 0%, #ff6b9d 50%, #c084fc 100%);
 
   // Exceptional Match (80-89%)
   --compatibility-exceptional-primary: var(--emotion-rose-500);
   --compatibility-exceptional-secondary: var(--soul-purple-500);
   --compatibility-exceptional-glow: rgba(255, 107, 157, 0.3);
-  --compatibility-exceptional-gradient: linear-gradient(135deg, 
+  --compatibility-exceptional-gradient: linear-gradient(135deg,
     var(--emotion-rose-500) 0%, var(--soul-purple-500) 100%);
 
   // Strong Connection (70-79%)
   --compatibility-strong-primary: var(--soul-purple-500);
   --compatibility-strong-secondary: var(--trust-ocean-500);
   --compatibility-strong-glow: rgba(168, 85, 247, 0.3);
-  --compatibility-strong-gradient: linear-gradient(135deg, 
+  --compatibility-strong-gradient: linear-gradient(135deg,
     var(--soul-purple-500) 0%, var(--trust-ocean-500) 100%);
 
   // Good Harmony (60-69%)
   --compatibility-good-primary: var(--trust-ocean-500);
   --compatibility-good-secondary: var(--trust-forest-500);
   --compatibility-good-glow: rgba(14, 165, 233, 0.3);
-  --compatibility-good-gradient: linear-gradient(135deg, 
+  --compatibility-good-gradient: linear-gradient(135deg,
     var(--trust-ocean-500) 0%, var(--trust-forest-500) 100%);
 
   // Potential Bond (50-59%)
   --compatibility-potential-primary: var(--trust-forest-500);
   --compatibility-potential-secondary: var(--warmth-sunset-500);
   --compatibility-potential-glow: rgba(34, 197, 94, 0.3);
-  --compatibility-potential-gradient: linear-gradient(135deg, 
+  --compatibility-potential-gradient: linear-gradient(135deg,
     var(--trust-forest-500) 0%, var(--warmth-sunset-500) 100%);
 
   // Growing Connection (<50%)
   --compatibility-growing-primary: var(--trust-sage-500);
   --compatibility-growing-secondary: var(--trust-ocean-400);
   --compatibility-growing-glow: rgba(90, 148, 96, 0.3);
-  --compatibility-growing-gradient: linear-gradient(135deg, 
+  --compatibility-growing-gradient: linear-gradient(135deg,
     var(--trust-sage-500) 0%, var(--trust-ocean-400) 100%);
 
   // === EMOTIONAL STATE INDICATORS ===
@@ -218,31 +218,31 @@
   // === EMOTIONAL GRADIENTS ===
 
   // Soul Connection Gradient
-  --gradient-soul-connection: linear-gradient(135deg, 
-    var(--emotion-rose-500) 0%, 
-    var(--soul-purple-500) 50%, 
+  --gradient-soul-connection: linear-gradient(135deg,
+    var(--emotion-rose-500) 0%,
+    var(--soul-purple-500) 50%,
     var(--trust-ocean-500) 100%);
 
   // Trust Building Gradient
-  --gradient-trust-building: linear-gradient(135deg, 
-    var(--trust-ocean-500) 0%, 
+  --gradient-trust-building: linear-gradient(135deg,
+    var(--trust-ocean-500) 0%,
     var(--trust-forest-500) 100%);
 
   // Emotional Warmth Gradient
-  --gradient-emotional-warmth: linear-gradient(135deg, 
-    var(--warmth-sunset-500) 0%, 
+  --gradient-emotional-warmth: linear-gradient(135deg,
+    var(--warmth-sunset-500) 0%,
     var(--emotion-rose-500) 100%);
 
   // Depth and Mystery Gradient
-  --gradient-depth-mystery: linear-gradient(135deg, 
-    var(--soul-purple-600) 0%, 
+  --gradient-depth-mystery: linear-gradient(135deg,
+    var(--soul-purple-600) 0%,
     var(--trust-sage-600) 100%);
 
   // Celebration Gradient
-  --gradient-celebration: linear-gradient(135deg, 
-    #ffd700 0%, 
-    var(--emotion-rose-500) 30%, 
-    var(--soul-purple-500) 60%, 
+  --gradient-celebration: linear-gradient(135deg,
+    #ffd700 0%,
+    var(--emotion-rose-500) 30%,
+    var(--soul-purple-500) 60%,
     var(--trust-ocean-500) 100%);
 
   // === EMOTIONAL SHADOWS AND GLOWS ===
@@ -305,20 +305,20 @@
   --accent-soul-hover: var(--soul-purple-300);
 
   // Mood backgrounds for dark theme
-  --mood-contemplative-background: linear-gradient(135deg, 
-    rgba(147, 51, 234, 0.1) 0%, 
+  --mood-contemplative-background: linear-gradient(135deg,
+    rgba(147, 51, 234, 0.1) 0%,
     rgba(90, 148, 96, 0.1) 100%);
-  
-  --mood-romantic-background: linear-gradient(135deg, 
-    rgba(244, 63, 94, 0.1) 0%, 
+
+  --mood-romantic-background: linear-gradient(135deg,
+    rgba(244, 63, 94, 0.1) 0%,
     rgba(147, 51, 234, 0.1) 100%);
-  
-  --mood-energetic-background: linear-gradient(135deg, 
-    rgba(249, 115, 22, 0.1) 0%, 
+
+  --mood-energetic-background: linear-gradient(135deg,
+    rgba(249, 115, 22, 0.1) 0%,
     rgba(244, 63, 94, 0.1) 100%);
-  
-  --mood-peaceful-background: linear-gradient(135deg, 
-    rgba(22, 163, 74, 0.1) 0%, 
+
+  --mood-peaceful-background: linear-gradient(135deg,
+    rgba(22, 163, 74, 0.1) 0%,
     rgba(2, 132, 199, 0.1) 100%);
 
   // Enhanced shadows for dark theme
@@ -346,13 +346,13 @@
   color: white;
   box-shadow: var(--shadow-emotional-soft);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   &:hover {
     background: var(--primary-emotional-hover);
     box-shadow: var(--shadow-emotional-medium);
     transform: translateY(-1px);
   }
-  
+
   &:focus {
     outline: 2px solid var(--primary-emotional);
     outline-offset: 2px;
@@ -365,13 +365,13 @@
   color: white;
   box-shadow: var(--shadow-trust-soft);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   &:hover {
     background: var(--secondary-trust-hover);
     box-shadow: var(--shadow-trust-medium);
     transform: translateY(-1px);
   }
-  
+
   &:focus {
     outline: 2px solid var(--secondary-trust);
     outline-offset: 2px;
@@ -384,13 +384,13 @@
   color: white;
   box-shadow: var(--shadow-soul-soft);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   &:hover {
     background: var(--accent-soul-hover);
     box-shadow: var(--shadow-soul-medium);
     transform: translateY(-1px);
   }
-  
+
   &:focus {
     outline: 2px solid var(--accent-soul);
     outline-offset: 2px;
@@ -402,7 +402,7 @@
   background: $gradient;
   background-size: 200% 200%;
   animation: gradient-flow 8s ease infinite;
-  
+
   @media (prefers-reduced-motion: reduce) {
     animation: none;
     background-size: 100% 100%;
@@ -442,22 +442,22 @@
 }
 
 @keyframes emotional-pulse {
-  0%, 100% { 
-    opacity: 1; 
-    transform: scale(1); 
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
   }
-  50% { 
-    opacity: 0.8; 
-    transform: scale(1.05); 
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
   }
 }
 
 @keyframes trust-glow {
-  0%, 100% { 
-    box-shadow: var(--shadow-trust-soft); 
+  0%, 100% {
+    box-shadow: var(--shadow-trust-soft);
   }
-  50% { 
-    box-shadow: var(--shadow-trust-medium), var(--secondary-trust-glow); 
+  50% {
+    box-shadow: var(--shadow-trust-medium), var(--secondary-trust-glow);
   }
 }
 
@@ -483,28 +483,28 @@
 .gradient-celebration { @include emotional-gradient(var(--gradient-celebration)); }
 
 // Emotional state classes
-.emotion-joy { 
-  color: var(--emotion-joy-color); 
+.emotion-joy {
+  color: var(--emotion-joy-color);
   background: var(--emotion-joy-background);
 }
 
-.emotion-love { 
-  color: var(--emotion-love-color); 
+.emotion-love {
+  color: var(--emotion-love-color);
   background: var(--emotion-love-background);
 }
 
-.emotion-trust { 
-  color: var(--emotion-trust-color); 
+.emotion-trust {
+  color: var(--emotion-trust-color);
   background: var(--emotion-trust-background);
 }
 
-.emotion-growth { 
-  color: var(--emotion-growth-color); 
+.emotion-growth {
+  color: var(--emotion-growth-color);
   background: var(--emotion-growth-background);
 }
 
-.emotion-mystery { 
-  color: var(--emotion-mystery-color); 
+.emotion-mystery {
+  color: var(--emotion-mystery-color);
   background: var(--emotion-mystery-background);
 }
 

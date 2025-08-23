@@ -36,12 +36,12 @@ export class ErrorLoggingService {
     };
 
     this.addLog(errorLog);
-    
+
     // Log to console in development
     if (!environment.production) {
       console.error('Error logged:', errorLog);
     }
-    
+
     // In production, you might send to a logging service
     if (environment.production) {
       this.sendToLoggingService(errorLog);
@@ -61,7 +61,7 @@ export class ErrorLoggingService {
     };
 
     this.addLog(warningLog);
-    
+
     if (!environment.production) {
       console.warn('Warning logged:', warningLog);
     }
@@ -80,7 +80,7 @@ export class ErrorLoggingService {
     };
 
     this.addLog(infoLog);
-    
+
     if (!environment.production) {
       console.info('Info logged:', infoLog);
     }
@@ -90,9 +90,9 @@ export class ErrorLoggingService {
    * Log API errors with additional context
    */
   logApiError(
-    endpoint: string, 
-    status: number, 
-    error: any, 
+    endpoint: string,
+    status: number,
+    error: any,
     requestData?: any
   ): void {
     this.logError(error, {
@@ -147,7 +147,7 @@ export class ErrorLoggingService {
 
   private addLog(log: ErrorLog): void {
     this.logs.push(log);
-    
+
     // Keep only the most recent logs
     if (this.logs.length > this.maxLogs) {
       this.logs = this.logs.slice(-this.maxLogs);
@@ -160,12 +160,12 @@ export class ErrorLoggingService {
     // - LogRocket
     // - DataDog
     // - Custom logging endpoint
-    
+
     // For now, we'll just store in localStorage as a fallback
     try {
       const storedLogs = JSON.parse(localStorage.getItem('error_logs') || '[]');
       storedLogs.push(log);
-      
+
       // Keep only last 100 logs in storage
       const recentLogs = storedLogs.slice(-100);
       localStorage.setItem('error_logs', JSON.stringify(recentLogs));

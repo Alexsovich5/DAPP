@@ -59,22 +59,22 @@ export interface UIProfile {
 })
 export class UIPersonalizationService {
   private readonly apiUrl = `${environment.apiUrl}/ui-personalization`;
-  
+
   // State management
   private personalizations = new BehaviorSubject<UIPersonalization | null>(null);
   private uiProfile = new BehaviorSubject<UIProfile | null>(null);
   private isTracking = new BehaviorSubject<boolean>(false);
-  
+
   // Session tracking
   private sessionId: string;
   private lastInteractionTime: number = 0;
   private interactionQueue: InteractionData[] = [];
   private currentRoute: string = '';
-  
+
   // Performance monitoring
   private performanceObserver?: PerformanceObserver;
   private renderTimes: number[] = [];
-  
+
   // Public observables
   personalizations$ = this.personalizations.asObservable();
   uiProfile$ = this.uiProfile.asObservable();
@@ -99,7 +99,7 @@ export class UIPersonalizationService {
     this.setupInteractionListeners();
     this.setupNavigationTracking();
     this.setupErrorTracking();
-    
+
     // Process interaction queue periodically
     interval(5000).subscribe(() => {
       this.processInteractionQueue();
@@ -159,19 +159,19 @@ export class UIPersonalizationService {
     this.ngZone.run(() => {
       // Apply theme adaptations
       this.applyThemeAdaptations(personalizations.theme_adaptations);
-      
+
       // Apply layout optimizations
       this.applyLayoutOptimizations(personalizations.layout_optimizations);
-      
+
       // Apply interaction enhancements
       this.applyInteractionEnhancements(personalizations.interaction_enhancements);
-      
+
       // Apply accessibility improvements
       this.applyAccessibilityImprovements(personalizations.accessibility_improvements);
-      
+
       // Apply performance optimizations
       this.applyPerformanceOptimizations(personalizations.performance_optimizations);
-      
+
       // Apply component adaptations
       this.applyComponentAdaptations(personalizations.component_adaptations);
     });
@@ -274,7 +274,7 @@ export class UIPersonalizationService {
     ).subscribe((event: Event) => {
       const clickEvent = event as MouseEvent;
       const target = event.target as HTMLElement;
-      
+
       this.trackInteraction({
         type: 'click',
         element_type: target.tagName.toLowerCase(),
@@ -306,7 +306,7 @@ export class UIPersonalizationService {
       debounceTime(100)
     ).subscribe((event: Event) => {
       const keyEvent = event as KeyboardEvent;
-      
+
       this.trackInteraction({
         type: 'keyboard',
         element_type: 'keypress',
@@ -321,7 +321,7 @@ export class UIPersonalizationService {
       debounceTime(300)
     ).subscribe((event: Event) => {
       const target = event.target as HTMLInputElement;
-      
+
       this.trackInteraction({
         type: 'form_interaction',
         element_type: target.type,
@@ -337,7 +337,7 @@ export class UIPersonalizationService {
         debounceTime(500)
       ).subscribe((event: Event) => {
         const target = event.target as HTMLElement;
-        
+
         this.trackInteraction({
           type: 'hover',
           element_type: target.tagName.toLowerCase(),
@@ -563,12 +563,12 @@ export class UIPersonalizationService {
     Object.keys(adaptations).forEach(component => {
       const componentAdaptations = adaptations[component];
       const elements = document.querySelectorAll(`[data-component="${component}"]`);
-      
+
       elements.forEach(element => {
         if (componentAdaptations.keyboard_optimized) {
           element.classList.add('keyboard-optimized');
         }
-        
+
         if (componentAdaptations.swipe_optimized) {
           element.classList.add('swipe-optimized');
         }
@@ -586,7 +586,7 @@ export class UIPersonalizationService {
           const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement;
           if (searchInput) searchInput.focus();
           break;
-          
+
         case 'k':
           event.preventDefault();
           // Open command palette or quick actions
@@ -602,9 +602,9 @@ export class UIPersonalizationService {
 
   private detectDeviceType(): string {
     if (typeof window === 'undefined') return 'unknown';
-    
+
     const width = window.innerWidth;
-    
+
     if (width <= 768) return 'mobile';
     if (width <= 1024) return 'tablet';
     return 'desktop';
@@ -628,7 +628,7 @@ export class UIPersonalizationService {
    */
   destroy(): void {
     this.stopTracking();
-    
+
     if (this.performanceObserver) {
       this.performanceObserver.disconnect();
     }

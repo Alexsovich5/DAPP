@@ -37,12 +37,12 @@ import { CommonModule } from '@angular/common';
 
           <!-- Background grid circles -->
           <g class="radar-grid">
-            <circle 
+            <circle
               *ngFor="let ring of gridRings; let i = index"
-              [attr.cx]="center.x" 
-              [attr.cy]="center.y" 
+              [attr.cx]="center.x"
+              [attr.cy]="center.y"
               [attr.r]="ring.radius"
-              fill="none" 
+              fill="none"
               [attr.stroke]="gridColor"
               [attr.stroke-width]="ring.width"
               stroke-opacity="0.3">
@@ -51,11 +51,11 @@ import { CommonModule } from '@angular/common';
 
           <!-- Axis lines -->
           <g class="radar-axes">
-            <line 
+            <line
               *ngFor="let axis of axes"
-              [attr.x1]="center.x" 
+              [attr.x1]="center.x"
               [attr.y1]="center.y"
-              [attr.x2]="axis.x" 
+              [attr.x2]="axis.x"
               [attr.y2]="axis.y"
               [attr.stroke]="gridColor"
               stroke-width="1"
@@ -65,7 +65,7 @@ import { CommonModule } from '@angular/common';
 
           <!-- Compatibility area -->
           <g class="compatibility-area">
-            <path 
+            <path
               [attr.d]="compatibilityPath"
               fill="url(#compatibility-gradient)"
               [attr.stroke]="areaStroke"
@@ -78,10 +78,10 @@ import { CommonModule } from '@angular/common';
 
           <!-- Data points -->
           <g class="radar-points">
-            <circle 
+            <circle
               *ngFor="let point of dataPoints; trackBy: trackPoint"
-              [attr.cx]="point.x" 
-              [attr.cy]="point.y" 
+              [attr.cx]="point.x"
+              [attr.cy]="point.y"
               [attr.r]="pointRadius"
               [attr.fill]="point.color"
               [attr.stroke]="point.strokeColor"
@@ -96,15 +96,15 @@ import { CommonModule } from '@angular/common';
           <!-- Labels -->
           <g class="radar-labels">
             <g *ngFor="let label of axisLabels; trackBy: trackLabel" class="label-group">
-              <circle 
-                [attr.cx]="label.x" 
-                [attr.cy]="label.y" 
+              <circle
+                [attr.cx]="label.x"
+                [attr.cy]="label.y"
                 [attr.r]="labelBackgroundRadius"
                 [attr.fill]="labelBackgroundColor"
                 fill-opacity="0.9">
               </circle>
-              <text 
-                [attr.x]="label.x" 
+              <text
+                [attr.x]="label.x"
                 [attr.y]="label.y + 4"
                 text-anchor="middle"
                 [attr.font-size]="labelFontSize"
@@ -117,8 +117,8 @@ import { CommonModule } from '@angular/common';
         </svg>
 
         <!-- Hover tooltip -->
-        <div 
-          class="tooltip" 
+        <div
+          class="tooltip"
           *ngIf="hoveredPoint"
           [style.left.px]="tooltip.x"
           [style.top.px]="tooltip.y">
@@ -132,7 +132,7 @@ import { CommonModule } from '@angular/common';
 
       <!-- Legend -->
       <div class="compatibility-legend" *ngIf="showLegend">
-        <div 
+        <div
           *ngFor="let item of legendItems; trackBy: trackLegendItem"
           class="legend-item"
           [class.highlighted]="item.highlighted"
@@ -144,8 +144,8 @@ import { CommonModule } from '@angular/common';
             <span class="legend-score">{{item.score}}%</span>
           </div>
           <div class="legend-bar">
-            <div 
-              class="legend-fill" 
+            <div
+              class="legend-fill"
               [style.width.%]="item.score"
               [style.background-color]="item.color">
             </div>
@@ -157,7 +157,7 @@ import { CommonModule } from '@angular/common';
       <div class="compatibility-insights" *ngIf="showInsights">
         <h4 class="insights-title">Key Insights</h4>
         <div class="insights-list">
-          <div 
+          <div
             *ngFor="let insight of insights; trackBy: trackInsight"
             class="insight-item"
             [ngClass]="insight.type">
@@ -522,12 +522,12 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
 
   get compatibilityPath(): string {
     if (this.dataPoints.length === 0) return '';
-    
+
     const pathData = this.dataPoints.map((point, index) => {
       const command = index === 0 ? 'M' : 'L';
       return `${command} ${point.x} ${point.y}`;
     }).join(' ');
-    
+
     return pathData + ' Z';
   }
 
@@ -584,10 +584,10 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
       const score = this.compatibilityData[category.key] || 0;
       const radius = (score / 100) * this.maxRadius;
       const angle = (category.angle - 90) * Math.PI / 180;
-      
+
       const x = this.center.x + radius * Math.cos(angle);
       const y = this.center.y + radius * Math.sin(angle);
-      
+
       this.dataPoints.push({
         x,
         y,
@@ -609,7 +609,7 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
       const angle = (category.angle - 90) * Math.PI / 180;
       const x = this.center.x + labelRadius * Math.cos(angle);
       const y = this.center.y + labelRadius * Math.sin(angle);
-      
+
       this.axisLabels.push({
         x,
         y,
@@ -694,10 +694,10 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
 
   onPointClick(point: any) {
     if (!this.interactive) return;
-    
+
     // Toggle highlight for clicked point
     point.highlight = !point.highlight;
-    
+
     // Update legend highlighting
     const legendItem = this.legendItems.find(item => item.key === point.key);
     if (legendItem) {
@@ -707,10 +707,10 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
 
   onLegendClick(item: any) {
     if (!this.interactive) return;
-    
+
     // Toggle highlighting
     item.highlighted = !item.highlighted;
-    
+
     // Update corresponding data point
     const dataPoint = this.dataPoints.find(point => point.key === item.key);
     if (dataPoint) {

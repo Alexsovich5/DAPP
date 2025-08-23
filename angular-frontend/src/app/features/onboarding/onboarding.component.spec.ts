@@ -248,7 +248,7 @@ describe('OnboardingComponent', () => {
     it('should prevent navigation to next step if current step is invalid', () => {
       component.currentStepIndex = 1; // Soul mapping step
       // Form is invalid by default
-      
+
       const canProceed = component.canProceedToNextStep();
 
       expect(canProceed).toBe(false);
@@ -292,7 +292,7 @@ describe('OnboardingComponent', () => {
       const validResponse = 'This is a meaningful response about my values and what authentic connection means to me in relationships';
 
       const relationshipValuesControl = component.soulMappingForm.get('relationship_values');
-      
+
       relationshipValuesControl?.setValue(shortResponse);
       expect(relationshipValuesControl?.hasError('minlength')).toBe(true);
 
@@ -401,7 +401,7 @@ describe('OnboardingComponent', () => {
       const interestCategories = fixture.debugElement.queryAll(By.css('.interest-category'));
       expect(interestCategories.length).toBeGreaterThan(0);
 
-      const categoryTitles = interestCategories.map(cat => 
+      const categoryTitles = interestCategories.map(cat =>
         cat.query(By.css('.category-title')).nativeElement.textContent
       );
       expect(categoryTitles).toContain('Creative & Arts');
@@ -410,7 +410,7 @@ describe('OnboardingComponent', () => {
 
     it('should allow selecting multiple interests', () => {
       const selectedInterests = ['photography', 'hiking', 'cooking', 'meditation'];
-      
+
       selectedInterests.forEach(interest => {
         component.toggleInterest(interest);
       });
@@ -442,7 +442,7 @@ describe('OnboardingComponent', () => {
     beforeEach(() => {
       onboardingService.getSoulMappingQuestions.and.returnValue(of(mockSoulMappingQuestions));
       fixture.detectChanges();
-      
+
       // Set up valid form data
       component.soulMappingForm.patchValue({
         relationship_values: 'Authenticity and deep emotional connection are what I value most in relationships',
@@ -513,7 +513,7 @@ describe('OnboardingComponent', () => {
 
     it('should redirect to discovery after completion', () => {
       const routerSpy = spyOn(component['router'], 'navigate');
-      
+
       onboardingService.submitOnboardingResponses.and.returnValue(of({
         success: true,
         profile_id: 123
@@ -542,7 +542,7 @@ describe('OnboardingComponent', () => {
 
     it('should save progress periodically', () => {
       spyOn(component, 'saveProgress');
-      
+
       // Simulate form changes
       component.soulMappingForm.get('relationship_values')?.setValue('Test response');
 
@@ -562,7 +562,7 @@ describe('OnboardingComponent', () => {
     it('should show encouraging messages throughout onboarding', () => {
       const encouragementMessages = fixture.debugElement.queryAll(By.css('.encouragement-message'));
       expect(encouragementMessages.length).toBeGreaterThan(0);
-      
+
       const messageText = encouragementMessages[0].nativeElement.textContent;
       expect(messageText).toContain('authentic');
     });
@@ -570,7 +570,7 @@ describe('OnboardingComponent', () => {
     it('should display progress visually', () => {
       const progressBar = fixture.debugElement.query(By.css('.progress-bar'));
       expect(progressBar).toBeTruthy();
-      
+
       const progressValue = progressBar.nativeElement.getAttribute('value');
       expect(progressValue).toBeDefined();
     });
@@ -607,11 +607,11 @@ describe('OnboardingComponent', () => {
 
     it('should have proper ARIA labels for form fields', () => {
       const formFields = fixture.debugElement.queryAll(By.css('input, textarea, select'));
-      
+
       formFields.forEach(field => {
         const ariaLabel = field.nativeElement.getAttribute('aria-label');
         const ariaDescribedBy = field.nativeElement.getAttribute('aria-describedby');
-        
+
         expect(ariaLabel || ariaDescribedBy).toBeTruthy();
       });
     });
@@ -623,9 +623,9 @@ describe('OnboardingComponent', () => {
 
     it('should support keyboard navigation between steps', () => {
       const nextButton = fixture.debugElement.query(By.css('.next-step-button'));
-      
+
       nextButton.triggerEventHandler('keydown.enter', {});
-      
+
       expect(component.currentStepIndex).toBeGreaterThan(0);
     });
   });
@@ -655,7 +655,7 @@ describe('OnboardingComponent', () => {
 
     it('should prevent double submission', () => {
       onboardingService.submitOnboardingResponses.and.returnValue(of({ success: true }));
-      
+
       component.completeOnboarding();
       component.completeOnboarding(); // Try to submit again
 
@@ -667,7 +667,7 @@ describe('OnboardingComponent', () => {
     it('should adapt layout for mobile screens', () => {
       // Simulate mobile viewport
       spyOnProperty(window, 'innerWidth').and.returnValue(375);
-      
+
       fixture.detectChanges();
 
       expect(component.isMobile).toBe(true);

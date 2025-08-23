@@ -78,9 +78,9 @@ export class AccessibilityService {
    */
   trapFocus(container: HTMLElement, autoFocus: boolean = true): void {
     this.originalFocusElement = document.activeElement as HTMLElement;
-    
+
     const focusableElements = this.getFocusableElements(container);
-    
+
     if (focusableElements.length === 0) {
       return;
     }
@@ -112,7 +112,7 @@ export class AccessibilityService {
     };
 
     container.addEventListener('keydown', handleTabKey);
-    
+
     // Store cleanup function
     const cleanup = () => {
       container.removeEventListener('keydown', handleTabKey);
@@ -161,7 +161,7 @@ export class AccessibilityService {
     ].join(', ');
 
     const elements = Array.from(container.querySelectorAll(focusableSelectors)) as HTMLElement[];
-    
+
     return elements.filter(element => {
       return !this.isHidden(element) && this.isVisible(element);
     });
@@ -171,7 +171,7 @@ export class AccessibilityService {
    * Check if an element is hidden
    */
   private isHidden(element: HTMLElement): boolean {
-    return element.hasAttribute('hidden') || 
+    return element.hasAttribute('hidden') ||
            element.getAttribute('aria-hidden') === 'true' ||
            element.style.display === 'none' ||
            element.style.visibility === 'hidden';
@@ -192,7 +192,7 @@ export class AccessibilityService {
    */
   setPageTitle(title: string, announceChange: boolean = true): void {
     document.title = title;
-    
+
     if (announceChange) {
       this.announce(`Navigated to ${title}`, 'polite');
     }

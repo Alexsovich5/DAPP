@@ -1,8 +1,8 @@
-import { 
-  Directive, 
-  ElementRef, 
-  Input, 
-  OnInit, 
+import {
+  Directive,
+  ElementRef,
+  Input,
+  OnInit,
   OnDestroy,
   ChangeDetectorRef,
   NgZone,
@@ -102,7 +102,7 @@ export class MobilePerformanceDirective implements OnInit, OnDestroy, AfterViewI
           if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
             const lazyImages = element.querySelectorAll('img[data-src]');
-            
+
             if (lazyImages.length > 0) {
               this.performanceService.enableLazyLoading(this.elementRef, this.lazyLoadConfig);
             }
@@ -119,17 +119,17 @@ export class MobilePerformanceDirective implements OnInit, OnDestroy, AfterViewI
 
   private setupImageOptimization(): void {
     const images = this.elementRef.nativeElement.querySelectorAll('img:not([data-src])');
-    
+
     images.forEach(async (img) => {
       const imgElement = img as HTMLImageElement;
-      
+
       if (imgElement.src && !imgElement.classList.contains('optimized')) {
         try {
           const optimizedSrc = await this.performanceService.optimizeImage(
             imgElement,
             this.imageConfig
           );
-          
+
           if (optimizedSrc !== imgElement.src) {
             imgElement.src = optimizedSrc;
             imgElement.classList.add('optimized');
@@ -145,7 +145,7 @@ export class MobilePerformanceDirective implements OnInit, OnDestroy, AfterViewI
     // Implementation would depend on the specific scrolling library used
     // This is a placeholder for virtual scrolling setup
     const config = this.performanceService.optimizeComponentRendering();
-    
+
     if (config.shouldVirtualize) {
       this.elementRef.nativeElement.classList.add('virtual-scroll-enabled');
       this.elementRef.nativeElement.style.setProperty('--batch-size', config.batchSize.toString());
@@ -155,7 +155,7 @@ export class MobilePerformanceDirective implements OnInit, OnDestroy, AfterViewI
   private setupPerformanceMonitoring(): void {
     // Monitor scroll performance
     const scrollContainer = this.findScrollContainer();
-    
+
     if (scrollContainer) {
       this.monitorScrollPerformance(scrollContainer);
     }
@@ -173,7 +173,7 @@ export class MobilePerformanceDirective implements OnInit, OnDestroy, AfterViewI
         if (metrics.memoryUsage > 0.8) {
           this.applyMemoryOptimizations();
         }
-        
+
         if (metrics.frameRate < 30) {
           this.applyFrameRateOptimizations();
         }
@@ -182,16 +182,16 @@ export class MobilePerformanceDirective implements OnInit, OnDestroy, AfterViewI
 
   private findScrollContainer(): Element | null {
     let parent = this.elementRef.nativeElement.parentElement;
-    
+
     while (parent) {
       const style = window.getComputedStyle(parent);
-      if (style.overflow === 'auto' || style.overflow === 'scroll' || 
+      if (style.overflow === 'auto' || style.overflow === 'scroll' ||
           style.overflowY === 'auto' || style.overflowY === 'scroll') {
         return parent;
       }
       parent = parent.parentElement;
     }
-    
+
     return window.document.documentElement;
   }
 
@@ -228,7 +228,7 @@ export class MobilePerformanceDirective implements OnInit, OnDestroy, AfterViewI
         // Optimize layout if element is getting too complex
         const element = entry.target as HTMLElement;
         const childCount = element.children.length;
-        
+
         if (childCount > 100) {
           element.classList.add('complex-layout');
         }
@@ -240,7 +240,7 @@ export class MobilePerformanceDirective implements OnInit, OnDestroy, AfterViewI
 
   private applyMemoryOptimizations(): void {
     const element = this.elementRef.nativeElement;
-    
+
     // Reduce image quality for existing images
     const images = element.querySelectorAll('img');
     images.forEach((img) => {
@@ -261,13 +261,13 @@ export class MobilePerformanceDirective implements OnInit, OnDestroy, AfterViewI
 
   private applyFrameRateOptimizations(): void {
     const element = this.elementRef.nativeElement;
-    
+
     // Disable non-essential animations
     element.classList.add('low-framerate');
-    
+
     // Reduce animation complexity
     element.style.setProperty('--animation-complexity', 'simple');
-    
+
     // Use transform instead of changing layout properties
     const animatedElements = element.querySelectorAll('.animated');
     animatedElements.forEach((el) => {
@@ -283,7 +283,7 @@ export class MobilePerformanceDirective implements OnInit, OnDestroy, AfterViewI
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
     }
-    
+
     if (this.mutationObserver) {
       this.mutationObserver.disconnect();
     }
@@ -399,7 +399,7 @@ export class ProfileCardPerformanceDirective implements OnInit, OnDestroy, After
 
     // Throttle gesture events to improve performance
     let gestureTimeout: number;
-    
+
     const handleTouchStart = () => {
       element.classList.add('gesture-active');
     };
@@ -426,14 +426,14 @@ export class ProfileCardPerformanceDirective implements OnInit, OnDestroy, After
       (entries) => {
         entries.forEach((entry) => {
           const element = entry.target as HTMLElement;
-          
+
           if (entry.isIntersecting) {
             element.classList.add('visible');
             element.classList.remove('hidden');
           } else {
             element.classList.add('hidden');
             element.classList.remove('visible');
-            
+
             // Pause non-critical animations when not visible
             element.style.animationPlayState = 'paused';
           }
@@ -478,7 +478,7 @@ export class MessageListPerformanceDirective implements OnInit, OnDestroy {
 
   private optimizeMessageList(): void {
     const config = this.performanceService.optimizeComponentRendering();
-    
+
     // Enable virtual scrolling for large message lists
     if (this.messageCount > 50 || config.shouldVirtualize) {
       this.enableVirtualScrolling();
@@ -498,7 +498,7 @@ export class MessageListPerformanceDirective implements OnInit, OnDestroy {
       (entries) => {
         entries.forEach((entry) => {
           const messageElement = entry.target as HTMLElement;
-          
+
           if (entry.isIntersecting) {
             messageElement.classList.add('visible');
           } else {
@@ -522,13 +522,13 @@ export class MessageListPerformanceDirective implements OnInit, OnDestroy {
 
   private optimizeMessageRendering(config: any): void {
     const element = this.elementRef.nativeElement;
-    
+
     // Apply batching for message updates
     element.style.setProperty('--batch-size', config.batchSize.toString());
-    
+
     // Use transform for message animations instead of layout changes
     element.classList.add('optimized-animations');
-    
+
     // Debounce scroll events
     let scrollTimeout: number;
     const handleScroll = () => {
@@ -539,7 +539,7 @@ export class MessageListPerformanceDirective implements OnInit, OnDestroy {
     };
 
     element.addEventListener('scroll', handleScroll, { passive: true });
-    
+
     this.destroy$.subscribe(() => {
       element.removeEventListener('scroll', handleScroll);
       clearTimeout(scrollTimeout);

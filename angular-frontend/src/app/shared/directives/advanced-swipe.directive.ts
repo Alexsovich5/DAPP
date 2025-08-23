@@ -110,7 +110,7 @@ export class AdvancedSwipeDirective implements OnInit, OnDestroy {
         action.onActivate(event);
       }
     }));
-    
+
     this.advancedSwipeService.updateSwipeActions(this.swipeZoneId, processedActions);
   }
 
@@ -119,7 +119,7 @@ export class AdvancedSwipeDirective implements OnInit, OnDestroy {
    */
   setSwipeEnabled(enabled: boolean): void {
     this.swipeEnabled = enabled;
-    
+
     if (enabled) {
       this.setupAdvancedSwipe();
     } else {

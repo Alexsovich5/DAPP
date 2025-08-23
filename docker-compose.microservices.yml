@@ -33,7 +33,7 @@ services:
 
   # Authentication Service
   auth-service:
-    build: 
+    build:
       context: ./microservices/auth
       dockerfile: Dockerfile
     container_name: dinner-first-auth
@@ -66,7 +66,7 @@ services:
 
   # AI Matching Service
   matching-service:
-    build: 
+    build:
       context: ./microservices/matching
       dockerfile: Dockerfile
     container_name: dinner-first-matching
@@ -107,7 +107,7 @@ services:
 
   # Messaging Service
   messaging-service:
-    build: 
+    build:
       context: ./microservices/messaging
       dockerfile: Dockerfile
     container_name: dinner-first-messaging
@@ -141,7 +141,7 @@ services:
 
   # Notification Service
   notification-service:
-    build: 
+    build:
       context: ./microservices/notifications
       dockerfile: Dockerfile
     container_name: dinner-first-notifications
@@ -177,7 +177,7 @@ services:
 
   # User Safety Service
   safety-service:
-    build: 
+    build:
       context: ./microservices/safety
       dockerfile: Dockerfile
     container_name: dinner-first-safety
@@ -211,7 +211,7 @@ services:
 
   # Analytics Service
   analytics-service:
-    build: 
+    build:
       context: ./microservices/analytics
       dockerfile: Dockerfile
     container_name: dinner-first-analytics
@@ -246,7 +246,7 @@ services:
 
   # User Profile Service
   profile-service:
-    build: 
+    build:
       context: ./microservices/profiles
       dockerfile: Dockerfile
     container_name: dinner-first-profiles

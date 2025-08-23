@@ -92,7 +92,7 @@ export class PWAService {
 
   private updateConnectionStatus(): void {
     const connection = (navigator as any).connection;
-    
+
     const status: ConnectionStatus = {
       isOnline: navigator.onLine,
       effectiveType: connection?.effectiveType,
@@ -111,13 +111,13 @@ export class PWAService {
     try {
       await this.installPromptEvent.prompt();
       const result = await this.installPromptEvent.userChoice;
-      
+
       if (result.outcome === 'accepted') {
         this.installPromptEvent = null;
         this.isInstallableSubject.next(false);
         return true;
       }
-      
+
       return false;
     } catch (error) {
       console.error('Failed to prompt install:', error);
@@ -194,7 +194,7 @@ export class PWAService {
 
   handleNotificationClick(notification: any): void {
     const data = notification.notification.data;
-    
+
     // Handle different notification types
     switch (data?.type) {
       case 'new_message':
@@ -259,13 +259,13 @@ export class PWAService {
 
   getConnectionQuality(): 'high' | 'medium' | 'low' | 'unknown' {
     const connection = (navigator as any).connection;
-    
+
     if (!connection) {
       return 'unknown';
     }
 
     const { effectiveType, downlink } = connection;
-    
+
     if (effectiveType === '4g' && downlink > 5) {
       return 'high';
     } else if (effectiveType === '4g' || (effectiveType === '3g' && downlink > 1)) {
@@ -290,7 +290,7 @@ export class PWAService {
         return false;
       }
     }
-    
+
     // Fallback for browsers without Web Share API
     if (shareData.url && 'clipboard' in navigator) {
       try {
@@ -301,7 +301,7 @@ export class PWAService {
         return false;
       }
     }
-    
+
     return false;
   }
 
@@ -344,10 +344,10 @@ export class PWAService {
   async clearOldCache(): Promise<void> {
     if ('caches' in window) {
       const cacheNames = await caches.keys();
-      const oldCaches = cacheNames.filter(name => 
+      const oldCaches = cacheNames.filter(name =>
         name.includes('dinner_first') && !name.includes(this.getCurrentCacheVersion())
       );
-      
+
       await Promise.all(oldCaches.map(cache => caches.delete(cache)));
     }
   }
@@ -365,9 +365,9 @@ export class PWAService {
   } {
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
     const paint = performance.getEntriesByType('paint');
-    
+
     const fcp = paint.find(entry => entry.name === 'first-contentful-paint')?.startTime || 0;
-    
+
     return {
       loadTime: navigation.loadEventEnd - navigation.loadEventStart,
       domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,

@@ -62,7 +62,7 @@ export class ExampleComponent {
 ### Migration Strategy
 
 1. **Phase 1**: Remove unused `.module.ts` files ✅
-2. **Phase 2**: Update routing to use `loadComponent` ✅  
+2. **Phase 2**: Update routing to use `loadComponent` ✅
 3. **Phase 3**: Ensure all components follow standalone pattern ✅
 4. **Phase 4**: Update documentation and guidelines ✅
 

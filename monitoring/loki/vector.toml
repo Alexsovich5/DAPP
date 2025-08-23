@@ -27,19 +27,19 @@ source = '''
   . = parse_json!(.message)
   .timestamp = parse_timestamp!(.timestamp, format: "%+")
   .level = upcase(.level)
-  
+
   # Extract correlation IDs
   if exists(.request_id) {
     .correlation_id = .request_id
   }
-  
+
   # Dating platform specific fields
   if exists(.user_id) {
     .user_context = "authenticated"
   } else {
     .user_context = "anonymous"
   }
-  
+
   # Performance metrics extraction
   if exists(.response_time) {
     .response_time_ms = to_float(.response_time) * 1000
@@ -55,7 +55,7 @@ source = '''
   .timestamp = parse_timestamp!(.timestamp, format: "%+")
   .container = .container_name
   .service = .label."com.docker.compose.service" ?? "unknown"
-  
+
   # Extract log level from message
   .level = extract(.message, r'(?i)\[(debug|info|warn|error|fatal)\]') ?? "info"
   .level = upcase(.level)
@@ -65,8 +65,8 @@ source = '''
 type = "filter"
 inputs = ["parse_backend_logs", "enrich_docker_logs"]
 condition = '''
-  .level == "ERROR" || 
-  .level == "FATAL" || 
+  .level == "ERROR" ||
+  .level == "FATAL" ||
   .level == "WARN" ||
   (exists(.endpoint) && .endpoint != "/health") ||
   (exists(.user_id) && .user_id != null) ||
@@ -80,7 +80,7 @@ source = '''
   .environment = "production"
   .application = "dinner-first"
   .processed_at = now()
-  
+
   # Add SRE-specific tags
   if .level == "ERROR" || .level == "FATAL" {
     .sre_alert_level = "high"
@@ -89,7 +89,7 @@ source = '''
   } else {
     .sre_alert_level = "low"
   }
-  
+
   # Dating platform context
   if exists(.endpoint) && contains(.endpoint, "/api/v1/connections") {
     .feature_area = "soul_connections"

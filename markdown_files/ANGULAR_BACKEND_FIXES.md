@@ -10,7 +10,7 @@
 ### 2. Schema Compatibility Fixed
 - **Backend**: Updated `UserCreate` schema to accept Angular fields:
   - `first_name`, `last_name`, `date_of_birth`
-  - `dietary_preferences`, `cuisine_preferences` 
+  - `dietary_preferences`, `cuisine_preferences`
   - `gender`, `location`, `looking_for`
 - **Result**: Registration now accepts Angular form data
 
@@ -94,7 +94,7 @@ sudo systemctl start postgresql
 
 Default database connection:
 - **Host**: localhost
-- **Port**: 5432  
+- **Port**: 5432
 - **Database**: dinner_app
 - **User**: postgres
 - **Password**: postgres
@@ -103,7 +103,7 @@ Default database connection:
 
 When working correctly, you should see:
 1. ✅ Angular starts on port 5001
-2. ✅ Backend starts on port 5000  
+2. ✅ Backend starts on port 5000
 3. ✅ User registration works from Angular form
 4. ✅ Login returns JWT token
 5. ✅ Profile endpoints accessible with authentication

@@ -25,7 +25,7 @@
 
   <!-- Profile Content -->
   <div *ngIf="profileData && !isLoading" class="profile-content">
-    
+
     <!-- Profile Completion Card -->
     <mat-card class="completion-card">
       <mat-card-header>
@@ -34,8 +34,8 @@
       </mat-card-header>
       <mat-card-content>
         <div class="completion-progress">
-          <mat-progress-bar 
-            mode="determinate" 
+          <mat-progress-bar
+            mode="determinate"
             [value]="profileCompletion"
             [color]="getCompletionColor()">
           </mat-progress-bar>
@@ -48,9 +48,9 @@
     <mat-card class="info-card">
       <mat-card-header>
         <div class="profile-avatar">
-          <img 
+          <img
             *ngIf="profileData.profile_picture; else defaultAvatar"
-            [src]="profileData.profile_picture" 
+            [src]="profileData.profile_picture"
             [alt]="profileData.first_name + ' ' + profileData.last_name"
             class="profile-image">
           <ng-template #defaultAvatar>
@@ -60,8 +60,8 @@
         <div class="profile-info">
           <mat-card-title>
             {{ profileData.first_name }} {{ profileData.last_name }}
-            <mat-icon *ngIf="profileData.is_profile_complete" 
-                      color="primary" 
+            <mat-icon *ngIf="profileData.is_profile_complete"
+                      color="primary"
                       matTooltip="Profile Complete">
               verified
             </mat-icon>
@@ -69,10 +69,10 @@
           <mat-card-subtitle>{{ "@" + profileData.username }}</mat-card-subtitle>
         </div>
       </mat-card-header>
-      
+
       <mat-card-content>
         <div class="profile-details">
-          
+
           <!-- Age and Gender -->
           <div class="detail-row" *ngIf="profileData.date_of_birth || profileData.gender">
             <mat-icon>person</mat-icon>
@@ -81,7 +81,7 @@
                 {{ age }} years old
               </ng-container>
               <ng-container *ngIf="profileData.gender && getAgeFromBirthDate(profileData.date_of_birth!)">
-                 • 
+                 •
               </ng-container>
               <ng-container *ngIf="profileData.gender">
                 {{ profileData.gender | titlecase }}
@@ -121,14 +121,14 @@
       <mat-card-header>
         <mat-card-title>Interests & Preferences</mat-card-title>
       </mat-card-header>
-      
+
       <mat-card-content>
         <!-- Interests -->
         <div class="preference-section" *ngIf="profileData.interests?.length">
           <h4><mat-icon>favorite</mat-icon> Interests</h4>
           <mat-chip-row>
-            <mat-chip 
-              *ngFor="let interest of profileData.interests" 
+            <mat-chip
+              *ngFor="let interest of profileData.interests"
               class="interest-chip">
               {{ interest }}
             </mat-chip>
@@ -141,8 +141,8 @@
         <div class="preference-section" *ngIf="profileData.dietary_preferences?.length">
           <h4><mat-icon>restaurant</mat-icon> Dietary Preferences</h4>
           <mat-chip-row>
-            <mat-chip 
-              *ngFor="let preference of profileData.dietary_preferences" 
+            <mat-chip
+              *ngFor="let preference of profileData.dietary_preferences"
               class="diet-chip">
               {{ preference | titlecase }}
             </mat-chip>
@@ -159,12 +159,12 @@
             <mat-icon>edit</mat-icon>
             Edit Profile
           </button>
-          
+
           <button mat-stroked-button routerLink="/preferences">
             <mat-icon>tune</mat-icon>
             Preferences
           </button>
-          
+
           <button mat-stroked-button routerLink="/discover">
             <mat-icon>explore</mat-icon>
             Find Matches

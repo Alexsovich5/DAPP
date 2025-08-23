@@ -18,27 +18,27 @@ export interface TypingUser {
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div 
-      class="typing-indicator" 
+    <div
+      class="typing-indicator"
       *ngIf="isVisible"
       [@fadeInOut]="isVisible ? 'visible' : 'hidden'"
       [attr.aria-live]="ariaLive"
       [attr.aria-label]="getAriaLabel()">
-      
+
       <div class="typing-content">
         <!-- User Avatar(s) -->
         <div class="typing-avatars">
-          <div 
+          <div
             *ngFor="let user of typingUsers; trackBy: trackUser; let i = index"
             class="typing-avatar"
             [style.z-index]="typingUsers.length - i"
             [style.transform]="getAvatarTransform(i)"
             [@avatarPulse]="'pulse'">
-            
+
             <div class="avatar-circle" [style.background]="getAvatarGradient(user.id)">
               {{ user.name.charAt(0).toUpperCase() }}
             </div>
-            
+
             <!-- Online indicator -->
             <div class="online-dot" [@onlinePulse]="'active'"></div>
           </div>
@@ -48,7 +48,7 @@ export interface TypingUser {
         <div class="typing-animation">
           <div class="typing-bubble" [@bubbleAnimation]="'typing'">
             <div class="typing-dots">
-              <div 
+              <div
                 *ngFor="let dot of dots; let i = index"
                 class="typing-dot"
                 [style.animation-delay]="getDotDelay(i)"
@@ -76,7 +76,7 @@ export interface TypingUser {
 
       <!-- Emotional Energy Flow -->
       <div class="energy-flow" *ngIf="showEnergyFlow">
-        <div 
+        <div
           *ngFor="let particle of energyParticles; let i = index"
           class="energy-particle"
           [style.animation-delay]="getParticleDelay(i)"
@@ -158,8 +158,8 @@ export interface TypingUser {
     }
 
     .typing-bubble {
-      background: linear-gradient(135deg, 
-        var(--soul-purple-100, #f3e8ff) 0%, 
+      background: linear-gradient(135deg,
+        var(--soul-purple-100, #f3e8ff) 0%,
         var(--emotion-rose-100, #ffe4e6) 100%);
       border-radius: 12px;
       padding: 0.5rem 0.75rem;
@@ -193,8 +193,8 @@ export interface TypingUser {
     .typing-label {
       font-weight: 500;
       color: var(--soul-purple-600, #9333ea);
-      background: linear-gradient(135deg, 
-        var(--soul-purple-600, #9333ea) 0%, 
+      background: linear-gradient(135deg,
+        var(--soul-purple-600, #9333ea) 0%,
         var(--emotion-rose-600, #e11d48) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -287,8 +287,8 @@ export interface TypingUser {
     }
 
     .dark-theme .typing-bubble {
-      background: linear-gradient(135deg, 
-        rgba(147, 51, 234, 0.2) 0%, 
+      background: linear-gradient(135deg,
+        rgba(147, 51, 234, 0.2) 0%,
         rgba(244, 63, 94, 0.2) 100%);
     }
 
@@ -390,7 +390,7 @@ export interface TypingUser {
       state('visible', style({ opacity: 1 })),
       transition(':enter', [
         style({ opacity: 0, transform: 'translateX(-10px)' }),
-        animate('400ms 200ms cubic-bezier(0.4, 0, 0.2, 1)', 
+        animate('400ms 200ms cubic-bezier(0.4, 0, 0.2, 1)',
           style({ opacity: 1, transform: 'translateX(0)' }))
       ])
     ]),
@@ -409,23 +409,23 @@ export interface TypingUser {
       state('flow', style({ opacity: 0 })),
       transition('* => flow', [
         animate('3s linear infinite', keyframes([
-          style({ 
-            transform: 'translateX(-100%) translateY(50%)', 
-            opacity: 0, 
-            offset: 0 
+          style({
+            transform: 'translateX(-100%) translateY(50%)',
+            opacity: 0,
+            offset: 0
           }),
-          style({ 
-            opacity: 0.6, 
-            offset: 0.2 
+          style({
+            opacity: 0.6,
+            offset: 0.2
           }),
-          style({ 
-            opacity: 0.6, 
-            offset: 0.8 
+          style({
+            opacity: 0.6,
+            offset: 0.8
           }),
-          style({ 
-            transform: 'translateX(200%) translateY(-50%)', 
-            opacity: 0, 
-            offset: 1 
+          style({
+            transform: 'translateX(200%) translateY(-50%)',
+            opacity: 0,
+            offset: 1
           })
         ]))
       ])
@@ -444,23 +444,23 @@ export interface TypingUser {
       state('glow', style({ opacity: 1 })),
       transition('* => glow', [
         animate('3s ease-in-out infinite', keyframes([
-          style({ 
-            opacity: 0.7, 
-            transform: 'scale(1)', 
-            filter: 'brightness(1)', 
-            offset: 0 
+          style({
+            opacity: 0.7,
+            transform: 'scale(1)',
+            filter: 'brightness(1)',
+            offset: 0
           }),
-          style({ 
-            opacity: 1, 
-            transform: 'scale(1.02)', 
-            filter: 'brightness(1.1)', 
-            offset: 0.5 
+          style({
+            opacity: 1,
+            transform: 'scale(1.02)',
+            filter: 'brightness(1.1)',
+            offset: 0.5
           }),
-          style({ 
-            opacity: 0.7, 
-            transform: 'scale(1)', 
-            filter: 'brightness(1)', 
-            offset: 1 
+          style({
+            opacity: 0.7,
+            transform: 'scale(1)',
+            filter: 'brightness(1)',
+            offset: 1
           })
         ]))
       ])
@@ -476,7 +476,7 @@ export class TypingIndicatorComponent implements OnInit, OnDestroy {
   isVisible = false;
   dots = [1, 2, 3]; // For typing dots animation
   energyParticles = [1, 2, 3, 4]; // For energy flow effects
-  
+
   private autoHideSubscription?: Subscription;
 
   ngOnInit(): void {
@@ -493,10 +493,10 @@ export class TypingIndicatorComponent implements OnInit, OnDestroy {
 
   private updateVisibility(): void {
     const shouldShow = this.typingUsers.length > 0;
-    
+
     if (shouldShow !== this.isVisible) {
       this.isVisible = shouldShow;
-      
+
       if (shouldShow && this.autoHideDelay > 0) {
         this.startAutoHideTimer();
       } else {
@@ -507,7 +507,7 @@ export class TypingIndicatorComponent implements OnInit, OnDestroy {
 
   private startAutoHideTimer(): void {
     this.clearAutoHideTimer();
-    
+
     this.autoHideSubscription = timer(this.autoHideDelay * 1000)
       .pipe(takeWhile(() => this.isVisible))
       .subscribe(() => {
@@ -522,10 +522,10 @@ export class TypingIndicatorComponent implements OnInit, OnDestroy {
 
   getSoulTypingText(): string {
     if (this.typingUsers.length === 0) return '';
-    
+
     const user = this.typingUsers[0];
     const connectionStage = user.connectionStage || 'soul_discovery';
-    
+
     if (this.typingUsers.length === 1) {
       return this.getSoulTypingMessage(user.name, connectionStage);
     } else if (this.typingUsers.length === 2) {
@@ -557,18 +557,18 @@ export class TypingIndicatorComponent implements OnInit, OnDestroy {
   }
 
   showConnectionEnergy(): boolean {
-    return this.typingUsers.some(user => 
-      user.connectionStage === 'deeper_connection' || 
+    return this.typingUsers.some(user =>
+      user.connectionStage === 'deeper_connection' ||
       user.compatibilityScore && user.compatibilityScore > 80
     );
   }
 
   getEmotionalState(): string {
     if (this.typingUsers.length === 0) return '';
-    
+
     const user = this.typingUsers[0];
     if (!user.emotionalState) return '';
-    
+
     const stateMap = {
       contemplative: 'deep in thought',
       romantic: 'feeling connected',
@@ -576,16 +576,16 @@ export class TypingIndicatorComponent implements OnInit, OnDestroy {
       peaceful: 'centered and calm',
       sophisticated: 'thoughtfully composed'
     };
-    
+
     return stateMap[user.emotionalState] || '';
   }
 
   getEmotionalEmoji(): string {
     if (this.typingUsers.length === 0) return '';
-    
+
     const user = this.typingUsers[0];
     if (!user.emotionalState) return '';
-    
+
     const emojiMap = {
       contemplative: '🧘',
       romantic: '💕',
@@ -593,7 +593,7 @@ export class TypingIndicatorComponent implements OnInit, OnDestroy {
       peaceful: '🌿',
       sophisticated: '🎭'
     };
-    
+
     return emojiMap[user.emotionalState] || '✨';
   }
 
@@ -601,11 +601,11 @@ export class TypingIndicatorComponent implements OnInit, OnDestroy {
     const typingText = this.getSoulTypingText();
     const emotionalState = this.getEmotionalState();
     const baseText = `${typingText}. Soul connection in progress.`;
-    
+
     if (emotionalState) {
       return `${baseText} Emotional state: ${emotionalState}.`;
     }
-    
+
     return baseText;
   }
 
@@ -621,18 +621,18 @@ export class TypingIndicatorComponent implements OnInit, OnDestroy {
       'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
       'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)'
     ];
-    
+
     const hash = userId.split('').reduce((a, b) => {
       a = ((a << 5) - a) + b.charCodeAt(0);
       return a & a;
     }, 0);
-    
+
     return colors[Math.abs(hash) % colors.length];
   }
 
   getAvatarTransform(index: number): string {
     if (this.typingUsers.length === 1) return 'translateX(0)';
-    
+
     // Stagger avatars slightly for multiple users
     const offset = index * 2;
     return `translateX(${offset}px)`;

@@ -13,24 +13,24 @@ import { environment } from '@environments/environment';
     <div class="error-boundary" *ngIf="hasError">
       <div class="error-content">
         <mat-icon class="error-icon">error_outline</mat-icon>
-        
+
         <h2 class="error-title">{{ errorTitle }}</h2>
-        
+
         <p class="error-message">{{ errorMessage }}</p>
-        
+
         <div class="error-actions">
-          <button 
-            mat-raised-button 
-            color="primary" 
+          <button
+            mat-raised-button
+            color="primary"
             (click)="retry()"
             class="retry-button"
           >
             <mat-icon>refresh</mat-icon>
             Try Again
           </button>
-          
-          <button 
-            mat-button 
+
+          <button
+            mat-button
             (click)="reportError()"
             class="report-button"
           >
@@ -38,14 +38,14 @@ import { environment } from '@environments/environment';
             Report Issue
           </button>
         </div>
-        
+
         <details class="error-details" *ngIf="!environment.production && errorDetails">
           <summary>Technical Details</summary>
           <pre class="error-stack">{{ errorDetails }}</pre>
         </details>
       </div>
     </div>
-    
+
     <ng-content *ngIf="!hasError"></ng-content>
   `,
   styles: [`
@@ -151,12 +151,12 @@ import { environment } from '@environments/environment';
       .error-boundary {
         padding: 1rem;
       }
-      
+
       .error-actions {
         flex-direction: column;
         align-items: center;
       }
-      
+
       .retry-button,
       .report-button {
         width: 100%;
@@ -193,7 +193,7 @@ export class ErrorBoundaryComponent implements OnInit, OnDestroy {
    */
   showError(error: Error | string, details?: string): void {
     this.hasError = true;
-    
+
     if (typeof error === 'string') {
       this.errorMessage = error;
     } else {
@@ -214,7 +214,7 @@ export class ErrorBoundaryComponent implements OnInit, OnDestroy {
   retry(): void {
     this.hasError = false;
     this.errorDetails = '';
-    
+
     if (this.retryCallback) {
       try {
         this.retryCallback();
@@ -232,12 +232,12 @@ export class ErrorBoundaryComponent implements OnInit, OnDestroy {
    */
   reportError(): void {
     const errorReport = this.errorLoggingService.exportLogs();
-    
+
     // In a real app, you might:
     // 1. Send to support API
     // 2. Open email client with pre-filled error report
     // 3. Show modal with error report ID
-    
+
     // For now, copy to clipboard
     navigator.clipboard.writeText(errorReport).then(() => {
       alert('Error report copied to clipboard. Please paste this when contacting support.');

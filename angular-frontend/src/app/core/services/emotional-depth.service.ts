@@ -87,7 +87,7 @@ export interface EmotionalDepthSummary {
 })
 export class EmotionalDepthService {
   private readonly baseUrl = `${environment.apiUrl}/emotional-depth`;
-  
+
   // State management
   private currentUserDepthSubject = new BehaviorSubject<EmotionalDepthSummary | null>(null);
   public currentUserDepth$ = this.currentUserDepthSubject.asObservable();
@@ -102,7 +102,7 @@ export class EmotionalDepthService {
    */
   analyzeUserEmotionalDepth(userId: number): Observable<EmotionalDepthAnalysis> {
     this.analysisLoadingSubject.next(true);
-    
+
     return this.http.get<EmotionalDepthAnalysis>(`${this.baseUrl}/analyze/${userId}`)
       .pipe(
         tap(() => this.analysisLoadingSubject.next(false)),
@@ -118,7 +118,7 @@ export class EmotionalDepthService {
    */
   analyzeDepthCompatibility(user1Id: number, user2Id: number): Observable<DepthCompatibility> {
     this.analysisLoadingSubject.next(true);
-    
+
     return this.http.get<DepthCompatibility>(`${this.baseUrl}/compatibility/${user1Id}/${user2Id}`)
       .pipe(
         tap(() => this.analysisLoadingSubject.next(false)),
@@ -134,7 +134,7 @@ export class EmotionalDepthService {
    */
   getMyEmotionalDepthSummary(): Observable<EmotionalDepthSummary> {
     this.analysisLoadingSubject.next(true);
-    
+
     return this.http.get<EmotionalDepthSummary>(`${this.baseUrl}/summary/me`)
       .pipe(
         tap((summary) => {
@@ -159,7 +159,7 @@ export class EmotionalDepthService {
       'deep': '#a78bfa',         // Violet-400
       'profound': '#f59e0b'      // Amber-500
     };
-    
+
     return colors[depthLevel.toLowerCase()] || colors['moderate'];
   }
 
@@ -174,7 +174,7 @@ export class EmotionalDepthService {
       'deep': 'High emotional sophistication',
       'profound': 'Exceptional emotional wisdom'
     };
-    
+
     return descriptions[depthLevel.toLowerCase()] || descriptions['moderate'];
   }
 
@@ -217,7 +217,7 @@ export class EmotionalDepthService {
       'well-developed': 'sentiment_satisfied',
       'rich and sophisticated': 'sentiment_very_satisfied'
     };
-    
+
     return icons[richness.toLowerCase()] || 'sentiment_neutral';
   }
 
@@ -256,7 +256,7 @@ export class EmotionalDepthService {
    * Check if user has sufficient depth data for analysis
    */
   hasSufficientDepthData(summary: EmotionalDepthSummary): boolean {
-    return summary.profile_completeness.confidence >= 50 && 
+    return summary.profile_completeness.confidence >= 50 &&
            summary.profile_completeness.text_quality !== 'insufficient';
   }
 
@@ -265,19 +265,19 @@ export class EmotionalDepthService {
    */
   getImprovementRecommendations(summary: EmotionalDepthSummary): string[] {
     const recommendations: string[] = [];
-    
+
     if (summary.profile_completeness.confidence < 60) {
       recommendations.push('Complete more detailed profile responses to improve analysis accuracy');
     }
-    
+
     if (summary.profile_completeness.text_quality === 'limited') {
       recommendations.push('Share more personal experiences and feelings in your responses');
     }
-    
+
     if (summary.emotional_depth_summary.emotional_vocabulary_richness === 'limited') {
       recommendations.push('Explore and use more diverse emotional words to express your feelings');
     }
-    
+
     return recommendations.concat(summary.recommendations);
   }
 }

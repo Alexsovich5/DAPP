@@ -73,7 +73,7 @@ body {
   background: #f8fafc;
   color: #2d3748;
   overflow-x: hidden;
-  
+
   /* Enhanced for mobile */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -145,37 +145,37 @@ body {
   transition: all var(--animation-duration) cubic-bezier(0.34, 1.56, 0.64, 1);
   text-decoration: none;
   user-select: none;
-  
+
   /* Prevent double-tap zoom on iOS */
   touch-action: manipulation;
-  
+
   &:focus-visible {
     outline: 2px solid var(--energy-medium);
     outline-offset: 2px;
   }
-  
+
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     pointer-events: none;
   }
-  
+
   /* Size variants */
   &.btn-sm {
     font-size: 0.875rem;
     padding: 0.5rem 1rem;
   }
-  
+
   &.btn-md {
     font-size: 1rem;
     padding: 0.75rem 1.5rem;
   }
-  
+
   &.btn-lg {
     font-size: 1.125rem;
     padding: 1rem 2rem;
   }
-  
+
   /* Energy-based themes */
   &.btn-energy-low {
     background: var(--energy-low);
@@ -185,7 +185,7 @@ body {
       box-shadow: 0 4px 12px rgba(160, 174, 192, 0.3);
     }
   }
-  
+
   &.btn-energy-medium {
     background: var(--phase-discovery);
     color: white;
@@ -194,7 +194,7 @@ body {
       box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
     }
   }
-  
+
   &.btn-energy-high {
     background: var(--phase-connection);
     color: white;
@@ -203,7 +203,7 @@ body {
       box-shadow: 0 8px 25px rgba(232, 121, 249, 0.4);
     }
   }
-  
+
   &.btn-energy-soulmate {
     background: var(--phase-revelation);
     color: #744210;
@@ -218,16 +218,16 @@ body {
 .swipe-zone {
   position: relative;
   overflow: hidden;
-  
+
   &.swipe-active {
     user-select: none;
     -webkit-user-drag: none;
   }
-  
+
   &.swipe-threshold-reached {
     box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
   }
-  
+
   &.swipe-success {
     background: rgba(72, 187, 120, 0.1);
   }
@@ -242,7 +242,7 @@ body {
   transition: all var(--animation-duration) cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   overflow: hidden;
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -254,32 +254,32 @@ body {
     opacity: 0;
     transition: opacity var(--animation-duration) ease;
   }
-  
+
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-    
+
     &::before {
       opacity: 1;
     }
   }
-  
+
   /* Energy-based card themes */
   &.energy-low {
     border: 1px solid rgba(160, 174, 192, 0.2);
     &::before { background: var(--energy-low); }
   }
-  
+
   &.energy-medium {
     border: 1px solid rgba(102, 126, 234, 0.2);
     &::before { background: var(--phase-discovery); }
   }
-  
+
   &.energy-high {
     border: 1px solid rgba(232, 121, 249, 0.2);
     &::before { background: var(--phase-connection); }
   }
-  
+
   &.energy-soulmate {
     border: 1px solid rgba(255, 215, 0, 0.3);
     &::before { background: var(--phase-revelation); }
@@ -296,19 +296,19 @@ body {
   background: rgba(102, 126, 234, 0.05);
   border-radius: 20px;
   backdrop-filter: blur(10px);
-  
+
   .typing-dots {
     display: flex;
     gap: 0.25rem;
   }
-  
+
   .typing-dot {
     width: 6px;
     height: 6px;
     background: var(--energy-medium);
     border-radius: 50%;
     animation: typingDotBounce 1.4s ease-in-out infinite;
-    
+
     &:nth-child(1) { animation-delay: 0s; }
     &:nth-child(2) { animation-delay: 0.2s; }
     &:nth-child(3) { animation-delay: 0.4s; }
@@ -335,17 +335,17 @@ body {
   font-size: 1rem;
   transition: all var(--animation-duration) ease;
   background: white;
-  
+
   &:focus {
     outline: none;
     border-color: var(--energy-medium);
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
   }
-  
+
   &::placeholder {
     color: #a0aec0;
   }
-  
+
   /* Touch optimization */
   @media (pointer: coarse) {
     padding: 1rem 0.75rem;
@@ -416,7 +416,7 @@ body {
   .btn, .form-control {
     min-height: 48px;
   }
-  
+
   /* Disable hover effects on touch devices */
   .soul-card:hover {
     transform: none;
@@ -442,7 +442,7 @@ body {
   .soul-card {
     border: 2px solid #000;
   }
-  
+
   .btn {
     border: 2px solid currentColor;
   }
@@ -456,7 +456,7 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  
+
   .animate-breathe,
   .animate-pulse,
   .animate-float,
@@ -473,26 +473,26 @@ body {
     --energy-high: #d53f8c;
     --energy-soulmate: #ecc94b;
   }
-  
+
   body {
     background: #1a202c;
     color: #e2e8f0;
   }
-  
+
   .soul-card {
     background: #2d3748;
     color: #e2e8f0;
   }
-  
+
   .form-control {
     background: #2d3748;
     border-color: #4a5568;
     color: #e2e8f0;
-    
+
     &:focus {
       border-color: var(--energy-medium);
     }
-    
+
     &::placeholder {
       color: #718096;
     }
@@ -507,7 +507,7 @@ body {
   .soul-typing-indicator {
     display: none !important;
   }
-  
+
   .soul-card {
     box-shadow: none;
     border: 1px solid #000;

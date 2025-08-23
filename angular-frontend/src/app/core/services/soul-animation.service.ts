@@ -45,7 +45,7 @@ export interface ConnectionEnergyTheme {
   };
 }
 
-export type SoulAnimationType = 
+export type SoulAnimationType =
   | 'breathe'
   | 'pulse'
   | 'glow'
@@ -140,7 +140,7 @@ export class SoulAnimationService {
   ): Observable<Animation> {
     const finalConfig = { ...this.defaultConfig, ...config };
     const theme = this.energyThemes[energy];
-    
+
     // Check if animations should be disabled
     if (this.shouldSkipAnimation(finalConfig)) {
       return EMPTY;
@@ -190,7 +190,7 @@ export class SoulAnimationService {
   ): Observable<Animation> {
     const fromRect = fromElement.getBoundingClientRect();
     const toRect = toElement.getBoundingClientRect();
-    
+
     // Create connection line element
     const connectionLine = this.createConnectionLine(fromRect, toRect, energy);
     document.body.appendChild(connectionLine);
@@ -235,7 +235,7 @@ export class SoulAnimationService {
           iterations: 'infinite'
         }, energy).subscribe(animation => {
           animations.push(animation);
-          
+
           if (animations.length === particleCount) {
             observer.next(animations);
           }
@@ -286,7 +286,7 @@ export class SoulAnimationService {
           easing: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)'
         }, energy).subscribe(animation => {
           animations.push(animation);
-          
+
           if (animations.length === dots.length) {
             observer.next(animations);
           }
@@ -356,18 +356,18 @@ export class SoulAnimationService {
         { transform: 'translateX(-5px) rotate(-1deg)' }
       ],
       sparkle: [
-        { 
-          opacity: '0', 
+        {
+          opacity: '0',
           transform: 'translateY(0px) scale(0) rotate(0deg)',
           background: theme.colors.primary
         },
-        { 
-          opacity: '1', 
+        {
+          opacity: '1',
           transform: 'translateY(-20px) scale(1) rotate(180deg)',
           background: theme.colors.accent
         },
-        { 
-          opacity: '0', 
+        {
+          opacity: '0',
           transform: 'translateY(-40px) scale(0) rotate(360deg)',
           background: theme.colors.secondary
         }
@@ -402,7 +402,7 @@ export class SoulAnimationService {
   ): HTMLElement {
     const line = document.createElement('div');
     const theme = this.energyThemes[energy];
-    
+
     // Calculate position and size
     const fromCenter = {
       x: fromRect.left + fromRect.width / 2,
@@ -412,14 +412,14 @@ export class SoulAnimationService {
       x: toRect.left + toRect.width / 2,
       y: toRect.top + toRect.height / 2
     };
-    
+
     const distance = Math.sqrt(
-      Math.pow(toCenter.x - fromCenter.x, 2) + 
+      Math.pow(toCenter.x - fromCenter.x, 2) +
       Math.pow(toCenter.y - fromCenter.y, 2)
     );
-    
+
     const angle = Math.atan2(toCenter.y - fromCenter.y, toCenter.x - fromCenter.x);
-    
+
     // Style the connection line
     line.className = 'soul-connection-line';
     line.style.cssText = `
@@ -443,11 +443,11 @@ export class SoulAnimationService {
   private createParticle(theme: ConnectionEnergyTheme, index: number): HTMLElement {
     const particle = document.createElement('div');
     particle.className = 'soul-particle';
-    
+
     const delay = Math.random() * 4;
     const duration = 3 + Math.random() * 2;
     const angle = Math.random() * 360;
-    
+
     particle.style.cssText = `
       position: absolute;
       width: ${theme.particles.size};
@@ -482,24 +482,24 @@ export class SoulAnimationService {
     if (config.respectReducedMotion && this.prefersReducedMotion()) {
       return true;
     }
-    
+
     const performance = this.performanceMode$.value;
     if (performance === 'low') {
       return true;
     }
-    
+
     return false;
   }
 
   private getAdjustedDuration(baseDuration: number): number {
     const viewport = this.responsiveService.getCurrentViewport();
-    
+
     if (this.prefersReducedMotion()) return 0;
     if (viewport.isMobile) return baseDuration * 0.8;
-    
+
     const performance = this.performanceMode$.value;
     const multipliers = { low: 0.5, medium: 1, high: 1.2 };
-    
+
     return baseDuration * multipliers[performance];
   }
 
@@ -522,7 +522,7 @@ export class SoulAnimationService {
     if (hardwareConcurrency >= 8 && memory >= 8) return 'high';
     if (hardwareConcurrency >= 4 && memory >= 4) return 'medium';
     if (connection && connection.effectiveType === '2g') return 'low';
-    
+
     return 'medium';
   }
 
@@ -576,7 +576,7 @@ export class SoulAnimationService {
     config: Partial<SoulAnimationConfig> = {}
   ): Observable<Animation> {
     const finalConfig = { ...this.defaultConfig, ...config };
-    
+
     if (this.shouldSkipAnimation(finalConfig)) {
       return EMPTY;
     }

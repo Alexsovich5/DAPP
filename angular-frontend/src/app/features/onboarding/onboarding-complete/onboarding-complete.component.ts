@@ -15,10 +15,10 @@ import { EmotionalOnboarding } from '../../../core/interfaces/revelation.interfa
     <div class="onboarding-complete">
       <div class="completion-content" *ngIf="!isSubmitting">
         <div class="success-icon">✨</div>
-        
+
         <h1>Welcome to Soul Before Skin</h1>
         <p class="welcome-message">
-          Your emotional profile is complete! You're now ready to discover meaningful connections 
+          Your emotional profile is complete! You're now ready to discover meaningful connections
           based on compatibility, values, and shared interests.
         </p>
 
@@ -66,7 +66,7 @@ import { EmotionalOnboarding } from '../../../core/interfaces/revelation.interfa
         </div>
 
         <div class="completion-actions">
-          <button 
+          <button
             class="btn btn-primary btn-large"
             (click)="completeOnboarding()"
             [disabled]="isSubmitting">
@@ -317,7 +317,7 @@ import { EmotionalOnboarding } from '../../../core/interfaces/revelation.interfa
       .onboarding-complete {
         padding: 1rem;
       }
-      
+
       .steps-grid {
         grid-template-columns: 1fr;
       }
@@ -390,10 +390,10 @@ export class OnboardingCompleteComponent implements OnInit {
         next: (updatedUser) => {
           // Clear stored onboarding data
           this.clearOnboardingData();
-          
+
           // Set onboarding completion flag
           this.storage.setItem('onboarding_completed', 'true');
-          
+
           // Update current user with backend response
           this.authService.updateCurrentUser(updatedUser);
 

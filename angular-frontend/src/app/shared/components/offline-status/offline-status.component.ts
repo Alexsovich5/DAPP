@@ -23,23 +23,23 @@ import { takeUntil } from 'rxjs/operators';
   template: `
     <div class="offline-status-container" [class.expanded]="showDetails">
       <!-- Connection Status Indicator -->
-      <div class="connection-indicator" 
+      <div class="connection-indicator"
            [class.online]="syncStatus.isOnline"
            [class.offline]="!syncStatus.isOnline"
            [class.syncing]="syncStatus.isSyncing"
            (click)="toggleDetails()">
-        
+
         <!-- Online Status -->
         <div *ngIf="syncStatus.isOnline && !syncStatus.isSyncing" class="status-content">
           <mat-icon class="status-icon online-icon">wifi</mat-icon>
           <span class="status-text">Online</span>
         </div>
-        
+
         <!-- Offline Status -->
         <div *ngIf="!syncStatus.isOnline && !syncStatus.isSyncing" class="status-content">
           <mat-icon class="status-icon offline-icon">wifi_off</mat-icon>
           <span class="status-text">Offline</span>
-          <mat-icon class="pending-badge" 
+          <mat-icon class="pending-badge"
                    *ngIf="syncStatus.pendingActions > 0"
                    [matBadge]="syncStatus.pendingActions.toString()"
                    matBadgeColor="warn"
@@ -47,23 +47,23 @@ import { takeUntil } from 'rxjs/operators';
             schedule
           </mat-icon>
         </div>
-        
+
         <!-- Syncing Status -->
         <div *ngIf="syncStatus.isSyncing" class="status-content">
           <mat-icon class="status-icon syncing-icon spinning">sync</mat-icon>
           <span class="status-text">Syncing...</span>
         </div>
-        
+
         <!-- Expand/Collapse Indicator -->
         <mat-icon class="expand-icon" [class.expanded]="showDetails">
           {{ showDetails ? 'expand_less' : 'expand_more' }}
         </mat-icon>
       </div>
-      
+
       <!-- Detailed Status (expandable) -->
       <div class="status-details" *ngIf="showDetails">
         <div class="details-content">
-          
+
           <!-- Connection Info -->
           <div class="detail-section">
             <h4>Connection Status</h4>
@@ -76,7 +76,7 @@ import { takeUntil } from 'rxjs/operators';
               <span>Last sync: {{ formatSyncTime(syncStatus.lastSyncTime) }}</span>
             </div>
           </div>
-          
+
           <!-- Pending Actions -->
           <div class="detail-section" *ngIf="syncStatus.pendingActions > 0">
             <h4>Pending Actions</h4>
@@ -92,7 +92,7 @@ import { takeUntil } from 'rxjs/operators';
               </div>
             </div>
           </div>
-          
+
           <!-- Sync Error -->
           <div class="detail-section" *ngIf="syncStatus.syncError">
             <h4>Sync Issues</h4>
@@ -101,24 +101,24 @@ import { takeUntil } from 'rxjs/operators';
               <span>{{ syncStatus.syncError }}</span>
             </div>
           </div>
-          
+
           <!-- Actions -->
           <div class="detail-actions">
-            <button mat-stroked-button 
+            <button mat-stroked-button
                     (click)="forceSyncNow()"
                     [disabled]="!syncStatus.isOnline || syncStatus.isSyncing">
               <mat-icon>sync</mat-icon>
               Sync Now
             </button>
-            
-            <button mat-stroked-button 
+
+            <button mat-stroked-button
                     (click)="clearPendingActions()"
                     [disabled]="syncStatus.pendingActions === 0"
                     color="warn">
               <mat-icon>clear_all</mat-icon>
               Clear Queue
             </button>
-            
+
             <button mat-stroked-button (click)="showCacheInfo()">
               <mat-icon>storage</mat-icon>
               Cache Info
@@ -445,7 +445,7 @@ export class OfflineStatusComponent implements OnInit, OnDestroy {
       .subscribe(status => {
         if ((status.pendingActions > 0 || status.syncError) && !this.showDetails) {
           this.showDetails = true;
-          
+
           // Auto-hide after 5 seconds if no issues
           setTimeout(() => {
             if (status.pendingActions === 0 && !status.syncError) {
@@ -469,7 +469,7 @@ export class OfflineStatusComponent implements OnInit, OnDestroy {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / (1000 * 60));
-    
+
     if (minutes < 1) {
       return 'Just now';
     } else if (minutes < 60) {
@@ -484,7 +484,7 @@ export class OfflineStatusComponent implements OnInit, OnDestroy {
     // This would get actual pending actions from the service
     // For now, return mock data based on queue status
     const queueStatus = this.offlineService.getQueueStatus();
-    
+
     if (queueStatus.pending === 0) {
       return [];
     }
@@ -522,7 +522,7 @@ export class OfflineStatusComponent implements OnInit, OnDestroy {
       // The offline service will handle the actual sync
       // This just provides user feedback
       console.log('Forcing sync now...');
-      
+
       // Show temporary feedback
       this.showSyncFeedback('Synchronizing your actions...');
     }
@@ -557,9 +557,9 @@ export class OfflineStatusComponent implements OnInit, OnDestroy {
       z-index: 10000;
       font-size: 0.9rem;
     `;
-    
+
     document.body.appendChild(statusElement);
-    
+
     setTimeout(() => {
       document.body.removeChild(statusElement);
     }, 2000);

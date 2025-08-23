@@ -269,7 +269,7 @@ fastapi[test]==0.100.1
 pytest-benchmark==4.0.0
 locust==2.15.1
 
-# Security testing  
+# Security testing
 bandit==1.7.5
 safety==2.3.4
 ```
@@ -310,7 +310,7 @@ jobs:
     steps:
       - name: Run Backend Tests
         run: pytest --cov=app --cov-report=xml --cov-fail-under=75
-      
+
   frontend-tests:
     runs-on: ubuntu-latest
     steps:

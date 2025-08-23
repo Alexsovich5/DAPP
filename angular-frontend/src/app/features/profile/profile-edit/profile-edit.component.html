@@ -25,14 +25,14 @@
 
   <!-- Profile Edit Form -->
   <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" *ngIf="!isLoading && !error">
-    
+
     <!-- Basic Information -->
     <mat-card class="form-section">
       <mat-card-header>
         <mat-card-title>Basic Information</mat-card-title>
         <mat-card-subtitle>Tell us about yourself</mat-card-subtitle>
       </mat-card-header>
-      
+
       <mat-card-content>
         <div class="form-row">
           <mat-form-field appearance="outline">
@@ -96,10 +96,10 @@
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Bio</mat-label>
-          <textarea 
-            matInput 
-            formControlName="bio" 
-            rows="4" 
+          <textarea
+            matInput
+            formControlName="bio"
+            rows="4"
             placeholder="Tell potential matches about yourself...">
           </textarea>
           <mat-hint align="end">
@@ -118,31 +118,31 @@
         <mat-card-title>Profile Picture</mat-card-title>
         <mat-card-subtitle>Upload a photo to complete your profile</mat-card-subtitle>
       </mat-card-header>
-      
+
       <mat-card-content>
         <div class="file-upload-section">
-          <button 
-            mat-raised-button 
-            color="primary" 
-            type="button" 
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
             (click)="fileInput.click()"
             [disabled]="isUploading">
             <mat-icon>photo_camera</mat-icon>
             <span *ngIf="!isUploading">Upload Photo</span>
             <span *ngIf="isUploading">Uploading...</span>
           </button>
-          
-          <input 
-            #fileInput 
-            type="file" 
-            accept="image/*" 
+
+          <input
+            #fileInput
+            type="file"
+            accept="image/*"
             (change)="onFileChange($event)"
             style="display: none">
-          
+
           <div *ngIf="isUploading" class="upload-progress">
             <mat-progress-spinner diameter="20" mode="indeterminate"></mat-progress-spinner>
           </div>
-          
+
           <div *ngIf="uploadError" class="upload-error">
             <mat-icon color="warn">error</mat-icon>
             <span>{{ uploadError }}</span>
@@ -157,7 +157,7 @@
         <mat-card-title>Interests</mat-card-title>
         <mat-card-subtitle>What do you enjoy? This helps us find compatible matches</mat-card-subtitle>
       </mat-card-header>
-      
+
       <mat-card-content>
         <!-- Custom Interest Input -->
         <div class="interest-input-section">
@@ -166,9 +166,9 @@
             <input matInput #interestInput placeholder="e.g., cooking, wine tasting">
             <mat-icon matSuffix>add</mat-icon>
           </mat-form-field>
-          <button 
-            mat-mini-fab 
-            color="primary" 
+          <button
+            mat-mini-fab
+            color="primary"
             type="button"
             (click)="addInterest(interestInput.value); interestInput.value = ''">
             <mat-icon>add</mat-icon>
@@ -179,8 +179,8 @@
         <div class="suggested-interests">
           <h4>Suggested Interests:</h4>
           <div class="interest-chips">
-            <button 
-              *ngFor="let interest of availableInterests" 
+            <button
+              *ngFor="let interest of availableInterests"
               mat-chip-option
               type="button"
               (click)="addInterestFromList(interest)"
@@ -194,9 +194,9 @@
         <div class="selected-interests" *ngIf="profileForm.get('interests')?.value?.length > 0">
           <h4>Your Interests:</h4>
           <mat-chip-row>
-            <mat-chip 
-              *ngFor="let interest of profileForm.get('interests')?.value" 
-              [removable]="true" 
+            <mat-chip
+              *ngFor="let interest of profileForm.get('interests')?.value"
+              [removable]="true"
               (removed)="removeInterest(interest)">
               {{ interest | titlecase }}
               <mat-icon matChipRemove>cancel</mat-icon>
@@ -212,7 +212,7 @@
         <mat-card-title>Dietary Preferences</mat-card-title>
         <mat-card-subtitle>Help us suggest restaurants that match your dietary needs</mat-card-subtitle>
       </mat-card-header>
-      
+
       <mat-card-content>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Dietary Preferences</mat-label>
@@ -228,17 +228,17 @@
 
     <!-- Form Actions -->
     <div class="form-actions">
-      <button 
-        mat-stroked-button 
-        type="button" 
+      <button
+        mat-stroked-button
+        type="button"
         (click)="cancel()"
         [disabled]="isSaving">
         Cancel
       </button>
-      
-      <button 
-        mat-raised-button 
-        color="primary" 
+
+      <button
+        mat-raised-button
+        color="primary"
         type="submit"
         [disabled]="!profileForm.valid || isSaving">
         <mat-icon *ngIf="isSaving">

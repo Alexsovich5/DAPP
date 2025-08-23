@@ -1,11 +1,12 @@
+import logging
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+
+from dotenv import load_dotenv
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from fastapi.security import OAuth2PasswordBearer
-from dotenv import load_dotenv
-import os
-import logging
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -46,15 +47,13 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.now(timezone.utc) + timedelta(
             minutes=ACCESS_TOKEN_EXPIRE_MINUTES
         )
-    
+
     # Add standard JWT claims
     now = datetime.now(timezone.utc)
-    to_encode.update({
-        "exp": expire,
-        "iat": now,  # Issued at time
-        "nbf": now   # Not before time
-    })
-    
+    to_encode.update(
+        {"exp": expire, "iat": now, "nbf": now}  # Issued at time  # Not before time
+    )
+
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
@@ -67,16 +66,18 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None) 
     else:
         # Refresh tokens expire after 7 days by default
         expire = datetime.now(timezone.utc) + timedelta(days=7)
-    
+
     # Add standard JWT claims
     now = datetime.now(timezone.utc)
-    to_encode.update({
-        "exp": expire,
-        "iat": now,  # Issued at time
-        "nbf": now,  # Not before time
-        "type": "refresh"  # Token type
-    })
-    
+    to_encode.update(
+        {
+            "exp": expire,
+            "iat": now,  # Issued at time
+            "nbf": now,  # Not before time
+            "type": "refresh",  # Token type
+        }
+    )
+
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
@@ -86,7 +87,7 @@ def verify_token(token: str) -> Optional[dict]:
     # Handle invalid input types
     if not isinstance(token, str) or not token:
         return None
-        
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         # Check if token has required claims
@@ -121,18 +122,18 @@ def validate_password_strength(password: str) -> bool:
     """Validate password strength for security requirements."""
     if len(password) < 8:
         return False
-    
+
     # Check for common weak passwords
-    weak_patterns = ['password', 'qwerty', '12345678', 'abc123']
+    weak_patterns = ["password", "qwerty", "12345678", "abc123"]
     if password.lower() in weak_patterns:
         return False
-    
+
     # Password should not be all digits or all letters
     if password.isdigit() or password.isalpha():
         return False
-    
+
     # Check for repeated characters
     if len(set(password)) < 4:  # Too many repeated characters
         return False
-    
+
     return True

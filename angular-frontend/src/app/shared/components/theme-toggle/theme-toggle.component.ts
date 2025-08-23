@@ -12,8 +12,8 @@ import { map } from 'rxjs/operators';
   standalone: true,
   imports: [CommonModule, MatButtonModule, MatIconModule, MatTooltipModule],
   template: `
-    <button 
-      mat-icon-button 
+    <button
+      mat-icon-button
       [matTooltip]="(isDarkMode$ | async) ? 'Switch to light mode' : 'Switch to dark mode'"
       (click)="toggleTheme()"
       class="theme-toggle-btn"
@@ -24,11 +24,11 @@ import { map } from 'rxjs/operators';
   styles: [`
     .theme-toggle-btn {
       transition: all 0.3s ease;
-      
+
       &:hover {
         transform: scale(1.1);
       }
-      
+
       mat-icon {
         font-size: 24px;
         height: 24px;

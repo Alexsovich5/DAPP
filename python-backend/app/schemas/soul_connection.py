@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, Field
 
 
 class SoulConnectionBase(BaseModel):
@@ -33,20 +34,26 @@ class SoulConnectionResponse(SoulConnectionBase):
     initiated_by: int
     created_at: datetime
     updated_at: datetime
-    
+
     # Include user details for frontend display
     user1_profile: Optional[Dict[str, Any]] = None
     user2_profile: Optional[Dict[str, Any]] = None
-    
+
     class Config:
         from_attributes = True
 
 
 class CompatibilityResponse(BaseModel):
-    total_compatibility: float = Field(..., description="Overall compatibility score (0-100)")
-    breakdown: Dict[str, float] = Field(..., description="Detailed compatibility breakdown")
+    total_compatibility: float = Field(
+        ..., description="Overall compatibility score (0-100)"
+    )
+    breakdown: Dict[str, float] = Field(
+        ..., description="Detailed compatibility breakdown"
+    )
     match_quality: str = Field(..., description="Descriptive match quality label")
-    explanation: str = Field(..., description="Human-readable compatibility explanation")
+    explanation: str = Field(
+        ..., description="Human-readable compatibility explanation"
+    )
 
 
 class DiscoveryRequest(BaseModel):
@@ -62,6 +69,6 @@ class DiscoveryResponse(BaseModel):
     compatibility: CompatibilityResponse
     profile_preview: Dict[str, Any]  # Limited profile info for soul discovery
     is_photo_hidden: bool = True
-    
+
     class Config:
         from_attributes = True

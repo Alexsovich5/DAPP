@@ -15,7 +15,7 @@ export interface User {
   location?: string;
   created_at?: string;
   updated_at?: string;
-  
+
   // Soul Before Skin fields
   emotional_onboarding_completed?: boolean;
   soul_profile_visibility?: 'hidden' | 'visible' | 'selective';

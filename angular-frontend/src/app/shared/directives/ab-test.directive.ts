@@ -1,33 +1,33 @@
-import { 
-  Directive, 
-  Input, 
-  TemplateRef, 
-  ViewContainerRef, 
-  OnInit, 
-  OnDestroy 
+import {
+  Directive,
+  Input,
+  TemplateRef,
+  ViewContainerRef,
+  OnInit,
+  OnDestroy
 } from '@angular/core';
 import { ABTestingService } from '../../core/services/ab-testing.service';
 
 /**
  * A/B Test Directive for conditional rendering based on test variants
- * 
+ *
  * Usage examples:
- * 
+ *
  * <!-- Show content only for specific variant -->
  * <div *abTest="'discovery_card_layout'; variant: 'horizontal_compact'">
  *   Horizontal layout content
  * </div>
- * 
+ *
  * <!-- Show content for multiple variants -->
  * <div *abTest="'discovery_card_layout'; variants: ['horizontal_compact', 'compatibility_focus']">
  *   Enhanced layout content
  * </div>
- * 
+ *
  * <!-- Show content when NOT in specific variant (control) -->
  * <div *abTest="'discovery_card_layout'; exclude: 'control'">
  *   Non-control content
  * </div>
- * 
+ *
  * <!-- Track events when content is shown -->
  * <button *abTest="'discovery_card_layout'; variant: 'horizontal_compact'; trackView: 'button_shown'"
  *         (click)="onButtonClick()">
@@ -73,7 +73,7 @@ export class ABTestDirective implements OnInit, OnDestroy {
 
   private shouldShowContent(): boolean {
     const currentVariant = this.abTestingService.getVariant(this.abTest);
-    
+
     if (!currentVariant) {
       // If no test is active or user not assigned, show control content only
       return this.isControlContent();
@@ -91,8 +91,8 @@ export class ABTestDirective implements OnInit, OnDestroy {
 
     // Check exclusions
     if (this.abTestExclude) {
-      const excludeList = Array.isArray(this.abTestExclude) 
-        ? this.abTestExclude 
+      const excludeList = Array.isArray(this.abTestExclude)
+        ? this.abTestExclude
         : [this.abTestExclude];
       return !excludeList.includes(currentVariant.id);
     }
@@ -103,7 +103,7 @@ export class ABTestDirective implements OnInit, OnDestroy {
 
   private isControlContent(): boolean {
     // Show content if it's marked for control variant
-    return this.abTestVariant === 'control' || 
+    return this.abTestVariant === 'control' ||
            (this.abTestVariants?.includes('control') ?? false);
   }
 
@@ -125,18 +125,18 @@ export class ABTestDirective implements OnInit, OnDestroy {
 
 /**
  * A/B Test Configuration Directive for applying CSS classes or styles
- * 
+ *
  * Usage examples:
- * 
+ *
  * <!-- Apply CSS classes based on variant -->
- * <div [abTestClass]="'discovery_card_layout'" 
+ * <div [abTestClass]="'discovery_card_layout'"
  *      [classMap]="{
  *        'horizontal-layout': 'horizontal_compact',
  *        'compatibility-first': 'compatibility_focus'
  *      }">
  *   Discovery Card
  * </div>
- * 
+ *
  * <!-- Apply inline styles based on variant -->
  * <div [abTestStyle]="'discovery_card_layout'"
  *      [styleMap]="{
@@ -164,7 +164,7 @@ export class ABTestClassDirective implements OnInit {
 
   private applyClasses(): void {
     const currentVariant = this.abTestingService.getVariant(this.abTestClass);
-    
+
     if (!currentVariant || !this.classMap) {
       return;
     }
@@ -181,14 +181,14 @@ export class ABTestClassDirective implements OnInit {
 
 /**
  * A/B Test Configuration Pipe for getting variant configurations in templates
- * 
+ *
  * Usage examples:
- * 
+ *
  * <!-- Get specific config value -->
  * <div [style.flex-direction]="'discovery_card_layout' | abTestConfig:'layout'">
  *   Content
  * </div>
- * 
+ *
  * <!-- Get entire config object -->
  * <ng-container *ngLet="'discovery_card_layout' | abTestConfig as config">
  *   <div [class.horizontal]="config?.layout === 'horizontal'">
