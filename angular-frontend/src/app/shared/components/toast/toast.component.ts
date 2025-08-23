@@ -13,8 +13,8 @@ import { environment } from '@environments/environment';
   imports: [CommonModule, MatIconModule, MatButtonModule],
   template: `
     <div class="toast-container">
-      <div 
-        *ngFor="let notification of displayedNotifications" 
+      <div
+        *ngFor="let notification of displayedNotifications"
         class="toast"
         [ngClass]="'toast-' + notification.type"
       >
@@ -24,8 +24,8 @@ import { environment } from '@environments/environment';
             <div class="toast-title">{{ notification.title }}</div>
             <div class="toast-text">{{ notification.message }}</div>
           </div>
-          <button 
-            mat-icon-button 
+          <button
+            mat-icon-button
             class="toast-close"
             (click)="closeToast(notification.id)"
           >
@@ -102,7 +102,7 @@ import { environment } from '@environments/environment';
       color: #9ca3af;
       width: 32px;
       height: 32px;
-      
+
       mat-icon {
         font-size: 18px;
         width: 18px;
@@ -150,15 +150,15 @@ import { environment } from '@environments/environment';
         top: 20px;
         max-width: none;
       }
-      
+
       .toast-content {
         padding: 12px;
       }
-      
+
       .toast-title {
         font-size: 13px;
       }
-      
+
       .toast-text {
         font-size: 12px;
       }
@@ -181,12 +181,12 @@ export class ToastComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscription = this.notificationService.getNotifications().subscribe(notifications => {
       // Only show error, success, warning, and info notifications as toasts
-      const toastNotifications = notifications.filter(n => 
+      const toastNotifications = notifications.filter(n =>
         ['error', 'success', 'warning', 'info'].includes(n.type) && !n.isRead
       );
-      
+
       this.displayedNotifications = toastNotifications;
-      
+
       // Auto-hide notifications that have autoHide enabled (browser only)
       if (this.isBrowser) {
         toastNotifications.forEach(notification => {
@@ -195,7 +195,7 @@ export class ToastComponent implements OnInit, OnDestroy {
               this.closeToast(notification.id);
               this.timeouts.delete(notification.id);
             }, notification.duration || environment.ui.toastDuration);
-            
+
             this.timeouts.set(notification.id, timeoutId);
           }
         });
@@ -207,7 +207,7 @@ export class ToastComponent implements OnInit, OnDestroy {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
-    
+
     // Clear all timeouts (browser only)
     if (this.isBrowser) {
       this.timeouts.forEach(timeoutId => {
@@ -226,7 +226,7 @@ export class ToastComponent implements OnInit, OnDestroy {
         this.timeouts.delete(notificationId);
       }
     }
-    
+
     // Mark as read (removes from display)
     this.notificationService.markAsRead(notificationId);
   }

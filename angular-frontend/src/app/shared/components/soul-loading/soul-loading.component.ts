@@ -6,23 +6,23 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div 
-      class="soul-loading-container" 
+    <div
+      class="soul-loading-container"
       [ngClass]="[size, variant]"
       role="status"
       [attr.aria-label]="getLoadingAriaLabel()"
       aria-live="polite">
-      
+
       <div class="loading-content">
         <!-- Soul Energy Orb Animation -->
         <div class="soul-energy-orb">
-          <svg 
-            class="energy-svg" 
-            [attr.width]="orbSize" 
-            [attr.height]="orbSize" 
+          <svg
+            class="energy-svg"
+            [attr.width]="orbSize"
+            [attr.height]="orbSize"
             viewBox="0 0 200 200"
             aria-hidden="true">
-            
+
             <defs>
               <!-- Soul energy gradient -->
               <radialGradient id="soul-energy-gradient" cx="50%" cy="50%" r="50%">
@@ -31,65 +31,65 @@ import { CommonModule } from '@angular/common';
                 <stop offset="60%" stop-color="#ff6b9d" stop-opacity="0.7"/>
                 <stop offset="100%" stop-color="#c084fc" stop-opacity="0.3"/>
               </radialGradient>
-              
+
               <!-- Energy ring gradient -->
               <linearGradient id="ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.8"/>
                 <stop offset="50%" stop-color="#34d399" stop-opacity="0.6"/>
                 <stop offset="100%" stop-color="#fbbf24" stop-opacity="0.4"/>
               </linearGradient>
-              
+
               <!-- Glow filter -->
               <filter id="soul-glow" x="-50%" y="-50%" width="200%" height="200%">
                 <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-                <feMerge> 
+                <feMerge>
                   <feMergeNode in="coloredBlur"/>
                   <feMergeNode in="SourceGraphic"/>
                 </feMerge>
               </filter>
             </defs>
-            
+
             <!-- Background aura -->
-            <circle 
+            <circle
               cx="100" cy="100" r="80"
               fill="url(#soul-energy-gradient)"
               class="soul-aura"
               filter="url(#soul-glow)">
             </circle>
-            
+
             <!-- Energy rings -->
-            <circle 
+            <circle
               cx="100" cy="100" r="60"
-              fill="none" 
+              fill="none"
               stroke="url(#ring-gradient)"
               stroke-width="3"
               class="energy-ring ring-1">
             </circle>
-            
-            <circle 
+
+            <circle
               cx="100" cy="100" r="40"
-              fill="none" 
+              fill="none"
               stroke="url(#ring-gradient)"
               stroke-width="2"
               class="energy-ring ring-2">
             </circle>
-            
-            <circle 
+
+            <circle
               cx="100" cy="100" r="20"
-              fill="none" 
+              fill="none"
               stroke="url(#ring-gradient)"
               stroke-width="1"
               class="energy-ring ring-3">
             </circle>
-            
+
             <!-- Central core -->
-            <circle 
+            <circle
               cx="100" cy="100" r="12"
               fill="#ffffff"
               class="soul-core"
               filter="url(#soul-glow)">
             </circle>
-            
+
             <!-- Floating energy particles -->
             <g class="energy-particles">
               <circle cx="130" cy="70" r="2" fill="#ffd700" class="particle particle-1"/>
@@ -101,23 +101,23 @@ import { CommonModule } from '@angular/common';
             </g>
           </svg>
         </div>
-        
+
         <!-- Loading Message -->
         <div class="loading-message" *ngIf="showMessage">
           <h3 class="loading-title">{{ getLoadingTitle() }}</h3>
           <p class="loading-subtitle" *ngIf="subtitle">{{ subtitle }}</p>
-          
+
           <!-- Progress indicator dots -->
           <div class="progress-dots" *ngIf="showProgress">
-            <span 
-              class="dot" 
+            <span
+              class="dot"
               *ngFor="let dot of progressDots; let i = index"
               [class.active]="i <= currentProgress">
             </span>
           </div>
         </div>
       </div>
-      
+
       <!-- Soul energy waves -->
       <div class="energy-waves" *ngIf="variant === 'immersive'">
         <div class="wave wave-1"></div>
@@ -137,7 +137,7 @@ import { CommonModule } from '@angular/common';
       position: relative;
       overflow: hidden;
     }
-    
+
     .loading-content {
       display: flex;
       flex-direction: column;
@@ -146,33 +146,33 @@ import { CommonModule } from '@angular/common';
       z-index: 2;
       position: relative;
     }
-    
+
     /* Soul Energy Orb */
     .soul-energy-orb {
       margin-bottom: 2rem;
       position: relative;
     }
-    
+
     .energy-svg {
       filter: drop-shadow(0 8px 24px rgba(255, 107, 157, 0.3));
     }
-    
+
     /* Size variants */
     .small .energy-svg { width: 120px; height: 120px; }
     .medium .energy-svg { width: 160px; height: 160px; }
     .large .energy-svg { width: 200px; height: 200px; }
-    
+
     /* Soul Energy Animations */
     .soul-aura {
       animation: soul-pulse 3s ease-in-out infinite;
       transform-origin: center;
     }
-    
+
     .soul-core {
       animation: core-breathe 2s ease-in-out infinite;
       transform-origin: center;
     }
-    
+
     .energy-ring {
       animation-duration: 4s;
       animation-timing-function: linear;
@@ -180,40 +180,40 @@ import { CommonModule } from '@angular/common';
       transform-origin: center;
       stroke-dasharray: 20 10;
     }
-    
+
     .ring-1 {
       animation-name: ring-rotate;
       animation-delay: 0s;
     }
-    
+
     .ring-2 {
       animation-name: ring-rotate-reverse;
       animation-delay: 0.5s;
     }
-    
+
     .ring-3 {
       animation-name: ring-rotate;
       animation-delay: 1s;
     }
-    
+
     /* Energy Particles */
     .energy-particles .particle {
       animation: particle-orbit 6s ease-in-out infinite;
       transform-origin: 100px 100px;
     }
-    
+
     .particle-1 { animation-delay: 0s; }
     .particle-2 { animation-delay: 1s; }
     .particle-3 { animation-delay: 2s; }
     .particle-4 { animation-delay: 3s; }
     .particle-5 { animation-delay: 4s; }
     .particle-6 { animation-delay: 5s; }
-    
+
     /* Loading Message */
     .loading-message {
       max-width: 400px;
     }
-    
+
     .loading-title {
       color: var(--text-primary);
       font-size: 1.5rem;
@@ -225,14 +225,14 @@ import { CommonModule } from '@angular/common';
       background-clip: text;
       animation: text-shimmer 3s ease-in-out infinite;
     }
-    
+
     .loading-subtitle {
       color: var(--text-secondary);
       font-size: 1rem;
       margin: 0 0 1.5rem 0;
       line-height: 1.5;
     }
-    
+
     /* Progress Dots */
     .progress-dots {
       display: flex;
@@ -240,21 +240,21 @@ import { CommonModule } from '@angular/common';
       justify-content: center;
       margin-top: 1rem;
     }
-    
+
     .dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
       background: var(--surface-secondary);
       transition: all 0.3s ease;
-      
+
       &.active {
         background: var(--primary-color);
         transform: scale(1.2);
         box-shadow: 0 0 12px rgba(255, 107, 157, 0.6);
       }
     }
-    
+
     /* Energy Waves for Immersive Variant */
     .energy-waves {
       position: absolute;
@@ -265,7 +265,7 @@ import { CommonModule } from '@angular/common';
       z-index: 1;
       pointer-events: none;
     }
-    
+
     .wave {
       position: absolute;
       border-radius: 50%;
@@ -273,85 +273,85 @@ import { CommonModule } from '@angular/common';
       animation: wave-expand 4s ease-out infinite;
       opacity: 0;
     }
-    
+
     .wave-1 {
       border-color: rgba(255, 215, 0, 0.3);
       animation-delay: 0s;
     }
-    
+
     .wave-2 {
       border-color: rgba(255, 107, 157, 0.3);
       animation-delay: 1.3s;
     }
-    
+
     .wave-3 {
       border-color: rgba(96, 165, 250, 0.3);
       animation-delay: 2.6s;
     }
-    
+
     /* Keyframe Animations */
     @keyframes soul-pulse {
-      0%, 100% { 
-        transform: scale(1); 
-        opacity: 0.8; 
+      0%, 100% {
+        transform: scale(1);
+        opacity: 0.8;
       }
-      50% { 
-        transform: scale(1.1); 
-        opacity: 1; 
+      50% {
+        transform: scale(1.1);
+        opacity: 1;
       }
     }
-    
+
     @keyframes core-breathe {
-      0%, 100% { 
-        transform: scale(1); 
-        opacity: 1; 
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
       }
-      50% { 
-        transform: scale(1.3); 
-        opacity: 0.8; 
+      50% {
+        transform: scale(1.3);
+        opacity: 0.8;
       }
     }
-    
+
     @keyframes ring-rotate {
-      0% { 
-        transform: rotate(0deg); 
-        stroke-dashoffset: 0; 
+      0% {
+        transform: rotate(0deg);
+        stroke-dashoffset: 0;
       }
-      100% { 
-        transform: rotate(360deg); 
-        stroke-dashoffset: 100; 
+      100% {
+        transform: rotate(360deg);
+        stroke-dashoffset: 100;
       }
     }
-    
+
     @keyframes ring-rotate-reverse {
-      0% { 
-        transform: rotate(360deg); 
-        stroke-dashoffset: 100; 
+      0% {
+        transform: rotate(360deg);
+        stroke-dashoffset: 100;
       }
-      100% { 
-        transform: rotate(0deg); 
-        stroke-dashoffset: 0; 
+      100% {
+        transform: rotate(0deg);
+        stroke-dashoffset: 0;
       }
     }
-    
+
     @keyframes particle-orbit {
-      0% { 
-        transform: rotate(0deg) translateX(60px) rotate(0deg); 
-        opacity: 0; 
+      0% {
+        transform: rotate(0deg) translateX(60px) rotate(0deg);
+        opacity: 0;
       }
       10% { opacity: 1; }
       90% { opacity: 1; }
-      100% { 
-        transform: rotate(360deg) translateX(60px) rotate(-360deg); 
-        opacity: 0; 
+      100% {
+        transform: rotate(360deg) translateX(60px) rotate(-360deg);
+        opacity: 0;
       }
     }
-    
+
     @keyframes text-shimmer {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.8; }
     }
-    
+
     @keyframes wave-expand {
       0% {
         width: 0;
@@ -374,36 +374,36 @@ import { CommonModule } from '@angular/common';
         opacity: 0;
       }
     }
-    
+
     /* Variant Styles */
     .minimal {
       min-height: 120px;
       padding: 1rem;
-      
+
       .loading-message {
         margin-top: 1rem;
       }
-      
+
       .loading-title {
         font-size: 1.2rem;
       }
     }
-    
+
     .standard {
       min-height: 200px;
       padding: 1.5rem;
     }
-    
+
     .immersive {
       min-height: 300px;
       padding: 3rem;
       background: radial-gradient(circle at center, rgba(255, 107, 157, 0.05) 0%, transparent 70%);
-      
+
       .loading-title {
         font-size: 1.8rem;
       }
     }
-    
+
     /* Accessibility */
     @media (prefers-reduced-motion: reduce) {
       .soul-aura,
@@ -413,50 +413,50 @@ import { CommonModule } from '@angular/common';
       .wave {
         animation: none !important;
       }
-      
+
       .loading-title {
         animation: none !important;
       }
     }
-    
+
     /* Dark theme adaptation */
     .dark-theme {
       .loading-title {
         color: var(--text-primary);
       }
-      
+
       .loading-subtitle {
         color: var(--text-secondary);
       }
-      
+
       .dot {
         background: var(--surface-tertiary);
-        
+
         &.active {
           background: var(--primary-color);
         }
       }
     }
-    
+
     /* Mobile optimizations */
     @media (max-width: 768px) {
       .soul-loading-container {
         padding: 1rem;
         min-height: 160px;
       }
-      
+
       .small .energy-svg { width: 100px; height: 100px; }
       .medium .energy-svg { width: 130px; height: 130px; }
       .large .energy-svg { width: 160px; height: 160px; }
-      
+
       .loading-title {
         font-size: 1.3rem;
       }
-      
+
       .loading-subtitle {
         font-size: 0.9rem;
       }
-      
+
       .immersive {
         min-height: 240px;
         padding: 2rem;
@@ -473,7 +473,7 @@ export class SoulLoadingComponent implements OnInit {
   @Input() showProgress: boolean = false;
   @Input() progressSteps: number = 3;
   @Input() currentProgress: number = 0;
-  
+
   progressDots: number[] = [];
 
   get orbSize(): number {
@@ -503,10 +503,10 @@ export class SoulLoadingComponent implements OnInit {
 
   getLoadingAriaLabel(): string {
     const title = this.getLoadingTitle();
-    const progressInfo = this.showProgress 
-      ? ` Step ${this.currentProgress + 1} of ${this.progressSteps}.` 
+    const progressInfo = this.showProgress
+      ? ` Step ${this.currentProgress + 1} of ${this.progressSteps}.`
       : '';
-    
+
     return `${title}${progressInfo} Please wait while we prepare your experience.`;
   }
 

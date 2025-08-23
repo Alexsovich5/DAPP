@@ -3,9 +3,9 @@
 ## Sprint Overview
 **Goal**: Transform the 74 test failures from implementation gaps to working features with complete business logic
 
-**Duration**: 2-3 weeks  
+**Duration**: 2-3 weeks
 **Foundation**: ✅ Solid infrastructure from Sprint 6 (Router, DB, Auth all operational)
-**Current State**: 90 passing, 41 errors, 74 failures - Infrastructure stable, features need implementation  
+**Current State**: 90 passing, 41 errors, 74 failures - Infrastructure stable, features need implementation
 **Target State**: 150+ passing tests with core business features fully implemented
 
 ---
@@ -14,7 +14,7 @@
 
 ### Primary Goals
 1. **Authentication Token Validation** - Fix remaining 401 errors in API endpoints
-2. **Service Implementation** - Complete missing business logic methods  
+2. **Service Implementation** - Complete missing business logic methods
 3. **Business Rule Enforcement** - Implement matching algorithms, revelation cycles
 4. **Integration Testing** - Advanced feature scenario validation
 
@@ -34,7 +34,7 @@
 - **Task**: Fix authentication 401 errors across all API endpoints
 - **Acceptance Criteria**:
   - [ ] Profile API tests authenticate correctly (3 tests fixed)
-  - [ ] Matches API tests pass authentication (5 tests fixed)  
+  - [ ] Matches API tests pass authentication (5 tests fixed)
   - [ ] Soul connections authenticate properly (8 tests fixed)
   - [ ] Messages API authentication working (4 tests fixed)
   - [ ] Photo reveal endpoints authenticated (6 tests fixed)
@@ -121,7 +121,7 @@
   - [ ] Message type handling (text, revelation, photo)
   - [ ] Message history and search
 - **Files**: `app/services/message_service.py`, `tests/test_messages.py`
-- **Impact**: Fixes 6+ message test failures  
+- **Impact**: Fixes 6+ message test failures
 - **Priority**: High
 
 ---
@@ -268,7 +268,7 @@ python -m pytest --cov=app --cov-report=html  # Track feature coverage improveme
 ### Test Improvements (Conservative Estimates)
 - **Authentication Fixes**: +25 passing tests (401 → 200 responses)
 - **Photo Reveal Service**: +15 passing tests
-- **Revelation Management**: +12 passing tests  
+- **Revelation Management**: +12 passing tests
 - **WebSocket Features**: +8 passing tests
 - **Soul Connection Logic**: +10 passing tests
 - **Integration Tests**: +8 passing tests

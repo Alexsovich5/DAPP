@@ -663,7 +663,7 @@ describe('RevelationTimelineComponent', () => {
 
       const currentDayCard = fixture.debugElement.query(By.css('.day-card.current'));
       const createButton = currentDayCard.query(By.css('.create-revelation-button'));
-      
+
       expect(createButton).toBeTruthy();
       expect(createButton.nativeElement.textContent).toContain('Share Your');
     }));
@@ -789,7 +789,7 @@ describe('RevelationTimelineComponent', () => {
 
       const revelationCard = fixture.debugElement.query(By.css('.partner-revelation'));
       const reactionButton = revelationCard.query(By.css('.add-reaction'));
-      
+
       reactionButton.triggerEventHandler('click', {});
       fixture.detectChanges();
 
@@ -996,7 +996,7 @@ describe('RevelationTimelineComponent', () => {
       tick();
 
       expect(component.handleRevelationUpdate).toHaveBeenCalledWith(revelationUpdate);
-      
+
       // Should update the timeline
       const day3 = component.revelationTimeline.find(day => day.day_number === 3);
       expect(day3?.partner_revelation).toEqual(newRevelation);
@@ -1084,7 +1084,7 @@ describe('RevelationTimelineComponent', () => {
 
     it('should adapt layout for mobile screens', fakeAsync(() => {
       spyOnProperty(window, 'innerWidth').and.returnValue(375);
-      
+
       fixture.detectChanges();
       tick();
 

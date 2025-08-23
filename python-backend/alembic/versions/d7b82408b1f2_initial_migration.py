@@ -6,8 +6,8 @@ Create Date: 2025-04-17 10:00:00.000000
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "d7b82408b1f2"
@@ -30,8 +30,7 @@ def upgrade():
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_users_email"), "users", ["email"], unique=True)
-    op.create_index(op.f("ix_users_username"),
-                    "users", ["username"], unique=True)
+    op.create_index(op.f("ix_users_username"), "users", ["username"], unique=True)
     # Create profiles table
     op.create_table(
         "profiles",
@@ -61,8 +60,7 @@ def upgrade():
         sa.Column("recipient_id", sa.Integer(), nullable=False),
         sa.Column(
             "status",
-            sa.Enum("pending", "accepted", "rejected",
-                    "cancelled", name="matchstatus"),
+            sa.Enum("pending", "accepted", "rejected", "cancelled", name="matchstatus"),
             nullable=False,
         ),
         sa.Column("restaurant_preference", sa.String(), nullable=True),

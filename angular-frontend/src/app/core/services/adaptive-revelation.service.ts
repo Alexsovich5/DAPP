@@ -74,7 +74,7 @@ export interface TimingRecommendation {
 })
 export class AdaptiveRevelationService {
   private readonly apiUrl = `${environment.apiUrl}/adaptive-revelations`;
-  
+
   // Real-time state management
   private currentPromptsSubject = new BehaviorSubject<AdaptiveRevelationPrompt[]>([]);
   private revelationProgressSubject = new BehaviorSubject<RevelationProgress | null>(null);
@@ -91,8 +91,8 @@ export class AdaptiveRevelationService {
    * Generate adaptive revelation prompts for a connection
    */
   generateAdaptivePrompts(
-    connectionId: number, 
-    revelationDay: number, 
+    connectionId: number,
+    revelationDay: number,
     count: number = 3
   ): Observable<AdaptiveRevelationPrompt[]> {
     const request = {
@@ -278,11 +278,11 @@ export class AdaptiveRevelationService {
       map(timing => {
         const currentHour = new Date().getHours();
         const isOptimalTime = timing.recommended_hours.includes(currentHour);
-        
+
         if (isOptimalTime) {
           return 'Now is a great time to share your revelation!';
         } else {
-          const nextOptimal = timing.recommended_hours.find(hour => hour > currentHour) 
+          const nextOptimal = timing.recommended_hours.find(hour => hour > currentHour)
                            || timing.recommended_hours[0];
           return `Consider sharing around ${nextOptimal}:00 ${timing.optimal_day_time}`;
         }
@@ -344,12 +344,11 @@ export class AdaptiveRevelationService {
   private handleError<T>(operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
       console.error(`${operation} failed:`, error);
-      
+
       // You could show user-friendly error messages here
       // this.snackBar.open(`Failed to ${operation}. Please try again.`, 'Close');
-      
+
       return of(result as T);
     };
   }
 }
-

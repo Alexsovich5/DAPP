@@ -18,10 +18,10 @@ import { MatchCelebrationComponent } from '../match-celebration/match-celebratio
       <div style="position: relative; z-index: 1000;">
         <app-navigation></app-navigation>
       </div>
-      
+
       <div class="demo-content">
         <h1>Navigation & Loading Components Demo</h1>
-        
+
         <section class="demo-section">
           <h2>Updated Navigation</h2>
           <p>Navigation now has 3 main sections instead of 5:</p>
@@ -38,24 +38,24 @@ import { MatchCelebrationComponent } from '../match-celebration/match-celebratio
           <div class="loading-demos">
             <div class="loading-demo">
               <h3>Discovery Loading</h3>
-              <app-loading-screen 
-                screenType="discovery" 
+              <app-loading-screen
+                screenType="discovery"
                 loadingText="Finding your perfect soul matches...">
               </app-loading-screen>
             </div>
-            
+
             <div class="loading-demo">
               <h3>Conversations Loading</h3>
-              <app-loading-screen 
-                screenType="conversations" 
+              <app-loading-screen
+                screenType="conversations"
                 loadingText="Loading your heart connections...">
               </app-loading-screen>
             </div>
-            
+
             <div class="loading-demo">
               <h3>Profile Loading</h3>
-              <app-loading-screen 
-                screenType="profile" 
+              <app-loading-screen
+                screenType="profile"
                 loadingText="Revealing your soul story...">
               </app-loading-screen>
             </div>
@@ -78,29 +78,29 @@ import { MatchCelebrationComponent } from '../match-celebration/match-celebratio
         <section class="demo-section">
           <h2>🌟 Enhanced Soul Visualizations</h2>
           <p>Revolutionary soul connection graphics that replace basic emojis with sophisticated animations.</p>
-          
+
           <h3>Soul Orbs</h3>
           <div class="soul-orbs-demo">
-            <app-soul-orb 
-              type="primary" 
-              size="large" 
-              state="active" 
+            <app-soul-orb
+              type="primary"
+              size="large"
+              state="active"
               [energyLevel]="4"
               [compatibilityScore]="85"
               [showCompatibility]="true">
             </app-soul-orb>
-            <app-soul-orb 
-              type="secondary" 
-              size="large" 
-              state="matched" 
+            <app-soul-orb
+              type="secondary"
+              size="large"
+              state="matched"
               [energyLevel]="5"
               [compatibilityScore]="92"
               [showCompatibility]="true">
             </app-soul-orb>
-            <app-soul-orb 
-              type="neutral" 
-              size="medium" 
-              state="connecting" 
+            <app-soul-orb
+              type="neutral"
+              size="medium"
+              state="connecting"
               [energyLevel]="2">
             </app-soul-orb>
           </div>
@@ -122,7 +122,7 @@ import { MatchCelebrationComponent } from '../match-celebration/match-celebratio
         <section class="demo-section">
           <h2>📊 Compatibility Analysis</h2>
           <p>Advanced radar visualization showing multi-dimensional soul compatibility.</p>
-          
+
           <div class="compatibility-demo">
             <app-compatibility-radar
               [compatibilityData]="{values: 92, interests: 76, communication: 88, lifestyle: 73, goals: 85, personality: 91}"
@@ -138,14 +138,14 @@ import { MatchCelebrationComponent } from '../match-celebration/match-celebratio
         <section class="demo-section">
           <h2>🎉 Match Celebration</h2>
           <p>Immersive celebration experience for successful soul connections.</p>
-          
+
           <div class="celebration-demo">
-            <button 
+            <button
               class="demo-button celebration-trigger"
               (click)="showCelebration = true">
               ✨ Trigger Soul Match Celebration
             </button>
-            
+
             <app-match-celebration
               [isActive]="showCelebration"
               [compatibilityScore]="91"
@@ -285,7 +285,7 @@ import { MatchCelebrationComponent } from '../match-celebration/match-celebratio
         padding: 1rem;
         margin-top: 70px;
       }
-      
+
       .loading-demos {
         grid-template-columns: 1fr;
       }

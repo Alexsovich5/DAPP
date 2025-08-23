@@ -12,7 +12,7 @@ export class ThemeService {
   private readonly storageKey = 'dinner-app-theme';
   private readonly themeSubject = new BehaviorSubject<Theme>(this.getInitialTheme());
   private readonly isBrowser: boolean;
-  
+
   readonly currentTheme$ = this.themeSubject.asObservable();
 
   constructor(
@@ -20,10 +20,10 @@ export class ThemeService {
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
-    
+
     // Apply initial theme on service creation
     this.applyTheme(this.themeSubject.value);
-    
+
     // Listen for system theme changes (browser only)
     if (this.isBrowser && typeof window !== 'undefined' && window.matchMedia) {
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
@@ -81,19 +81,19 @@ export class ThemeService {
     if (!this.isBrowser || typeof document === 'undefined') {
       return;
     }
-    
+
     const body = document.body;
     const htmlElement = document.documentElement;
-    
+
     // Remove existing theme classes
     body.classList.remove('light-theme', 'dark-theme');
     htmlElement.classList.remove('light-theme', 'dark-theme');
-    
+
     // Add new theme class
     const themeClass = `${theme}-theme`;
     body.classList.add(themeClass);
     htmlElement.classList.add(themeClass);
-    
+
     // Update meta theme-color for mobile browsers
     this.updateMetaThemeColor(theme);
   }
@@ -102,10 +102,10 @@ export class ThemeService {
     if (!this.isBrowser || typeof document === 'undefined') {
       return;
     }
-    
+
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     const color = theme === 'dark' ? '#111827' : '#ffffff';
-    
+
     if (metaThemeColor) {
       metaThemeColor.setAttribute('content', color);
     } else {

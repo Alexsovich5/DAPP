@@ -63,21 +63,21 @@ generate_redis_password() {
 # Check if required tools are installed
 check_dependencies() {
     log "Checking dependencies..."
-    
+
     local missing_tools=()
-    
+
     if ! command -v openssl &> /dev/null; then
         missing_tools+=("openssl")
     fi
-    
+
     if ! command -v python3 &> /dev/null; then
         missing_tools+=("python3")
     fi
-    
+
     if ! python3 -c "import cryptography" &> /dev/null; then
         missing_tools+=("python3-cryptography")
     fi
-    
+
     if [ ${#missing_tools[@]} -ne 0 ]; then
         error "Missing required tools: ${missing_tools[*]}"
         echo "Please install missing dependencies:"
@@ -85,55 +85,55 @@ check_dependencies() {
         echo "  macOS: brew install openssl python3 && pip3 install cryptography"
         exit 1
     fi
-    
+
     success "All dependencies are installed"
 }
 
 # Create secrets directory
 create_secrets_directory() {
     log "Creating secrets directory..."
-    
+
     mkdir -p "$SECRETS_DIR"
     chmod 700 "$SECRETS_DIR"
-    
+
     success "Secrets directory created at $SECRETS_DIR"
 }
 
 # Generate database encryption key
 generate_database_encryption() {
     log "Generating database encryption configuration..."
-    
+
     local key=$(generate_secret 32)
     echo "$key" > "$SECRETS_DIR/db_encryption_key"
     chmod 600 "$SECRETS_DIR/db_encryption_key"
-    
+
     success "Database encryption key generated"
 }
 
 # Generate SSL certificate (self-signed for development/staging)
 generate_ssl_certificate() {
     local domain=${1:-dinner1.local}
-    
+
     log "Generating SSL certificate for $domain..."
-    
+
     mkdir -p "$SECRETS_DIR/ssl"
-    
+
     # Generate private key
     openssl genrsa -out "$SECRETS_DIR/ssl/dinner1.key" 2048
-    
+
     # Generate certificate signing request
     openssl req -new -key "$SECRETS_DIR/ssl/dinner1.key" -out "$SECRETS_DIR/ssl/dinner1.csr" -subj "/C=US/ST=CA/L=San Francisco/O=Dinner1/CN=$domain"
-    
+
     # Generate self-signed certificate
     openssl x509 -req -days 365 -in "$SECRETS_DIR/ssl/dinner1.csr" -signkey "$SECRETS_DIR/ssl/dinner1.key" -out "$SECRETS_DIR/ssl/dinner1.crt"
-    
+
     # Set proper permissions
     chmod 600 "$SECRETS_DIR/ssl/dinner1.key"
     chmod 644 "$SECRETS_DIR/ssl/dinner1.crt"
-    
+
     # Clean up CSR
     rm "$SECRETS_DIR/ssl/dinner1.csr"
-    
+
     success "SSL certificate generated for $domain"
     warning "This is a self-signed certificate. Use a proper CA certificate in production."
 }
@@ -141,22 +141,22 @@ generate_ssl_certificate() {
 # Generate environment file with secrets
 generate_environment_file() {
     log "Generating production environment file..."
-    
+
     if [[ -f "$ENV_FILE" ]]; then
         warning "Environment file already exists. Creating backup..."
         cp "$ENV_FILE" "$ENV_FILE.backup.$(date +%Y%m%d_%H%M%S)"
     fi
-    
+
     # Copy example file as base
     cp "$PROJECT_ROOT/.env.production.example" "$ENV_FILE"
-    
+
     # Generate secrets
     local jwt_secret=$(generate_jwt_secret)
     local encryption_key=$(generate_encryption_key)
     local postgres_password=$(generate_postgres_password)
     local redis_password=$(generate_redis_password)
     local app_secret=$(generate_secret 32)
-    
+
     # Replace placeholders in environment file
     if [[ "$OSTYPE" == "darwin"* ]]; then
         # macOS
@@ -171,10 +171,10 @@ generate_environment_file() {
         sed -i "s/your_secure_password/$postgres_password/g" "$ENV_FILE"
         sed -i "s/your_secure_redis_password/$redis_password/g" "$ENV_FILE"
     fi
-    
+
     # Set proper permissions
     chmod 600 "$ENV_FILE"
-    
+
     # Store secrets separately for reference
     cat > "$SECRETS_DIR/generated_secrets.txt" << EOF
 # Generated Secrets for Dinner1 Production
@@ -192,45 +192,45 @@ SSL_CERT_PATH=$SECRETS_DIR/ssl/dinner1.crt
 SSL_KEY_PATH=$SECRETS_DIR/ssl/dinner1.key
 
 EOF
-    
+
     chmod 600 "$SECRETS_DIR/generated_secrets.txt"
-    
+
     success "Environment file generated with secure secrets"
 }
 
 # Generate Docker secrets
 generate_docker_secrets() {
     log "Generating Docker secrets..."
-    
+
     mkdir -p "$SECRETS_DIR/docker"
-    
+
     # JWT Secret
     echo "$(generate_jwt_secret)" > "$SECRETS_DIR/docker/jwt_secret"
-    
+
     # Database password
     echo "$(generate_postgres_password)" > "$SECRETS_DIR/docker/postgres_password"
-    
+
     # Redis password
     echo "$(generate_redis_password)" > "$SECRETS_DIR/docker/redis_password"
-    
+
     # Encryption key
     echo "$(generate_encryption_key)" > "$SECRETS_DIR/docker/encryption_key"
-    
+
     # Set proper permissions
     chmod 600 "$SECRETS_DIR/docker/"*
-    
+
     success "Docker secrets generated"
 }
 
 # Generate Kubernetes secrets manifest
 generate_k8s_secrets() {
     log "Generating Kubernetes secrets manifest..."
-    
+
     local jwt_secret_b64=$(echo -n "$(generate_jwt_secret)" | base64)
     local postgres_password_b64=$(echo -n "$(generate_postgres_password)" | base64)
     local redis_password_b64=$(echo -n "$(generate_redis_password)" | base64)
     local encryption_key_b64=$(echo -n "$(generate_encryption_key)" | base64)
-    
+
     cat > "$SECRETS_DIR/k8s-secrets.yaml" << EOF
 apiVersion: v1
 kind: Secret
@@ -254,16 +254,16 @@ data:
   tls.crt: $(base64 -i "$SECRETS_DIR/ssl/dinner1.crt" 2>/dev/null || base64 < "$SECRETS_DIR/ssl/dinner1.crt")
   tls.key: $(base64 -i "$SECRETS_DIR/ssl/dinner1.key" 2>/dev/null || base64 < "$SECRETS_DIR/ssl/dinner1.key")
 EOF
-    
+
     chmod 600 "$SECRETS_DIR/k8s-secrets.yaml"
-    
+
     success "Kubernetes secrets manifest generated"
 }
 
 # Generate AWS Secrets Manager commands
 generate_aws_secrets() {
     log "Generating AWS Secrets Manager commands..."
-    
+
     cat > "$SECRETS_DIR/aws-secrets.sh" << 'EOF'
 #!/bin/bash
 # AWS Secrets Manager setup commands for Dinner1
@@ -294,43 +294,43 @@ aws secretsmanager create-secret \
 
 echo "AWS Secrets Manager secrets created successfully"
 EOF
-    
+
     chmod +x "$SECRETS_DIR/aws-secrets.sh"
-    
+
     success "AWS Secrets Manager commands generated"
 }
 
 # Validate environment file
 validate_environment_file() {
     log "Validating environment file..."
-    
+
     local required_vars=(
         "JWT_SECRET"
         "ENCRYPTION_KEY"
         "DATABASE_URL"
         "REDIS_URL"
     )
-    
+
     local missing_vars=()
-    
+
     for var in "${required_vars[@]}"; do
         if ! grep -q "^${var}=" "$ENV_FILE" || grep -q "your_.*_here" "$ENV_FILE"; then
             missing_vars+=("$var")
         fi
     done
-    
+
     if [ ${#missing_vars[@]} -ne 0 ]; then
         error "Missing or incomplete environment variables: ${missing_vars[*]}"
         return 1
     fi
-    
+
     success "Environment file validation passed"
 }
 
 # Generate security audit checklist
 generate_security_checklist() {
     log "Generating security checklist..."
-    
+
     cat > "$SECRETS_DIR/security-checklist.md" << EOF
 # Dinner1 Production Security Checklist
 
@@ -386,16 +386,16 @@ generate_security_checklist() {
 
 Generated on: $(date)
 EOF
-    
+
     success "Security checklist generated"
 }
 
 # Generate .gitignore for secrets
 update_gitignore() {
     log "Updating .gitignore for secrets..."
-    
+
     local gitignore_file="$PROJECT_ROOT/.gitignore"
-    
+
     # Add secrets-related patterns to .gitignore
     cat >> "$gitignore_file" << EOF
 
@@ -423,14 +423,14 @@ certificates/
 *.backup
 *.bak
 EOF
-    
+
     success "Updated .gitignore with secrets patterns"
 }
 
 # Main setup function
 main() {
     log "Starting Dinner1 production secrets setup..."
-    
+
     # Check if running as root (not recommended)
     if [[ $EUID -eq 0 ]]; then
         warning "Running as root is not recommended for security reasons"
@@ -440,7 +440,7 @@ main() {
             exit 1
         fi
     fi
-    
+
     # Run setup steps
     check_dependencies
     create_secrets_directory
@@ -453,9 +453,9 @@ main() {
     validate_environment_file
     generate_security_checklist
     update_gitignore
-    
+
     success "Secrets setup completed successfully!"
-    
+
     echo ""
     echo "📋 Next steps:"
     echo "1. Review the generated environment file: $ENV_FILE"
@@ -469,7 +469,7 @@ main() {
     echo "- Keep the secrets directory secure and backed up"
     echo "- Rotate secrets regularly according to your security policy"
     echo "- Use a proper CA certificate for production SSL"
-    
+
     warning "The generated SSL certificate is self-signed. Obtain a proper certificate from a CA for production use."
 }
 

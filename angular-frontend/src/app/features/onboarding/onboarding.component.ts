@@ -225,7 +225,7 @@ export class OnboardingComponent implements OnInit, OnDestroy {
 
   private checkStepCompletion(): void {
     const currentPath = this.router.url.split('/').pop();
-    
+
     // Check if current step has saved data
     switch (currentPath) {
       case 'emotional-questions':

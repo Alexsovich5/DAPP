@@ -231,11 +231,11 @@ interface AppSettings {
                 <p>Minimum compatibility score to show matches</p>
               </div>
               <div class="range-setting">
-                <input 
-                  type="range" 
+                <input
+                  type="range"
                   [(ngModel)]="appSettings.compatibilityThreshold"
-                  min="30" 
-                  max="90" 
+                  min="30"
+                  max="90"
                   step="5"
                   class="setting-range"
                 >
@@ -624,21 +624,21 @@ interface AppSettings {
       .settings-container {
         padding: 0.5rem;
       }
-      
+
       .settings-section {
         padding: 1rem;
       }
-      
+
       .setting-item, .action-item {
         flex-direction: column;
         align-items: stretch;
         gap: 0.75rem;
       }
-      
+
       .setting-select {
         min-width: auto;
       }
-      
+
       .save-actions {
         flex-direction: column;
         align-items: stretch;
@@ -807,9 +807,9 @@ export class SettingsComponent implements OnInit {
 
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
+
     const exportFileDefaultName = `dinner_first-data-${new Date().toISOString().split('T')[0]}.json`;
-    
+
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', exportFileDefaultName);

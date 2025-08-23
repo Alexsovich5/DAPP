@@ -12,7 +12,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
   standalone: true,
   imports: [CommonModule, MatButtonModule, MatIconModule],
   template: `
-    <div 
+    <div
       class="onboarding-overlay"
       *ngIf="currentStep && currentStep.showOverlay"
       [@overlayAnimation]="'visible'"
@@ -21,7 +21,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       aria-hidden="true">
     </div>
 
-    <div 
+    <div
       class="onboarding-tooltip"
       #tooltip
       *ngIf="currentStep"
@@ -35,7 +35,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       [attr.aria-labelledby]="'tooltip-title-' + currentStep.id"
       [attr.aria-describedby]="'tooltip-description-' + currentStep.id"
       aria-modal="true">
-      
+
       <!-- Soul Energy Animation for Emotional Themes -->
       <div class="soul-energy" [ngClass]="'energy-' + (currentStep.emotionalTheme || 'discovery')">
         <svg class="energy-orb" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
@@ -46,12 +46,12 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
               <stop offset="100%" [attr.stop-color]="getEnergyColors().outer"/>
             </radialGradient>
           </defs>
-          <circle 
+          <circle
             cx="20" cy="20" r="15"
             [attr.fill]="'url(#energy-gradient-' + currentStep.id + ')'"
             class="energy-core">
           </circle>
-          <circle 
+          <circle
             cx="20" cy="20" r="18"
             fill="none"
             [attr.stroke]="getEnergyColors().accent"
@@ -66,13 +66,13 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       <div class="tooltip-content">
         <!-- Header -->
         <div class="tooltip-header">
-          <h3 
+          <h3
             [id]="'tooltip-title-' + currentStep.id"
             class="tooltip-title">
             {{ currentStep.title }}
           </h3>
-          
-          <button 
+
+          <button
             class="close-btn"
             type="button"
             aria-label="Close tutorial"
@@ -84,7 +84,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
         </div>
 
         <!-- Description -->
-        <div 
+        <div
           [id]="'tooltip-description-' + currentStep.id"
           class="tooltip-description">
           <p>{{ currentStep.description }}</p>
@@ -93,7 +93,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
         <!-- Progress Indicator -->
         <div class="progress-container" *ngIf="showProgress">
           <div class="progress-bar">
-            <div 
+            <div
               class="progress-fill"
               [style.width.%]="progressPercentage">
             </div>
@@ -105,7 +105,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
 
         <!-- Action Buttons -->
         <div class="tooltip-actions" role="group" aria-label="Tutorial navigation">
-          <button 
+          <button
             *ngFor="let action of currentStep.actions; trackBy: trackAction"
             class="action-btn"
             [ngClass]="{ 'primary': action.primary, 'secondary': !action.primary }"
@@ -121,7 +121,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
         <!-- Keyboard Hint -->
         <div class="keyboard-hint" *ngIf="showKeyboardHints">
           <small>
-            <kbd>Esc</kbd> to close • 
+            <kbd>Esc</kbd> to close •
             <kbd>Space</kbd> or <kbd>Enter</kbd> for primary action •
             <kbd>→</kbd> next • <kbd>←</kbd> previous
           </small>
@@ -129,7 +129,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       </div>
 
       <!-- Pointer Arrow -->
-      <div 
+      <div
         class="tooltip-arrow"
         *ngIf="currentStep.targetSelector && currentStep.position !== 'center'"
         [ngClass]="'arrow-' + currentStep.position"
@@ -158,7 +158,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       min-width: 300px;
       background: var(--surface-color);
       border-radius: 16px;
-      box-shadow: 
+      box-shadow:
         0 24px 48px rgba(0, 0, 0, 0.15),
         0 8px 24px rgba(0, 0, 0, 0.1),
         0 0 0 1px rgba(255, 255, 255, 0.1);
@@ -194,29 +194,29 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
     /* Emotional Themes */
     .theme-discovery {
       border-color: rgba(96, 165, 250, 0.3);
-      background: linear-gradient(135deg, 
-        var(--surface-color) 0%, 
+      background: linear-gradient(135deg,
+        var(--surface-color) 0%,
         rgba(96, 165, 250, 0.05) 100%);
     }
 
     .theme-connection {
       border-color: rgba(255, 107, 157, 0.3);
-      background: linear-gradient(135deg, 
-        var(--surface-color) 0%, 
+      background: linear-gradient(135deg,
+        var(--surface-color) 0%,
         rgba(255, 107, 157, 0.05) 100%);
     }
 
     .theme-growth {
       border-color: rgba(52, 211, 153, 0.3);
-      background: linear-gradient(135deg, 
-        var(--surface-color) 0%, 
+      background: linear-gradient(135deg,
+        var(--surface-color) 0%,
         rgba(52, 211, 153, 0.05) 100%);
     }
 
     .theme-celebration {
       border-color: rgba(255, 215, 0, 0.3);
-      background: linear-gradient(135deg, 
-        var(--surface-color) 0%, 
+      background: linear-gradient(135deg,
+        var(--surface-color) 0%,
         rgba(255, 215, 0, 0.05) 100%);
     }
 
@@ -277,7 +277,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       transition: all 0.2s ease;
       margin-left: 1rem;
       flex-shrink: 0;
-      
+
       &:hover, &:focus {
         background: var(--surface-secondary);
         color: var(--text-primary);
@@ -286,7 +286,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
 
     .tooltip-description {
       margin-bottom: 1.5rem;
-      
+
       p {
         color: var(--text-secondary);
         font-size: 1rem;
@@ -315,7 +315,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       border-radius: 2px;
       transition: width 0.3s ease;
       position: relative;
-      
+
       &::after {
         content: '';
         position: absolute;
@@ -351,38 +351,38 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       transition: all 0.2s ease;
       position: relative;
       overflow: hidden;
-      
+
       &:disabled {
         opacity: 0.6;
         cursor: not-allowed;
       }
-      
+
       &.primary {
         background: var(--primary-color);
         color: white;
-        
+
         &:hover:not(:disabled) {
           background: var(--primary-color-dark);
           transform: translateY(-1px);
           box-shadow: 0 4px 12px rgba(255, 107, 157, 0.4);
         }
-        
+
         &:focus {
           outline: 2px solid var(--primary-color);
           outline-offset: 2px;
         }
       }
-      
+
       &.secondary {
         background: var(--surface-secondary);
         color: var(--text-primary);
         border: 1px solid var(--border-color);
-        
+
         &:hover:not(:disabled) {
           background: var(--surface-tertiary);
           transform: translateY(-1px);
         }
-        
+
         &:focus {
           outline: 2px solid var(--focus-ring-secondary);
           outline-offset: 2px;
@@ -395,12 +395,12 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       margin-top: 1rem;
       padding-top: 1rem;
       border-top: 1px solid var(--border-color);
-      
+
       small {
         color: var(--text-tertiary);
         font-size: 0.75rem;
       }
-      
+
       kbd {
         background: var(--surface-secondary);
         border: 1px solid var(--border-color);
@@ -449,13 +449,13 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
 
     /* Animations */
     @keyframes energy-pulse {
-      0%, 100% { 
-        transform: scale(1); 
-        opacity: 1; 
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
       }
-      50% { 
-        transform: scale(1.1); 
-        opacity: 0.8; 
+      50% {
+        transform: scale(1.1);
+        opacity: 0.8;
       }
     }
 
@@ -492,7 +492,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
 
       .tooltip-actions {
         flex-direction: column;
-        
+
         .action-btn {
           width: 100%;
           justify-content: center;
@@ -504,16 +504,16 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
     .dark-theme {
       .onboarding-tooltip {
         background: var(--surface-color);
-        box-shadow: 
+        box-shadow:
           0 24px 48px rgba(0, 0, 0, 0.3),
           0 8px 24px rgba(0, 0, 0, 0.2),
           0 0 0 1px rgba(255, 255, 255, 0.05);
       }
-      
+
       .progress-bar {
         background: var(--surface-tertiary);
       }
-      
+
       .keyboard-hint kbd {
         background: var(--surface-tertiary);
         border-color: var(--border-color);
@@ -527,7 +527,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       .progress-fill::after {
         animation: none !important;
       }
-      
+
       .action-btn:hover {
         transform: none !important;
       }
@@ -538,7 +538,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       .onboarding-tooltip {
         border: 3px solid var(--text-primary);
       }
-      
+
       .action-btn.primary {
         border: 2px solid var(--text-primary);
       }
@@ -556,20 +556,20 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
     ]),
     trigger('tooltipAnimation', [
       transition(':enter', [
-        style({ 
-          opacity: 0, 
+        style({
+          opacity: 0,
           transform: 'scale(0.8) translateY(-20px)',
           filter: 'blur(4px)'
         }),
-        animate('400ms cubic-bezier(0.4, 0, 0.2, 1)', style({ 
-          opacity: 1, 
+        animate('400ms cubic-bezier(0.4, 0, 0.2, 1)', style({
+          opacity: 1,
           transform: 'scale(1) translateY(0)',
           filter: 'blur(0px)'
         }))
       ]),
       transition(':leave', [
-        animate('200ms ease-in', style({ 
-          opacity: 0, 
+        animate('200ms ease-in', style({
+          opacity: 0,
           transform: 'scale(0.9) translateY(-10px)',
           filter: 'blur(2px)'
         }))
@@ -651,7 +651,7 @@ export class OnboardingTooltipComponent implements OnInit, OnDestroy, AfterViewI
 
     setTimeout(() => {
       const tooltip = this.tooltipElement?.nativeElement;
-      const target = this.currentStep?.targetSelector ? 
+      const target = this.currentStep?.targetSelector ?
         document.querySelector(this.currentStep.targetSelector) : null;
 
       if (!tooltip || !target) return;
@@ -823,7 +823,7 @@ export class OnboardingTooltipComponent implements OnInit, OnDestroy, AfterViewI
    */
   getEnergyColors(): { center: string; middle: string; outer: string; accent: string } {
     const theme = this.currentStep?.emotionalTheme || 'discovery';
-    
+
     const themes = {
       discovery: {
         center: '#ffffff',

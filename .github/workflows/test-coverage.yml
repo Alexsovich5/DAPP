@@ -15,7 +15,7 @@ jobs:
   backend-tests:
     name: Backend Tests & Coverage
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:15
@@ -154,13 +154,13 @@ jobs:
         const coverage = require('./coverage/coverage-summary.json');
         const total = coverage.total;
         const threshold = 65;
-        
+
         console.log('Coverage Summary:');
         console.log('Lines:', total.lines.pct + '%');
         console.log('Statements:', total.statements.pct + '%');
         console.log('Functions:', total.functions.pct + '%');
         console.log('Branches:', total.branches.pct + '%');
-        
+
         if (total.lines.pct < threshold) {
           console.error('Coverage below threshold of ' + threshold + '%');
           process.exit(1);
@@ -199,7 +199,7 @@ jobs:
   security-tests:
     name: Security & Vulnerability Tests
     runs-on: ubuntu-latest
-    
+
     defaults:
       run:
         working-directory: python-backend
@@ -222,7 +222,7 @@ jobs:
       run: |
         # Run Bandit security linter
         bandit -r app/ -f json -o bandit-report.json || true
-        
+
         # Check for known vulnerabilities
         safety check --json --output safety-report.json || true
 
@@ -312,20 +312,20 @@ jobs:
         python -c "
         import requests
         import time
-        
+
         # Test complete soul connection workflow
         base_url = 'http://localhost:5000'
-        
+
         # Test health endpoint
         response = requests.get(f'{base_url}/health')
         assert response.status_code == 200
         print('✅ Backend health check passed')
-        
+
         # Test API documentation
         response = requests.get(f'{base_url}/docs')
         assert response.status_code == 200
         print('✅ API documentation accessible')
-        
+
         print('✅ Integration tests completed successfully')
         "
 
@@ -381,7 +381,7 @@ jobs:
     - name: Download frontend test results
       uses: actions/download-artifact@v4
       with:
-        name: frontend-test-results  
+        name: frontend-test-results
         path: frontend-coverage/
 
     - name: Generate combined coverage report
@@ -395,19 +395,19 @@ jobs:
         echo "" >> coverage-report.md
         echo "## 📊 Coverage Results" >> coverage-report.md
         echo "" >> coverage-report.md
-        
+
         if [ -f backend-coverage/coverage.xml ]; then
           echo "✅ Backend tests completed successfully" >> coverage-report.md
         else
           echo "❌ Backend tests failed or incomplete" >> coverage-report.md
         fi
-        
+
         if [ -f frontend-coverage/coverage/lcov.info ]; then
           echo "✅ Frontend tests completed successfully" >> coverage-report.md
         else
           echo "❌ Frontend tests failed or incomplete" >> coverage-report.md
         fi
-        
+
         echo "" >> coverage-report.md
         echo "## 🚀 Soul Before Skin Features Tested" >> coverage-report.md
         echo "- ✅ Soul Connection Matching Algorithm" >> coverage-report.md
@@ -453,7 +453,7 @@ jobs:
         backend_status="${{ needs.backend-tests.result }}"
         frontend_status="${{ needs.frontend-tests.result }}"
         integration_status="${{ needs.integration-tests.result }}"
-        
+
         if [[ "$backend_status" == "success" && "$frontend_status" == "success" && "$integration_status" == "success" ]]; then
           echo "status=success" >> $GITHUB_OUTPUT
           echo "message=🎉 Sprint 2 Day 1 Testing Complete! All tests passed." >> $GITHUB_OUTPUT
@@ -473,7 +473,7 @@ jobs:
         echo "- Integration Tests: ${{ needs.integration-tests.result }}" >> $GITHUB_STEP_SUMMARY
         echo "- Performance Tests: ${{ needs.performance-tests.result }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 📈 Coverage Progress:" >> $GITHUB_STEP_SUMMARY  
+        echo "### 📈 Coverage Progress:" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Soul Connection System Tests Implemented" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Security Headers Middleware Tests Added" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Revelation System Comprehensive Testing" >> $GITHUB_STEP_SUMMARY

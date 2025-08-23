@@ -326,7 +326,7 @@ cd python-backend
 source venv/bin/activate
 python -m pytest tests/
 
-# Frontend tests  
+# Frontend tests
 cd angular-frontend
 npm test
 

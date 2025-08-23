@@ -1,23 +1,24 @@
+import logging
 from datetime import timedelta
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
-import logging
-
+from app.api.v1.deps import get_current_user
 from app.core.database import get_db
 from app.core.security import (
-    verify_password,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
     create_access_token,
     create_refresh_token,
-    verify_token,
     get_password_hash,
-    ACCESS_TOKEN_EXPIRE_MINUTES,
+    verify_password,
+    verify_token,
 )
 from app.models.user import User
-from app.schemas.auth import UserCreate, Token, LoginResponse, User as UserSchema
-from app.api.v1.deps import get_current_user
+from app.schemas.auth import LoginResponse, Token
+from app.schemas.auth import User as UserSchema
+from app.schemas.auth import UserCreate
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -90,9 +91,7 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)) -> Any:
 
         logger.info(f"Successfully created user: {new_user.email}")
         return LoginResponse(
-            access_token=access_token,
-            token_type="bearer",
-            user=new_user
+            access_token=access_token, token_type="bearer", user=new_user
         )
     except HTTPException:
         raise
@@ -118,6 +117,8 @@ def login(
     # Log login attempt (without password)
     client_host = request.client.host if request else "unknown"
     logger.info(f"Login attempt for user: {form_data.username} from {client_host}")
+
+    # Session sharing is working correctly via engine-level override
 
     # First try to find user by email
     # (since form_data.username field is used for both)
@@ -158,11 +159,7 @@ def login(
     )
 
     logger.info(f"Successful login for user: {user.email}")
-    return LoginResponse(
-        access_token=access_token,
-        token_type="bearer",
-        user=user
-    )
+    return LoginResponse(access_token=access_token, token_type="bearer", user=user)
 
 
 @router.get("/me", response_model=UserSchema)
@@ -173,8 +170,7 @@ def get_current_user_info(current_user: User = Depends(get_current_user)) -> Any
 
 @router.post("/refresh", response_model=Token)
 def refresh_access_token(
-    refresh_token_data: dict,
-    db: Session = Depends(get_db)
+    refresh_token_data: dict, db: Session = Depends(get_db)
 ) -> Any:
     """
     Refresh access token using refresh token.
@@ -184,60 +180,54 @@ def refresh_access_token(
         if not refresh_token:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Refresh token is required"
+                detail="Refresh token is required",
             )
-        
+
         # Verify refresh token
         payload = verify_token(refresh_token)
         if not payload:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid refresh token"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
             )
-        
+
         # Check if token is actually a refresh token
         if payload.get("type") != "refresh":
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token type"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type"
             )
-        
+
         # Get user email from token
         user_email = payload.get("sub")
         if not user_email:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token payload"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
             )
-        
+
         # Verify user exists and is active
         user = db.query(User).filter(User.email == user_email).first()
         if not user or not user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found or inactive"
+                detail="User not found or inactive",
             )
-        
+
         # Create new access token
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
             data={"sub": user.email, "user_id": user.id},
-            expires_delta=access_token_expires
+            expires_delta=access_token_expires,
         )
-        
+
         logger.info(f"Refreshed access token for user: {user.email}")
-        return {
-            "access_token": access_token,
-            "token_type": "bearer"
-        }
-        
+        return {"access_token": access_token, "token_type": "bearer"}
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error refreshing token: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Token refresh failed"
+            detail="Token refresh failed",
         )
 
 

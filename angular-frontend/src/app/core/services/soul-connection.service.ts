@@ -34,7 +34,7 @@ export class SoulConnectionService extends BaseService {
    */
   discoverSoulConnections(request: DiscoveryRequest = {}): Observable<DiscoveryResponse[]> {
     let params = new HttpParams();
-    
+
     if (request.max_results) {
       params = params.set('max_results', request.max_results.toString());
     }
@@ -135,7 +135,7 @@ export class SoulConnectionService extends BaseService {
    */
   getCompatibilityExplanation(compatibility: CompatibilityResponse): string {
     const score = compatibility.total_compatibility;
-    
+
     if (score >= 80) {
       return `Exceptional soul connection! ${compatibility.explanation}`;
     } else if (score >= 70) {
@@ -166,25 +166,25 @@ export class SoulConnectionService extends BaseService {
   needsEmotionalOnboarding(user: any): boolean {
     // Check if onboarding is completed according to localStorage
     const isOnboardingComplete = this.storage.getItem('onboarding_completed') === 'true';
-    
+
     // If localStorage says it's complete, trust that (but also check user object)
     if (isOnboardingComplete) {
       console.log('Onboarding marked as complete in localStorage');
       return false;
     }
-    
+
     // Otherwise, check the user object
-    const needsOnboarding = !user?.emotional_onboarding_completed || 
-                           !user?.core_values || 
+    const needsOnboarding = !user?.emotional_onboarding_completed ||
+                           !user?.core_values ||
                            !user?.interests?.length;
-                           
+
     console.log('Checking if needs onboarding:', {
       emotional_onboarding_completed: user?.emotional_onboarding_completed,
       has_core_values: !!user?.core_values,
       has_interests: !!user?.interests?.length,
       needsOnboarding
     });
-    
+
     return needsOnboarding;
   }
 }

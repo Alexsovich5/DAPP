@@ -13,9 +13,9 @@ check_interval = 0
   token = "GITLAB_RUNNER_TOKEN_TO_BE_REPLACED"
   executor = "docker"
   environment = ["DOCKER_DRIVER=overlay2", "DOCKER_TLS_CERTDIR=/certs"]
-  
+
   [runners.custom_build_dir]
-  
+
   [runners.cache]
     Type = "s3"
     ServerAddress = "minio-storage:9000"
@@ -23,7 +23,7 @@ check_interval = 0
     SecretKey = "MINIO_SECRET_KEY"
     BucketName = "gitlab-runner-cache"
     Insecure = true
-    
+
   [runners.docker]
     tls_verify = false
     image = "docker:latest"
@@ -38,26 +38,26 @@ check_interval = 0
     ]
     shm_size = 0
     network_mode = "cicd_network"
-    
+
     # Service containers for testing
     services = [
       "docker:dind",
       "postgres:15-alpine",
       "redis:7-alpine"
     ]
-    
+
     # Pull policy
     pull_policy = ["if-not-present", "always"]
-    
+
     # Resource limits
     memory = "2g"
     memory_swap = "4g"
     memory_reservation = "1g"
     cpus = "2"
-    
+
     # Security settings
     security_opt = ["seccomp:unconfined"]
-    
+
     # Additional configurations
     extra_hosts = [
       "gitlab-ce:172.18.0.10",
@@ -74,7 +74,7 @@ check_interval = 0
   token = "GITLAB_RUNNER_TOKEN_TO_BE_REPLACED"
   executor = "shell"
   shell = "bash"
-  
+
   [runners.cache]
     Type = "s3"
     ServerAddress = "minio-storage:9000"
@@ -88,12 +88,12 @@ check_interval = 0
   url = "http://gitlab-ce:8090/"
   token = "GITLAB_RUNNER_TOKEN_TO_BE_REPLACED"
   executor = "kubernetes"
-  
+
   [runners.kubernetes]
     host = ""
     namespace = "gitlab-runner"
     namespace_overwrite_allowed = "gitlab-runner-.*"
-    
+
     # Pod configuration
     image = "ubuntu:22.04"
     memory_limit = "2Gi"
@@ -108,24 +108,24 @@ check_interval = 0
     helper_cpu_request = "100m"
     helper_memory_limit = "512Mi"
     helper_memory_request = "128Mi"
-    
+
     # Node selection
     node_selector = {
       "node-type" = "gitlab-runner"
     }
-    
+
     # Pod security
     run_as_user = 1000
     run_as_group = 1000
     fs_group = 2000
-    
+
     # Services
     [[runners.kubernetes.services]]
       name = "docker"
       image = "docker:dind"
       privileged = true
       command = ["dockerd-entrypoint.sh"]
-      
+
     [[runners.kubernetes.services]]
       name = "postgres"
       image = "postgres:15-alpine"
@@ -134,17 +134,17 @@ check_interval = 0
         "POSTGRES_USER=test",
         "POSTGRES_PASSWORD=test"
       ]
-      
+
     [[runners.kubernetes.services]]
       name = "redis"
       image = "redis:7-alpine"
-    
+
     # Volumes
     [[runners.kubernetes.volumes.empty_dir]]
       name = "docker-certs"
       mount_path = "/certs/client"
       medium = "Memory"
-      
+
     [[runners.kubernetes.volumes.host_path]]
       name = "docker-sock"
       mount_path = "/var/run/docker.sock"
@@ -155,7 +155,7 @@ check_interval = 0
   url = "http://gitlab-ce:8090/"
   token = "GITLAB_RUNNER_TOKEN_TO_BE_REPLACED"
   executor = "docker"
-  
+
   [runners.docker]
     tls_verify = false
     image = "node:20-alpine"
@@ -165,12 +165,12 @@ check_interval = 0
     disable_cache = false
     volumes = ["/cache"]
     shm_size = 2147483648  # 2GB for browser testing
-    
+
     # Optimized for performance testing
     memory = "4g"
     memory_swap = "6g"
     cpus = "4"
-    
+
     # Browser dependencies
     services = ["selenium/standalone-chrome:latest"]
 

@@ -39,14 +39,14 @@ datasources:
           regex: '"request_id":"([^"]+)"'
           url: '$${__value.raw}'
           datasourceUid: loki-uid
-        
-        # Extract user IDs for user journey tracking  
+
+        # Extract user IDs for user journey tracking
         - name: user_id
           label: user_id
           regex: '"user_id":([0-9]+)'
           url: '$${__value.raw}'
           datasourceUid: loki-uid
-        
+
         # Extract trace IDs if using distributed tracing
         - name: trace_id
           label: trace_id
@@ -80,7 +80,7 @@ datasources:
         filterBySpanID: false
         customQuery: true
         query: '{service="${__data.fields.serviceName}"} |~ "${__data.fields.traceId}"'
-      
+
       tracesToMetrics:
         # Correlate traces with metrics via Prometheus
         datasourceUid: prometheus-uid

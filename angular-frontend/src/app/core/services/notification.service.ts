@@ -40,7 +40,7 @@ export class NotificationService {
   markAsRead(notificationId: string): void {
     const notifications = this.notifications$.value;
     const notification = notifications.find(n => n.id === notificationId);
-    
+
     if (notification && !notification.isRead) {
       notification.isRead = true;
       this.notifications$.next([...notifications]);
@@ -53,7 +53,7 @@ export class NotificationService {
       ...n,
       isRead: true
     }));
-    
+
     this.notifications$.next(notifications);
     this.updateUnreadCount();
   }

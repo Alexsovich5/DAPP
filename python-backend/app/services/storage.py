@@ -1,8 +1,9 @@
-import os
-import boto3
 import logging
-from fastapi import UploadFile
+import os
+
+import boto3
 from botocore.exceptions import ClientError
+from fastapi import UploadFile
 
 # Configure logging
 logger = logging.getLogger(__name__)

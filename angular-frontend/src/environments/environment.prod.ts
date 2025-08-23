@@ -3,7 +3,7 @@ export const environment = {
   apiUrl: 'https://api.dinner-first.com/api/v1', // Production API URL
   tokenKey: 'dinner_first_auth_token',
   socketUrl: 'wss://api.dinner-first.com', // Secure WebSocket for production
-  
+
   // UI Configuration
   ui: {
     toastDuration: 4000, // Slightly shorter for production
@@ -14,7 +14,7 @@ export const environment = {
     maxImageWidth: 1920, // Max image width for uploads
     maxImageHeight: 1080 // Max image height for uploads
   },
-  
+
   // Soul Before Skin configuration
   soulBeforeSkin: {
     revelationCycleDays: 7,
@@ -25,14 +25,14 @@ export const environment = {
     maxBioLength: 300, // Shorter for better mobile experience
     minCompatibilityScore: 40 // Higher minimum for quality matches
   },
-  
+
   // API Configuration
   api: {
     timeout: 20000, // Shorter timeout for production
     retryAttempts: 2, // Fewer retries to avoid overload
     retryDelay: 2000 // Longer delay between retries
   },
-  
+
   // Security Configuration
   security: {
     sessionTimeout: 12 * 60 * 60 * 1000, // 12 hours for production

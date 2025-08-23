@@ -50,7 +50,7 @@ export class RevelationsEmptyStateComponent {
       text: "Day 1: Share a core value that guides your life decisions"
     },
     {
-      icon: "2️⃣", 
+      icon: "2️⃣",
       text: "Day 2: Describe a meaningful experience that shaped you"
     },
     {
@@ -81,7 +81,7 @@ export class RevelationsEmptyStateComponent {
   };
 
   secondaryAction = {
-    text: "Learn More", 
+    text: "Learn More",
     icon: "📚"
   };
 

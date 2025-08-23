@@ -1,9 +1,9 @@
-from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.security import get_password_hash
-from app.models.user import User
 from app.models.profile import Profile
+from app.models.user import User
+from sqlalchemy.orm import Session
 
 
 def create_test_users(db: Session) -> List[User]:

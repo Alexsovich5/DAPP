@@ -8,13 +8,13 @@ import { SkeletonLoaderComponent } from '../skeleton-loader/skeleton-loader.comp
   imports: [CommonModule, SkeletonLoaderComponent],
   template: `
     <div class="loading-screen" [ngClass]="screenType">
-      
+
       <!-- Discovery/Matches Loading -->
       <div *ngIf="screenType === 'discovery'" class="discovery-skeleton">
         <app-skeleton-loader type="text" width="60%" height="2rem"></app-skeleton-loader>
         <div class="cards-grid">
-          <app-skeleton-loader 
-            *ngFor="let item of [1,2,3,4]" 
+          <app-skeleton-loader
+            *ngFor="let item of [1,2,3,4]"
             type="card"
             class="match-card-skeleton">
           </app-skeleton-loader>
@@ -137,11 +137,11 @@ import { SkeletonLoaderComponent } from '../skeleton-loader/skeleton-loader.comp
     .soul-orb {
       font-size: 3rem;
       animation: pulse 2s ease-in-out infinite;
-      
+
       &.primary {
         animation-delay: 0s;
       }
-      
+
       &.secondary {
         animation-delay: 1s;
       }

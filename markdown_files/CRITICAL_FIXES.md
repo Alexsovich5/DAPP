@@ -31,7 +31,7 @@ class UserCreate(UserBase):
 - `POST /auth/forgot-password` - password reset
 
 ### Fix profile endpoint mismatch:
-- Frontend calls `PUT /profile` 
+- Frontend calls `PUT /profile`
 - Backend has `PUT /profiles/me`
 - Need alias or frontend update
 
@@ -71,5 +71,5 @@ POSTGRES_PASSWORD=postgres
 - Backend only returns token
 - Need combined user+profile response
 
-## Impact: 
+## Impact:
 These mismatches prevent all registration, login, and profile operations from working.

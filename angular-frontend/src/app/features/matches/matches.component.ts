@@ -32,8 +32,8 @@ import { SoulConnection } from '../../core/interfaces/soul-connection.interfaces
       </div>
 
       <div class="connections-grid" *ngIf="connections.length > 0; else noConnections">
-        <div 
-          *ngFor="let connection of connections" 
+        <div
+          *ngFor="let connection of connections"
           class="connection-card"
           [class.highlight]="shouldHighlight(connection)"
           (click)="viewConnection(connection)"
@@ -60,8 +60,8 @@ import { SoulConnection } from '../../core/interfaces/soul-connection.interfaces
                 <span class="day-indicator">Day {{connection.reveal_day}}/7</span>
               </div>
               <div class="progress-bar">
-                <div 
-                  class="progress-fill" 
+                <div
+                  class="progress-fill"
                   [style.width.%]="(connection.reveal_day / 7) * 100"
                 ></div>
               </div>
@@ -90,8 +90,8 @@ import { SoulConnection } from '../../core/interfaces/soul-connection.interfaces
             <button class="action-btn primary" (click)="startConversation(connection, $event)">
               <span>💬</span> Continue Chat
             </button>
-            <button 
-              class="action-btn secondary" 
+            <button
+              class="action-btn secondary"
               (click)="viewRevelations(connection, $event)"
               *ngIf="connection.reveal_day > 1"
             >
@@ -417,15 +417,15 @@ import { SoulConnection } from '../../core/interfaces/soul-connection.interfaces
       .matches-container {
         padding: 1rem;
       }
-      
+
       .connections-grid {
         grid-template-columns: 1fr;
       }
-      
+
       .connection-stats {
         grid-template-columns: 1fr;
       }
-      
+
       .connection-actions {
         flex-direction: column;
       }
@@ -499,21 +499,21 @@ export class MatchesComponent implements OnInit {
   }
 
   viewConnection(connection: SoulConnection) {
-    this.router.navigate(['/chat'], { 
+    this.router.navigate(['/chat'], {
       queryParams: { connectionId: connection.id }
     });
   }
 
   startConversation(connection: SoulConnection, event: Event) {
     event.stopPropagation();
-    this.router.navigate(['/chat'], { 
+    this.router.navigate(['/chat'], {
       queryParams: { connectionId: connection.id }
     });
   }
 
   viewRevelations(connection: SoulConnection, event: Event) {
     event.stopPropagation();
-    this.router.navigate(['/revelations'], { 
+    this.router.navigate(['/revelations'], {
       queryParams: { connectionId: connection.id }
     });
   }

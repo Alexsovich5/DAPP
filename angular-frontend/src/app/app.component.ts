@@ -40,7 +40,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     // Theme service will automatically initialize and apply saved theme
-    
+
     // Initialize offline service for PWA functionality
     // The service constructor already handles initialization
   }

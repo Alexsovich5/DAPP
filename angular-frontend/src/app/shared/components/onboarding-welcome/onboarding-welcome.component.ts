@@ -13,29 +13,29 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
   selector: 'app-onboarding-welcome',
   standalone: true,
   imports: [
-    CommonModule, 
-    MatButtonModule, 
-    MatIconModule, 
-    MatCheckboxModule, 
+    CommonModule,
+    MatButtonModule,
+    MatIconModule,
+    MatCheckboxModule,
     FormsModule,
     SoulOrbComponent
   ],
   template: `
-    <div 
+    <div
       class="welcome-overlay"
       [@overlayAnimation]="'visible'"
       role="presentation"
       aria-hidden="true">
     </div>
 
-    <div 
+    <div
       class="welcome-modal"
       [@modalAnimation]="'visible'"
       role="dialog"
       aria-labelledby="welcome-title"
       aria-describedby="welcome-description"
       aria-modal="true">
-      
+
       <!-- Soul Energy Header -->
       <div class="welcome-header">
         <div class="soul-constellation">
@@ -47,21 +47,21 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
             [showSparkles]="true"
             class="center-orb">
           </app-soul-orb>
-          
+
           <app-soul-orb
             size="small"
             state="connecting"
             [energyLevel]="3"
             class="satellite-orb orb-1">
           </app-soul-orb>
-          
+
           <app-soul-orb
             size="small"
             state="active"
             [energyLevel]="2"
             class="satellite-orb orb-2">
           </app-soul-orb>
-          
+
           <app-soul-orb
             size="small"
             state="connecting"
@@ -69,7 +69,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
             class="satellite-orb orb-3">
           </app-soul-orb>
         </div>
-        
+
         <h1 id="welcome-title" class="welcome-title">
           Welcome to Dinner First
         </h1>
@@ -81,8 +81,8 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
         <div id="welcome-description" class="philosophy-section">
           <h2 class="section-title">✨ Our Philosophy</h2>
           <p class="philosophy-text">
-            In a world obsessed with appearances, we believe the most beautiful connections 
-            happen when hearts recognize each other first. Here, your emotional depth, 
+            In a world obsessed with appearances, we believe the most beautiful connections
+            happen when hearts recognize each other first. Here, your emotional depth,
             values, and dreams take center stage.
           </p>
         </div>
@@ -90,7 +90,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
         <!-- How It Works -->
         <div class="how-it-works">
           <h2 class="section-title">💫 How Soul Connections Work</h2>
-          
+
           <div class="steps-container">
             <div class="step" *ngFor="let step of howItWorksSteps; let i = index">
               <div class="step-number">{{ i + 1 }}</div>
@@ -106,7 +106,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
         <!-- Benefits -->
         <div class="benefits-section">
           <h2 class="section-title">💖 Why Soul-First Dating Works</h2>
-          
+
           <div class="benefits-grid">
             <div class="benefit" *ngFor="let benefit of benefits">
               <div class="benefit-icon" [innerHTML]="benefit.icon"></div>
@@ -119,9 +119,9 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
         <!-- Tutorial Options -->
         <div class="tutorial-options">
           <h2 class="section-title">🎯 Choose Your Journey</h2>
-          
+
           <div class="option-cards">
-            <div 
+            <div
               class="option-card guided"
               [class.selected]="selectedOption === 'guided'"
               (click)="selectOption('guided')"
@@ -135,13 +135,13 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
                 <h3 class="option-title">Guided Experience</h3>
               </div>
               <p class="option-description">
-                Take a personalized tour to learn how soul connections work. 
+                Take a personalized tour to learn how soul connections work.
                 Perfect for discovering all our magical features.
               </p>
               <div class="option-duration">~3 minutes</div>
             </div>
 
-            <div 
+            <div
               class="option-card quick"
               [class.selected]="selectedOption === 'quick'"
               (click)="selectOption('quick')"
@@ -155,7 +155,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
                 <h3 class="option-title">Quick Start</h3>
               </div>
               <p class="option-description">
-                Jump right in and explore on your own. You can always access 
+                Jump right in and explore on your own. You can always access
                 tutorials later from your profile.
               </p>
               <div class="option-duration">Instant</div>
@@ -166,7 +166,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
         <!-- Preferences -->
         <div class="preferences-section">
           <div class="preference-item">
-            <mat-checkbox 
+            <mat-checkbox
               [(ngModel)]="preferences.showTutorials"
               id="show-tutorials"
               aria-describedby="show-tutorials-desc">
@@ -178,7 +178,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
           </div>
 
           <div class="preference-item">
-            <mat-checkbox 
+            <mat-checkbox
               [(ngModel)]="preferences.emotionalAnimations"
               id="emotional-animations"
               aria-describedby="animations-desc">
@@ -193,15 +193,15 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 
       <!-- Action Buttons -->
       <div class="welcome-actions">
-        <button 
+        <button
           class="action-btn secondary"
           type="button"
           (click)="onSkip()"
           aria-label="Skip welcome tour and start exploring">
           Skip for Now
         </button>
-        
-        <button 
+
+        <button
           class="action-btn primary"
           type="button"
           [disabled]="!selectedOption"
@@ -227,8 +227,8 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       left: 0;
       right: 0;
       bottom: 0;
-      background: linear-gradient(135deg, 
-        rgba(255, 107, 157, 0.1) 0%, 
+      background: linear-gradient(135deg,
+        rgba(255, 107, 157, 0.1) 0%,
         rgba(96, 165, 250, 0.1) 50%,
         rgba(52, 211, 153, 0.1) 100%);
       backdrop-filter: blur(8px);
@@ -246,7 +246,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       width: calc(100vw - 2rem);
       background: var(--surface-color);
       border-radius: 24px;
-      box-shadow: 
+      box-shadow:
         0 32px 64px rgba(0, 0, 0, 0.15),
         0 16px 32px rgba(0, 0, 0, 0.1),
         0 0 0 1px rgba(255, 255, 255, 0.1);
@@ -260,8 +260,8 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
     .welcome-header {
       text-align: center;
       padding: 3rem 2rem 2rem;
-      background: linear-gradient(135deg, 
-        rgba(255, 107, 157, 0.05) 0%, 
+      background: linear-gradient(135deg,
+        rgba(255, 107, 157, 0.05) 0%,
         rgba(96, 165, 250, 0.05) 100%);
       position: relative;
       overflow: hidden;
@@ -309,8 +309,8 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       font-size: 2.5rem;
       font-weight: 700;
       margin: 0 0 0.5rem 0;
-      background: linear-gradient(135deg, 
-        var(--primary-color) 0%, 
+      background: linear-gradient(135deg,
+        var(--primary-color) 0%,
         var(--accent-color) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -370,7 +370,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       border-radius: 16px;
       border: 1px solid var(--border-color);
       transition: all 0.3s ease;
-      
+
       &:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
@@ -464,18 +464,18 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       cursor: pointer;
       transition: all 0.3s ease;
       background: var(--surface-secondary);
-      
+
       &:hover {
         border-color: var(--primary-color);
         transform: translateY(-2px);
         box-shadow: 0 8px 24px rgba(255, 107, 157, 0.2);
       }
-      
+
       &:focus {
         outline: 2px solid var(--primary-color);
         outline-offset: 2px;
       }
-      
+
       &.selected {
         border-color: var(--primary-color);
         background: rgba(255, 107, 157, 0.05);
@@ -523,7 +523,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 
     .preference-item {
       margin-bottom: 1rem;
-      
+
       &:last-child {
         margin-bottom: 0;
       }
@@ -554,28 +554,28 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       font-size: 1rem;
       cursor: pointer;
       transition: all 0.2s ease;
-      
+
       &:disabled {
         opacity: 0.6;
         cursor: not-allowed;
       }
-      
+
       &.primary {
         background: var(--primary-color);
         color: white;
-        
+
         &:hover:not(:disabled) {
           background: var(--primary-color-dark);
           transform: translateY(-1px);
           box-shadow: 0 4px 12px rgba(255, 107, 157, 0.4);
         }
       }
-      
+
       &.secondary {
         background: var(--surface-secondary);
         color: var(--text-primary);
         border: 1px solid var(--border-color);
-        
+
         &:hover {
           background: var(--surface-tertiary);
           transform: translateY(-1px);
@@ -650,7 +650,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       .satellite-orb {
         animation: none !important;
       }
-      
+
       .step:hover,
       .option-card:hover,
       .action-btn:hover {
@@ -662,7 +662,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
     .dark-theme {
       .welcome-modal {
         background: var(--surface-color);
-        box-shadow: 
+        box-shadow:
           0 32px 64px rgba(0, 0, 0, 0.3),
           0 16px 32px rgba(0, 0, 0, 0.2);
       }
@@ -677,13 +677,13 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
     ]),
     trigger('modalAnimation', [
       transition(':enter', [
-        style({ 
-          opacity: 0, 
+        style({
+          opacity: 0,
           transform: 'translate(-50%, -50%) scale(0.8)',
           filter: 'blur(8px)'
         }),
-        animate('600ms cubic-bezier(0.4, 0, 0.2, 1)', style({ 
-          opacity: 1, 
+        animate('600ms cubic-bezier(0.4, 0, 0.2, 1)', style({
+          opacity: 1,
           transform: 'translate(-50%, -50%) scale(1)',
           filter: 'blur(0px)'
         }))
@@ -693,7 +693,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 })
 export class OnboardingWelcomeComponent implements OnInit {
   selectedOption: 'guided' | 'quick' | null = null;
-  
+
   preferences = {
     showTutorials: true,
     emotionalAnimations: true
@@ -753,7 +753,7 @@ export class OnboardingWelcomeComponent implements OnInit {
   ngOnInit(): void {
     // Default to guided experience for new users
     this.selectedOption = 'guided';
-    
+
     // Trigger welcome haptic feedback
     this.hapticFeedbackService.triggerWelcomeFeedback();
   }
@@ -799,7 +799,7 @@ export class OnboardingWelcomeComponent implements OnInit {
       showTutorials: false,
       skipIntroductions: true
     });
-    
+
     this.onboardingService.completeTour();
   }
 
@@ -808,9 +808,9 @@ export class OnboardingWelcomeComponent implements OnInit {
    */
   getContinueButtonText(): string {
     if (!this.selectedOption) return 'Choose an Option';
-    
-    return this.selectedOption === 'guided' 
-      ? 'Start Guided Tour' 
+
+    return this.selectedOption === 'guided'
+      ? 'Start Guided Tour'
       : 'Begin Journey';
   }
 
@@ -819,7 +819,7 @@ export class OnboardingWelcomeComponent implements OnInit {
    */
   getContinueAriaLabel(): string {
     if (!this.selectedOption) return 'Please select a tutorial option first';
-    
+
     return this.selectedOption === 'guided'
       ? 'Start guided tutorial tour to learn about soul connections'
       : 'Skip tutorial and begin exploring on your own';

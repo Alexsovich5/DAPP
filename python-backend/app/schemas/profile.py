@@ -1,7 +1,8 @@
-from pydantic import BaseModel, HttpUrl, validator
-from typing import Optional, List, Union
-from enum import Enum
 from datetime import datetime
+from enum import Enum
+from typing import List, Optional, Union
+
+from pydantic import BaseModel, HttpUrl, validator
 
 # Constants for URL prefixes
 HTTP_PREFIX = "http://"

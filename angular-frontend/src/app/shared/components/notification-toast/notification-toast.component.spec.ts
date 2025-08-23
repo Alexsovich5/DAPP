@@ -338,7 +338,7 @@ describe('NotificationToastComponent', () => {
       mockSettings.quietHours.enabled = true;
       mockSettings.quietHours.start = '22:00';
       mockSettings.quietHours.end = '08:00';
-      
+
       // Mock current time as midnight (within quiet hours)
       spyOn(Date.prototype, 'getHours').and.returnValue(0);
       component.settings = mockSettings;
@@ -452,7 +452,7 @@ describe('NotificationToastComponent', () => {
 
       const actionButtons = fixture.debugElement.queryAll(By.css('.notification-action'));
       expect(actionButtons.length).toBeGreaterThan(0);
-      
+
       const viewButton = fixture.debugElement.query(By.css('.action-view'));
       expect(viewButton).toBeTruthy();
     }));
@@ -486,7 +486,7 @@ describe('NotificationToastComponent', () => {
     it('should handle notification click to navigate', fakeAsync(() => {
       const notification = mockNotifications[0];
       spyOn(component, 'navigateToAction');
-      
+
       component.showNotification(notification);
       tick();
       fixture.detectChanges();
@@ -529,7 +529,7 @@ describe('NotificationToastComponent', () => {
       fixture.detectChanges();
 
       const notificationElement = fixture.debugElement.query(By.css('.notification-container'));
-      
+
       // Simulate swipe left gesture
       notificationElement.triggerEventHandler('swipeleft', {});
 
@@ -539,7 +539,7 @@ describe('NotificationToastComponent', () => {
     it('should handle notification action button clicks', fakeAsync(() => {
       const actionableNotification = mockNotifications[1];
       spyOn(component, 'handleActionClick');
-      
+
       component.showNotification(actionableNotification);
       tick();
       fixture.detectChanges();
@@ -553,7 +553,7 @@ describe('NotificationToastComponent', () => {
     it('should prevent notification click when action button is clicked', fakeAsync(() => {
       const notification = mockNotifications[1];
       spyOn(component, 'navigateToAction');
-      
+
       component.showNotification(notification);
       tick();
       fixture.detectChanges();
@@ -617,7 +617,7 @@ describe('NotificationToastComponent', () => {
       fixture.detectChanges();
 
       const notificationElement = fixture.debugElement.query(By.css('.notification-container'));
-      
+
       // Hover to cancel auto-dismiss
       notificationElement.triggerEventHandler('mouseenter', {});
       tick(1000);
@@ -650,7 +650,7 @@ describe('NotificationToastComponent', () => {
     it('should play sound for notifications when enabled', fakeAsync(() => {
       component.settings.enableSounds = true;
       const notification = mockNotifications[0];
-      
+
       component.showNotification(notification);
       tick();
 
@@ -660,7 +660,7 @@ describe('NotificationToastComponent', () => {
     it('should not play sound when disabled', fakeAsync(() => {
       component.settings.enableSounds = false;
       const notification = mockNotifications[0];
-      
+
       component.showNotification(notification);
       tick();
 
@@ -670,7 +670,7 @@ describe('NotificationToastComponent', () => {
     it('should show desktop notification when enabled and page not focused', fakeAsync(() => {
       component.settings.enableDesktopNotifications = true;
       Object.defineProperty(document, 'hidden', { value: true });
-      
+
       const notification = mockNotifications[0];
       component.showNotification(notification);
       tick();
@@ -685,7 +685,7 @@ describe('NotificationToastComponent', () => {
     it('should not show desktop notification when page is focused', fakeAsync(() => {
       component.settings.enableDesktopNotifications = true;
       Object.defineProperty(document, 'hidden', { value: false });
-      
+
       const notification = mockNotifications[0];
       component.showNotification(notification);
       tick();
@@ -696,7 +696,7 @@ describe('NotificationToastComponent', () => {
     it('should respect category sound settings', fakeAsync(() => {
       component.settings.categorySettings.messaging.sound = false;
       const messagingNotification = mockNotifications[2];
-      
+
       component.showNotification(messagingNotification);
       tick();
 
@@ -735,7 +735,7 @@ describe('NotificationToastComponent', () => {
 
     it('should prioritize higher priority notifications in queue', fakeAsync(() => {
       component.settings.maxVisibleNotifications = 1;
-      
+
       // Add low priority notification first
       component.showNotification({ ...mockNotifications[2], priority: 'low' });
       tick();
@@ -769,9 +769,9 @@ describe('NotificationToastComponent', () => {
 
     it('should clear queue when user navigates away', () => {
       component.notificationQueue = [...mockNotifications];
-      
+
       component.clearNotificationQueue();
-      
+
       expect(component.notificationQueue.length).toBe(0);
     });
   });
@@ -797,10 +797,10 @@ describe('NotificationToastComponent', () => {
 
     it('should apply category-specific settings', fakeAsync(() => {
       component.settings.categorySettings.messaging.enabled = false;
-      
+
       const messagingNotification = mockNotifications[2];
       const result = component.shouldShowNotification(messagingNotification);
-      
+
       expect(result).toBe(false);
     }));
 
@@ -819,7 +819,7 @@ describe('NotificationToastComponent', () => {
 
     it('should save settings changes persistently', fakeAsync(() => {
       const updatedSettings = { ...mockSettings, enableSounds: false };
-      
+
       component.updateSettings(updatedSettings);
       tick();
 
@@ -854,7 +854,7 @@ describe('NotificationToastComponent', () => {
       };
 
       component.activeNotifications.push(expiredNotification);
-      
+
       // Trigger cleanup
       component.cleanupExpiredNotifications();
       tick();
@@ -888,9 +888,9 @@ describe('NotificationToastComponent', () => {
 
     it('should unsubscribe from observables on destroy', () => {
       spyOn(component['subscriptions'], 'unsubscribe');
-      
+
       component.ngOnDestroy();
-      
+
       expect(component['subscriptions'].unsubscribe).toHaveBeenCalled();
     });
   });
@@ -971,7 +971,7 @@ describe('NotificationToastComponent', () => {
 
     it('should adapt layout for mobile screens', fakeAsync(() => {
       spyOnProperty(window, 'innerWidth').and.returnValue(375);
-      
+
       component.ngOnInit();
       const notification = mockNotifications[0];
       component.showNotification(notification);
@@ -1027,7 +1027,7 @@ describe('NotificationToastComponent', () => {
 
     it('should handle WebSocket disconnection', fakeAsync(() => {
       webSocketService.isConnected.and.returnValue(false);
-      
+
       const notification = mockNotifications[0];
       notificationSubject.next(notification);
       tick();
@@ -1038,7 +1038,7 @@ describe('NotificationToastComponent', () => {
 
     it('should handle malformed notification data', fakeAsync(() => {
       spyOn(console, 'error');
-      
+
       const malformedNotification = {
         id: null,
         type: undefined,
@@ -1068,7 +1068,7 @@ describe('NotificationToastComponent', () => {
 
     it('should handle notification service errors', fakeAsync(() => {
       notificationService.markAsRead.and.returnValue(throwError({ error: 'Service unavailable' }));
-      
+
       const notification = mockNotifications[0];
       component.showNotification(notification);
       tick();

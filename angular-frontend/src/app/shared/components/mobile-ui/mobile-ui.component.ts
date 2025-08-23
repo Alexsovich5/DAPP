@@ -34,24 +34,24 @@ export interface MobileUIConfig {
         <button mat-icon-button (click)="onBackClick()" *ngIf="showBackButton">
           <mat-icon>arrow_back</mat-icon>
         </button>
-        
+
         <div class="header-title">
           <h1>{{ title }}</h1>
           <span class="subtitle" *ngIf="subtitle">{{ subtitle }}</span>
         </div>
-        
+
         <div class="header-actions">
           <button mat-icon-button (click)="onMenuClick()" *ngIf="showMenu">
             <mat-icon>more_vert</mat-icon>
           </button>
-          
+
           <!-- Connection indicator -->
           <div class="connection-indicator" [class.offline]="!isOnline">
             <mat-icon>{{ isOnline ? 'wifi' : 'wifi_off' }}</mat-icon>
           </div>
         </div>
       </div>
-      
+
       <!-- Progress indicator for dating app stages -->
       <div class="progress-bar" *ngIf="showProgress">
         <div class="progress-fill" [style.width.%]="progressValue"></div>
@@ -59,11 +59,11 @@ export interface MobileUIConfig {
     </header>
 
     <!-- Main content with mobile optimizations -->
-    <main class="mobile-content" 
+    <main class="mobile-content"
           [class.compact]="config.compactMode"
           [class.with-bottom-nav]="config.showBottomNav"
           [class.with-header]="showHeader && !config.hideTopBar">
-      
+
       <!-- Pull-to-refresh indicator -->
       <div class="pull-refresh" [class.active]="isPullingToRefresh" *ngIf="enablePullToRefresh">
         <div class="refresh-spinner">
@@ -71,22 +71,22 @@ export interface MobileUIConfig {
           <span>{{ pullToRefreshText }}</span>
         </div>
       </div>
-      
+
       <!-- Content container with safe area support -->
-      <div class="content-container safe-area" 
+      <div class="content-container safe-area"
            (touchstart)="onTouchStart($event)"
            (touchmove)="onTouchMove($event)"
            (touchend)="onTouchEnd($event)">
         <ng-content></ng-content>
       </div>
-      
+
       <!-- Empty state for mobile -->
       <div class="mobile-empty-state" *ngIf="showEmptyState">
         <div class="empty-content">
           <mat-icon class="empty-icon">{{ emptyStateIcon }}</mat-icon>
           <h3>{{ emptyStateTitle }}</h3>
           <p>{{ emptyStateMessage }}</p>
-          <button mat-raised-button color="primary" *ngIf="emptyStateAction" 
+          <button mat-raised-button color="primary" *ngIf="emptyStateAction"
                   (click)="onEmptyStateAction()">
             {{ emptyStateActionText }}
           </button>
@@ -97,23 +97,23 @@ export interface MobileUIConfig {
     <!-- Mobile Bottom Navigation -->
     <nav class="mobile-bottom-nav" *ngIf="config.showBottomNav">
       <div class="nav-items">
-        <button class="nav-item" 
+        <button class="nav-item"
                 [class.active]="activeTab === 'discover'"
                 (click)="onTabClick('discover')">
           <mat-icon>favorite</mat-icon>
           <span>Discover</span>
           <div class="badge" *ngIf="discoverBadge">{{ discoverBadge }}</div>
         </button>
-        
-        <button class="nav-item" 
+
+        <button class="nav-item"
                 [class.active]="activeTab === 'messages'"
                 (click)="onTabClick('messages')">
           <mat-icon>chat</mat-icon>
           <span>Messages</span>
           <div class="badge" *ngIf="messagesBadge">{{ messagesBadge }}</div>
         </button>
-        
-        <button class="nav-item center-item" 
+
+        <button class="nav-item center-item"
                 [class.active]="activeTab === 'revelations'"
                 (click)="onTabClick('revelations')">
           <div class="center-icon">
@@ -122,16 +122,16 @@ export interface MobileUIConfig {
           <span>Revelations</span>
           <div class="badge" *ngIf="revelationsBadge">{{ revelationsBadge }}</div>
         </button>
-        
-        <button class="nav-item" 
+
+        <button class="nav-item"
                 [class.active]="activeTab === 'connections'"
                 (click)="onTabClick('connections')">
           <mat-icon>people</mat-icon>
           <span>Connections</span>
           <div class="badge" *ngIf="connectionsBadge">{{ connectionsBadge }}</div>
         </button>
-        
-        <button class="nav-item" 
+
+        <button class="nav-item"
                 [class.active]="activeTab === 'profile'"
                 (click)="onTabClick('profile')">
           <mat-icon>person</mat-icon>
@@ -141,9 +141,9 @@ export interface MobileUIConfig {
     </nav>
 
     <!-- Floating Action Button -->
-    <button class="mobile-fab" 
-            mat-fab 
-            color="primary" 
+    <button class="mobile-fab"
+            mat-fab
+            color="primary"
             *ngIf="config.showFAB && fabAction"
             (click)="onFABClick()"
             [attr.aria-label]="fabLabel">
@@ -198,24 +198,24 @@ export class MobileUIComponent implements OnInit, OnDestroy {
   @Input() showMenu: boolean = true;
   @Input() showProgress: boolean = false;
   @Input() progressValue: number = 0;
-  
+
   @Input() activeTab: string = 'discover';
   @Input() discoverBadge?: number;
   @Input() messagesBadge?: number;
   @Input() revelationsBadge?: number;
   @Input() connectionsBadge?: number;
-  
+
   @Input() fabIcon: string = 'add';
   @Input() fabLabel: string = 'Add';
   @Input() fabAction?: () => void;
-  
+
   @Input() showEmptyState: boolean = false;
   @Input() emptyStateIcon: string = 'favorite_border';
   @Input() emptyStateTitle: string = 'No connections yet';
   @Input() emptyStateMessage: string = 'Start discovering soul connections';
   @Input() emptyStateAction?: () => void;
   @Input() emptyStateActionText: string = 'Discover Now';
-  
+
   @Input() enablePullToRefresh: boolean = true;
   @Input() showSwipeHints: boolean = false;
   @Input() canSwipeLeft: boolean = false;
@@ -269,10 +269,10 @@ export class MobileUIComponent implements OnInit, OnDestroy {
 
     // Setup mobile-specific features
     const deviceInfo = this.mobileFeatures.getDeviceInfo();
-    
+
     if (deviceInfo.isMobile) {
       this.config.compactMode = true;
-      
+
       // Adjust UI based on screen size
       if (deviceInfo.screenSize.width < 360) {
         this.config.compactMode = true;
@@ -293,7 +293,7 @@ export class MobileUIComponent implements OnInit, OnDestroy {
     if (!this.mobileFeatures.isTouchDevice()) {
       this.config.enableSwipeGestures = false;
     }
-    
+
     // Check for haptic feedback support
     if (navigator.vibrate) {
       // Enable haptic feedback for interactions
@@ -303,12 +303,12 @@ export class MobileUIComponent implements OnInit, OnDestroy {
   // Touch event handlers for gestures
   onTouchStart(event: TouchEvent): void {
     if (!this.config.enableSwipeGestures) return;
-    
+
     const touch = event.touches[0];
     this.touchStartX = touch.clientX;
     this.touchStartY = touch.clientY;
     this.touchStartTime = Date.now();
-    
+
     // Check for pull-to-refresh
     if (this.enablePullToRefresh && window.scrollY === 0) {
       this.isPulling = true;
@@ -317,10 +317,10 @@ export class MobileUIComponent implements OnInit, OnDestroy {
 
   onTouchMove(event: TouchEvent): void {
     if (!this.config.enableSwipeGestures) return;
-    
+
     const touch = event.touches[0];
     const deltaY = touch.clientY - this.touchStartY;
-    
+
     // Handle pull-to-refresh
     if (this.isPulling && this.enablePullToRefresh) {
       if (deltaY > this.pullThreshold) {
@@ -336,32 +336,32 @@ export class MobileUIComponent implements OnInit, OnDestroy {
 
   onTouchEnd(event: TouchEvent): void {
     if (!this.config.enableSwipeGestures) return;
-    
+
     const touch = event.changedTouches[0];
     const deltaX = touch.clientX - this.touchStartX;
     const deltaY = touch.clientY - this.touchStartY;
     const deltaTime = Date.now() - this.touchStartTime;
-    
+
     // Reset pull-to-refresh
     if (this.isPulling) {
       this.isPulling = false;
-      
+
       if (this.isPullingToRefresh) {
         this.isPullingToRefresh = false;
         this.pullToRefreshText = 'Refreshing...';
         this.pullToRefresh.emit();
         this.mobileFeatures.vibrateNewMatch(); // Success haptic
-        
+
         setTimeout(() => {
           this.pullToRefreshText = 'Pull to refresh';
         }, 2000);
       }
     }
-    
+
     // Handle swipe gestures
     const minSwipeDistance = 100;
     const maxSwipeTime = 300;
-    
+
     if (deltaTime < maxSwipeTime && Math.abs(deltaX) > minSwipeDistance && Math.abs(deltaY) < 100) {
       if (deltaX > 0 && this.canSwipeRight) {
         this.swipeRight.emit();

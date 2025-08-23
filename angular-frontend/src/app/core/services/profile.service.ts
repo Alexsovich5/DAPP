@@ -87,13 +87,13 @@ export class ProfileService extends BaseService {
   calculateProfileCompletion(user: UserProfileData): number {
     const requiredFields = [
       'first_name',
-      'last_name', 
+      'last_name',
       'date_of_birth',
       'gender',
       'location',
       'bio'
     ];
-    
+
     const optionalFields = [
       'interests',
       'dietary_preferences',
@@ -111,7 +111,7 @@ export class ProfileService extends BaseService {
       }
     });
 
-    // Check optional fields  
+    // Check optional fields
     optionalFields.forEach(field => {
       const value = user[field as keyof UserProfileData];
       if (value && (Array.isArray(value) ? value.length > 0 : value)) {
@@ -122,7 +122,7 @@ export class ProfileService extends BaseService {
     // Required fields worth 70%, optional fields worth 30%
     const requiredPercentage = (completedRequired / requiredFields.length) * 70;
     const optionalPercentage = (completedOptional / optionalFields.length) * 30;
-    
+
     return Math.round(requiredPercentage + optionalPercentage);
   }
 }

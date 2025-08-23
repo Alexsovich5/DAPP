@@ -42,7 +42,7 @@ export class ProfileEmptyStateComponent {
   title = "Your Soul Profile Awaits Completion";
   description = "Share your authentic self to attract meaningful connections. A complete profile increases your match quality by 75%.";
   showSoulOrb = false; // Use illustration instead
-  
+
   // This would be calculated based on actual profile completion
   progressValue = 35; // Example: 35% complete
   progressText = "35% complete - Add your emotional essence to shine brighter";
@@ -53,7 +53,7 @@ export class ProfileEmptyStateComponent {
       text: "Share your life philosophy and core values that guide you"
     },
     {
-      icon: "🎯", 
+      icon: "🎯",
       text: "Describe your interests and passions in authentic detail"
     },
     {
@@ -76,7 +76,7 @@ export class ProfileEmptyStateComponent {
   };
 
   secondaryAction = {
-    text: "Add Photos", 
+    text: "Add Photos",
     icon: "📸"
   };
 

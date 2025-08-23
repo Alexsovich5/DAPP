@@ -42,7 +42,7 @@ export class SettingsEmptyStateComponent {
       text: "Set notification preferences for matches and messages"
     },
     {
-      icon: "🌙", 
+      icon: "🌙",
       text: "Choose your preferred conversation times and activity periods"
     },
     {
@@ -65,7 +65,7 @@ export class SettingsEmptyStateComponent {
   };
 
   secondaryAction = {
-    text: "Customize Preferences", 
+    text: "Customize Preferences",
     icon: "⚙️"
   };
 

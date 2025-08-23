@@ -1,9 +1,9 @@
-import { 
-  Directive, 
-  Input, 
-  ElementRef, 
-  OnInit, 
-  OnDestroy, 
+import {
+  Directive,
+  Input,
+  ElementRef,
+  OnInit,
+  OnDestroy,
   HostListener,
   Output,
   EventEmitter
@@ -48,7 +48,7 @@ export class AnalyticsDirective implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    
+
     if (this.intersectionObserver) {
       this.intersectionObserver.disconnect();
     }
@@ -76,13 +76,13 @@ export class AnalyticsDirective implements OnInit, OnDestroy {
           if (entry.isIntersecting && !this.isInView) {
             this.isInView = true;
             this.viewStartTime = Date.now();
-            
+
             if (this.trackScrollIntoView) {
               this.trackEvent('scroll_into_view');
             }
           } else if (!entry.isIntersecting && this.isInView) {
             this.isInView = false;
-            
+
             if (this.trackTimeSpent && this.viewStartTime) {
               this.trackTimeSpentEvent();
             }
@@ -200,7 +200,7 @@ export class ProfileAnalyticsDirective implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((swipeEvent) => {
         const swipeDuration = this.swipeStartTime ? Date.now() - this.swipeStartTime : 0;
-        
+
         switch (swipeEvent.swipeDirection) {
           case 'right':
             this.analytics.trackProfileInteraction('like', this.profileId, {
@@ -237,7 +237,7 @@ export class ProfileAnalyticsDirective implements OnInit, OnDestroy {
 
   private trackProfileView(): void {
     this.viewStartTime = Date.now();
-    
+
     this.analytics.trackProfileInteraction('view', this.profileId, {
       profileAge: this.profileData?.age,
       profileDistance: this.profileData?.distance,
@@ -250,7 +250,7 @@ export class ProfileAnalyticsDirective implements OnInit, OnDestroy {
     if (!this.viewStartTime) return;
 
     const viewDuration = Date.now() - this.viewStartTime;
-    
+
     this.analytics.trackEvent('profile_view_duration', 'engagement', {
       profileId: this.profileId,
       viewDuration,
@@ -331,7 +331,7 @@ export class MessageAnalyticsDirective implements OnInit, OnDestroy {
     if (!this.readStartTime) return;
 
     const readDuration = Date.now() - this.readStartTime;
-    
+
     this.analytics.trackEvent('message_read_duration', 'engagement', {
       connectionId: this.connectionId,
       messageId: this.messageId,
@@ -414,7 +414,7 @@ export class RevelationAnalyticsDirective implements OnInit, OnDestroy {
 
   @HostListener('click')
   onRevelationClick(): void {
-    const interactionTime = this.interactionStartTime ? 
+    const interactionTime = this.interactionStartTime ?
       Date.now() - this.interactionStartTime : 0;
 
     this.analytics.trackRevelationInteraction('respond', {

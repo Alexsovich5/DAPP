@@ -10,12 +10,12 @@ import { SoulConnectionComponent } from '../soul-connection/soul-connection.comp
   template: `
     <div class="celebration-overlay" [class.active]="isActive" (click)="onOverlayClick()">
       <div class="celebration-container" [ngClass]="celebrationType">
-        
+
         <!-- Celebration background effects -->
         <div class="celebration-bg">
           <!-- Confetti particles -->
           <div class="confetti-container" *ngIf="showConfetti">
-            <div 
+            <div
               *ngFor="let confetti of confettiParticles; trackBy: trackConfetti"
               class="confetti-piece"
               [style.left.%]="confetti.x"
@@ -27,7 +27,7 @@ import { SoulConnectionComponent } from '../soul-connection/soul-connection.comp
 
           <!-- Sparkle effects -->
           <div class="sparkles-container" *ngIf="showSparkles">
-            <div 
+            <div
               *ngFor="let sparkle of sparkleParticles; trackBy: trackSparkle"
               class="sparkle"
               [style.left.%]="sparkle.x"
@@ -39,7 +39,7 @@ import { SoulConnectionComponent } from '../soul-connection/soul-connection.comp
 
           <!-- Heart shower for high compatibility -->
           <div class="hearts-container" *ngIf="showHearts">
-            <div 
+            <div
               *ngFor="let heart of heartParticles; trackBy: trackHeart"
               class="floating-heart"
               [style.left.%]="heart.x"
@@ -52,7 +52,7 @@ import { SoulConnectionComponent } from '../soul-connection/soul-connection.comp
 
         <!-- Main celebration content -->
         <div class="celebration-content">
-          
+
           <!-- Header -->
           <div class="celebration-header">
             <h2 class="celebration-title">{{celebrationTitle}}</h2>
@@ -77,7 +77,7 @@ import { SoulConnectionComponent } from '../soul-connection/soul-connection.comp
           <div class="compatibility-highlights" *ngIf="showHighlights">
             <h3 class="highlights-title">Your Strongest Connections</h3>
             <div class="highlights-grid">
-              <div 
+              <div
                 *ngFor="let highlight of compatibilityHighlights; trackBy: trackHighlight"
                 class="highlight-item"
                 [ngClass]="highlight.level">
@@ -87,8 +87,8 @@ import { SoulConnectionComponent } from '../soul-connection/soul-connection.comp
                   <span class="highlight-score">{{highlight.score}}%</span>
                 </div>
                 <div class="highlight-bar">
-                  <div 
-                    class="highlight-fill" 
+                  <div
+                    class="highlight-fill"
                     [style.width.%]="highlight.score"
                     [style.background-color]="highlight.color">
                   </div>
@@ -99,23 +99,23 @@ import { SoulConnectionComponent } from '../soul-connection/soul-connection.comp
 
           <!-- Action buttons -->
           <div class="celebration-actions">
-            <button 
+            <button
               class="action-btn primary"
               (click)="onStartConversation()"
               [disabled]="isProcessing">
               <span class="btn-icon">💬</span>
               <span class="btn-text">Start Soul Conversation</span>
             </button>
-            
-            <button 
+
+            <button
               class="action-btn secondary"
               (click)="onViewProfile()"
               [disabled]="isProcessing">
               <span class="btn-icon">👤</span>
               <span class="btn-text">Explore Their Soul</span>
             </button>
-            
-            <button 
+
+            <button
               class="action-btn tertiary"
               (click)="onDismiss()"
               [disabled]="isProcessing">
@@ -127,7 +127,7 @@ import { SoulConnectionComponent } from '../soul-connection/soul-connection.comp
           <div class="connection-insights" *ngIf="showInsights">
             <h4 class="insights-title">Soul Connection Insights</h4>
             <div class="insights-list">
-              <div 
+              <div
                 *ngFor="let insight of connectionInsights; trackBy: trackInsight"
                 class="insight-item">
                 <span class="insight-icon">{{insight.icon}}</span>

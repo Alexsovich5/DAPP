@@ -12,15 +12,15 @@ import { NotificationService, Notification } from '../../core/services/notificat
       <header class="notifications-header">
         <h1>Notifications</h1>
         <div class="header-actions">
-          <button 
-            class="action-btn" 
+          <button
+            class="action-btn"
             (click)="markAllAsRead()"
             [disabled]="unreadCount === 0"
           >
             Mark All Read
           </button>
-          <button 
-            class="action-btn secondary" 
+          <button
+            class="action-btn secondary"
             (click)="clearAll()"
             [disabled]="notifications.length === 0"
           >
@@ -45,8 +45,8 @@ import { NotificationService, Notification } from '../../core/services/notificat
       </div>
 
       <div class="notifications-list" *ngIf="notifications.length > 0; else noNotifications">
-        <div 
-          *ngFor="let notification of notifications; trackBy: trackByNotificationId" 
+        <div
+          *ngFor="let notification of notifications; trackBy: trackByNotificationId"
           class="notification-item"
           [class.unread]="!notification.isRead"
           [class]="'type-' + notification.type"
@@ -61,9 +61,9 @@ import { NotificationService, Notification } from '../../core/services/notificat
               <h3 class="notification-title">{{notification.title}}</h3>
               <span class="notification-time">{{formatTime(notification.timestamp)}}</span>
             </div>
-            
+
             <p class="notification-message">{{notification.message}}</p>
-            
+
             <div class="notification-meta">
               <span class="notification-type">{{formatNotificationType(notification.type)}}</span>
               <span class="read-status" *ngIf="!notification.isRead">New</span>
@@ -71,7 +71,7 @@ import { NotificationService, Notification } from '../../core/services/notificat
           </div>
 
           <div class="notification-actions">
-            <button 
+            <button
               class="action-btn-small"
               (click)="markAsRead(notification, $event)"
               *ngIf="!notification.isRead"
@@ -79,7 +79,7 @@ import { NotificationService, Notification } from '../../core/services/notificat
             >
               ✓
             </button>
-            <button 
+            <button
               class="action-btn-small secondary"
               (click)="removeNotification(notification, $event)"
               title="Remove"
@@ -470,34 +470,34 @@ import { NotificationService, Notification } from '../../core/services/notificat
       .notifications-container {
         padding: 0.5rem;
       }
-      
+
       .notifications-header {
         flex-direction: column;
         gap: 1rem;
         align-items: stretch;
       }
-      
+
       .header-actions {
         justify-content: center;
       }
-      
+
       .notification-stats {
         grid-template-columns: 1fr;
       }
-      
+
       .notification-item {
         padding: 0.75rem;
       }
-      
+
       .notification-header {
         flex-direction: column;
         gap: 0.25rem;
       }
-      
+
       .notification-time {
         margin-left: 0;
       }
-      
+
       .notification-actions {
         flex-direction: row;
         gap: 0.25rem;
@@ -527,7 +527,7 @@ export class NotificationsComponent implements OnInit {
   get todayNotifications(): number {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     return this.notifications.filter(n => {
       const notificationDate = new Date(n.timestamp);
       notificationDate.setHours(0, 0, 0, 0);

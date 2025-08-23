@@ -327,7 +327,7 @@ export class HapticFeedbackService {
     const baseIntensity = 20;
     const maxIntensity = 80;
     const intensity = baseIntensity + (progress * (maxIntensity - baseIntensity));
-    
+
     this.vibrate([Math.floor(intensity)]);
   }
 

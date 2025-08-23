@@ -45,7 +45,7 @@ check_docker() {
 # Start PostgreSQL database in Docker
 start_database() {
     log "Starting PostgreSQL database..."
-    
+
     # Check if container already exists
     if docker ps -a --format 'table {{.Names}}' | grep -q "dinner_first-postgres"; then
         log "PostgreSQL container already exists. Starting it..."
@@ -60,11 +60,11 @@ start_database() {
             -p 5432:5432 \
             postgres:15
     fi
-    
+
     # Wait for database to be ready
     log "Waiting for database to be ready..."
     sleep 5
-    
+
     # Test database connection
     for i in {1..30}; do
         if docker exec dinner_first-postgres pg_isready -U postgres > /dev/null 2>&1; then
@@ -82,30 +82,30 @@ start_database() {
 # Start Python backend
 start_backend() {
     log "Starting Python backend..."
-    
+
     cd "$BACKEND_DIR"
-    
+
     # Check if virtual environment exists
     if [ ! -d "venv" ]; then
         warning "Virtual environment not found. Creating it..."
         python3 -m venv venv
     fi
-    
+
     # Activate virtual environment and install dependencies
     source venv/bin/activate
-    
+
     log "Installing Python dependencies..."
     pip install -r requirements.txt > /dev/null 2>&1
-    
+
     # Handle database migrations with error handling
     log "Running database migrations..."
-    
+
     # Check for multiple heads and merge if necessary
     if alembic heads 2>/dev/null | wc -l | grep -q "2"; then
         warning "Multiple migration heads detected. Merging..."
         alembic merge heads -m "Auto-merge migration heads" 2>/dev/null || true
     fi
-    
+
     # Run migrations with retry logic
     for i in {1..3}; do
         if alembic upgrade head 2>/dev/null; then
@@ -119,16 +119,16 @@ start_backend() {
             sleep 2
         fi
     done
-    
+
     # Start the backend server in background
     log "Starting FastAPI server on port 5000..."
     nohup python run.py > backend.log 2>&1 &
     BACKEND_PID=$!
     echo $BACKEND_PID > backend.pid
-    
+
     # Wait for backend to start
     sleep 5
-    
+
     # Test backend health with extended timeout
     for i in {1..60}; do
         if curl -s http://localhost:5000/health > /dev/null 2>&1; then
@@ -149,22 +149,22 @@ start_backend() {
 # Start observability stack
 start_observability() {
     log "Starting observability stack (Grafana, Loki, Prometheus)..."
-    
+
     MONITORING_DIR="$PROJECT_ROOT/monitoring/loki"
-    
+
     if [ -d "$MONITORING_DIR" ]; then
         cd "$MONITORING_DIR"
-        
+
         # Check if observability stack is already running
         if docker-compose -f docker-compose.loki.yml ps | grep -q "Up"; then
             log "Observability stack already running"
         else
             log "Starting Loki, Grafana, Prometheus, and Alertmanager..."
             docker-compose -f docker-compose.loki.yml up -d
-            
+
             # Wait for services to be ready
             sleep 15
-            
+
             # Health checks for observability services
             for i in {1..30}; do
                 if curl -s http://localhost:3000/api/health > /dev/null 2>&1; then
@@ -176,7 +176,7 @@ start_observability() {
                 fi
                 sleep 1
             done
-            
+
             for i in {1..30}; do
                 if curl -s http://localhost:9090/-/ready > /dev/null 2>&1; then
                     success "Prometheus is ready on http://localhost:9090"
@@ -187,7 +187,7 @@ start_observability() {
                 fi
                 sleep 1
             done
-            
+
             for i in {1..30}; do
                 if curl -s http://localhost:3100/ready > /dev/null 2>&1; then
                     success "Loki is ready on http://localhost:3100"
@@ -207,24 +207,24 @@ start_observability() {
 # Start Angular frontend
 start_frontend() {
     log "Starting Angular frontend..."
-    
+
     cd "$FRONTEND_DIR"
-    
+
     # Install dependencies if node_modules doesn't exist
     if [ ! -d "node_modules" ]; then
         log "Installing Angular dependencies..."
         npm install
     fi
-    
+
     # Start the frontend server in background
     log "Starting Angular development server on port 5001..."
     nohup npm run start > frontend.log 2>&1 &
     FRONTEND_PID=$!
     echo $FRONTEND_PID > frontend.pid
-    
+
     # Wait for frontend to start
     sleep 10
-    
+
     # Test frontend
     for i in {1..60}; do
         if curl -s http://localhost:5001 > /dev/null; then
@@ -242,7 +242,7 @@ start_frontend() {
 # Cleanup function
 cleanup() {
     log "Shutting down services..."
-    
+
     # Kill backend
     if [ -f "$BACKEND_DIR/backend.pid" ]; then
         BACKEND_PID=$(cat "$BACKEND_DIR/backend.pid")
@@ -252,7 +252,7 @@ cleanup() {
             success "Backend stopped"
         fi
     fi
-    
+
     # Kill frontend
     if [ -f "$FRONTEND_DIR/frontend.pid" ]; then
         FRONTEND_PID=$(cat "$FRONTEND_DIR/frontend.pid")
@@ -262,7 +262,7 @@ cleanup() {
             success "Frontend stopped"
         fi
     fi
-    
+
     # Stop observability stack
     MONITORING_DIR="$PROJECT_ROOT/monitoring/loki"
     if [ -d "$MONITORING_DIR" ]; then
@@ -273,13 +273,13 @@ cleanup() {
             success "Observability stack stopped"
         fi
     fi
-    
+
     # Stop database container
     if docker ps --format 'table {{.Names}}' | grep -q "dinner_first-postgres"; then
         docker stop dinner_first-postgres
         success "Database stopped"
     fi
-    
+
     log "All services stopped"
 }
 
@@ -289,13 +289,13 @@ trap cleanup EXIT
 # Main execution
 main() {
     log "Starting Dinner First Application with Full Observability Stack..."
-    
+
     check_docker
     start_database
     start_observability
     start_backend
     start_frontend
-    
+
     success "All services are running!"
     echo ""
     echo "🚀 Application URLs:"
@@ -316,13 +316,13 @@ main() {
     echo ""
     echo "🔍 SRE Features:"
     echo "   - Real-time metrics correlation"
-    echo "   - Soul connection monitoring" 
+    echo "   - Soul connection monitoring"
     echo "   - A/B testing analytics"
     echo "   - Security alert monitoring"
     echo "   - Business KPI tracking"
     echo ""
     echo "Press Ctrl+C to stop all services"
-    
+
     # Keep script running
     while true; do
         sleep 1

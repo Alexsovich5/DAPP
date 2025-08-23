@@ -43,27 +43,27 @@ info() {
 # Check if Docker and Docker Compose are installed
 check_prerequisites() {
     log "Checking prerequisites..."
-    
+
     if ! command -v docker &> /dev/null; then
         error "Docker is not installed. Please install Docker first."
     fi
-    
+
     if ! command -v docker-compose &> /dev/null; then
         error "Docker Compose is not installed. Please install Docker Compose first."
     fi
-    
+
     # Check if Docker daemon is running
     if ! docker info &> /dev/null; then
         error "Docker daemon is not running. Please start Docker first."
     fi
-    
+
     log "Prerequisites check passed ✓"
 }
 
 # Generate environment variables
 generate_env_file() {
     log "Generating CI/CD environment file..."
-    
+
     cat > "$CICD_ENV_FILE" << EOF
 # Dinner First CI/CD Environment Configuration
 # Generated on $(date)
@@ -120,54 +120,54 @@ EOF
 # Create necessary directories
 create_directories() {
     log "Creating necessary directories..."
-    
+
     mkdir -p "$PROJECT_ROOT/data/"{postgres,uploads,prometheus,grafana,nexus,vault,minio}
     mkdir -p "$PROJECT_ROOT/monitoring/"{prometheus/rules,grafana/provisioning,alertmanager}
     mkdir -p "$PROJECT_ROOT/logs"
-    
+
     # Set proper permissions
     chmod 755 "$PROJECT_ROOT/data"/*
-    
+
     log "Directories created ✓"
 }
 
 # Start the CI/CD infrastructure
 start_infrastructure() {
     log "Starting CI/CD infrastructure..."
-    
+
     cd "$PROJECT_ROOT"
-    
+
     # Start the base CI/CD environment
     docker-compose up -d
-    
+
     # Wait for services to be ready
     log "Waiting for services to start..."
     sleep 30
-    
+
     # Start the Dinner First application with CI/CD integration
     docker-compose -f docker-compose.yml -f docker-compose.cicd.yml up -d
-    
+
     log "Infrastructure started ✓"
 }
 
 # Wait for services to be healthy
 wait_for_services() {
     log "Waiting for services to be healthy..."
-    
+
     local services=(
         "$GITLAB_URL:GitLab"
-        "$JENKINS_URL:Jenkins" 
+        "$JENKINS_URL:Jenkins"
         "$NEXUS_URL:Nexus"
         "$VAULT_URL:Vault"
     )
-    
+
     for service in "${services[@]}"; do
         IFS=':' read -r url name <<< "$service"
         info "Waiting for $name to be ready..."
-        
+
         local timeout=300
         local elapsed=0
-        
+
         while ! curl -sf "$url/health" &> /dev/null && ! curl -sf "$url" &> /dev/null; do
             if [[ $elapsed -ge $timeout ]]; then
                 warn "$name did not start within $timeout seconds"
@@ -176,7 +176,7 @@ wait_for_services() {
             sleep 10
             elapsed=$((elapsed + 10))
         done
-        
+
         if curl -sf "$url" &> /dev/null; then
             log "$name is ready ✓"
         fi
@@ -186,11 +186,11 @@ wait_for_services() {
 # Configure GitLab
 configure_gitlab() {
     log "Configuring GitLab..."
-    
+
     # Wait for GitLab to be fully ready
     info "Waiting for GitLab to be ready (this may take a few minutes)..."
     sleep 60
-    
+
     # Register GitLab Runner
     if docker exec gitlab-runner gitlab-runner verify; then
         log "GitLab Runner already registered"
@@ -209,32 +209,32 @@ configure_gitlab() {
             --run-untagged true \
             --locked false
     fi
-    
+
     log "GitLab configured ✓"
 }
 
 # Configure SonarQube
 configure_sonarqube() {
     log "Configuring SonarQube..."
-    
+
     if curl -sf "$SONARQUBE_URL/api/system/status" &> /dev/null; then
         # Create SonarQube project
         local auth="admin:$(grep SONAR_ADMIN_PASSWORD "$CICD_ENV_FILE" | cut -d'=' -f2)"
-        
+
         curl -u "$auth" -X POST "$SONARQUBE_URL/api/projects/create" \
             -d "project=dinner_first-dating-platform" \
             -d "name=Dinner First Dating Platform" || warn "SonarQube project might already exist"
-        
+
         # Generate token for CI/CD
         local sonar_token
         sonar_token=$(curl -u "$auth" -X POST "$SONARQUBE_URL/api/user_tokens/generate" \
             -d "name=cicd-token" | jq -r '.token' 2>/dev/null || echo "failed")
-        
+
         if [[ "$sonar_token" != "failed" ]]; then
             echo "SONAR_TOKEN=$sonar_token" >> "$CICD_ENV_FILE"
             log "SonarQube token generated and saved"
         fi
-        
+
         log "SonarQube configured ✓"
     else
         warn "SonarQube is not responding, skipping configuration"
@@ -244,13 +244,13 @@ configure_sonarqube() {
 # Configure Nexus Repository
 configure_nexus() {
     log "Configuring Nexus Repository..."
-    
+
     if curl -sf "$NEXUS_URL/service/rest/v1/status" &> /dev/null; then
         info "Nexus is ready for configuration"
-        
+
         # Create Docker repositories
         local auth="admin:$(grep NEXUS_ADMIN_PASSWORD "$CICD_ENV_FILE" | cut -d'=' -f2)"
-        
+
         # Create hosted Docker repository
         curl -u "$auth" -X POST "$NEXUS_URL/service/rest/v1/repositories/docker/hosted" \
             -H "Content-Type: application/json" \
@@ -268,7 +268,7 @@ configure_nexus() {
                     "httpPort": 8082
                 }
             }' || warn "Docker repository might already exist"
-        
+
         log "Nexus configured ✓"
     else
         warn "Nexus is not responding, skipping configuration"
@@ -278,21 +278,21 @@ configure_nexus() {
 # Configure Vault
 configure_vault() {
     log "Configuring Vault..."
-    
+
     if curl -sf "$VAULT_URL/v1/sys/health" &> /dev/null; then
         local root_token
         root_token=$(grep VAULT_ROOT_TOKEN "$CICD_ENV_FILE" | cut -d'=' -f2)
-        
+
         # Initialize Vault (if not already done)
         if ! curl -sf -H "X-Vault-Token: $root_token" "$VAULT_URL/v1/sys/init" &> /dev/null; then
             info "Initializing Vault..."
             docker exec vault-secrets vault operator init -key-shares=1 -key-threshold=1
         fi
-        
+
         # Enable KV secrets engine
         curl -H "X-Vault-Token: $root_token" -X POST "$VAULT_URL/v1/sys/mounts/secret" \
             -d '{"type":"kv-v2"}' || warn "KV engine might already be enabled"
-        
+
         log "Vault configured ✓"
     else
         warn "Vault is not responding, skipping configuration"
@@ -302,20 +302,20 @@ configure_vault() {
 # Import Grafana dashboards
 configure_grafana() {
     log "Configuring Grafana..."
-    
+
     # Copy dashboards to Grafana
     docker cp "$PROJECT_ROOT/monitoring/grafana-dashboards/." grafana-monitoring:/var/lib/grafana/dashboards/
-    
+
     # Restart Grafana to load dashboards
     docker restart grafana-monitoring
-    
+
     log "Grafana configured ✓"
 }
 
 # Display access information
 show_access_info() {
     log "CI/CD Environment Setup Complete!"
-    
+
     echo ""
     echo "======================================"
     echo "  🚀 DINNER1 CI/CD ACCESS INFORMATION"
@@ -362,7 +362,7 @@ cleanup() {
 # Main execution
 main() {
     log "Starting Dinner First CI/CD Environment Setup"
-    
+
     check_prerequisites
     generate_env_file
     create_directories
@@ -374,7 +374,7 @@ main() {
     configure_vault
     configure_grafana
     show_access_info
-    
+
     log "Setup completed successfully! 🎉"
 }
 

@@ -133,7 +133,7 @@ export class RegisterComponent implements OnInit {
     }>({
       email: ['', [Validators.required, Validators.email]],
       username: ['', [
-        Validators.required, 
+        Validators.required,
         Validators.minLength(3),
         Validators.pattern(/^[a-zA-Z0-9_]+$/)
       ]],

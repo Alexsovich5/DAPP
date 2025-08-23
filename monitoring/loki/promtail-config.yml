@@ -22,7 +22,7 @@ scrape_configs:
           service: backend-api
           environment: production
           __path__: /app/logs/*.log
-    
+
     pipeline_stages:
       # Parse JSON logs
       - json:
@@ -35,14 +35,14 @@ scrape_configs:
             endpoint: endpoint
             status_code: status_code
             response_time: response_time
-      
+
       # Extract labels from log data
       - labels:
           level:
           service:
           request_id:
           endpoint:
-          
+
       # Add timestamp parsing
       - timestamp:
           source: timestamp
@@ -78,7 +78,7 @@ scrape_configs:
           service: database
           environment: production
           __path__: /app/logs/postgres/*.log
-    
+
     pipeline_stages:
       - regex:
           expression: '(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3} \w+) \[(?P<pid>\d+)\] (?P<level>\w+): (?P<message>.*)'
@@ -99,7 +99,7 @@ scrape_configs:
           service: cache
           environment: production
           __path__: /app/logs/redis/*.log
-    
+
     pipeline_stages:
       - regex:
           expression: '(?P<pid>\d+):(?P<role>\w) (?P<timestamp>\d{2} \w{3} \d{4} \d{2}:\d{2}:\d{2}.\d{3}) (?P<level>.) (?P<message>.*)'
@@ -118,16 +118,16 @@ scrape_configs:
         filters:
           - name: label
             values: ["logging=promtail"]
-    
+
     relabel_configs:
       - source_labels: ['__meta_docker_container_name']
-        regex: '/(.*)' 
+        regex: '/(.*)'
         target_label: 'container_name'
         replacement: '$1'
-      
+
       - source_labels: ['__meta_docker_container_log_stream']
         target_label: 'log_stream'
-      
+
       - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
         target_label: 'service_name'
 
@@ -138,14 +138,14 @@ scrape_configs:
             output: log
             stream: stream
             time: time
-      
+
       - labels:
           stream:
-      
+
       - timestamp:
           source: time
           format: RFC3339Nano
-      
+
       - output:
           source: output
 
@@ -160,21 +160,21 @@ scrape_configs:
           log_type: access
           environment: production
           __path__: /app/logs/nginx/access.log
-    
+
     pipeline_stages:
       - regex:
           expression: '^(?P<remote_addr>[\d\.]+) - (?P<remote_user>\S+) \[(?P<time_local>[^\]]+)\] "(?P<method>\S+) (?P<request>\S+) (?P<protocol>\S+)" (?P<status>\d+) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)" "(?P<request_time>[\d\.]+)"'
-      
+
       - labels:
           method:
           status:
           request:
-      
+
       - timestamp:
           source: time_local
           format: '02/Jan/2006:15:04:05 -0700'
 
-  # Nginx error logs  
+  # Nginx error logs
   - job_name: nginx-error
     static_configs:
       - targets:
@@ -185,14 +185,14 @@ scrape_configs:
           log_type: error
           environment: production
           __path__: /app/logs/nginx/error.log
-    
+
     pipeline_stages:
       - regex:
           expression: '^(?P<timestamp>\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}) \[(?P<level>\w+)\] (?P<message>.*)'
-      
+
       - labels:
           level:
-      
+
       - timestamp:
           source: timestamp
           format: '2006/01/02 15:04:05'
@@ -207,15 +207,15 @@ scrape_configs:
           service: operating-system
           environment: production
           __path__: /host/var/log/syslog
-    
+
     pipeline_stages:
       - regex:
           expression: '^(?P<timestamp>\w{3} \d{2} \d{2}:\d{2}:\d{2}) (?P<hostname>\S+) (?P<service>\S+)\[?(?P<pid>\d+)?\]?: (?P<message>.*)'
-      
+
       - labels:
           hostname:
           service:
-      
+
       - timestamp:
           source: timestamp
           format: 'Jan 02 15:04:05'
@@ -228,11 +228,11 @@ scrape_configs:
           - localhost
         labels:
           job: soul-connections
-          service: matching-engine  
+          service: matching-engine
           feature: soul-before-skin
           environment: production
           __path__: /app/logs/soul_connections/*.log
-    
+
     pipeline_stages:
       - json:
           expressions:
@@ -244,12 +244,12 @@ scrape_configs:
             connection_stage: connection_stage
             event_type: event_type
             message: message
-      
+
       - labels:
           level:
           event_type:
           connection_stage:
-      
+
       - timestamp:
           source: timestamp
           format: RFC3339
@@ -265,7 +265,7 @@ scrape_configs:
           feature: feature-flags
           environment: production
           __path__: /app/logs/ab_testing/*.log
-    
+
     pipeline_stages:
       - json:
           expressions:
@@ -275,11 +275,11 @@ scrape_configs:
             user_id: user_id
             conversion: conversion
             metric_value: metric_value
-      
+
       - labels:
           experiment_name:
           variant:
-      
+
       - timestamp:
           source: timestamp
           format: RFC3339

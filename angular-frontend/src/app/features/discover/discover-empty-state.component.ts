@@ -45,7 +45,7 @@ export class DiscoverEmptyStateComponent {
       text: "Complete your emotional profile to help us find deeper connections"
     },
     {
-      icon: "💫", 
+      icon: "💫",
       text: "Share your authentic interests and values for better matches"
     },
     {
@@ -64,7 +64,7 @@ export class DiscoverEmptyStateComponent {
   };
 
   secondaryAction = {
-    text: "Enhance Your Profile", 
+    text: "Enhance Your Profile",
     icon: "✨"
   };
 

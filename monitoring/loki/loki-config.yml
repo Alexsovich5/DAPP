@@ -51,10 +51,10 @@ limits_config:
   max_query_parallelism: 32
   max_streams_per_user: 0
   max_line_size: 256kb
-  
+
   # Retention policies by stream
   retention_period: 30d
-  
+
   # Query limits
   max_entries_limit_per_query: 5000
   max_query_series: 1000

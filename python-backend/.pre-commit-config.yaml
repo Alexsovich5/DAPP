@@ -1,0 +1,114 @@
+# Pre-commit hooks for Python backend code quality
+# Install with: pre-commit install
+# Run manually with: pre-commit run --all-files
+
+repos:
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: mixed-line-ending
+
+  # Python import sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile", "black", "--line-length", "88"]
+
+  # Python code formatting
+  - repo: https://github.com/psf/black
+    rev: 24.8.0
+    hooks:
+      - id: black
+        language_version: python3
+
+  # Python linting
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.1.1
+    hooks:
+      - id: flake8
+        args: [
+          "--max-line-length=88",
+          "--extend-ignore=E203,W503,E501",
+          "--exclude=migrations,__pycache__,.git,venv,.venv"
+        ]
+
+  # Security linting
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        args: ["-r", ".", "-f", "json", "-o", "bandit-report.json"]
+        exclude: ^(tests/|migrations/)
+
+  # Type checking (temporarily disabled for Sprint 7.1)
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: v1.11.2
+  #   hooks:
+  #     - id: mypy
+  #       additional_dependencies: [types-requests, types-PyYAML]
+  #       exclude: ^(migrations/|tests/)
+  #       args: [
+  #         "--ignore-missing-imports",
+  #         "--disallow-untyped-defs",
+  #         "--warn-redundant-casts",
+  #         "--warn-unused-ignores"
+  #       ]
+
+  # Python docstring formatting (temporarily disabled for Sprint 7.1)
+  # - repo: https://github.com/pycqa/pydocstyle
+  #   rev: 6.3.0
+  #   hooks:
+  #     - id: pydocstyle
+  #       exclude: ^(tests/|migrations/)
+  #       args: [
+  #         "--convention=google",
+  #         "--add-ignore=D100,D101,D102,D103,D104,D105,D106,D107"
+  #       ]
+
+  # Additional Python security and quality checks
+  - repo: local
+    hooks:
+      # Custom hook to run basic tests before commit (disabled for Sprint 7.1)
+      # - id: pytest-check
+      #   name: pytest-check
+      #   entry: python -c "print('✓ Python tests would run here - currently disabled for performance')"
+      #   language: system
+      #   pass_filenames: false
+      #   stages: [pre-commit]
+
+      # SQLAlchemy model validation
+      - id: sqlalchemy-check
+        name: sqlalchemy-check
+        entry: python -c "from app.models import *; print('✓ All models imported successfully')"
+        language: system
+        pass_filenames: false
+        files: ^app/models/.*\.py$
+
+      # Check for potential security issues (exclude test files and legitimate uses)
+      - id: no-secrets
+        name: no-secrets
+        entry: bash -c 'if grep -r -E "(api_key|password|secret|token)\s*=\s*[\"'"'"'][^\"'"'"']*[\"'"'"']" --include="*.py" --exclude-dir=venv --exclude-dir=.git --exclude-dir=tests app/ | grep -v -E "(hashed_password|get_password_hash|verify_password|create_access_token|# noqa)"; then echo "❌ Potential hardcoded secrets found!" && exit 1; else echo "✓ No hardcoded secrets detected"; fi'
+        language: system
+        pass_filenames: false
+
+      # Database migration check
+      - id: migration-check
+        name: migration-check
+        entry: bash -c 'cd /Users/alex/Desktop/Projects/DAPP/python-backend && source venv/bin/activate && alembic check'
+        language: system
+        pass_filenames: false
+        files: ^(app/models/.*\.py|alembic/.*)$
+
+# Global configuration
+fail_fast: false
+default_stages: [pre-commit]

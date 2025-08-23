@@ -32,7 +32,7 @@
 ```sql
 -- Users table
 users (
-    id, email, username, hashed_password, 
+    id, email, username, hashed_password,
     first_name, last_name, date_of_birth, gender,
     emotional_onboarding_completed, created_at
 )
@@ -76,13 +76,13 @@ def calculate_interest_similarity(user1_interests: List[str], user2_interests: L
     """
     set1 = set(user1_interests)
     set2 = set(user2_interests)
-    
+
     intersection = len(set1.intersection(set2))
     union = len(set1.union(set2))
-    
+
     if union == 0:
         return 0.0
-    
+
     return intersection / union
 
 # Weight: 25% of total compatibility score
@@ -98,7 +98,7 @@ def calculate_values_compatibility(user1_responses: Dict, user2_responses: Dict)
     and response sentiment similarity
     """
     compatibility_scores = []
-    
+
     # Define value keywords for each question
     value_keywords = {
         "relationship_values": {
@@ -114,7 +114,7 @@ def calculate_values_compatibility(user1_responses: Dict, user2_responses: Dict)
             "physical_affection": ["touch", "affection", "close", "intimate"]
         }
     }
-    
+
     for question_key in user1_responses.keys():
         if question_key in user2_responses:
             score = compare_response_values(
@@ -123,31 +123,31 @@ def calculate_values_compatibility(user1_responses: Dict, user2_responses: Dict)
                 value_keywords.get(question_key, {})
             )
             compatibility_scores.append(score)
-    
+
     return sum(compatibility_scores) / len(compatibility_scores) if compatibility_scores else 0.0
 
 def compare_response_values(response1: str, response2: str, keywords: Dict) -> float:
     """Compare two text responses for value alignment"""
     response1_lower = response1.lower()
     response2_lower = response2.lower()
-    
+
     # Find value categories mentioned in each response
     user1_values = set()
     user2_values = set()
-    
+
     for value_category, words in keywords.items():
         if any(word in response1_lower for word in words):
             user1_values.add(value_category)
         if any(word in response2_lower for word in words):
             user2_values.add(value_category)
-    
+
     # Calculate overlap
     if not user1_values and not user2_values:
         return 0.5  # neutral if no clear values detected
-    
+
     intersection = len(user1_values.intersection(user2_values))
     union = len(user1_values.union(user2_values))
-    
+
     return intersection / union if union > 0 else 0.0
 
 # Weight: 30% of total compatibility score
@@ -163,7 +163,7 @@ def calculate_demographic_compatibility(user1: User, user2: User) -> float:
     """
     age_score = calculate_age_compatibility(user1.age, user2.age)
     location_score = calculate_location_compatibility(user1.location, user2.location)
-    
+
     # Weighted average: age 40%, location 60%
     return (age_score * 0.4) + (location_score * 0.6)
 
@@ -172,7 +172,7 @@ def calculate_age_compatibility(age1: int, age2: int) -> float:
     Age compatibility with bell curve - optimal within 5 years
     """
     age_diff = abs(age1 - age2)
-    
+
     if age_diff == 0:
         return 1.0
     elif age_diff <= 2:
@@ -192,20 +192,20 @@ def calculate_location_compatibility(loc1: str, loc2: str) -> float:
     """
     if loc1.lower() == loc2.lower():
         return 1.0
-    
+
     # Check if same city/region (basic string matching)
     loc1_parts = loc1.lower().split(',')
     loc2_parts = loc2.lower().split(',')
-    
+
     # If same city
     if loc1_parts[0].strip() == loc2_parts[0].strip():
         return 0.8
-    
+
     # If same country/state
     if len(loc1_parts) > 1 and len(loc2_parts) > 1:
         if loc1_parts[-1].strip() == loc2_parts[-1].strip():
             return 0.4
-    
+
     return 0.1
 
 # Weight: 20% of total compatibility score
@@ -221,7 +221,7 @@ def calculate_communication_compatibility(user1_responses: List[str], user2_resp
     """
     style1 = analyze_communication_style(user1_responses)
     style2 = analyze_communication_style(user2_responses)
-    
+
     return compare_communication_styles(style1, style2)
 
 def analyze_communication_style(responses: List[str]) -> Dict:
@@ -229,23 +229,23 @@ def analyze_communication_style(responses: List[str]) -> Dict:
     Extract communication patterns from user responses
     """
     all_text = " ".join(responses).lower()
-    
+
     # Calculate various metrics
     total_words = len(all_text.split())
     total_sentences = sum(1 for response in responses for sentence in response.split('.') if sentence.strip())
     avg_words_per_sentence = total_words / max(total_sentences, 1)
-    
+
     # Count emotional indicators
     emotional_words = ["feel", "emotion", "heart", "love", "passion", "joy", "fear", "hope"]
     emotional_count = sum(1 for word in emotional_words if word in all_text)
-    
+
     # Count analytical indicators
     analytical_words = ["think", "analyze", "consider", "logical", "reason", "because", "therefore"]
     analytical_count = sum(1 for word in analytical_words if word in all_text)
-    
+
     # Count question marks (curiosity)
     question_count = all_text.count('?')
-    
+
     return {
         "verbosity": min(avg_words_per_sentence / 15, 1.0),  # normalized to 0-1
         "emotional_expression": min(emotional_count / max(total_words / 20, 1), 1.0),
@@ -258,14 +258,14 @@ def compare_communication_styles(style1: Dict, style2: Dict) -> float:
     Compare communication styles for compatibility
     """
     compatibility_scores = []
-    
+
     for metric in style1.keys():
         if metric in style2:
             # Calculate similarity (inverse of difference)
             diff = abs(style1[metric] - style2[metric])
             similarity = 1.0 - diff
             compatibility_scores.append(similarity)
-    
+
     return sum(compatibility_scores) / len(compatibility_scores) if compatibility_scores else 0.0
 
 # Weight: 15% of total compatibility score
@@ -298,18 +298,18 @@ def calculate_personality_compatibility(user1_personality: Dict, user2_personali
             "opposite_penalty": 0.4  # Big penalty for mismatched emotional stability
         }
     }
-    
+
     total_score = 0.5  # baseline compatibility
-    
+
     for trait, weights in trait_compatibility.items():
         if trait in user1_personality and trait in user2_personality:
             diff = abs(user1_personality[trait] - user2_personality[trait])
-            
+
             if diff <= 0.2:  # Very similar
                 total_score += weights["similar_bonus"]
             elif diff >= 0.7:  # Very different
                 total_score -= weights["opposite_penalty"]
-    
+
     return max(0.0, min(1.0, total_score))
 
 def assess_personality_from_responses(responses: List[str]) -> Dict:
@@ -318,27 +318,27 @@ def assess_personality_from_responses(responses: List[str]) -> Dict:
     """
     all_text = " ".join(responses).lower()
     word_count = len(all_text.split())
-    
+
     # Extroversion indicators
     social_words = ["people", "friends", "party", "social", "group", "team"]
     solo_words = ["alone", "quiet", "solitude", "peace", "individual"]
     extroversion = calculate_trait_score(all_text, social_words, solo_words, word_count)
-    
+
     # Openness indicators
     creative_words = ["creative", "art", "imagine", "new", "different", "unique"]
     traditional_words = ["traditional", "classic", "established", "proven", "standard"]
     openness = calculate_trait_score(all_text, creative_words, traditional_words, word_count)
-    
+
     # Conscientiousness indicators
     organized_words = ["plan", "organize", "schedule", "goal", "achieve", "discipline"]
     spontaneous_words = ["spontaneous", "flexible", "adapt", "go with flow", "improvise"]
     conscientiousness = calculate_trait_score(all_text, organized_words, spontaneous_words, word_count)
-    
+
     # Emotional stability indicators
     stable_words = ["calm", "stable", "balanced", "steady", "confident"]
     emotional_words = ["anxious", "worry", "stress", "overwhelm", "sensitive"]
     emotional_stability = calculate_trait_score(all_text, stable_words, emotional_words, word_count)
-    
+
     return {
         "extroversion": extroversion,
         "openness": openness,
@@ -350,11 +350,11 @@ def calculate_trait_score(text: str, positive_words: List[str], negative_words: 
     """Calculate trait score from 0 to 1 based on word frequency"""
     positive_count = sum(1 for word in positive_words if word in text)
     negative_count = sum(1 for word in negative_words if word in text)
-    
+
     # Normalize by text length
     positive_score = positive_count / max(total_words / 50, 1)
     negative_score = negative_count / max(total_words / 50, 1)
-    
+
     # Convert to 0-1 scale
     net_score = positive_score - negative_score
     return max(0.0, min(1.0, 0.5 + (net_score * 0.5)))
@@ -375,7 +375,7 @@ class CompatibilityCalculator:
             "communication": 0.15,
             "personality": 0.10
         }
-    
+
     def calculate_overall_compatibility(self, user1: User, user2: User) -> Dict:
         """
         Calculate comprehensive compatibility score between two users
@@ -383,26 +383,26 @@ class CompatibilityCalculator:
         # Get user profiles and responses
         profile1 = user1.emotional_profile
         profile2 = user2.emotional_profile
-        
+
         # Calculate individual scores
         interest_score = calculate_interest_similarity(
             profile1.interests, profile2.interests
         )
-        
+
         values_score = calculate_values_compatibility(
             profile1.core_values, profile2.core_values
         )
-        
+
         demographic_score = calculate_demographic_compatibility(user1, user2)
-        
+
         communication_score = calculate_communication_compatibility(
             profile1.responses, profile2.responses
         )
-        
+
         personality_score = calculate_personality_compatibility(
             profile1.personality_traits, profile2.personality_traits
         )
-        
+
         # Calculate weighted total
         total_score = (
             interest_score * self.weights["interests"] +
@@ -411,7 +411,7 @@ class CompatibilityCalculator:
             communication_score * self.weights["communication"] +
             personality_score * self.weights["personality"]
         )
-        
+
         return {
             "total_compatibility": round(total_score * 100, 1),  # Convert to percentage
             "breakdown": {
@@ -423,7 +423,7 @@ class CompatibilityCalculator:
             },
             "match_quality": self.get_match_quality_label(total_score)
         }
-    
+
     def get_match_quality_label(self, score: float) -> str:
         """Convert numeric score to qualitative label"""
         if score >= 0.8:
@@ -442,30 +442,30 @@ class CompatibilityCalculator:
 async def get_potential_matches(user_id: int, db: Session = Depends(get_db)):
     calculator = CompatibilityCalculator()
     current_user = db.query(User).filter(User.id == user_id).first()
-    
+
     # Get potential matches (users not already connected)
     potential_matches = db.query(User).filter(
         User.id != user_id,
         User.emotional_onboarding_completed == True
     ).limit(20).all()
-    
+
     # Calculate compatibility for each potential match
     matches_with_scores = []
     for candidate in potential_matches:
         compatibility = calculator.calculate_overall_compatibility(current_user, candidate)
-        
+
         if compatibility["total_compatibility"] >= 50:  # Minimum threshold
             matches_with_scores.append({
                 "user": candidate,
                 "compatibility": compatibility
             })
-    
+
     # Sort by compatibility score
     matches_with_scores.sort(
-        key=lambda x: x["compatibility"]["total_compatibility"], 
+        key=lambda x: x["compatibility"]["total_compatibility"],
         reverse=True
     )
-    
+
     return matches_with_scores[:10]  # Return top 10 matches
 ```
 
@@ -827,7 +827,7 @@ Based on MVP results:
 
 ### Development Costs
 - **Frontend Development**: $15,000-25,000 (4-6 weeks)
-- **Backend Development**: $15,000-25,000 (4-6 weeks)  
+- **Backend Development**: $15,000-25,000 (4-6 weeks)
 - **Design & UX**: $5,000-10,000 (2-3 weeks)
 - **Testing & QA**: $3,000-5,000 (1 week)
 - **Deployment Setup**: $2,000-3,000 (1 week)

@@ -8,7 +8,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
   imports: [CommonModule, SoulOrbComponent],
   template: `
     <div class="soul-connection-container" [ngClass]="[layout, connectionState]">
-      
+
       <!-- First Soul -->
       <div class="soul-position left">
         <app-soul-orb
@@ -53,7 +53,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
           </defs>
 
           <!-- Base connection line -->
-          <path 
+          <path
             [attr.d]="connectionPath"
             stroke="url(#connection-gradient)"
             [attr.stroke-width]="connectionWidth"
@@ -64,7 +64,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
           </path>
 
           <!-- Energy pulse -->
-          <path 
+          <path
             *ngIf="showEnergyPulse"
             [attr.d]="connectionPath"
             stroke="url(#pulse-gradient)"
@@ -76,10 +76,10 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 
           <!-- Floating energy particles -->
           <g class="energy-particles" *ngIf="showEnergyParticles">
-            <circle 
+            <circle
               *ngFor="let particle of connectionParticles; trackBy: trackConnectionParticle"
-              [attr.cx]="particle.x" 
-              [attr.cy]="particle.y" 
+              [attr.cx]="particle.x"
+              [attr.cy]="particle.y"
               [attr.r]="particle.size"
               [attr.fill]="particle.color"
               fill-opacity="0.8"
@@ -91,9 +91,9 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 
           <!-- Heart symbols for strong connections -->
           <g class="connection-hearts" *ngIf="compatibilityScore >= 80">
-            <text 
+            <text
               *ngFor="let heart of connectionHearts; trackBy: trackConnectionHeart"
-              [attr.x]="heart.x" 
+              [attr.x]="heart.x"
               [attr.y]="heart.y"
               font-family="sans-serif"
               font-size="12"
@@ -109,8 +109,8 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
         <!-- Compatibility display -->
         <div class="compatibility-meter" *ngIf="showCompatibilityMeter">
           <div class="compatibility-bar">
-            <div 
-              class="compatibility-fill" 
+            <div
+              class="compatibility-fill"
               [style.width.%]="compatibilityScore"
               [ngClass]="compatibilityLevel">
             </div>
@@ -384,7 +384,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 
     /* Accessibility */
     @media (prefers-reduced-motion: reduce) {
-      .connection-line, .energy-pulse, .connection-particle, 
+      .connection-line, .energy-pulse, .connection-particle,
       .connection-heart, .compatibility-fill {
         animation: none !important;
       }
@@ -411,7 +411,7 @@ export class SoulConnectionComponent implements OnInit, OnDestroy {
   };
 
   @Input() rightSoul: any = {
-    type: 'secondary', 
+    type: 'secondary',
     state: 'active',
     energy: 3,
     label: 'Match',
@@ -432,7 +432,7 @@ export class SoulConnectionComponent implements OnInit, OnDestroy {
   connectionParticles: any[] = [];
   connectionHearts: any[] = [];
   isLeftSelected: boolean = true;
-  
+
   private animationFrame?: number;
 
   get connectionPath(): string {
@@ -503,7 +503,7 @@ export class SoulConnectionComponent implements OnInit, OnDestroy {
     this.generateConnectionParticles();
     this.generateConnectionHearts();
     this.startAnimation();
-    
+
     // Toggle between souls for compatibility display
     setInterval(() => {
       this.isLeftSelected = !this.isLeftSelected;
@@ -521,7 +521,7 @@ export class SoulConnectionComponent implements OnInit, OnDestroy {
     if (!this.showEnergyParticles) return;
 
     const particleCount = Math.min(8, this.compatibilityScore / 10);
-    
+
     for (let i = 0; i < particleCount; i++) {
       this.connectionParticles.push({
         id: i,
@@ -540,7 +540,7 @@ export class SoulConnectionComponent implements OnInit, OnDestroy {
     if (this.compatibilityScore < 80) return;
 
     const heartCount = Math.min(5, Math.floor(this.compatibilityScore / 20));
-    
+
     for (let i = 0; i < heartCount; i++) {
       this.connectionHearts.push({
         id: i,

@@ -63,7 +63,7 @@ scrape_configs:
         target_label: service
         replacement: 'postgresql'
 
-  # Redis Cache Metrics  
+  # Redis Cache Metrics
   - job_name: 'redis'
     static_configs:
       - targets: ['redis-exporter:9121']
@@ -180,7 +180,7 @@ scrape_configs:
 #       username: "dinner_first"
 #       password: "your_remote_write_password"
 
-# Remote read for federated queries (optional)  
+# Remote read for federated queries (optional)
 # remote_read:
 #   - url: "https://prometheus-remote-read.example.com/api/v1/read"
 #     basic_auth:

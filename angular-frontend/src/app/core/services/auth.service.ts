@@ -7,13 +7,13 @@ import { StorageService } from '@core/services/storage.service';
 
 /**
  * Authentication service for the Dinner First "Soul Before Skin" dating application.
- * 
+ *
  * Handles user authentication, registration, and session management with:
  * - JWT token-based authentication
  * - Secure local storage of user data
  * - Reactive user state management
  * - Comprehensive error handling
- * 
+ *
  * @example
  * ```typescript
  * constructor(private authService: AuthService) {
@@ -46,7 +46,7 @@ export class AuthService {
         console.warn('StorageService not available during user load');
         return;
       }
-      
+
       const storedUser = this.storage.getJson<User>('user');
       if (storedUser) {
         this.currentUserSubject.next(storedUser);
@@ -58,14 +58,14 @@ export class AuthService {
 
   /**
    * Authenticates a user with email and password.
-   * 
+   *
    * Uses OAuth2PasswordRequestForm format expected by FastAPI backend.
    * On successful login, stores user data and JWT token in local storage.
-   * 
+   *
    * @param email - User's email address
    * @param password - User's password
    * @returns Observable<LoginResponse> containing user data and access token
-   * 
+   *
    * @example
    * ```typescript
    * this.authService.login('user@example.com', 'password123').subscribe({

@@ -70,8 +70,8 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
       </div>
 
       <div class="messages-list" *ngIf="filteredMessages.length > 0; else noMessages">
-        <div 
-          *ngFor="let message of filteredMessages" 
+        <div
+          *ngFor="let message of filteredMessages"
           class="message-item conversation-item"
           [class.unread]="message.unreadCount > 0"
           [class.revealing]="message.revelationDay > 1 && message.revelationDay <= 7"
@@ -96,7 +96,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
               <h3 class="partner-name">{{message.partnerName}}</h3>
               <span class="compatibility-score">{{message.compatibilityScore}}% match</span>
             </div>
-            
+
             <div class="message-preview">
               <p class="last-message" [class.typing-message]="message.isTyping">
                 <span *ngIf="!message.isTyping">{{message.lastMessage}}</span>
@@ -111,7 +111,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
               </p>
               <span class="connection-stage">{{formatConnectionStage(message.connectionStage)}}</span>
             </div>
-            
+
             <div class="message-meta">
               <span class="timestamp">{{formatTime(message.lastMessageTime)}}</span>
               <div class="message-indicators">
@@ -129,8 +129,8 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
             <button class="action-btn" (click)="quickReply(message, $event)" title="Quick Reply">
               💬
             </button>
-            <button 
-              class="action-btn revelation" 
+            <button
+              class="action-btn revelation"
               (click)="viewRevelations(message, $event)"
               *ngIf="message.revelationDay > 1"
               title="View Revelations"
@@ -587,30 +587,30 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
       .messages-container {
         padding: 0.5rem;
       }
-      
+
       .messages-header {
         flex-direction: column;
         gap: 1rem;
         align-items: stretch;
       }
-      
+
       .header-actions {
         justify-content: center;
       }
-      
+
       .messages-stats {
         grid-template-columns: 1fr;
       }
-      
+
       .message-item {
         padding: 0.75rem;
       }
-      
+
       .message-actions {
         flex-direction: row;
         gap: 0.25rem;
       }
-      
+
       .floating-action {
         bottom: 1rem;
         right: 1rem;
@@ -624,7 +624,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
   filteredMessages: MessagePreview[] = [];
   filter: MessageFilter = 'all';
   loading = true;
-  
+
   // === PRIVATE PROPERTIES ===
   private subscriptions = new Subscription();
   // Mock messages removed - now using real data from ChatService
@@ -651,7 +651,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
 
   loadMessages(): void {
     this.loading = true;
-    
+
     this.soulConnectionService.getActiveConnections().subscribe({
       next: (connections) => {
         this.messagesPreviews = this.mapConnectionsToMessages(connections);
@@ -697,7 +697,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
   }
 
   private sortMessagesByTime(): void {
-    this.messagesPreviews.sort((a, b) => 
+    this.messagesPreviews.sort((a, b) =>
       b.lastMessageTime.getTime() - a.lastMessageTime.getTime()
     );
   }
@@ -715,7 +715,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
         this.filteredMessages = this.messagesPreviews.filter(m => m.unreadCount > 0);
         break;
       case 'revealing':
-        this.filteredMessages = this.messagesPreviews.filter(m => 
+        this.filteredMessages = this.messagesPreviews.filter(m =>
           m.revelationDay > 1 && m.revelationDay <= 7
         );
         break;
@@ -735,7 +735,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
   }
 
   get revelingConnections(): number {
-    return this.messagesPreviews.filter(m => 
+    return this.messagesPreviews.filter(m =>
       m.revelationDay > 1 && m.revelationDay <= 7
     ).length;
   }
@@ -751,8 +751,8 @@ export class MessagesComponent implements OnInit, OnDestroy {
   // === UTILITY METHODS ===
 
   getPartnerName(connection: any): string {
-    return connection.user2_profile?.first_name || 
-           connection.user1_profile?.first_name || 
+    return connection.user2_profile?.first_name ||
+           connection.user1_profile?.first_name ||
            'Soul Connection';
   }
 
@@ -772,7 +772,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const hours = diff / (1000 * 60 * 60);
-    
+
     if (hours < 1) {
       const minutes = Math.floor(diff / (1000 * 60));
       return `${minutes}m ago`;
@@ -835,10 +835,10 @@ export class MessagesComponent implements OnInit, OnDestroy {
 
   private updateTypingStatus(typingUsers: any[]): void {
     this.messagesPreviews.forEach(message => {
-      const isTyping = typingUsers.some(user => 
+      const isTyping = typingUsers.some(user =>
         user.name === message.partnerName // TODO: Match by user ID instead
       );
-      
+
       if (message.isTyping !== isTyping) {
         this.handleTypingStatusChange(message, isTyping);
       }
@@ -849,7 +849,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
 
   private handleTypingStatusChange(message: MessagePreview, isTyping: boolean): void {
     message.isTyping = isTyping;
-    
+
     if (isTyping) {
       (message as any).originalLastMessage = message.lastMessage;
     } else if ((message as any).originalLastMessage) {
@@ -874,10 +874,10 @@ export class MessagesComponent implements OnInit, OnDestroy {
     // Swipe left to archive/delete conversation
     const element = event.element;
     element.classList.add('swipe-archive', 'swipe-left-preview');
-    
+
     // Trigger haptic feedback
     this.hapticFeedbackService.triggerSelectionFeedback();
-    
+
     // Show confirmation and archive
     setTimeout(() => {
       this.archiveConversation(message);
@@ -889,10 +889,10 @@ export class MessagesComponent implements OnInit, OnDestroy {
     // Swipe right to mark as read/prioritize
     const element = event.element;
     element.classList.add('swipe-priority', 'swipe-right-preview');
-    
+
     // Trigger haptic feedback
     this.hapticFeedbackService.triggerSuccessFeedback();
-    
+
     // Mark as priority/read
     setTimeout(() => {
       this.prioritizeConversation(message);
@@ -906,10 +906,10 @@ export class MessagesComponent implements OnInit, OnDestroy {
     if (index > -1) {
       this.messagesPreviews.splice(index, 1);
       this.applyFilter();
-      
+
       // Announce action for accessibility
       this.announceAction(`Archived conversation with ${message.partnerName}`);
-      
+
       // TODO: Call API to archive conversation
       console.log('Archived conversation:', message.connectionId);
     }
@@ -918,17 +918,17 @@ export class MessagesComponent implements OnInit, OnDestroy {
   private prioritizeConversation(message: MessagePreview): void {
     // Mark as read and move to top
     message.unreadCount = 0;
-    
+
     // Move to top of list
     const index = this.messagesPreviews.findIndex(m => m.connectionId === message.connectionId);
     if (index > -1) {
       const [prioritizedMessage] = this.messagesPreviews.splice(index, 1);
       this.messagesPreviews.unshift(prioritizedMessage);
       this.applyFilter();
-      
+
       // Announce action for accessibility
       this.announceAction(`Prioritized conversation with ${message.partnerName}`);
-      
+
       // TODO: Call API to mark as priority
       console.log('Prioritized conversation:', message.connectionId);
     }
@@ -942,20 +942,20 @@ export class MessagesComponent implements OnInit, OnDestroy {
     announcement.style.position = 'absolute';
     announcement.style.left = '-9999px';
     announcement.textContent = message;
-    
+
     document.body.appendChild(announcement);
-    
+
     // Remove after announcement
     setTimeout(() => {
       document.body.removeChild(announcement);
     }, 1000);
   }
 
-  // Enhanced openChat to stop typing indicators  
+  // Enhanced openChat to stop typing indicators
   openChat(message: MessagePreview) {
     // Stop typing indicator for this conversation
     this.chatService.clearAllTypingIndicators();
-    
+
     this.router.navigate(['/chat'], {
       queryParams: { connectionId: message.connectionId }
     });

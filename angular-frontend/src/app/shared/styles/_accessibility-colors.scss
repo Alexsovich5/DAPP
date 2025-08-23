@@ -223,12 +223,12 @@
   background-color: var(--interactive-primary);
   color: white;
   border: 1px solid var(--interactive-primary);
-  
+
   &:hover {
     background-color: var(--interactive-primary-hover);
     border-color: var(--interactive-primary-hover);
   }
-  
+
   &:focus {
     outline: 2px solid var(--focus-ring-primary);
     outline-offset: 2px;
@@ -239,12 +239,12 @@
   background-color: var(--interactive-secondary);
   color: white;
   border: 1px solid var(--interactive-secondary);
-  
+
   &:hover {
     background-color: var(--interactive-secondary-hover);
     border-color: var(--interactive-secondary-hover);
   }
-  
+
   &:focus {
     outline: 2px solid var(--focus-ring-secondary);
     outline-offset: 2px;
@@ -255,12 +255,12 @@
   background-color: var(--interactive-accent);
   color: white;
   border: 1px solid var(--interactive-accent);
-  
+
   &:hover {
     background-color: var(--interactive-accent-hover);
     border-color: var(--interactive-accent-hover);
   }
-  
+
   &:focus {
     outline: 2px solid var(--focus-ring-accent);
     outline-offset: 2px;

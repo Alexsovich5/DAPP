@@ -35,19 +35,19 @@ export interface ResponsiveConfig {
   maxColumns: number;
   gutterSize: string;
   containerMaxWidth: string;
-  
+
   // Typography
   baseFontSize: string;
   lineHeight: number;
-  
+
   // Spacing
   baseSpacing: string;
   componentPadding: string;
-  
+
   // Touch targets
   minTouchTarget: string;
   touchPadding: string;
-  
+
   // Animations
   reducedMotion: boolean;
   animationDuration: string;
@@ -81,9 +81,9 @@ export class ResponsiveDesignService {
     fromEvent(window, 'resize').pipe(
       throttleTime(100),
       map(() => this.getCurrentViewportInfo()),
-      distinctUntilChanged((prev, curr) => 
-        prev.width === curr.width && 
-        prev.height === curr.height && 
+      distinctUntilChanged((prev, curr) =>
+        prev.width === curr.width &&
+        prev.height === curr.height &&
         prev.breakpoint === curr.breakpoint
       ),
       startWith(this.getCurrentViewportInfo())
@@ -250,13 +250,13 @@ export class ResponsiveDesignService {
     // Update body classes for styling hooks
     document.body.className = document.body.className.replace(/\b(xs|sm|md|lg|xl|xxl)\b/g, '');
     document.body.classList.add(viewportInfo.breakpoint);
-    
+
     if (viewportInfo.isMobile) document.body.classList.add('mobile');
     else document.body.classList.remove('mobile');
-    
+
     if (viewportInfo.isTablet) document.body.classList.add('tablet');
     else document.body.classList.remove('tablet');
-    
+
     if (viewportInfo.isDesktop) document.body.classList.add('desktop');
     else document.body.classList.remove('desktop');
 
@@ -340,7 +340,7 @@ export class ResponsiveDesignService {
     const maxColumns = this.getOptimalColumns(preferredColumns);
     const columns = Math.min(itemCount, maxColumns);
     const rows = Math.ceil(itemCount / columns);
-    
+
     return { columns, rows };
   }
 
@@ -362,7 +362,7 @@ export class ResponsiveDesignService {
       xl: 1.0625,  // 17px base
       xxl: 1.125   // 18px base
     };
-    
+
     return factors[breakpoint];
   }
 
@@ -389,10 +389,10 @@ export class ResponsiveDesignService {
   getAnimationDuration(base: number = 300): number {
     const config = this.getCurrentConfig();
     const baseDuration = parseInt(config.animationDuration);
-    
+
     if (this.prefersReducedMotion()) return 0;
     if (this.getCurrentViewport().isMobile) return baseDuration * 0.8;
-    
+
     return baseDuration;
   }
 
@@ -416,7 +416,7 @@ export class ResponsiveDesignService {
    */
   getSafeAreaInsets(): { top: string; right: string; bottom: string; left: string } {
     const computedStyle = getComputedStyle(document.documentElement);
-    
+
     return {
       top: computedStyle.getPropertyValue('env(safe-area-inset-top)') || '0px',
       right: computedStyle.getPropertyValue('env(safe-area-inset-right)') || '0px',
@@ -430,12 +430,12 @@ export class ResponsiveDesignService {
    */
   applyResponsiveClasses(element: HTMLElement, classes: Partial<Record<Breakpoint, string>>): void {
     const currentBreakpoint = this.getCurrentViewport().breakpoint;
-    
+
     // Remove all breakpoint classes
     Object.values(classes).forEach(className => {
       if (className) element.classList.remove(className);
     });
-    
+
     // Apply current breakpoint class
     const currentClass = classes[currentBreakpoint];
     if (currentClass) {
@@ -448,19 +448,19 @@ export class ResponsiveDesignService {
    */
   initializeResponsiveComponent(element: HTMLElement): () => void {
     const viewport = this.getCurrentViewport();
-    
+
     // Apply initial classes
     element.setAttribute('data-breakpoint', viewport.breakpoint);
     element.setAttribute('data-is-mobile', viewport.isMobile.toString());
     element.setAttribute('data-supports-touch', viewport.supportsTouchscreen.toString());
-    
+
     // Subscribe to viewport changes
     const subscription = this.viewport$.subscribe(newViewport => {
       element.setAttribute('data-breakpoint', newViewport.breakpoint);
       element.setAttribute('data-is-mobile', newViewport.isMobile.toString());
       element.setAttribute('data-supports-touch', newViewport.supportsTouchscreen.toString());
     });
-    
+
     // Return cleanup function
     return () => {
       subscription.unsubscribe();

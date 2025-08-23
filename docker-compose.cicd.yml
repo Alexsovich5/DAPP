@@ -55,19 +55,19 @@ services:
       - DB_NAME=dinner_first
       - DB_USER=dinner_first_user
       - DB_PASSWORD=${DB_PASSWORD:-dinner_first_pass}
-      
+
       # Redis configuration
       - REDIS_URL=redis://:${REDIS_PASSWORD:-}@redis-cache:6379/1
       - REDIS_HOST=redis-cache
       - REDIS_PORT=6379
       - REDIS_DB=1
-      
+
       # MinIO configuration
       - MINIO_ENDPOINT=minio-storage:9000
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-dinner_first_minio}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-dinner_first_minio_secret}
       - MINIO_BUCKET=dinner-first-uploads
-      
+
       # Application settings
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
       - JWT_SECRET=${JWT_SECRET:-your-jwt-secret-here}
@@ -75,14 +75,14 @@ services:
       - DEBUG=false
       - LOG_LEVEL=INFO
       - CORS_ORIGINS=http://dinner-first.local,https://dinner-first.app
-      
+
       # External services
       - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
       - SENDGRID_API_KEY=${SENDGRID_API_KEY}
       - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
       - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
       - VAPID_SUBJECT=mailto:admin@dinner-first.app
-      
+
       # Monitoring
       - PROMETHEUS_ENABLED=true
       - METRICS_PORT=8080
@@ -292,14 +292,14 @@ volumes:
       type: none
       o: bind
       device: ./data/postgres
-  
+
   dinner_first_uploads:
     driver: local
     driver_opts:
       type: none
       o: bind
       device: ./data/uploads
-  
+
   alertmanager_data:
     driver: local
 

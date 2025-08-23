@@ -46,7 +46,7 @@
 ```sql
 -- Enhanced Users table
 users (
-    id, email, username, hashed_password, 
+    id, email, username, hashed_password,
     first_name, last_name, date_of_birth, gender,
     emotional_onboarding_completed BOOLEAN DEFAULT FALSE,
     soul_profile_visibility VARCHAR(20) DEFAULT 'hidden',
@@ -56,7 +56,7 @@ users (
 
 -- Enhanced Profiles (renamed to emotional_profiles)
 emotional_profiles (
-    id, user_id, 
+    id, user_id,
     life_philosophy TEXT,
     core_values JSONB,
     interests TEXT[],
@@ -117,13 +117,13 @@ def calculate_interest_similarity(user1_interests: List[str], user2_interests: L
     """
     set1 = set(user1_interests)
     set2 = set(user2_interests)
-    
+
     intersection = len(set1.intersection(set2))
     union = len(set1.union(set2))
-    
+
     if union == 0:
         return 0.0
-    
+
     return intersection / union
 
 # Weight: 25% of total compatibility score
@@ -138,7 +138,7 @@ def calculate_values_compatibility(user1_responses: Dict, user2_responses: Dict)
     Compare responses to core values questions using keyword matching
     """
     compatibility_scores = []
-    
+
     # Define value keywords for each question
     value_keywords = {
         "relationship_values": {
@@ -154,7 +154,7 @@ def calculate_values_compatibility(user1_responses: Dict, user2_responses: Dict)
             "physical_affection": ["touch", "affection", "close", "intimate"]
         }
     }
-    
+
     for question_key in user1_responses.keys():
         if question_key in user2_responses:
             score = compare_response_values(
@@ -163,7 +163,7 @@ def calculate_values_compatibility(user1_responses: Dict, user2_responses: Dict)
                 value_keywords.get(question_key, {})
             )
             compatibility_scores.append(score)
-    
+
     return sum(compatibility_scores) / len(compatibility_scores) if compatibility_scores else 0.0
 
 # Weight: 30% of total compatibility score
@@ -177,13 +177,13 @@ def calculate_demographic_compatibility(user1: User, user2: User) -> float:
     """Calculate compatibility based on age difference and location proximity"""
     age_score = calculate_age_compatibility(user1.age, user2.age)
     location_score = calculate_location_compatibility(user1.location, user2.location)
-    
+
     return (age_score * 0.4) + (location_score * 0.6)
 
 def calculate_age_compatibility(age1: int, age2: int) -> float:
     """Age compatibility with bell curve - optimal within 5 years"""
     age_diff = abs(age1 - age2)
-    
+
     if age_diff == 0:
         return 1.0
     elif age_diff <= 2:
@@ -212,29 +212,29 @@ class CompatibilityCalculator:
             "communication": 0.15,
             "personality": 0.10
         }
-    
+
     def calculate_overall_compatibility(self, user1: User, user2: User) -> Dict:
         """Calculate comprehensive compatibility score between two users"""
         # Calculate individual scores using local algorithms
         interest_score = calculate_interest_similarity(
-            user1.emotional_profile.interests, 
+            user1.emotional_profile.interests,
             user2.emotional_profile.interests
         )
-        
+
         values_score = calculate_values_compatibility(
-            user1.emotional_profile.core_values, 
+            user1.emotional_profile.core_values,
             user2.emotional_profile.core_values
         )
-        
+
         demographic_score = calculate_demographic_compatibility(user1, user2)
-        
+
         # Calculate weighted total
         total_score = (
             interest_score * self.weights["interests"] +
             values_score * self.weights["values"] +
             demographic_score * self.weights["demographics"]
         )
-        
+
         return {
             "total_compatibility": round(total_score * 100, 1),
             "breakdown": {
@@ -301,7 +301,7 @@ POST /api/v1/auth/register  # Enhanced with emotional questions
 POST /api/v1/auth/login
 GET  /api/v1/auth/me
 
-# Enhanced user endpoints  
+# Enhanced user endpoints
 GET  /api/v1/users/me
 GET  /api/v1/users/potential-matches  # With local algorithm scoring
 GET  /api/v1/users/{user_id}
@@ -411,7 +411,7 @@ Update `interface/Angular/src/environments/environment.ts`:
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:5000/api/v1',  // Must include /api/v1
-  
+
   // Soul Before Skin configuration
   soulBeforeSkin: {
     revelationCycleDays: 7,
@@ -520,7 +520,7 @@ psql dinner_first < schema.sql
 
 ### Development Costs (Building on Existing Codebase)
 - **Enhanced Frontend**: $8,000-12,000 (2-3 weeks)
-- **Enhanced Backend**: $8,000-12,000 (2-3 weeks)  
+- **Enhanced Backend**: $8,000-12,000 (2-3 weeks)
 - **Local Algorithms**: $5,000-8,000 (1-2 weeks)
 - **Testing & Integration**: $2,000-4,000 (1 week)
 

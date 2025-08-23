@@ -83,7 +83,7 @@ import { ErrorBoundaryComponent } from '@shared/components/error-boundary/error-
 })
 export class ExampleComponent implements OnInit {
   constructor(private authService: AuthService) {}
-  
+
   retryOperation = (): void => {
     // Retry logic
   }
@@ -143,7 +143,7 @@ The application uses a global error handler that:
 ### Error Boundaries
 Wrap complex components with error boundaries:
 ```typescript
-<app-error-boundary 
+<app-error-boundary
   [retryCallback]="retryOperation"
   errorTitle="Custom Error Title"
   errorMessage="Custom error message">
@@ -183,13 +183,13 @@ Follow the soul connection model pattern:
 ```python
 class SoulConnection(Base):
     __tablename__ = "soul_connections"
-    
+
     id = Column(Integer, primary_key=True)
     user1_id = Column(Integer, ForeignKey("users.id"))
     user2_id = Column(Integer, ForeignKey("users.id"))
     connection_stage = Column(String(30), default="soul_discovery")
     compatibility_score = Column(Numeric(5, 2))
-    
+
     # Relationships
     user1 = relationship("User", foreign_keys=[user1_id])
     user2 = relationship("User", foreign_keys=[user2_id])

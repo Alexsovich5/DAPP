@@ -317,7 +317,7 @@ Example pattern:
 export class ProfileService {
   private profileSubject = new BehaviorSubject<Profile | null>(null);
   public profile$ = this.profileSubject.asObservable();
-  
+
   // State mutation methods
   updateProfile(profile: Profile): Observable<Profile> {
     return this.http.put<Profile>('/api/profile', profile).pipe(

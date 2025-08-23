@@ -60,35 +60,35 @@ health_check() {
     local service_name=$1
     local timeout=$2
     local interval=$3
-    
+
     log "Performing health check for $service_name..."
-    
+
     local end_time=$((SECONDS + timeout))
-    
+
     while [ $SECONDS -lt $end_time ]; do
         # Check if pods are ready
         local ready_pods=$(kubectl get pods -l app=${APP_NAME},color=${service_name} -n ${NAMESPACE} -o jsonpath='{.items[*].status.conditions[?(@.type=="Ready")].status}' 2>/dev/null)
-        
+
         if [[ "$ready_pods" == *"False"* ]] || [[ -z "$ready_pods" ]]; then
             log "Waiting for pods to be ready... (${SECONDS}s elapsed)"
             sleep $interval
             continue
         fi
-        
+
         # Check application health endpoint
         local service_ip=$(kubectl get service ${APP_NAME}-${service_name} -n ${NAMESPACE} -o jsonpath='{.spec.clusterIP}' 2>/dev/null)
-        
+
         if [[ -n "$service_ip" ]]; then
             if kubectl run health-check-${service_name} --rm -i --restart=Never --image=curlimages/curl -- curl -f http://${service_ip}/health > /dev/null 2>&1; then
                 success "Health check passed for $service_name"
                 return 0
             fi
         fi
-        
+
         log "Health check failed, retrying... (${SECONDS}s elapsed)"
         sleep $interval
     done
-    
+
     error "Health check failed for $service_name after ${timeout}s"
     return 1
 }
@@ -97,9 +97,9 @@ health_check() {
 deploy_target() {
     local target_color=$1
     local image_tag=$2
-    
+
     log "Deploying to $target_color environment with image tag: $image_tag"
-    
+
     # Create temporary deployment manifests
     cat > /tmp/${APP_NAME}-${target_color}-backend.yaml << EOF
 apiVersion: apps/v1
@@ -250,52 +250,52 @@ EOF
     # Apply the deployments
     kubectl apply -f /tmp/${APP_NAME}-${target_color}-backend.yaml
     kubectl apply -f /tmp/${APP_NAME}-${target_color}-frontend.yaml
-    
+
     # Wait for rollout to complete
     log "Waiting for backend rollout to complete..."
     kubectl rollout status deployment/${APP_NAME}-backend-${target_color} -n ${NAMESPACE} --timeout=600s
-    
+
     log "Waiting for frontend rollout to complete..."
     kubectl rollout status deployment/${APP_NAME}-frontend-${target_color} -n ${NAMESPACE} --timeout=600s
-    
+
     # Clean up temporary files
     rm -f /tmp/${APP_NAME}-${target_color}-*.yaml
-    
+
     success "Deployment to $target_color completed"
 }
 
 # Switch traffic to target environment
 switch_traffic() {
     local target_color=$1
-    
+
     log "Switching traffic to $target_color environment..."
-    
+
     # Update main services to point to target color
     kubectl patch service ${APP_NAME}-backend -n ${NAMESPACE} -p '{"spec":{"selector":{"color":"'${target_color}'"}}}'
     kubectl patch service ${APP_NAME}-frontend -n ${NAMESPACE} -p '{"spec":{"selector":{"color":"'${target_color}'"}}}'
-    
+
     success "Traffic switched to $target_color environment"
 }
 
 # Cleanup old environment
 cleanup_old() {
     local old_color=$1
-    
+
     log "Cleaning up old $old_color environment..."
-    
+
     # Scale down old deployments
     kubectl scale deployment ${APP_NAME}-backend-${old_color} --replicas=0 -n ${NAMESPACE} 2>/dev/null || true
     kubectl scale deployment ${APP_NAME}-frontend-${old_color} --replicas=0 -n ${NAMESPACE} 2>/dev/null || true
-    
+
     # Wait a bit before complete cleanup
     sleep 30
-    
+
     # Delete old deployments and services
     kubectl delete deployment ${APP_NAME}-backend-${old_color} -n ${NAMESPACE} 2>/dev/null || true
     kubectl delete deployment ${APP_NAME}-frontend-${old_color} -n ${NAMESPACE} 2>/dev/null || true
     kubectl delete service ${APP_NAME}-backend-${old_color} -n ${NAMESPACE} 2>/dev/null || true
     kubectl delete service ${APP_NAME}-frontend-${old_color} -n ${NAMESPACE} 2>/dev/null || true
-    
+
     success "Cleanup of $old_color environment completed"
 }
 
@@ -303,26 +303,26 @@ cleanup_old() {
 rollback() {
     local current_color=$1
     local previous_color=$2
-    
+
     warning "Rolling back from $current_color to $previous_color..."
-    
+
     # Check if previous environment still exists
     if kubectl get deployment ${APP_NAME}-backend-${previous_color} -n ${NAMESPACE} > /dev/null 2>&1; then
         # Scale up previous environment
         kubectl scale deployment ${APP_NAME}-backend-${previous_color} --replicas=3 -n ${NAMESPACE}
         kubectl scale deployment ${APP_NAME}-frontend-${previous_color} --replicas=2 -n ${NAMESPACE}
-        
+
         # Wait for previous environment to be ready
         kubectl rollout status deployment/${APP_NAME}-backend-${previous_color} -n ${NAMESPACE} --timeout=300s
         kubectl rollout status deployment/${APP_NAME}-frontend-${previous_color} -n ${NAMESPACE} --timeout=300s
-        
+
         # Switch traffic back
         switch_traffic $previous_color
-        
+
         # Scale down current environment
         kubectl scale deployment ${APP_NAME}-backend-${current_color} --replicas=0 -n ${NAMESPACE}
         kubectl scale deployment ${APP_NAME}-frontend-${current_color} --replicas=0 -n ${NAMESPACE}
-        
+
         success "Rollback to $previous_color completed"
     else
         error "Previous environment $previous_color not found. Manual intervention required."
@@ -333,56 +333,56 @@ rollback() {
 # Main deployment function
 main() {
     log "Starting blue-green deployment with image tag: $IMAGE_TAG"
-    
+
     # Validate kubectl access
     if ! kubectl get namespace ${NAMESPACE} > /dev/null 2>&1; then
         error "Cannot access namespace ${NAMESPACE}. Check kubectl configuration."
         exit 1
     fi
-    
+
     # Get current and target colors
     local current_color=$(get_current_color)
     local target_color=$(get_target_color)
-    
+
     log "Current environment: $current_color"
     log "Target environment: $target_color"
-    
+
     # Deploy to target environment
     if ! deploy_target $target_color $IMAGE_TAG; then
         error "Deployment to $target_color failed"
         exit 1
     fi
-    
+
     # Health check target environment
     if ! health_check $target_color $HEALTH_CHECK_TIMEOUT $HEALTH_CHECK_INTERVAL; then
         error "Health check failed for $target_color environment"
-        
+
         # Cleanup failed deployment
         log "Cleaning up failed deployment..."
         kubectl delete deployment ${APP_NAME}-backend-${target_color} -n ${NAMESPACE} 2>/dev/null || true
         kubectl delete deployment ${APP_NAME}-frontend-${target_color} -n ${NAMESPACE} 2>/dev/null || true
         kubectl delete service ${APP_NAME}-backend-${target_color} -n ${NAMESPACE} 2>/dev/null || true
         kubectl delete service ${APP_NAME}-frontend-${target_color} -n ${NAMESPACE} 2>/dev/null || true
-        
+
         exit 1
     fi
-    
+
     # Switch traffic to target environment
     switch_traffic $target_color
-    
+
     # Final health check after traffic switch
     log "Performing final health check after traffic switch..."
     sleep 10
-    
+
     if ! health_check $target_color 60 5; then
         error "Final health check failed. Rolling back..."
         rollback $target_color $current_color
         exit 1
     fi
-    
+
     # Cleanup old environment
     cleanup_old $current_color
-    
+
     success "Blue-green deployment completed successfully!"
     log "New active environment: $target_color"
     log "Application is now running with image tag: $IMAGE_TAG"

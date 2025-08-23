@@ -7,19 +7,19 @@
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
   color: white;
   position: relative;
-  
+
   mat-toolbar {
     background: transparent;
-    
-    .app-logo { 
-      font-size: 1.5rem; 
-      font-weight: bold; 
+
+    .app-logo {
+      font-size: 1.5rem;
+      font-weight: bold;
     }
-    
-    .spacer { 
-      flex: 1; 
+
+    .spacer {
+      flex: 1;
     }
-    
+
     app-theme-toggle {
       margin-right: 1rem;
     }
@@ -58,7 +58,7 @@
 .hero-buttons {
   display: flex;
   gap: 16px;
-  
+
   @media (max-width: 768px) {
     justify-content: center;
   }
@@ -68,7 +68,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  
+
   img {
     width: 100%;
     border-radius: 16px;
@@ -84,19 +84,19 @@
   gap: 3rem;
   position: relative;
   padding: 2rem;
-  
+
   .soul-orb {
     font-size: 4rem;
     animation: pulse 2s infinite;
     filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
   }
-  
+
   .connection-lines {
     position: relative;
     width: 100px;
     height: 2px;
     background: linear-gradient(90deg, transparent, #ffd700, transparent);
-    
+
     &::before {
       content: '';
       position: absolute;
@@ -127,8 +127,8 @@
   bottom: -1px;
   left: 0;
   width: 100%;
-  
-  svg { 
+
+  svg {
     display: block;
     path { fill: white; }
   }
@@ -163,8 +163,8 @@
   border-radius: 12px;
   box-shadow: 0 4px 20px var(--shadow-color);
 
-  &:hover { 
-    transform: translateY(-8px); 
+  &:hover {
+    transform: translateY(-8px);
     box-shadow: 0 8px 30px var(--shadow-color);
   }
 
@@ -183,14 +183,14 @@
     color: var(--primary-color);
   }
 
-  h3 { 
-    font-size: 1.5rem; 
+  h3 {
+    font-size: 1.5rem;
     margin-bottom: 16px;
     color: var(--text-primary);
     font-weight: 600;
   }
-  
-  p { 
+
+  p {
     color: var(--text-secondary);
     line-height: 1.6;
   }
@@ -226,7 +226,7 @@
     font-style: italic;
     margin-bottom: 16px;
     color: var(--text-secondary);
-    
+
     &.testimonial-author {
       font-weight: bold;
       color: var(--text-primary);
@@ -241,21 +241,21 @@
   margin: 0 auto;
   background-color: var(--background-color);
 
-  h2 { 
-    font-size: 2.5rem; 
+  h2 {
+    font-size: 2.5rem;
     margin-bottom: 16px;
     color: var(--text-primary);
   }
-  
+
   .cta-subtitle {
     font-size: 1.2rem;
     color: var(--text-secondary);
     margin-bottom: 32px;
     line-height: 1.6;
   }
-  
-  button { 
-    padding: 16px 48px; 
+
+  button {
+    padding: 16px 48px;
     font-size: 1.2rem;
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
     border: none;
@@ -263,7 +263,7 @@
     color: white;
     font-weight: 600;
     transition: transform 0.2s ease;
-    
+
     &:hover {
       transform: translateY(-2px);
     }
@@ -285,19 +285,19 @@ footer {
   }
 
   .footer-section {
-    h3 { 
-      color: var(--text-primary); 
-      margin-bottom: 16px; 
+    h3 {
+      color: var(--text-primary);
+      margin-bottom: 16px;
     }
-    
+
     a {
       display: block;
       color: inherit;
       margin: 8px 0;
       transition: color 0.2s ease;
-      
-      &:hover { 
-        color: var(--primary-color); 
+
+      &:hover {
+        color: var(--primary-color);
       }
     }
   }
@@ -306,13 +306,13 @@ footer {
     display: flex;
     gap: 16px;
     margin-top: 16px;
-    
+
     a {
       color: var(--text-secondary);
       transition: color 0.2s ease;
-      
-      &:hover { 
-        color: var(--primary-color); 
+
+      &:hover {
+        color: var(--primary-color);
       }
     }
   }

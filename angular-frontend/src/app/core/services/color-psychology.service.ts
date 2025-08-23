@@ -299,7 +299,7 @@ export class ColorPsychologyService {
   getPersonalizedColors(context: 'discovery' | 'conversation' | 'profile' | 'connection'): EmotionalColorPalette {
     const personality = this.colorPersonalitySubject.value;
     const currentMood = this.currentMoodSubject.value;
-    
+
     return this.blendPersonalityWithMood(personality, currentMood, context);
   }
 
@@ -308,7 +308,7 @@ export class ColorPsychologyService {
    */
   applyContextTheme(context: 'discovery' | 'conversation' | 'profile' | 'connection'): void {
     const colors = this.getPersonalizedColors(context);
-    
+
     // Apply CSS custom properties to document root
     document.documentElement.style.setProperty('--dynamic-primary', colors.primary);
     document.documentElement.style.setProperty('--dynamic-secondary', colors.secondary);
@@ -327,7 +327,7 @@ export class ColorPsychologyService {
    */
   getTimeBasedColors(): EmotionalColorPalette {
     const hour = new Date().getHours();
-    
+
     if (hour >= 6 && hour < 12) {
       // Morning - energetic and optimistic
       return this.moodStates.find(m => m.id === 'energetic')!.colorPalette;
@@ -348,7 +348,7 @@ export class ColorPsychologyService {
    */
   toggleAdaptiveColors(enabled: boolean): void {
     this.adaptiveColorsSubject.next(enabled);
-    
+
     if (enabled) {
       this.enableAdaptiveMode();
     } else {
@@ -367,7 +367,7 @@ export class ColorPsychologyService {
       growth: 'var(--emotion-growth-color)',
       mystery: 'var(--emotion-mystery-color)'
     };
-    
+
     return emotionMap[emotion];
   }
 
@@ -436,7 +436,7 @@ export class ColorPsychologyService {
 
   private applyMoodColors(mood: MoodState): void {
     const palette = mood.colorPalette;
-    
+
     // Apply mood colors to CSS custom properties
     document.documentElement.style.setProperty('--mood-primary', palette.primary);
     document.documentElement.style.setProperty('--mood-secondary', palette.secondary);
@@ -454,10 +454,10 @@ export class ColorPsychologyService {
     // Simplified analysis - in real implementation, this would be more sophisticated
     const warmColors = ['red', 'orange', 'yellow', 'pink'];
     const coolColors = ['blue', 'green', 'purple', 'teal'];
-    
+
     const warmCount = colors.filter(c => warmColors.some(w => c.includes(w))).length;
     const coolCount = colors.filter(c => coolColors.some(w => c.includes(w))).length;
-    
+
     if (warmCount > coolCount) return 'warm';
     if (coolCount > warmCount) return 'cool';
     return 'neutral';
@@ -484,18 +484,18 @@ export class ColorPsychologyService {
   }
 
   private blendPersonalityWithMood(
-    personality: ColorPersonality, 
-    mood: MoodState, 
+    personality: ColorPersonality,
+    mood: MoodState,
     context: string
   ): EmotionalColorPalette {
     // Complex blending logic that considers personality, mood, and context
     // This would be more sophisticated in a real implementation
-    
+
     const basePalette = mood.colorPalette;
-    
+
     // Adjust intensity based on personality
     const intensityMultiplier = this.getIntensityMultiplier(personality.emotionalDepth);
-    
+
     return {
       primary: basePalette.primary,
       secondary: basePalette.secondary,
@@ -537,7 +537,7 @@ export class ColorPsychologyService {
 
   private getTimeBasedMoodId(): string {
     const hour = new Date().getHours();
-    
+
     if (hour >= 6 && hour < 12) return 'energetic';
     if (hour >= 12 && hour < 17) return 'sophisticated';
     if (hour >= 17 && hour < 20) return 'romantic';
@@ -560,7 +560,7 @@ export class ColorPsychologyService {
       strong: 'medium',
       intense: 'strong'
     };
-    
+
     return `var(--shadow-emotional-${intensityMap[intensity as keyof typeof intensityMap]})`;
   }
 

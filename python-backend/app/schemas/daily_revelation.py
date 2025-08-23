@@ -1,12 +1,17 @@
-from pydantic import BaseModel, Field
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class DailyRevelationBase(BaseModel):
-    day_number: int = Field(..., ge=1, le=7, description="Day in the revelation cycle (1-7)")
+    day_number: int = Field(
+        ..., ge=1, le=7, description="Day in the revelation cycle (1-7)"
+    )
     revelation_type: str = Field(..., description="Type of revelation being shared")
-    content: str = Field(..., min_length=10, max_length=1000, description="Revelation content")
+    content: str = Field(
+        ..., min_length=10, max_length=1000, description="Revelation content"
+    )
 
 
 class DailyRevelationCreate(DailyRevelationBase):
@@ -25,10 +30,10 @@ class DailyRevelationResponse(DailyRevelationBase):
     sender_id: int
     is_read: bool
     created_at: datetime
-    
+
     # Include sender info for display
     sender_name: Optional[str] = None
-    
+
     class Config:
         from_attributes = True
 
@@ -39,7 +44,7 @@ class RevelationTimelineResponse(BaseModel):
     revelations: list[DailyRevelationResponse]
     next_revelation_type: Optional[str] = None
     is_cycle_complete: bool = False
-    
+
     class Config:
         from_attributes = True
 
@@ -49,6 +54,6 @@ class RevelationPrompt(BaseModel):
     revelation_type: str
     prompt_text: str
     example_response: str
-    
+
     class Config:
         from_attributes = True

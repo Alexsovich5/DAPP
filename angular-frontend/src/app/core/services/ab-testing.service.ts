@@ -236,7 +236,7 @@ export class ABTestingService {
     // Check if user has existing assignment
     const currentAssignments = this.assignments.value;
     const existingAssignment = currentAssignments.get(testId);
-    
+
     if (existingAssignment) {
       const variant = testConfig.variants.find(v => v.id === existingAssignment.variantId);
       return variant || null;
@@ -306,7 +306,7 @@ export class ABTestingService {
    * Get all active tests
    */
   getActiveTests(): ABTestConfig[] {
-    return Object.values(AB_TEST_CONFIGS).filter(test => 
+    return Object.values(AB_TEST_CONFIGS).filter(test =>
       test.isActive && this.isTestDateValid(test)
     );
   }
@@ -324,7 +324,7 @@ export class ABTestingService {
   forceAssignment(testId: string, variantId: string): boolean {
     const testConfig = AB_TEST_CONFIGS[testId];
     const variant = testConfig?.variants.find(v => v.id === variantId);
-    
+
     if (!variant) {
       return false;
     }
@@ -424,13 +424,13 @@ export class ABTestingService {
       if (stored) {
         const assignments = JSON.parse(stored);
         const assignmentMap = new Map<string, ABTestAssignment>();
-        
+
         assignments.forEach((assignment: ABTestAssignment) => {
           // Convert date strings back to Date objects
           assignment.assignedAt = new Date(assignment.assignedAt);
           assignmentMap.set(assignment.testId, assignment);
         });
-        
+
         this.assignments.next(assignmentMap);
       }
     } catch (error) {
@@ -453,12 +453,12 @@ export class ABTestingService {
       const storedEvents = localStorage.getItem('ab_test_events');
       const events = storedEvents ? JSON.parse(storedEvents) : [];
       events.push(event);
-      
+
       // Keep only last 1000 events to prevent storage bloat
       if (events.length > 1000) {
         events.splice(0, events.length - 1000);
       }
-      
+
       localStorage.setItem('ab_test_events', JSON.stringify(events));
     } catch (error) {
       console.warn('Failed to persist A/B test event:', error);

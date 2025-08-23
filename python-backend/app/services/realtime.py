@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from typing import List, Dict, Optional
-from fastapi import WebSocket, WebSocketDisconnect
 import asyncio
 import json
+from typing import Dict, List, Optional
+
+from fastapi import WebSocket, WebSocketDisconnect
 
 
 class ConnectionManager:
@@ -12,12 +13,14 @@ class ConnectionManager:
     Tracks active connections and supports broadcast utilities.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, db_session=None) -> None:
         self.active_connections: List[WebSocket] = []
         # Optional: map of websocket id to user id (if passed as query param)
         self.connection_user: Dict[int, str] = {}
         # Broadcast lock to avoid concurrent writes to same socket
         self._lock = asyncio.Lock()
+        # Store database session for compatibility with tests
+        self.db_session = db_session
 
     async def connect(self, websocket: WebSocket) -> None:
         await websocket.accept()
@@ -45,7 +48,9 @@ class ConnectionManager:
             if send_tasks:
                 await asyncio.gather(*send_tasks, return_exceptions=True)
 
-    async def send_to_all_except(self, message: dict, except_ws: Optional[WebSocket]) -> None:
+    async def send_to_all_except(
+        self, message: dict, except_ws: Optional[WebSocket]
+    ) -> None:
         data = json.dumps(message)
         async with self._lock:
             send_tasks = []
@@ -68,5 +73,3 @@ class ConnectionManager:
 
 # Global connection manager instance reused by routers/endpoints
 manager = ConnectionManager()
-
-

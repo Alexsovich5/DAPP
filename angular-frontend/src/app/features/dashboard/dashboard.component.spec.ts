@@ -403,7 +403,7 @@ describe('DashboardComponent', () => {
 
       const messageIndicators = fixture.debugElement.queryAll(By.css('.message-indicator'));
       const emmaCard = fixture.debugElement.query(By.css('[data-connection-id="1"]'));
-      
+
       const emmaBadge = emmaCard.query(By.css('.unread-badge'));
       expect(emmaBadge).toBeTruthy();
       expect(emmaBadge.nativeElement.textContent.trim()).toBe('2');
@@ -664,7 +664,7 @@ describe('DashboardComponent', () => {
       tick();
 
       soulConnectionService.getDashboardStats.calls.reset();
-      
+
       component.refreshDashboard();
 
       expect(soulConnectionService.getDashboardStats).toHaveBeenCalled();
@@ -782,7 +782,7 @@ describe('DashboardComponent', () => {
       tick();
 
       const firstConnection = fixture.debugElement.query(By.css('.connection-card'));
-      
+
       // Test Enter key navigation
       firstConnection.triggerEventHandler('keydown.enter', {});
       expect(component.navigateToConnection).toHaveBeenCalledWith(mockActiveConnections[0]);
@@ -837,7 +837,7 @@ describe('DashboardComponent', () => {
       // Should still show available data
       expect(component.dashboardStats).toEqual(mockDashboardStats);
       expect(component.recentActivities).toEqual(mockRecentActivities);
-      
+
       // Should show error for failed section
       expect(component.connectionLoadError).toBeTruthy();
     }));
@@ -903,7 +903,7 @@ describe('DashboardComponent', () => {
   describe('Mobile Responsiveness', () => {
     it('should adapt layout for mobile screens', () => {
       spyOnProperty(window, 'innerWidth').and.returnValue(375);
-      
+
       component.ngOnInit();
       fixture.detectChanges();
 

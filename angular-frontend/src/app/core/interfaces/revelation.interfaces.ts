@@ -10,7 +10,7 @@ export interface DailyRevelation {
   sender_name?: string;
 }
 
-export type RevelationType = 
+export type RevelationType =
   | 'personal_value'
   | 'meaningful_experience'
   | 'hope_or_dream'

@@ -11,7 +11,7 @@ export interface ColorContrastRatio {
 }
 
 export class ColorAccessibilityUtils {
-  
+
   /**
    * Calculate contrast ratio between two colors
    * @param color1 - First color (hex, rgb, or hsl)
@@ -21,12 +21,12 @@ export class ColorAccessibilityUtils {
   static calculateContrastRatio(color1: string, color2: string): ColorContrastRatio {
     const luminance1 = this.getRelativeLuminance(color1);
     const luminance2 = this.getRelativeLuminance(color2);
-    
+
     const lighter = Math.max(luminance1, luminance2);
     const darker = Math.min(luminance1, luminance2);
-    
+
     const ratio = (lighter + 0.05) / (darker + 0.05);
-    
+
     return {
       ratio: Math.round(ratio * 100) / 100,
       wcagAA: ratio >= 4.5,
@@ -86,13 +86,13 @@ export class ColorAccessibilityUtils {
    * Get an accessible color variant that meets WCAG AA standards
    */
   static getAccessibleColor(
-    originalColor: string, 
-    backgroundColor: string, 
+    originalColor: string,
+    backgroundColor: string,
     targetLevel: 'aa' | 'aaa' = 'aa'
   ): string {
     const targetRatio = targetLevel === 'aaa' ? 7 : 4.5;
     let testColor = originalColor;
-    
+
     // Try darkening or lightening the color to meet contrast requirements
     const rgb = this.hexToRgb(originalColor);
     if (!rgb) return originalColor;

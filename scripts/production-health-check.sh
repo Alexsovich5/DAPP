@@ -40,28 +40,28 @@ http_request() {
     local expected_status=${2:-200}
     local max_retries=${3:-$MAX_RETRIES}
     local timeout=${4:-$TIMEOUT}
-    
+
     for ((i=1; i<=max_retries; i++)); do
         local response=$(curl -s -w "%{http_code}:%{time_total}:%{time_connect}" \
                         --max-time $timeout \
                         --connect-timeout 10 \
                         "$url" 2>/dev/null || echo "000:0:0")
-        
+
         local status_code=$(echo "$response" | cut -d':' -f1)
         local total_time=$(echo "$response" | cut -d':' -f2)
         local connect_time=$(echo "$response" | cut -d':' -f3)
-        
+
         if [[ "$status_code" == "$expected_status" ]]; then
             echo "SUCCESS:$status_code:$total_time:$connect_time"
             return 0
         fi
-        
+
         if [[ $i -lt $max_retries ]]; then
             log "Request failed (attempt $i/$max_retries), retrying in 2 seconds..."
             sleep 2
         fi
     done
-    
+
     echo "FAILED:$status_code:$total_time:$connect_time"
     return 1
 }
@@ -69,7 +69,7 @@ http_request() {
 # Basic connectivity check
 check_basic_connectivity() {
     log "Checking basic connectivity..."
-    
+
     # Frontend health check
     local frontend_result=$(http_request "$FRONTEND_URL/health")
     if [[ "$frontend_result" == SUCCESS* ]]; then
@@ -79,7 +79,7 @@ check_basic_connectivity() {
         error "Frontend is not accessible: $FRONTEND_URL/health"
         return 1
     fi
-    
+
     # API health check
     local api_result=$(http_request "$API_BASE_URL/health")
     if [[ "$api_result" == SUCCESS* ]]; then
@@ -89,18 +89,18 @@ check_basic_connectivity() {
         error "API is not accessible: $API_BASE_URL/health"
         return 1
     fi
-    
+
     return 0
 }
 
 # Comprehensive API health check
 check_api_health() {
     log "Performing comprehensive API health check..."
-    
+
     # Main health endpoint
     local health_response=$(curl -s --max-time 30 "$API_BASE_URL/health" 2>/dev/null || echo "{}")
     local health_status=$(echo "$health_response" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
-    
+
     if [[ "$health_status" == "healthy" ]]; then
         success "API health status: healthy"
     else
@@ -108,7 +108,7 @@ check_api_health() {
         echo "Full response: $health_response"
         return 1
     fi
-    
+
     # Database connectivity
     local db_status=$(echo "$health_response" | grep -o '"database":{"status":"[^"]*"' | cut -d'"' -f6)
     if [[ "$db_status" == "healthy" ]]; then
@@ -117,7 +117,7 @@ check_api_health() {
         error "Database connectivity: $db_status"
         return 1
     fi
-    
+
     # Redis connectivity
     local redis_status=$(echo "$health_response" | grep -o '"redis":{"status":"[^"]*"' | cut -d'"' -f6)
     if [[ "$redis_status" == "healthy" ]]; then
@@ -126,7 +126,7 @@ check_api_health() {
         error "Redis connectivity: $redis_status"
         return 1
     fi
-    
+
     # API documentation accessibility
     local docs_result=$(http_request "$API_BASE_URL/docs")
     if [[ "$docs_result" == SUCCESS* ]]; then
@@ -134,24 +134,24 @@ check_api_health() {
     else
         warning "API documentation is not accessible (may be disabled in production)"
     fi
-    
+
     return 0
 }
 
 # Test critical API endpoints
 check_critical_endpoints() {
     log "Testing critical API endpoints..."
-    
+
     local endpoints=(
         "/api/v1/health:200"
         "/api/v1/auth/me:401"  # Should return 401 without authentication
         "/:200"                # Root endpoint
     )
-    
+
     for endpoint_config in "${endpoints[@]}"; do
         local endpoint=$(echo "$endpoint_config" | cut -d':' -f1)
         local expected_status=$(echo "$endpoint_config" | cut -d':' -f2)
-        
+
         local result=$(http_request "$API_BASE_URL$endpoint" "$expected_status")
         if [[ "$result" == SUCCESS* ]]; then
             local response_time=$(echo "$result" | cut -d':' -f3)
@@ -161,28 +161,28 @@ check_critical_endpoints() {
             return 1
         fi
     done
-    
+
     return 0
 }
 
 # Performance checks
 check_performance() {
     log "Performing performance checks..."
-    
+
     local endpoints=(
         "$API_BASE_URL/health"
         "$API_BASE_URL/api/v1/health"
         "$FRONTEND_URL/"
     )
-    
+
     local slow_endpoints=()
     local performance_threshold=2.0  # 2 seconds
-    
+
     for endpoint in "${endpoints[@]}"; do
         local result=$(http_request "$endpoint")
         if [[ "$result" == SUCCESS* ]]; then
             local response_time=$(echo "$result" | cut -d':' -f3)
-            
+
             # Check if response time exceeds threshold
             if (( $(echo "$response_time > $performance_threshold" | bc -l) )); then
                 slow_endpoints+=("$endpoint (${response_time}s)")
@@ -191,7 +191,7 @@ check_performance() {
             fi
         fi
     done
-    
+
     if [[ ${#slow_endpoints[@]} -gt 0 ]]; then
         warning "Slow endpoints detected:"
         for slow_endpoint in "${slow_endpoints[@]}"; do
@@ -200,28 +200,28 @@ check_performance() {
     else
         success "All endpoints performing within acceptable limits"
     fi
-    
+
     return 0
 }
 
 # SSL certificate check
 check_ssl_certificates() {
     log "Checking SSL certificates..."
-    
+
     local domains=("$FRONTEND_URL" "$API_BASE_URL")
-    
+
     for domain in "${domains[@]}"; do
         local hostname=$(echo "$domain" | sed 's|https\?://||' | cut -d'/' -f1)
-        
+
         # Get certificate expiry date
         local cert_info=$(echo | openssl s_client -servername "$hostname" -connect "$hostname:443" 2>/dev/null | openssl x509 -noout -dates 2>/dev/null || echo "")
-        
+
         if [[ -n "$cert_info" ]]; then
             local expiry_date=$(echo "$cert_info" | grep "notAfter" | cut -d'=' -f2)
             local expiry_epoch=$(date -d "$expiry_date" +%s 2>/dev/null || echo "0")
             local current_epoch=$(date +%s)
             local days_until_expiry=$(( (expiry_epoch - current_epoch) / 86400 ))
-            
+
             if [[ $days_until_expiry -gt 30 ]]; then
                 success "SSL certificate for $hostname is valid (expires in $days_until_expiry days)"
             elif [[ $days_until_expiry -gt 7 ]]; then
@@ -235,17 +235,17 @@ check_ssl_certificates() {
             return 1
         fi
     done
-    
+
     return 0
 }
 
 # Database connectivity and performance
 check_database() {
     log "Checking database connectivity and performance..."
-    
+
     # Get database metrics from API
     local metrics_response=$(curl -s --max-time 30 "$API_BASE_URL/api/v1/metrics" 2>/dev/null || echo "{}")
-    
+
     # Check connection count
     local db_connections=$(echo "$metrics_response" | grep -o '"active_connections":[0-9]*' | cut -d':' -f2)
     if [[ -n "$db_connections" && $db_connections -lt 50 ]]; then
@@ -255,7 +255,7 @@ check_database() {
     else
         warning "Could not retrieve database connection count"
     fi
-    
+
     # Check query performance
     local avg_query_time=$(echo "$metrics_response" | grep -o '"query_duration_avg_ms":[0-9.]*' | cut -d':' -f2)
     if [[ -n "$avg_query_time" ]]; then
@@ -267,24 +267,24 @@ check_database() {
             warning "Average query time: ${avg_query_time}ms (may need optimization)"
         fi
     fi
-    
+
     return 0
 }
 
 # Cache performance check
 check_cache() {
     log "Checking cache performance..."
-    
+
     # Get cache metrics from API
     local metrics_response=$(curl -s --max-time 30 "$API_BASE_URL/api/v1/metrics" 2>/dev/null || echo "{}")
-    
+
     # Check cache hit ratio
     local cache_hits=$(echo "$metrics_response" | grep -o '"cache_hits":[0-9]*' | cut -d':' -f2)
     local cache_misses=$(echo "$metrics_response" | grep -o '"cache_misses":[0-9]*' | cut -d':' -f2)
-    
+
     if [[ -n "$cache_hits" && -n "$cache_misses" && $((cache_hits + cache_misses)) -gt 0 ]]; then
         local hit_ratio=$(( cache_hits * 100 / (cache_hits + cache_misses) ))
-        
+
         if [[ $hit_ratio -gt 80 ]]; then
             success "Cache hit ratio: ${hit_ratio}% (excellent)"
         elif [[ $hit_ratio -gt 60 ]]; then
@@ -295,14 +295,14 @@ check_cache() {
     else
         warning "Could not retrieve cache metrics"
     fi
-    
+
     return 0
 }
 
 # Security headers check
 check_security_headers() {
     log "Checking security headers..."
-    
+
     local headers_to_check=(
         "X-Frame-Options"
         "X-Content-Type-Options"
@@ -310,19 +310,19 @@ check_security_headers() {
         "Strict-Transport-Security"
         "Content-Security-Policy"
     )
-    
+
     local missing_headers=()
-    
+
     for header in "${headers_to_check[@]}"; do
         local header_value=$(curl -s -I --max-time 10 "$FRONTEND_URL/" | grep -i "^$header:" || echo "")
-        
+
         if [[ -n "$header_value" ]]; then
             success "Security header present: $header"
         else
             missing_headers+=("$header")
         fi
     done
-    
+
     if [[ ${#missing_headers[@]} -gt 0 ]]; then
         warning "Missing security headers:"
         for header in "${missing_headers[@]}"; do
@@ -331,16 +331,16 @@ check_security_headers() {
     else
         success "All security headers are present"
     fi
-    
+
     return 0
 }
 
 # Business metrics check
 check_business_metrics() {
     log "Checking business metrics..."
-    
+
     local metrics_response=$(curl -s --max-time 30 "$API_BASE_URL/api/v1/metrics" 2>/dev/null || echo "{}")
-    
+
     # Check active users
     local active_users=$(echo "$metrics_response" | grep -o '"active_users":[0-9]*' | cut -d':' -f2)
     if [[ -n "$active_users" ]]; then
@@ -350,13 +350,13 @@ check_business_metrics() {
             warning "No active users detected"
         fi
     fi
-    
+
     # Check error rate
     local error_rate=$(curl -s --max-time 10 "$API_BASE_URL/api/v1/metrics/prometheus" | grep "dinner1_errors_total" | tail -1 | awk '{print $2}')
     if [[ -n "$error_rate" ]]; then
         success "Current error count: $error_rate"
     fi
-    
+
     return 0
 }
 
@@ -364,7 +364,7 @@ check_business_metrics() {
 generate_report() {
     local exit_code=$1
     local timestamp=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
-    
+
     echo ""
     echo "=================================================="
     echo "Dinner1 Production Health Check Report"
@@ -374,7 +374,7 @@ generate_report() {
     echo "API Base URL: $API_BASE_URL"
     echo "Frontend URL: $FRONTEND_URL"
     echo "=================================================="
-    
+
     if [[ $exit_code -eq 0 ]]; then
         success "All health checks passed successfully!"
         echo "✅ Basic connectivity"
@@ -390,7 +390,7 @@ generate_report() {
         error "Some health checks failed!"
         echo "❌ Check the logs above for specific failures"
     fi
-    
+
     echo "=================================================="
 }
 
@@ -398,9 +398,9 @@ generate_report() {
 main() {
     log "Starting comprehensive production health check..."
     log "Target URLs: $FRONTEND_URL, $API_BASE_URL"
-    
+
     local overall_status=0
-    
+
     # Run all health checks
     check_basic_connectivity || overall_status=1
     check_api_health || overall_status=1
@@ -411,10 +411,10 @@ main() {
     check_cache || overall_status=1
     check_security_headers || overall_status=1
     check_business_metrics || overall_status=1
-    
+
     # Generate report
     generate_report $overall_status
-    
+
     exit $overall_status
 }
 

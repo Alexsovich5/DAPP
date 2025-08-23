@@ -1,21 +1,21 @@
-from typing import Any
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
-from sqlalchemy.orm import Session
 from datetime import datetime
+from typing import Any
 
+from app.api.v1.deps import get_current_user
 from app.core.database import get_db
 from app.models.profile import Profile, VerificationStatus
+from app.models.user import User
+from app.schemas.profile import Profile as ProfileSchema
 from app.schemas.profile import (
     ProfileCreate,
-    ProfileUpdate,
-    Profile as ProfileSchema,
     ProfilePhoto,
+    ProfileUpdate,
     VerificationRequest,
 )
-from app.api.v1.deps import get_current_user
-from app.models.user import User
-from app.services.storage import upload_file, delete_file
+from app.services.storage import delete_file, upload_file
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from sqlalchemy.orm import Session
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -229,7 +229,9 @@ async def request_verification(
     if verification.verification_document:
         # Store verification document in verification_method field for now
         # TODO: Add verification_document_url field to Profile model
-        current_user.profile.verification_method = f"{verification.verification_method}:{verification.verification_document}"
+        current_user.profile.verification_method = (
+            f"{verification.verification_method}:{verification.verification_document}"
+        )
 
     db.commit()
     db.refresh(current_user.profile)
@@ -247,11 +249,10 @@ async def approve_verification(
     # Simple admin check - only allow specific admin emails for now
     # TODO: Implement proper role-based access control
     ADMIN_EMAILS = ["admin@dinner_first.com", "support@dinner_first.com"]
-    
+
     if current_user.email not in ADMIN_EMAILS:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
-            detail="Admin access required"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
         )
 
     profile = db.query(Profile).filter(Profile.user_id == user_id).first()

@@ -319,23 +319,23 @@ http {
         # API endpoints
         location /api/ {
             limit_req zone=api burst=20 nodelay;
-            
+
             proxy_pass http://backend;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
-            
+
             # Timeouts
             proxy_connect_timeout 5s;
             proxy_send_timeout 60s;
             proxy_read_timeout 60s;
-            
+
             # Buffering
             proxy_buffering on;
             proxy_buffer_size 4k;
             proxy_buffers 8 4k;
-            
+
             # Keep alive
             proxy_http_version 1.1;
             proxy_set_header Connection "";
@@ -344,7 +344,7 @@ http {
         # Authentication endpoints with stricter rate limiting
         location ~ ^/api/v1/auth/(login|register) {
             limit_req zone=login burst=5 nodelay;
-            
+
             proxy_pass http://backend;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
@@ -389,7 +389,7 @@ while [ $attempt -lt $max_attempts ]; do
         echo "Backend is healthy!"
         break
     fi
-    
+
     attempt=$((attempt + 1))
     echo "Attempt $attempt/$max_attempts - waiting for backend..."
     sleep 10

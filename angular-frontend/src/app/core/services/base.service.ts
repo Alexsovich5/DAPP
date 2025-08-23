@@ -34,7 +34,7 @@ export abstract class BaseService {
 
       // Get user-friendly error message
       const message = this.getErrorMessage(error);
-      
+
       // Show notification to user
       this.notificationService.showError(message);
 

@@ -1,20 +1,19 @@
-import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from fastapi.testclient import TestClient
 from typing import Generator
 
+import pytest
 from app.core.database import Base
-from app.main import app
 from app.core.security import create_access_token
+from app.main import app
 from app.models.user import User
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 # Test database URL
 SQLALCHEMY_DATABASE_URL = "postgresql://postgres:postgres@localhost/test_dinner_app"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
-TestingSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 @pytest.fixture(scope="session")

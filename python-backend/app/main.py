@@ -1,40 +1,45 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.exceptions import RequestValidationError
-from dotenv import load_dotenv
-import os
 import logging
-from pathlib import Path
-from pydantic import ValidationError
 
-from app.api.v1.routers import (
-    auth,
-    matches,
-    profiles,
-    users,
-    soul_connections,
-    revelations,
-    onboarding,
-    photo_reveal,
-    messages,
-    ai_matching,
-    personalization,
+# import os
+from pathlib import Path
+
+from app.api.v1.routers import (  # enhanced_communication,  # Temporarily disabled - file missing; social_proof,  # Temporarily disabled - file missing; advanced_ai_matching,  # Temporarily disabled - file missing
     adaptive_revelations,
-    ui_personalization,
-    emotional_depth,
-    enhanced_matching,
-    # enhanced_communication,  # Temporarily disabled - file missing
-    # social_proof,  # Temporarily disabled - file missing
-    # advanced_ai_matching,  # Temporarily disabled - file missing
+    advanced_soul_matching,
+    ai_matching,
+    auth,
 )
 from app.api.v1.routers import chat as chat_router
+from app.api.v1.routers import (  # enhanced_communication,  # Temporarily disabled - file missing; social_proof,  # Temporarily disabled - file missing; advanced_ai_matching,  # Temporarily disabled - file missing
+    matches,
+    messages,
+    onboarding,
+    personalization,
+    photo_reveal,
+    profiles,
+    revelations,
+)
 from app.api.v1.routers import safety as safety_router
+from app.api.v1.routers import (  # enhanced_communication,  # Temporarily disabled - file missing; social_proof,  # Temporarily disabled - file missing; advanced_ai_matching,  # Temporarily disabled - file missing
+    soul_connections,
+    ui_personalization,
+    users,
+)
+
 # from app.api.v1.routers import analytics as analytics_router  # Temporarily disabled due to missing clickhouse
 from app.core.database import create_tables
 from app.middleware.middleware import log_requests_middleware
-from app.middleware.security_headers import security_headers_middleware, get_secure_cors_config
-from app.utils.error_handler import validation_error_handler
+from app.middleware.security_headers import (
+    get_secure_cors_config,
+    security_headers_middleware,
+)
 from app.services.realtime import manager
+from app.utils.error_handler import validation_error_handler
+from dotenv import load_dotenv
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import ValidationError
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -86,6 +91,12 @@ v1_app.include_router(
     prefix="/soul-connections",
     tags=["soul-connections"],
 )
+# Additional mount for test compatibility
+v1_app.include_router(
+    soul_connections.router,
+    prefix="/connections",
+    tags=["connections"],
+)
 v1_app.include_router(
     revelations.router,
     prefix="/revelations",
@@ -118,6 +129,13 @@ v1_app.include_router(
     tags=["ai-matching"],
 )
 
+# Phase 5: Advanced Soul Matching System
+v1_app.include_router(
+    advanced_soul_matching.router,
+    prefix="/advanced-soul-matching",
+    tags=["advanced-soul-matching"],
+)
+
 # Phase 6: Advanced Personalization & Content Intelligence
 v1_app.include_router(
     personalization.router,
@@ -139,29 +157,15 @@ v1_app.include_router(
     tags=["ui-personalization"],
 )
 
-# Advanced Soul Matching System - Emotional Depth Analysis
-v1_app.include_router(
-    emotional_depth.router,
-    prefix="/emotional-depth",
-    tags=["emotional-depth"],
-)
-
-# Advanced Soul Matching System - Enhanced Match Quality
-v1_app.include_router(
-    enhanced_matching.router,
-    prefix="/enhanced-matching",
-    tags=["enhanced-matching"],
-)
-
 # Phase 7: Hybrid Advanced Features - Temporarily disabled
 # Enhanced Communication
 # v1_app.include_router(
 #     enhanced_communication.router,
-#     prefix="/enhanced-communication", 
+#     prefix="/enhanced-communication",
 #     tags=["enhanced-communication"],
 # )
 
-# Social Proof & Community  
+# Social Proof & Community
 # v1_app.include_router(
 #     social_proof.router,
 #     prefix="/social-proof",
@@ -180,9 +184,7 @@ v1_app.include_router(chat_router.router, tags=["chat"])
 v1_app.include_router(safety_router.router)
 # v1_app.include_router(analytics_router.router)  # Temporarily disabled
 # Add profile aliases for Angular compatibility
-v1_app.include_router(
-    profiles.router, prefix="/profile", tags=["profile-alias"]
-)
+v1_app.include_router(profiles.router, prefix="/profile", tags=["profile-alias"])
 
 # Mount the v1 API with prefix
 app.mount("/api/v1", v1_app)

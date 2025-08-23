@@ -1,33 +1,36 @@
-from fastapi import HTTPException, status
-from fastapi import Request
-from fastapi.responses import JSONResponse
-from pydantic import ValidationError
-from typing import Any, Optional
 import logging
 import os
+from typing import Any, Optional
+
+from fastapi import HTTPException, Request, status
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 
 logger = logging.getLogger(__name__)
+
 
 # Get environment-specific CORS origin
 def get_error_cors_origin(request: Request) -> str:
     """Get appropriate CORS origin for error responses"""
     origin = request.headers.get("origin", "")
-    
+
     # Get allowed origins from environment
     allowed_origins = []
     env_origins = os.getenv("CORS_ORIGINS", "")
     if env_origins:
         allowed_origins.extend(env_origins.split(","))
-    
+
     # Development origins
     if os.getenv("ENVIRONMENT", "development") == "development":
-        allowed_origins.extend([
-            "http://localhost:4200",
-            "http://localhost:5001", 
-            "http://127.0.0.1:4200",
-            "http://127.0.0.1:5001"
-        ])
-    
+        allowed_origins.extend(
+            [
+                "http://localhost:4200",
+                "http://localhost:5001",
+                "http://127.0.0.1:4200",
+                "http://127.0.0.1:5001",
+            ]
+        )
+
     # Return specific origin if allowed, otherwise first allowed origin
     if origin in allowed_origins:
         return origin

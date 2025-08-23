@@ -286,7 +286,7 @@ http {
     limit_req_zone $binary_remote_addr zone=assets:10m rate=100r/s;
 
     # Proxy cache configuration
-    proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=dinner1_cache:10m max_size=1g 
+    proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=dinner1_cache:10m max_size=1g
                      inactive=60m use_temp_path=off;
 
     # Frontend upstream
@@ -298,14 +298,14 @@ http {
     server {
         listen 80 default_server;
         server_name _;
-        
+
         # Security headers
         add_header X-Frame-Options "SAMEORIGIN" always;
         add_header X-Content-Type-Options "nosniff" always;
         add_header X-XSS-Protection "1; mode=block" always;
         add_header Referrer-Policy "strict-origin-when-cross-origin" always;
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-        
+
         # CSP header for dating platform
         add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.googletagmanager.com *.google-analytics.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src 'self' fonts.gstatic.com; img-src 'self' data: *.cloudfront.net; connect-src 'self' *.dinner1.com wss://*.dinner1.com *.google-analytics.com; frame-src 'none';" always;
 
@@ -319,7 +319,7 @@ http {
         # Static assets with aggressive caching
         location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
             limit_req zone=assets burst=50 nodelay;
-            
+
             proxy_pass http://frontend;
             proxy_cache dinner1_cache;
             proxy_cache_valid 200 1y;
@@ -327,12 +327,12 @@ http {
             proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
             proxy_cache_background_update on;
             proxy_cache_lock on;
-            
+
             # Cache headers
             add_header X-Cache-Status $upstream_cache_status;
             expires 1y;
             add_header Cache-Control "public, immutable";
-            
+
             # Compression
             gzip_static on;
         }
@@ -340,10 +340,10 @@ http {
         # Angular routes (for client-side routing)
         location / {
             limit_req zone=frontend burst=20 nodelay;
-            
+
             # Try file first, then proxy to Angular app
             try_files $uri $uri/ @angular;
-            
+
             # Security headers for HTML
             add_header X-Frame-Options "SAMEORIGIN" always;
             add_header X-Content-Type-Options "nosniff" always;
@@ -356,27 +356,27 @@ http {
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
-            
+
             # SSR optimization
             proxy_cache dinner1_cache;
             proxy_cache_valid 200 1h;
             proxy_cache_valid 404 1m;
             proxy_cache_key "$scheme$request_method$host$request_uri$http_user_agent";
             proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
-            
+
             # Cache headers
             add_header X-Cache-Status $upstream_cache_status;
-            
+
             # Timeouts
             proxy_connect_timeout 5s;
             proxy_send_timeout 30s;
             proxy_read_timeout 30s;
-            
+
             # Buffering
             proxy_buffering on;
             proxy_buffer_size 4k;
             proxy_buffers 8 4k;
-            
+
             # Keep alive
             proxy_http_version 1.1;
             proxy_set_header Connection "";
@@ -401,7 +401,7 @@ http {
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
-            
+
             # WebSocket timeouts
             proxy_read_timeout 86400;
             proxy_send_timeout 86400;
@@ -413,7 +413,7 @@ http {
             access_log off;
             log_not_found off;
         }
-        
+
         location ~ \.(htaccess|htpasswd|ini|log|sh|sql|conf)$ {
             deny all;
             access_log off;
@@ -442,7 +442,7 @@ while [ $attempt -lt $max_attempts ]; do
         echo "Frontend application is healthy!"
         break
     fi
-    
+
     attempt=$((attempt + 1))
     echo "Attempt $attempt/$max_attempts - waiting for frontend..."
     sleep 10

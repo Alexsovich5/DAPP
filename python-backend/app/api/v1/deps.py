@@ -1,11 +1,12 @@
-from fastapi import Depends, HTTPException, status, Request
+import logging
+from typing import Optional
+
+from app.core.database import get_db
+from app.core.security import ALGORITHM, SECRET_KEY, oauth2_scheme
+from app.models.user import User
+from fastapi import Depends, HTTPException, Request, status
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-from typing import Optional
-import logging
-from app.core.database import get_db
-from app.core.security import oauth2_scheme, SECRET_KEY, ALGORITHM
-from app.models.user import User
 
 # Configure logging
 logger = logging.getLogger(__name__)

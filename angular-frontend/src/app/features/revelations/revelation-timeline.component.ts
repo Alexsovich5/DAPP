@@ -51,17 +51,17 @@ export interface RevelationDayData {
           <div class="completion-ring" #completionRing>
             <svg width="120" height="120" viewBox="0 0 120 120">
               <!-- Background ring -->
-              <circle 
-                cx="60" cy="60" r="50" 
-                stroke="rgba(102, 126, 234, 0.1)" 
-                stroke-width="8" 
+              <circle
+                cx="60" cy="60" r="50"
+                stroke="rgba(102, 126, 234, 0.1)"
+                stroke-width="8"
                 fill="none"
               />
               <!-- Progress ring -->
-              <circle 
-                cx="60" cy="60" r="50" 
-                stroke="url(#progressGradient)" 
-                stroke-width="8" 
+              <circle
+                cx="60" cy="60" r="50"
+                stroke="url(#progressGradient)"
+                stroke-width="8"
                 fill="none"
                 stroke-linecap="round"
                 stroke-dasharray="314"
@@ -76,14 +76,14 @@ export interface RevelationDayData {
                 </linearGradient>
               </defs>
             </svg>
-            
+
             <!-- Center content -->
             <div class="ring-center">
               <div class="completion-percent">{{ timelineData?.completionPercentage || 0 }}%</div>
               <div class="phase-label">{{ getPhaseLabel() }}</div>
             </div>
           </div>
-          
+
           <div class="progress-stats">
             <div class="stat-item">
               <span class="stat-number">{{ timelineData?.progress.mutualDays || 0 }}</span>
@@ -100,16 +100,16 @@ export interface RevelationDayData {
       <!-- Interactive Timeline -->
       <div class="timeline-track" #timelineTrack>
         <div class="timeline-progress-bar">
-          <div 
-            class="progress-fill" 
+          <div
+            class="progress-fill"
             [style.width.%]="getTimelineProgress()"
             [style.background]="getTimelineGradient()"
           ></div>
         </div>
 
         <!-- Timeline Days -->
-        <div 
-          class="timeline-day" 
+        <div
+          class="timeline-day"
           *ngFor="let dayData of timelineData?.timeline; trackBy: trackDay; let i = index"
           [attr.data-day]="dayData.day"
           [class]="getDayClasses(dayData)"
@@ -136,7 +136,7 @@ export interface RevelationDayData {
           <div class="day-content" *ngIf="dayData.isUnlocked">
             <h4 class="day-title">{{ getDayTitle(dayData.day) }}</h4>
             <p class="day-prompt">{{ dayData.prompt }}</p>
-            
+
             <!-- Revelation previews -->
             <div class="revelation-previews" *ngIf="dayData.userShared || dayData.partnerShared">
               <div class="user-revelation" *ngIf="dayData.userShared" (click)="viewRevelation(dayData, 'user')">
@@ -148,7 +148,7 @@ export interface RevelationDayData {
                   <span class="timestamp">{{ formatTime(dayData.userSharedAt) }}</span>
                 </div>
               </div>
-              
+
               <div class="partner-revelation" *ngIf="dayData.partnerShared" (click)="viewRevelation(dayData, 'partner')">
                 <div class="revelation-snippet">
                   "{{ getSnippet(dayData.partnerContent) }}"
@@ -187,8 +187,8 @@ export interface RevelationDayData {
           <h3>{{ getTodayPrompt() }}</h3>
           <p>{{ getTodayDescription() }}</p>
         </div>
-        
-        <button 
+
+        <button
           class="share-revelation-btn"
           (click)="shareRevelation()"
           [disabled]="hasSharedToday()"
@@ -208,10 +208,10 @@ export interface RevelationDayData {
             <h3>Photo Reveal Day! 📸</h3>
             <p>After sharing your souls this week, are you ready to see each other?</p>
           </div>
-          
+
           <div class="mutual-consent" *ngIf="!isMutualConsentGiven()">
             <p>Both partners must consent to photo reveal</p>
-            <button 
+            <button
               class="consent-btn"
               (click)="givePhotoConsent()"
               [disabled]="hasGivenConsent()"
@@ -219,7 +219,7 @@ export interface RevelationDayData {
               {{ hasGivenConsent() ? 'Consent Given ✓' : 'I\'m Ready to Reveal' }}
             </button>
           </div>
-          
+
           <div class="photos-revealed" *ngIf="isMutualConsentGiven()">
             <div class="celebration">🎉 Photos Revealed! 🎉</div>
             <p>You can now see each other's photos in your connection.</p>
@@ -778,34 +778,34 @@ export class RevelationTimelineComponent implements OnInit, OnDestroy {
 
   getDayClasses(dayData: RevelationDayData): string {
     const classes = [];
-    
+
     if (dayData.isUnlocked) classes.push('unlocked');
     else classes.push('locked');
-    
+
     if (dayData.day === this.timelineData?.currentDay) classes.push('current-day');
-    
+
     if (dayData.userShared && dayData.partnerShared) classes.push('completed');
-    
+
     return classes.join(' ');
   }
 
   getDayAriaLabel(dayData: RevelationDayData): string {
     let label = `Day ${dayData.day}: ${dayData.prompt}`;
-    
+
     if (!dayData.isUnlocked) {
       label += ' - Locked';
     } else {
       const shared = [];
       if (dayData.userShared) shared.push('You shared');
       if (dayData.partnerShared) shared.push('Partner shared');
-      
+
       if (shared.length > 0) {
         label += ` - ${shared.join(', ')}`;
       } else {
         label += ' - No revelations yet';
       }
     }
-    
+
     return label;
   }
 
@@ -830,7 +830,7 @@ export class RevelationTimelineComponent implements OnInit, OnDestroy {
   onDayClick(event: Event | RevelationDayData, dayData?: RevelationDayData): void {
     // Handle both click and keyboard events
     const data = dayData || (event as RevelationDayData);
-    
+
     if (!data.isUnlocked) {
       this.hapticService.triggerErrorFeedback();
       return;
@@ -842,7 +842,7 @@ export class RevelationTimelineComponent implements OnInit, OnDestroy {
 
   shareRevelation(): void {
     if (!this.canShareToday() || this.hasSharedToday()) return;
-    
+
     this.hapticService.triggerRevelationFeedback();
     this.shareRevelation.emit(this.timelineData?.currentDay || 1);
   }
@@ -907,12 +907,12 @@ export class RevelationTimelineComponent implements OnInit, OnDestroy {
 
   formatTime(timestamp: string | null): string {
     if (!timestamp) return '';
-    
+
     const date = new Date(timestamp);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const hours = diff / (1000 * 60 * 60);
-    
+
     if (hours < 1) {
       const minutes = Math.floor(diff / (1000 * 60));
       return `${minutes}m ago`;

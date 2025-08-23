@@ -34,7 +34,7 @@ export class MobileFeaturesService {
   private currentPosition: GeolocationPosition | null = null;
   private orientationSubject = new BehaviorSubject<DeviceOrientation | null>(null);
   private shakeSubject = new BehaviorSubject<boolean>(false);
-  
+
   public orientation$ = this.orientationSubject.asObservable();
   public shake$ = this.shakeSubject.asObservable();
 
@@ -141,7 +141,7 @@ export class MobileFeaturesService {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia(defaultConstraints);
-      
+
       return new Promise((resolve, reject) => {
         const video = document.createElement('video');
         const canvas = document.createElement('canvas');
