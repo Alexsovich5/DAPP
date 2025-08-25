@@ -7,13 +7,11 @@ import logging
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 # import jwt
 import redis
 from app.core.database import Base
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
 from pywebpush import WebPushException, webpush
 from sqlalchemy import JSON, Boolean, Column, DateTime, Integer, String, Text
 from sqlalchemy.orm import Session
@@ -585,7 +583,7 @@ class PushNotificationService:
             return True  # Default to sending notifications
 
     async def update_notification_preferences(
-        self, user_id: int, preferences: Dict[str, bool]
+        self, user_id: int, preferences: Dict[str, bool], db
     ) -> bool:
         """Update user notification preferences"""
         try:
@@ -593,7 +591,13 @@ class PushNotificationService:
             cache_key = f"notification_prefs:{user_id}"
             self.redis_client.setex(cache_key, 3600, json.dumps(preferences))
 
-            # TODO: Update database table with user preferences
+            # Update database with user preferences
+            from app.models.user import User
+
+            user = db.query(User).filter(User.id == user_id).first()
+            if user:
+                user.notification_preferences = preferences
+                db.commit()
 
             return True
         except Exception as e:
