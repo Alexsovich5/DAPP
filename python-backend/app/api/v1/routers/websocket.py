@@ -25,9 +25,20 @@ router = APIRouter(tags=["websocket"])
 async def websocket_endpoint(
     websocket: WebSocket, token: str, db: Session = Depends(get_db)
 ):
-    """
-    Main WebSocket endpoint for real-time connections
-    """
+    """Main WebSocket endpoint for real-time connections"""
+    await _handle_websocket_connection(websocket, token, db)
+
+
+@router.websocket("/{user_id}")
+async def websocket_user_endpoint(
+    websocket: WebSocket, user_id: int, token: str, db: Session = Depends(get_db)
+):
+    """WebSocket endpoint with user ID in path (for test compatibility)"""
+    await _handle_websocket_connection(websocket, token, db)
+
+
+async def _handle_websocket_connection(websocket: WebSocket, token: str, db: Session):
+    """Handle WebSocket connection logic"""
     user = None
     try:
         # Authenticate user from token

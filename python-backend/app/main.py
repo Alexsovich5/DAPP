@@ -24,6 +24,7 @@ from app.api.v1.routers import (  # enhanced_communication,  # Temporarily disab
     soul_connections,
     ui_personalization,
     users,
+    websocket,
 )
 
 # from app.api.v1.routers import analytics as analytics_router  # Temporarily disabled due to missing clickhouse
@@ -120,6 +121,13 @@ v1_app.include_router(
     messages.router,
     prefix="/messages",
     tags=["messages"],
+)
+
+# Phase 4: WebSocket Real-time Connections
+v1_app.include_router(
+    websocket.router,
+    prefix="/ws",
+    tags=["websocket"],
 )
 
 # Phase 5: AI-Enhanced Matching
