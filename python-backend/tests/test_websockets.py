@@ -3,13 +3,10 @@ Comprehensive WebSocket Real-Time Feature Tests
 Tests real-time messaging, typing indicators, and connection status for dating platform
 """
 
-import asyncio
-import json
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-import websockets
 from app.main import app
 from app.services.realtime import ConnectionManager as RealtimeService
 from app.services.realtime_connection_manager import (
@@ -41,16 +38,22 @@ class TestWebSocketConnection:
 
     @pytest.mark.asyncio
     @pytest.mark.integration
-    def test_websocket_connection_establishment(self, ws_client):
+    def test_websocket_connection_establishment(self, ws_client, authenticated_user):
         """Test establishing WebSocket connection with authentication"""
-        # Mock WebSocket connection
-        with ws_client.websocket_connect("/ws/1?token=valid-jwt-token") as websocket:
+        user_id = authenticated_user["user"].id
+        token = authenticated_user["token"]
+
+        # Test WebSocket connection with proper authentication
+        with ws_client.websocket_connect(
+            f"/api/v1/ws/{user_id}?token={token}"
+        ) as websocket:
             # Should be able to establish connection
             data = websocket.receive_json()
 
-            assert data["type"] == "connection_established"
-            assert "user_id" in data
-            assert data["status"] == "connected"
+            assert data["type"] == "connected"
+            assert "data" in data
+            assert "userId" in data["data"]
+            assert data["data"]["status"] == "connected"
 
     @pytest.mark.asyncio
     @pytest.mark.integration

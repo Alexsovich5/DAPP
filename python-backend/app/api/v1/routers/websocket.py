@@ -34,6 +34,7 @@ async def websocket_user_endpoint(
     websocket: WebSocket, user_id: int, token: str, db: Session = Depends(get_db)
 ):
     """WebSocket endpoint with user ID in path (for test compatibility)"""
+    # Restore full WebSocket functionality with authentication
     await _handle_websocket_connection(websocket, token, db)
 
 
