@@ -80,7 +80,7 @@ class SentimentResult:
 class MultiModalSentimentAnalyzer:
     """
     Advanced multi-modal sentiment analyzer for Dinner First dating platform
-    Combines text analysis, emoji interpretation, behavioral patterns, and conversation context
+    Combines text analysis, emoji interpretation, behavioral patterns, and context
     """
 
     def __init__(
@@ -819,7 +819,7 @@ class MultiModalSentimentAnalyzer:
                 },
                 "peak_positive_moment": "2024-01-15T20:30:00Z",
                 "peak_negative_moment": "2024-01-15T18:45:00Z",
-                "recommendation": "Continue current conversation approach - sentiment trending positively",
+                "recommendation": "Continue conversation - sentiment trending positively",
             }
 
         except Exception as e:

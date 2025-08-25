@@ -299,7 +299,7 @@ class ModelPerformanceMonitor:
 
 class MLModelRegistry:
     """
-    Comprehensive ML model registry with versioning, A/B testing, and continuous learning
+    Comprehensive ML model registry with versioning, A/B testing, and learning
     """
 
     def __init__(self):
