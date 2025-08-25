@@ -11,20 +11,12 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Dict, List, Optional, Set
 
-from app.core.database import get_db
-from app.models.realtime_state import (
-    ConnectionRealTimeState,
-    LiveTypingSession,
-    RealtimeNotification,
-    UserPresence,
-    UserPresenceStatus,
-    WebSocketConnection,
-)
+from app.models.realtime_state import UserPresence, UserPresenceStatus
 from app.models.soul_analytics import AnalyticsEventType, UserEngagementAnalytics
 from app.models.soul_connection import ConnectionEnergyLevel, SoulConnection
-from app.models.user import User, UserEmotionalState
-from fastapi import WebSocket, WebSocketDisconnect
-from sqlalchemy import and_, or_
+from app.models.user import UserEmotionalState
+from fastapi import WebSocket
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -47,6 +39,11 @@ class MessageType(str, Enum):
     CONNECTION_UPDATE = "connection_update"
     ENERGY_CHANGE = "energy_change"
     STAGE_PROGRESSION = "stage_progression"
+
+    # Messages
+    MESSAGE = "message"
+    MESSAGE_SENT = "message_sent"
+    MESSAGE_DELIVERED = "message_delivered"
 
     # Notifications
     NEW_MESSAGE = "new_message"
@@ -310,7 +307,6 @@ class RealtimeConnectionManager:
             # Remove typing session
             if connection_id in self.typing_sessions:
                 if user_id in self.typing_sessions[connection_id]:
-                    session_data = self.typing_sessions[connection_id][user_id]
                     del self.typing_sessions[connection_id][user_id]
 
                     # Clean up empty connections
@@ -520,12 +516,140 @@ class RealtimeConnectionManager:
                     await self.subscribe_to_connection(user_id, connection_id)
                 return True
 
+            elif message_type == MessageType.MESSAGE:
+                # Handle real-time message
+                return await self.handle_real_time_message(user_id, message_data, db)
+
             else:
                 logger.warning(f"Unknown message type: {message_type}")
                 return False
 
         except Exception as e:
             logger.error(f"Error handling message from user {user_id}: {str(e)}")
+            return False
+
+    async def handle_real_time_message(
+        self, sender_id: int, message_data: Dict, db: Session
+    ):
+        """Handle real-time message sending and delivery"""
+        try:
+            from app.models.message import Message
+
+            connection_id = message_data.get("connection_id")
+            content = message_data.get("content")
+            message_type = message_data.get("message_type", "text")
+
+            if not connection_id or not content:
+                logger.warning(f"Invalid message data from user {sender_id}")
+                return False
+
+            # Verify sender has access to this connection
+            connection = (
+                db.query(SoulConnection)
+                .filter(
+                    SoulConnection.id == connection_id,
+                    or_(
+                        SoulConnection.user1_id == sender_id,
+                        SoulConnection.user2_id == sender_id,
+                    ),
+                )
+                .first()
+            )
+
+            if not connection:
+                logger.warning(
+                    f"User {sender_id} tried to send message to unauthorized connection {connection_id}"
+                )
+                return False
+
+            # Create message record
+            message = Message(
+                connection_id=connection_id,
+                sender_id=sender_id,
+                message_text=content,
+                message_type=message_type,
+            )
+            db.add(message)
+            db.commit()
+            db.refresh(message)
+
+            # Determine recipient
+            recipient_id = (
+                connection.user2_id
+                if connection.user1_id == sender_id
+                else connection.user1_id
+            )
+
+            # Send confirmation to sender
+            await self.send_to_user(
+                sender_id,
+                {
+                    "type": MessageType.MESSAGE_SENT.value,
+                    "message": {
+                        "id": message.id,
+                        "content": content,
+                        "message_type": message_type,
+                        "connection_id": connection_id,
+                        "timestamp": (
+                            message.created_at.isoformat()
+                            if message.created_at
+                            else datetime.utcnow().isoformat()
+                        ),
+                    },
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
+            )
+
+            # Deliver message to recipient if online
+            if recipient_id in self.active_connections:
+                await self.send_to_user(
+                    recipient_id,
+                    {
+                        "type": MessageType.NEW_MESSAGE.value,
+                        "message": {
+                            "id": message.id,
+                            "content": content,
+                            "message_type": message_type,
+                            "connection_id": connection_id,
+                            "sender_id": sender_id,
+                            "timestamp": (
+                                message.created_at.isoformat()
+                                if message.created_at
+                                else datetime.utcnow().isoformat()
+                            ),
+                        },
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                )
+
+                logger.info(f"Message {message.id} delivered to user {recipient_id}")
+            else:
+                # Queue notification for offline user
+                await self.queue_notification_for_offline_user(
+                    recipient_id,
+                    {
+                        "type": MessageType.NEW_MESSAGE.value,
+                        "message": {
+                            "id": message.id,
+                            "content": content,
+                            "message_type": message_type,
+                            "connection_id": connection_id,
+                            "sender_id": sender_id,
+                        },
+                    },
+                    db,
+                )
+
+                logger.info(
+                    f"Message {message.id} queued for offline user {recipient_id}"
+                )
+
+            return True
+
+        except Exception as e:
+            logger.error(
+                f"Error handling real-time message from user {sender_id}: {str(e)}"
+            )
             return False
 
     async def update_user_presence(
@@ -681,6 +805,29 @@ class RealtimeConnectionManager:
         except Exception as e:
             logger.error(f"Error cleaning up stale sessions: {str(e)}")
             db.rollback()
+
+    async def queue_notification_for_offline_user(
+        self, user_id: int, notification_data: Dict, db: Session
+    ):
+        """Queue notification for offline user"""
+        try:
+            # Add to in-memory queue
+            if user_id not in self.offline_message_queue:
+                self.offline_message_queue[user_id] = []
+
+            notification_msg = RealtimeMessage(
+                type=MessageType.NEW_MESSAGE,
+                data=notification_data,
+                target_user_id=user_id,
+            )
+            self.offline_message_queue[user_id].append(notification_msg)
+
+            logger.info(f"Queued notification for offline user {user_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error queuing notification for user {user_id}: {str(e)}")
+            return False
 
     def get_connection_stats(self) -> Dict:
         """Get real-time system statistics"""

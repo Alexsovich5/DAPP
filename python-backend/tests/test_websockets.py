@@ -60,7 +60,7 @@ class TestWebSocketConnection:
     def test_websocket_authentication_required(self, ws_client):
         """Test that WebSocket requires valid authentication"""
         try:
-            with ws_client.websocket_connect("/ws/1") as websocket:
+            with ws_client.websocket_connect("/ws/1"):
                 # Should fail without token
                 pytest.fail("Should require authentication")
         except Exception as e:
@@ -105,6 +105,10 @@ class TestRealtimeMessaging:
     """Test real-time messaging functionality"""
 
     @pytest.fixture
+    def ws_client(self):
+        return TestClient(app)
+
+    @pytest.fixture
     def realtime_service(self, db_session):
         return RealtimeService(db_session)
 
@@ -126,7 +130,7 @@ class TestRealtimeMessaging:
 
         # Mock WebSocket connection for testing
         with ws_client.websocket_connect(
-            f"/ws/{sender_id}?token={authenticated_user['token']}"
+            f"/api/v1/ws/{sender_id}?token={authenticated_user['token']}"
         ) as websocket:
             # Send message
             websocket.send_json(message_data)
@@ -273,12 +277,12 @@ class TestTypingIndicators:
 
         # Should be marked as typing
         is_typing = realtime_service.is_user_typing(connection_id, user_id)
-        assert is_typing == True
+        assert is_typing is True
 
         # Simulate timeout (mock time passing)
         with patch("time.time", return_value=time.time() + 30):  # 30 seconds later
             is_typing_after = realtime_service.is_user_typing(connection_id, user_id)
-            assert is_typing_after == False  # Should timeout
+            assert is_typing_after is False  # Should timeout
 
     @pytest.mark.asyncio
     @pytest.mark.integration
@@ -317,15 +321,15 @@ class TestPresenceStatus:
         mock_websocket = AsyncMock()
 
         # User should be offline initially
-        assert connection_manager.is_user_online(user_id) == False
+        assert connection_manager.is_user_online(user_id) is False
 
         # Connect user
         connection_manager.connect(mock_websocket, user_id)
-        assert connection_manager.is_user_online(user_id) == True
+        assert connection_manager.is_user_online(user_id) is True
 
         # Disconnect user
         connection_manager.disconnect(user_id)
-        assert connection_manager.is_user_online(user_id) == False
+        assert connection_manager.is_user_online(user_id) is False
 
     @pytest.mark.asyncio
     @pytest.mark.integration
@@ -333,7 +337,6 @@ class TestPresenceStatus:
         self, realtime_service, soul_connection_data
     ):
         """Test that presence changes notify connected users"""
-        connection = soul_connection_data["connection"]
         user1, user2 = soul_connection_data["users"][:2]
 
         mock_manager = MagicMock()
@@ -373,12 +376,12 @@ class TestPresenceStatus:
 
         # Other users shouldn't see them as online even when they are
         is_visible = realtime_service.is_user_visible_online(user1.id, user2.id)
-        assert is_visible == False
+        assert is_visible is False
 
         # But user can choose public presence
         realtime_service.set_presence_privacy(user1.id, "public")
         is_visible_public = realtime_service.is_user_visible_online(user1.id, user2.id)
-        assert is_visible_public == True
+        assert is_visible_public is True
 
 
 class TestRealtimeNotifications:
@@ -485,7 +488,7 @@ class TestRealtimeNotifications:
         )
 
         # Should be queued
-        assert result["queued"] == True
+        assert result["queued"] is True
         assert result["delivery_status"] == "pending"
 
         # Check notification queue
@@ -508,7 +511,7 @@ class TestWebSocketSecurity:
         for invalid_token in invalid_tokens:
             try:
                 endpoint = f"/ws/1?token={invalid_token}" if invalid_token else "/ws/1"
-                with ws_client.websocket_connect(endpoint) as websocket:
+                with ws_client.websocket_connect(endpoint):
                     # Should not establish connection
                     pytest.fail(f"Should reject invalid token: {invalid_token}")
             except Exception:
@@ -525,7 +528,6 @@ class TestWebSocketSecurity:
         with ws_client.websocket_connect(f"/ws/{user_id}?token={token}") as websocket:
             # Send many rapid messages
             messages_sent = 0
-            rate_limited = False
 
             for i in range(20):  # Send 20 rapid messages
                 try:
@@ -542,14 +544,12 @@ class TestWebSocketSecurity:
                     try:
                         response = websocket.receive_json()
                         if response.get("type") == "rate_limited":
-                            rate_limited = True
                             break
-                    except:
+                    except Exception:
                         pass
 
                 except Exception as e:
                     if "rate" in str(e).lower():
-                        rate_limited = True
                         break
 
             # Should either rate limit or handle gracefully
@@ -573,7 +573,7 @@ class TestWebSocketSecurity:
 
         for invalid_msg in invalid_messages:
             is_valid = realtime_service.validate_incoming_message(invalid_msg)
-            assert is_valid == False, f"Should reject invalid message: {invalid_msg}"
+            assert is_valid is False, f"Should reject invalid message: {invalid_msg}"
 
         # Valid message should pass
         valid_message = {
@@ -583,7 +583,7 @@ class TestWebSocketSecurity:
             "message_type": "text",
         }
 
-        assert realtime_service.validate_incoming_message(valid_message) == True
+        assert realtime_service.validate_incoming_message(valid_message) is True
 
     @pytest.mark.asyncio
     @pytest.mark.security
@@ -602,7 +602,7 @@ class TestWebSocketSecurity:
         }
 
         is_authorized = realtime_service.is_message_authorized(valid_message)
-        assert is_authorized == True
+        assert is_authorized is True
 
         # User tries to send to connection they're not part of - should fail
         invalid_message = {
@@ -612,7 +612,7 @@ class TestWebSocketSecurity:
         }
 
         is_unauthorized = realtime_service.is_message_authorized(invalid_message)
-        assert is_unauthorized == False
+        assert is_unauthorized is False
 
 
 class TestWebSocketPerformance:
@@ -682,7 +682,6 @@ class TestWebSocketPerformance:
     @pytest.mark.performance
     def test_websocket_memory_usage(self, connection_manager):
         """Test WebSocket memory usage with many connections"""
-        import sys
 
         initial_connections = 10
 
