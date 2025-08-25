@@ -49,7 +49,7 @@ def get_test_db():
 
 # === PATCH DATABASE MODULE ===
 # Import and patch the database module before importing app components
-import app.core.database as db_module
+import app.core.database as db_module  # noqa: E402
 
 # Replace production engine and session with test versions
 db_module.engine = test_engine
@@ -70,15 +70,15 @@ def patched_get_db():
 db_module.get_db = patched_get_db
 
 # Now import app components - they will use our patched database
-from app.core.database import Base, get_db
-from app.core.security import create_access_token, get_password_hash
-from app.main import app
-from app.models.match import Match, MatchStatus
-from app.models.profile import Profile
-from app.models.user import User
+from app.core.database import Base  # noqa: E402
+from app.core.security import create_access_token, get_password_hash  # noqa: E402
+from app.main import app  # noqa: E402
+from app.models.match import Match, MatchStatus  # noqa: E402
+from app.models.profile import Profile  # noqa: E402
+from app.models.user import User  # noqa: E402
 
 # Import test factories
-from tests.factories import (
+from tests.factories import (  # noqa: E402
     DailyRevelationFactory,
     MessageFactory,
     PhotoRevealFactory,
@@ -341,6 +341,73 @@ def authenticated_user(db_session) -> Dict[str, Any]:
         "headers": {"Authorization": f"Bearer {token}"},
     }
     # DELETE: Cleanup handled by db_session fixture
+
+
+@pytest.fixture
+def authenticated_user_connection(db_session, authenticated_user) -> Dict[str, Any]:
+    """Create a soul connection that includes the authenticated user"""
+    import uuid
+
+    from app.models.soul_connection import ConnectionEnergyLevel, SoulConnection
+
+    # Generate unique identifier to prevent constraint violations
+    unique_id = str(uuid.uuid4())[:8]
+
+    # Create a second user for the connection
+    partner_user = User(
+        email=f"partner_{unique_id}@test.com",
+        username=f"partner_{unique_id}",
+        hashed_password=get_password_hash("testpass123"),
+        first_name="Partner",
+        last_name="User",
+        is_active=True,
+        emotional_onboarding_completed=True,
+        emotional_depth_score=7.8,
+    )
+
+    # Commit partner user to database
+    db_session.add(partner_user)
+    db_session.commit()
+    db_session.refresh(partner_user)
+
+    # Create profile for partner
+    partner_profile = Profile(
+        user_id=partner_user.id,
+        full_name="Partner User",
+        bio="Soul connection partner for testing",
+        location="Test City, TC",
+        cuisine_preferences="All cuisines",
+    )
+    db_session.add(partner_profile)
+    db_session.commit()
+    db_session.refresh(partner_profile)
+
+    # Create soul connection between authenticated user and partner
+    connection = SoulConnection(
+        user1_id=authenticated_user["user"].id,
+        user2_id=partner_user.id,
+        initiated_by=authenticated_user["user"].id,
+        compatibility_score=85.5,
+        compatibility_breakdown={
+            "interests": 80.0,
+            "values": 90.0,
+            "demographics": 85.0,
+        },
+        connection_stage="active_connection",
+        current_energy_level=ConnectionEnergyLevel.HIGH.value,
+        status="active",
+    )
+
+    db_session.add(connection)
+    db_session.commit()
+    db_session.refresh(connection)
+
+    return {
+        "connection": connection,
+        "authenticated_user": authenticated_user["user"],
+        "partner_user": partner_user,
+        "partner_profile": partner_profile,
+    }
 
 
 @pytest.fixture

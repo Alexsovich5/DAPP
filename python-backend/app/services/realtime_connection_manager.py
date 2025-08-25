@@ -581,10 +581,9 @@ class RealtimeConnectionManager:
             )
 
             # Send confirmation to sender
-            await self.send_to_user(
-                sender_id,
-                {
-                    "type": MessageType.MESSAGE_SENT.value,
+            confirmation_message = RealtimeMessage(
+                type=MessageType.MESSAGE_SENT,
+                data={
                     "message": {
                         "id": message.id,
                         "content": content,
@@ -595,17 +594,18 @@ class RealtimeConnectionManager:
                             if message.created_at
                             else datetime.utcnow().isoformat()
                         ),
-                    },
-                    "timestamp": datetime.utcnow().isoformat(),
+                    }
                 },
+                target_user_id=sender_id,
+                connection_id=connection_id,
             )
+            await self.send_to_user(sender_id, confirmation_message)
 
             # Deliver message to recipient if online
             if recipient_id in self.active_connections:
-                await self.send_to_user(
-                    recipient_id,
-                    {
-                        "type": MessageType.NEW_MESSAGE.value,
+                delivery_message = RealtimeMessage(
+                    type=MessageType.NEW_MESSAGE,
+                    data={
                         "message": {
                             "id": message.id,
                             "content": content,
@@ -617,10 +617,12 @@ class RealtimeConnectionManager:
                                 if message.created_at
                                 else datetime.utcnow().isoformat()
                             ),
-                        },
-                        "timestamp": datetime.utcnow().isoformat(),
+                        }
                     },
+                    target_user_id=recipient_id,
+                    connection_id=connection_id,
                 )
+                await self.send_to_user(recipient_id, delivery_message)
 
                 logger.info(f"Message {message.id} delivered to user {recipient_id}")
             else:
@@ -628,14 +630,13 @@ class RealtimeConnectionManager:
                 await self.queue_notification_for_offline_user(
                     recipient_id,
                     {
-                        "type": MessageType.NEW_MESSAGE.value,
                         "message": {
                             "id": message.id,
                             "content": content,
                             "message_type": message_type,
                             "connection_id": connection_id,
                             "sender_id": sender_id,
-                        },
+                        }
                     },
                     db,
                 )
