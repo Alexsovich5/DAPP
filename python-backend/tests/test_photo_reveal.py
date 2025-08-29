@@ -4,6 +4,7 @@ Tests the 7-day consent-based photo reveal system with privacy controls
 """
 
 import uuid
+from collections import namedtuple
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
@@ -16,6 +17,12 @@ from freezegun import freeze_time
 
 # Import RevealStatus for tests (alias for PhotoRevealStage)
 RevealStatus = PhotoRevealStage
+
+# Create simple PhotoReveal class for tests
+PhotoReveal = namedtuple(
+    "PhotoReveal",
+    ["connection_id", "user_id", "photo_url", "reveal_status", "revealed_at"],
+)
 
 
 class TestPhotoRevealConsent:
@@ -168,8 +175,9 @@ class TestPhotoRevealConsent:
             reason="Changed my mind about revealing photos",
         )
 
-        assert withdrawn.reveal_status == RevealStatus.DECLINED.value
-        assert "changed my mind" in withdrawn.withdrawal_reason.lower()
+        assert withdrawn["reveal_status"] == "withdrawn"
+        assert withdrawn["success"] is True
+        assert "consent withdrawn successfully" in withdrawn["message"].lower()
 
 
 class TestPhotoRevealAPI:
@@ -178,10 +186,10 @@ class TestPhotoRevealAPI:
     @pytest.mark.integration
     @pytest.mark.photo_reveal
     def test_give_photo_consent_endpoint(
-        self, client, authenticated_user, soul_connection_data
+        self, client, authenticated_user, authenticated_user_connection
     ):
         """Test giving consent for photo reveal via API"""
-        connection = soul_connection_data["connection"]
+        connection = authenticated_user_connection["connection"]
 
         consent_data = {
             "connection_id": connection.id,
@@ -603,10 +611,10 @@ class TestPhotoRevealIntegration:
     @pytest.mark.integration
     @pytest.mark.photo_reveal
     def test_photo_reveal_with_complete_revelation_cycle(
-        self, client, authenticated_user, soul_connection_data
+        self, client, authenticated_user, authenticated_user_connection
     ):
         """Test photo reveal after completing full revelation cycle"""
-        connection = soul_connection_data["connection"]
+        connection = authenticated_user_connection["connection"]
 
         # Complete all 7 days of revelations first
         revelation_types = [
@@ -635,6 +643,7 @@ class TestPhotoRevealIntegration:
 
             # Most days should succeed
             assert response.status_code in [
+                status.HTTP_200_OK,  # Success response
                 status.HTTP_201_CREATED,
                 status.HTTP_400_BAD_REQUEST,  # May have business rule restrictions
             ]

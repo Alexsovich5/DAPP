@@ -71,15 +71,16 @@ db_module.get_db = patched_get_db
 
 # Now import app components - they will use our patched database
 from app.core.database import Base  # noqa: E402
-from app.core.security import create_access_token, get_password_hash  # noqa: E402
+from app.core.security import create_access_token  # noqa: E402
+from app.core.security import get_password_hash
 from app.main import app  # noqa: E402
 from app.models.match import Match, MatchStatus  # noqa: E402
 from app.models.profile import Profile  # noqa: E402
 from app.models.user import User  # noqa: E402
 
 # Import test factories
-from tests.factories import (  # noqa: E402
-    DailyRevelationFactory,
+from tests.factories import DailyRevelationFactory  # noqa: E402
+from tests.factories import (
     MessageFactory,
     PhotoRevealFactory,
     ProfileFactory,
@@ -456,6 +457,16 @@ async def async_client() -> AsyncClient:
     """Async HTTP client for testing async endpoints"""
     async with AsyncClient(app=app, base_url="http://test") as client:
         yield client
+
+
+@pytest.fixture
+def photo_reveal_service(db_session):
+    """Photo Reveal Service instance for testing"""
+    from app.services.photo_reveal_service import PhotoRevealService
+
+    service = PhotoRevealService()
+    service.db = db_session  # Inject the test database session
+    return service
 
 
 @pytest.fixture
