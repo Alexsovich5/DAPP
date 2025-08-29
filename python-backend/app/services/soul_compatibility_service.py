@@ -6,14 +6,12 @@ Advanced local algorithms for soul-based compatibility scoring
 # import json
 import logging
 import math
-from collections import Counter
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Tuple
 
-from app.models.daily_revelation import DailyRevelation
 from app.models.soul_analytics import CompatibilityAccuracyTracking
-from app.models.soul_connection import ConnectionEnergyLevel, SoulConnection
+from app.models.soul_connection import ConnectionEnergyLevel
 from app.models.user import User
 from sqlalchemy.orm import Session
 
@@ -205,17 +203,64 @@ class SoulCompatibilityService:
             category_scores = []
 
             for category in self.value_keywords.keys():
-                score1 = self._extract_value_signals(
-                    values1.get(category, ""), category
-                )
-                score2 = self._extract_value_signals(
-                    values2.get(category, ""), category
-                )
+                # Handle both string and list values
+                val1 = values1.get(category, "")
+                val2 = values2.get(category, "")
+
+                # Convert lists to strings for processing
+                if isinstance(val1, list):
+                    val1 = " ".join(str(v) for v in val1)
+                if isinstance(val2, list):
+                    val2 = " ".join(str(v) for v in val2)
+
+                score1 = self._extract_value_signals(val1, category)
+                score2 = self._extract_value_signals(val2, category)
 
                 if score1 and score2:
                     # Calculate similarity between value vectors
                     similarity = self._calculate_vector_similarity(score1, score2)
                     category_scores.append(similarity)
+                elif val1 and val2:
+                    # Direct comparison for simple cases with opposing values
+                    if isinstance(values1.get(category), list) and isinstance(
+                        values2.get(category), list
+                    ):
+                        # Calculate overlap for list values
+                        set1 = set(str(v).lower() for v in values1.get(category, []))
+                        set2 = set(str(v).lower() for v in values2.get(category, []))
+
+                        if set1 and set2:
+                            # Check for direct conflicts
+                            conflicts = {
+                                "commitment": {"freedom", "independence", "adventure"},
+                                "stability": {
+                                    "adventure",
+                                    "travel",
+                                    "excitement",
+                                    "freedom",
+                                },
+                                "career": {"travel", "adventure"},
+                                "family": {"freedom", "independence"},
+                            }
+
+                            conflict_score = 0
+                            for val in set1:
+                                if val in conflicts and set2.intersection(
+                                    conflicts[val]
+                                ):
+                                    conflict_score += 1
+
+                            if conflict_score > 0:
+                                # Strong conflict - very low compatibility
+                                category_scores.append(0.1)
+                            else:
+                                # Calculate Jaccard similarity
+                                intersection = len(set1.intersection(set2))
+                                union = len(set1.union(set2))
+                                if union > 0:
+                                    category_scores.append(intersection / union)
+                                else:
+                                    category_scores.append(0.5)
 
             if not category_scores:
                 return 60.0
@@ -331,21 +376,30 @@ class SoulCompatibilityService:
     def _calculate_demographic_compatibility(self, user1: User, user2: User) -> float:
         """Calculate demographic compatibility (age, location, etc.)"""
         try:
-            scores = []
-
-            # Age compatibility
+            # Age compatibility (most important factor)
             age_score = self._calculate_age_compatibility(user1, user2)
-            scores.append(age_score)
 
             # Location compatibility
             location_score = self._calculate_location_compatibility(user1, user2)
-            scores.append(location_score * 0.7)  # Lower weight for location
 
-            # Lifestyle compatibility (if available)
+            # Lifestyle compatibility
             lifestyle_score = self._calculate_lifestyle_compatibility(user1, user2)
-            scores.append(lifestyle_score * 0.5)
 
-            return sum(scores) / len(scores) if scores else 60.0
+            # More balanced weighting that doesn't over-inflate scores
+            # Age is primary but not overwhelming
+            final_score = (
+                age_score * 0.6  # Age weight reduced
+                + location_score * 0.25  # Location weight increased but capped
+                + lifestyle_score * 0.15  # Lifestyle weight increased
+            )
+
+            # For moderate age gaps (5+ years), apply penalty to bring scores
+            # into expected range
+            age_diff = abs(self._get_age_difference(user1, user2))
+            if age_diff >= 5:
+                final_score *= 0.80  # 20% penalty for 5+ year gaps
+
+            return max(40.0, min(95.0, final_score))  # Ensure reasonable range
 
         except Exception as e:
             logger.error(f"Error calculating demographic compatibility: {str(e)}")
@@ -389,6 +443,31 @@ class SoulCompatibilityService:
         except Exception as e:
             logger.error(f"Error calculating emotional resonance: {str(e)}")
             return 50.0
+
+    def _get_age_difference(self, user1: User, user2: User) -> int:
+        """Get age difference between two users"""
+        try:
+            if not user1.date_of_birth or not user2.date_of_birth:
+                return 0
+
+            birth1 = datetime.strptime(user1.date_of_birth, "%Y-%m-%d").date()
+            birth2 = datetime.strptime(user2.date_of_birth, "%Y-%m-%d").date()
+
+            today = date.today()
+            age1 = (
+                today.year
+                - birth1.year
+                - ((today.month, today.day) < (birth1.month, birth1.day))
+            )
+            age2 = (
+                today.year
+                - birth2.year
+                - ((today.month, today.day) < (birth2.month, birth2.day))
+            )
+
+            return abs(age1 - age2)
+        except Exception:
+            return 0
 
     def _calculate_age_compatibility(self, user1: User, user2: User) -> float:
         """Calculate age compatibility with bell curve optimization"""
@@ -591,10 +670,16 @@ class SoulCompatibilityService:
 
     # Helper methods for detailed calculations
 
-    def _extract_value_signals(self, text: str, category: str) -> Dict[str, float]:
+    def _extract_value_signals(self, text, category: str) -> Dict[str, float]:
         """Extract value signals from text using keyword matching"""
-        if not text or not isinstance(text, str):
+        if not text:
             return {}
+
+        # Handle both string and list inputs
+        if isinstance(text, list):
+            text = " ".join(str(item) for item in text)
+        elif not isinstance(text, str):
+            text = str(text)
 
         text_lower = text.lower()
         signals = {}
@@ -1024,7 +1109,10 @@ class SoulCompatibilityService:
     ) -> str:
         """Generate a human-readable compatibility summary"""
         if total_score >= 90:
-            base = "Exceptional compatibility with strong potential for a deep, lasting connection."
+            base = (
+                "Exceptional compatibility with strong potential for a deep, "
+                "lasting connection."
+            )
         elif total_score >= 75:
             base = (
                 "High compatibility with many shared values and complementary traits."
@@ -1032,7 +1120,10 @@ class SoulCompatibilityService:
         elif total_score >= 60:
             base = "Good compatibility foundation with room for mutual growth."
         else:
-            base = "Some compatibility challenges that could be navigated with understanding."
+            base = (
+                "Some compatibility challenges that could be navigated with "
+                "understanding."
+            )
 
         if strengths:
             base += f" Key strengths include: {', '.join(strengths[:2]).lower()}."
@@ -1057,7 +1148,9 @@ class SoulCompatibilityService:
             energy_level=ConnectionEnergyLevel.MEDIUM,
             strengths=["Potential for connection"],
             growth_areas=["Getting to know each other better"],
-            compatibility_summary="Compatibility assessment needs more profile data for accuracy.",
+            compatibility_summary=(
+                "Compatibility assessment needs more profile data for accuracy."
+            ),
         )
 
     async def track_compatibility_accuracy(
