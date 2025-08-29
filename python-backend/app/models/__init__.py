@@ -1,5 +1,17 @@
 # Import models in the correct order to avoid circular imports
-# Personalization models (must be imported before user model to avoid circular imports)
+# A/B Testing models
+from app.models.ab_testing import (
+    Experiment,
+    ExperimentVariant,
+    UserAssignment,
+    ExperimentEvent,
+    ExperimentResults,
+    ExperimentStatus,
+    VariantType,
+    MetricType,
+)
+
+# Personalization models (before user model to avoid circular imports)
 # AI models
 from app.models.ai_models import (
     BehavioralPattern,
@@ -69,6 +81,15 @@ __all__ = [
     # Core models
     "User",
     "UserEmotionalState",
+    # A/B Testing models
+    "Experiment",
+    "ExperimentVariant",
+    "UserAssignment",
+    "ExperimentEvent",
+    "ExperimentResults",
+    "ExperimentStatus",
+    "VariantType",
+    "MetricType",
     # Personalization models
     "UserPersonalizationProfile",
     "PersonalizedContent",

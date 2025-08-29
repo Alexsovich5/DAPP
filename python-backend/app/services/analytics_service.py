@@ -893,7 +893,9 @@ class AnalyticsService:
             "trend": (
                 "increasing"
                 if weeks_data[0] > weeks_data[-1]
-                else "decreasing" if weeks_data[0] < weeks_data[-1] else "stable"
+                else "decreasing"
+                if weeks_data[0] < weeks_data[-1]
+                else "stable"
             ),
         }
 
@@ -912,6 +914,247 @@ class AnalyticsService:
 
     def _empty_system_health_metrics(self) -> SystemHealthMetrics:
         return SystemHealthMetrics({}, 0, {}, {}, {})
+
+    # A/B Testing Methods
+
+    async def get_a_b_test_results(
+        self, experiment_id: str, db: Session
+    ) -> Optional[Dict[str, Any]]:
+        """Get A/B test results and statistical analysis"""
+        try:
+            from app.models.ab_testing import (
+                Experiment,
+                ExperimentVariant,
+                ExperimentEvent,
+                UserAssignment,
+            )
+            from sqlalchemy import func
+            import scipy.stats as stats
+            import numpy as np
+
+            # Get experiment
+            experiment = (
+                db.query(Experiment)
+                .filter(Experiment.experiment_id == experiment_id)
+                .first()
+            )
+
+            if not experiment:
+                return None
+
+            # Get variant data with metrics
+            variants_data = []
+
+            for variant in experiment.variants:
+                # Get total assignments (exposures)
+                exposures = (
+                    db.query(UserAssignment)
+                    .filter(UserAssignment.variant_id == variant.id)
+                    .count()
+                )
+
+                # Get conversions for primary metric
+                conversions = (
+                    db.query(ExperimentEvent)
+                    .filter(
+                        ExperimentEvent.variant_id == variant.id,
+                        ExperimentEvent.metric_name == experiment.primary_metric,
+                        ExperimentEvent.metric_value > 0,
+                    )
+                    .count()
+                )
+
+                conversion_rate = conversions / exposures if exposures > 0 else 0
+
+                variant_data = {
+                    "variant_id": variant.variant_id,
+                    "variant_name": variant.name,
+                    "variant_type": variant.variant_type,
+                    "exposures": exposures,
+                    "conversions": conversions,
+                    "conversion_rate": conversion_rate,
+                    "traffic_allocation": variant.traffic_allocation,
+                }
+
+                variants_data.append(variant_data)
+
+            # Statistical significance calculation
+            control_variant = next(
+                (v for v in variants_data if v["variant_type"] == "control"), None
+            )
+            treatment_variants = [
+                v for v in variants_data if v["variant_type"] == "treatment"
+            ]
+
+            statistical_significance = False
+            confidence_level = experiment.confidence_level
+
+            if control_variant and treatment_variants:
+                for treatment in treatment_variants:
+                    if (
+                        control_variant["exposures"] > 0
+                        and treatment["exposures"] > 0
+                        and control_variant["exposures"] >= 30
+                        and treatment["exposures"] >= 30
+                    ):
+                        # Two-proportion z-test
+                        control_success = control_variant["conversions"]
+                        control_total = control_variant["exposures"]
+                        treatment_success = treatment["conversions"]
+                        treatment_total = treatment["exposures"]
+
+                        # Calculate pooled proportion and standard error
+                        pooled_p = (control_success + treatment_success) / (
+                            control_total + treatment_total
+                        )
+                        se = np.sqrt(
+                            pooled_p
+                            * (1 - pooled_p)
+                            * (1 / control_total + 1 / treatment_total)
+                        )
+
+                        if se > 0:
+                            z_score = (
+                                (treatment_success / treatment_total)
+                                - (control_success / control_total)
+                            ) / se
+                            p_value = 2 * (1 - stats.norm.cdf(abs(z_score)))
+
+                            if p_value < (1 - confidence_level):
+                                statistical_significance = True
+                                break
+
+            # Generate recommendation
+            if statistical_significance and treatment_variants:
+                best_treatment = max(
+                    treatment_variants, key=lambda x: x["conversion_rate"]
+                )
+                if (
+                    best_treatment["conversion_rate"]
+                    > control_variant["conversion_rate"]
+                ):
+                    recommendation = f"Implement {best_treatment['variant_name']} - statistically significant improvement detected"
+                else:
+                    recommendation = "Continue testing - no clear winner"
+            elif (
+                not statistical_significance
+                and sum(v["exposures"] for v in variants_data)
+                < experiment.minimum_sample_size
+            ):
+                recommendation = "Continue experiment - insufficient sample size"
+            else:
+                recommendation = "No statistically significant difference detected"
+
+            return {
+                "experiment_id": experiment_id,
+                "experiment_name": experiment.name,
+                "status": experiment.status,
+                "variants": variants_data,
+                "statistical_significance": statistical_significance,
+                "confidence_level": confidence_level,
+                "recommendation": recommendation,
+                "total_participants": sum(v["exposures"] for v in variants_data),
+                "primary_metric": experiment.primary_metric,
+                "analysis_date": datetime.utcnow(),
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to get A/B test results for {experiment_id}: {e}")
+            return None
+
+    async def track_a_b_test_event(
+        self,
+        user_id: int,
+        experiment_id: str,
+        variant: str,
+        event_type: str,
+        metric_value: float,
+        db: Session,
+        properties: Optional[Dict[str, Any]] = None,
+    ) -> bool:
+        """Track A/B test event and metrics"""
+        try:
+            from app.models.ab_testing import (
+                Experiment,
+                ExperimentVariant,
+                ExperimentEvent,
+                UserAssignment,
+            )
+            import uuid
+
+            # Get experiment and variant
+            experiment = (
+                db.query(Experiment)
+                .filter(Experiment.experiment_id == experiment_id)
+                .first()
+            )
+
+            if not experiment:
+                logger.warning(f"Experiment {experiment_id} not found")
+                return False
+
+            variant_obj = (
+                db.query(ExperimentVariant)
+                .filter(
+                    ExperimentVariant.experiment_id == experiment.id,
+                    ExperimentVariant.variant_id == variant,
+                )
+                .first()
+            )
+
+            if not variant_obj:
+                logger.warning(
+                    f"Variant {variant} not found for experiment {experiment_id}"
+                )
+                return False
+
+            # Get or create user assignment
+            assignment = (
+                db.query(UserAssignment)
+                .filter(
+                    UserAssignment.user_id == user_id,
+                    UserAssignment.experiment_id == experiment.id,
+                    UserAssignment.variant_id == variant_obj.id,
+                )
+                .first()
+            )
+
+            if not assignment:
+                # Create new assignment
+                assignment = UserAssignment(
+                    user_id=user_id,
+                    experiment_id=experiment.id,
+                    variant_id=variant_obj.id,
+                    assigned_at=datetime.utcnow(),
+                )
+                db.add(assignment)
+                db.flush()  # Get the ID
+
+            # Create experiment event
+            experiment_event = ExperimentEvent(
+                user_id=user_id,
+                experiment_id=experiment.id,
+                variant_id=variant_obj.id,
+                assignment_id=assignment.id,
+                event_type=event_type,
+                metric_name=experiment.primary_metric,
+                metric_value=metric_value,
+                properties=properties or {},
+                timestamp=datetime.utcnow(),
+            )
+
+            db.add(experiment_event)
+            db.commit()
+
+            logger.info(
+                f"Tracked A/B test event: user_id={user_id}, experiment={experiment_id}, variant={variant}, event={event_type}"
+            )
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to track A/B test event: {e}")
+            db.rollback()
+            return False
 
 
 # Global service instance
