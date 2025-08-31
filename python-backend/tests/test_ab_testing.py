@@ -933,7 +933,9 @@ class TestExperimentReporting:
         for i in range(100):
             # Mock user assignment call
             user_id = i + 1
-            _experiment_assignments = ab_service.get_user_experiment_assignments(user_id)
+            _experiment_assignments = ab_service.get_user_experiment_assignments(
+                user_id
+            )
 
         total_time = time.time() - start_time
 

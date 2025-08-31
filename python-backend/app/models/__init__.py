@@ -68,10 +68,7 @@ from app.models.soul_analytics import (
     UserEngagementAnalytics,
     UserRetentionMetrics,
 )
-from app.models.soul_connection import (
-    ConnectionStage,
-    SoulConnection,
-)
+from app.models.soul_connection import ConnectionStage, SoulConnection
 from app.models.ui_personalization_models import UserUIProfile
 from app.models.user import User, UserEmotionalState
 

@@ -44,9 +44,7 @@ REVELATION_PROMPTS = {
     },
     3: {
         "revelation_type": RevelationType.HOPE_OR_DREAM,
-        "prompt_text": (
-            "Share a hope or dream that excites you about the future"
-        ),
+        "prompt_text": ("Share a hope or dream that excites you about the future"),
         "example_response": (
             "I dream of creating a home filled with warmth and laughter, "
             "where friends feel welcomed and love is the foundation."
@@ -55,8 +53,7 @@ REVELATION_PROMPTS = {
     4: {
         "revelation_type": RevelationType.WHAT_MAKES_LAUGH,
         "prompt_text": (
-            "Describe what makes you laugh and brings joy to your "
-            "everyday life"
+            "Describe what makes you laugh and brings joy to your " "everyday life"
         ),
         "example_response": (
             "I find joy in silly moments - dancing in the kitchen while "
@@ -66,9 +63,7 @@ REVELATION_PROMPTS = {
     },
     5: {
         "revelation_type": RevelationType.CHALLENGE_OVERCOME,
-        "prompt_text": (
-            "Share a challenge you've overcome and what it taught you"
-        ),
+        "prompt_text": ("Share a challenge you've overcome and what it taught you"),
         "example_response": (
             "Learning to set boundaries taught me that saying 'no' to some "
             "things means saying 'yes' to what truly matters to me."
@@ -76,9 +71,7 @@ REVELATION_PROMPTS = {
     },
     6: {
         "revelation_type": RevelationType.IDEAL_CONNECTION,
-        "prompt_text": (
-            "Describe your ideal way to connect with someone special"
-        ),
+        "prompt_text": ("Describe your ideal way to connect with someone special"),
         "example_response": (
             "I love deep conversations over coffee that stretch for hours, "
             "where time disappears and we discover unexpected common ground."

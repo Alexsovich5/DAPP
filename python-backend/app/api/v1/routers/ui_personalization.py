@@ -427,9 +427,7 @@ async def trigger_real_time_adaptation(
 ):
     """Trigger real-time UI adaptation based on current context"""
     try:
-        await ui_personalization_engine.get_or_create_ui_profile(
-            current_user.id, db
-        )
+        await ui_personalization_engine.get_or_create_ui_profile(current_user.id, db)
 
         # Generate immediate adaptations
         adaptations = await ui_personalization_engine.generate_ui_personalizations(

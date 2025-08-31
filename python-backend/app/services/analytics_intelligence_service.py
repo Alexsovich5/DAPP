@@ -9,10 +9,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
-from app.models.analytics_models import (
-    BusinessIntelligenceReport,
-    ReportType,
-)
+from app.models.analytics_models import BusinessIntelligenceReport, ReportType
 from app.models.daily_revelation import DailyRevelation
 from app.models.soul_connection import SoulConnection
 from app.models.user import User

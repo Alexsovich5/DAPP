@@ -7,10 +7,7 @@ from typing import Any, Dict, List, Optional
 from app.api.v1.deps import get_current_user
 from app.core.database import get_db
 from app.models.user import User
-from app.services.push_notification import (
-    NotificationType,
-    get_push_service,
-)
+from app.services.push_notification import NotificationType, get_push_service
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -230,8 +227,7 @@ async def send_bulk_notifications(
         return {
             "success": True,
             "message": (
-                f"Queued {len(validated_notifications)} notifications for "
-                "sending"
+                f"Queued {len(validated_notifications)} notifications for " "sending"
             ),
             "count": len(validated_notifications),
         }
