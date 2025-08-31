@@ -653,7 +653,7 @@ async def get_active_photo_permissions(
             db.query(PhotoRevealPermission)
             .filter(
                 PhotoRevealPermission.viewer_id == current_user.id,
-                PhotoRevealPermission.is_active is True,
+                PhotoRevealPermission.is_active,
             )
             .all()
         )
@@ -763,7 +763,7 @@ async def get_photo_reveal_statistics(
         completed_reveals = (
             db.query(PhotoRevealTimeline)
             .filter(
-                PhotoRevealTimeline.photos_revealed is True,
+                PhotoRevealTimeline.photos_revealed,
                 PhotoRevealTimeline.photo_reveal_completed_at >= cutoff_date,
             )
             .count()

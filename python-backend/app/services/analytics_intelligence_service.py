@@ -1,27 +1,17 @@
 """
 Phase 8C: Analytics & Business Intelligence Service
-Comprehensive data analytics, insights, and business intelligence for platform optimization
+Comprehensive data analytics, insights, and business intelligence for
+platform optimization
 """
 
 # import json
 import logging
 from datetime import datetime, timedelta
-from decimal import Decimal
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional
 
 from app.models.analytics_models import (
-    AnalyticsCategory,
-    BehaviorAnalytics,
     BusinessIntelligenceReport,
-    ChurnAnalysis,
-    EngagementMetric,
-    MetricType,
-    PlatformMetric,
     ReportType,
-    RevenuAnalytics,
-    SegmentType,
-    UserAnalytics,
-    UserSegment,
 )
 from app.models.daily_revelation import DailyRevelation
 from app.models.soul_connection import SoulConnection
@@ -29,7 +19,7 @@ from app.models.user import User
 
 # import numpy as np
 # import pandas as pd
-from sqlalchemy import and_, desc, func, or_, text
+from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -187,7 +177,7 @@ class AnalyticsIntelligenceEngine:
             if user_segment:
                 users = await self._get_users_by_segment(user_segment, db)
             else:
-                users = db.query(User).filter(User.is_active is True).limit(10000).all()
+                _users = db.query(User).filter(User.is_active).limit(10000).all()
 
             # Collect behavioral data
             behavioral_data = await self._collect_behavioral_data(users, db)
@@ -446,7 +436,7 @@ class AnalyticsIntelligenceEngine:
 
             active_users = (
                 db.query(func.count(User.id))
-                .filter(and_(User.is_active is True, User.updated_at >= start_date))
+                .filter(and_(User.is_active, User.updated_at >= start_date))
                 .scalar()
             )
 

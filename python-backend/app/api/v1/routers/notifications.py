@@ -9,7 +9,6 @@ from app.core.database import get_db
 from app.models.user import User
 from app.services.push_notification import (
     NotificationType,
-    PushNotificationService,
     get_push_service,
 )
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
@@ -205,7 +204,7 @@ async def send_bulk_notifications(
         validated_notifications = []
         for notification in bulk_request.notifications:
             try:
-                notification_type = NotificationType(notification.type)
+                NotificationType(notification.type)  # Validate type
                 validated_notifications.append(
                     {
                         "user_id": notification.user_id,
@@ -230,7 +229,10 @@ async def send_bulk_notifications(
 
         return {
             "success": True,
-            "message": f"Queued {len(validated_notifications)} notifications for sending",
+            "message": (
+                f"Queued {len(validated_notifications)} notifications for "
+                "sending"
+            ),
             "count": len(validated_notifications),
         }
 
@@ -385,7 +387,7 @@ async def get_notification_preferences(current_user: User = Depends(get_current_
     Get user's notification preferences
     """
     try:
-        push_service = get_push_service()
+        get_push_service()
 
         # This would get preferences from cache/database
         # For now, returning default preferences
@@ -531,7 +533,7 @@ async def get_user_subscriptions(
             db.query(PushSubscription)
             .filter(
                 PushSubscription.user_id == current_user.id,
-                PushSubscription.is_active is True,
+                PushSubscription.is_active,
             )
             .all()
         )

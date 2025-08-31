@@ -3,13 +3,12 @@ Comprehensive Photo Reveal System Tests - Core "Soul Before Skin" Feature
 Tests the 7-day consent-based photo reveal system with privacy controls
 """
 
-import uuid
 from collections import namedtuple
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
-from app.models.photo_reveal import PhotoRevealStage, PhotoRevealTimeline
+from app.models.photo_reveal import PhotoRevealStage
 from app.models.soul_connection import ConnectionStage
 from app.services.photo_reveal_service import PhotoRevealService
 from fastapi import status
@@ -59,7 +58,7 @@ class TestPhotoRevealConsent:
         self, photo_reveal_service, soul_connection_data
     ):
         """Test that photo reveal requires explicit consent from both users"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         user1, user2 = soul_connection_data["users"][:2]
 
         # Cannot reveal without consent
@@ -89,7 +88,7 @@ class TestPhotoRevealConsent:
         self, photo_reveal_service, soul_connection_data
     ):
         """Test that photo reveal requires 7 days of revelations"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         user = soul_connection_data["users"][0]
 
         # Mock connection that's only 3 days old
@@ -106,7 +105,7 @@ class TestPhotoRevealConsent:
                 current_date=current_time,
             )
 
-            assert can_reveal == False
+            assert can_reveal is False
 
         # After 7 days should be allowed
         with freeze_time("2025-01-22 10:00:00"):  # 7 days later
@@ -119,7 +118,7 @@ class TestPhotoRevealConsent:
                 current_date=current_time,
             )
 
-            assert can_reveal == True
+            assert can_reveal
 
     @pytest.mark.unit
     @pytest.mark.photo_reveal
@@ -127,7 +126,7 @@ class TestPhotoRevealConsent:
         self, photo_reveal_service, soul_connection_data
     ):
         """Test that photo reveal requires completed revelation cycle"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         user = soul_connection_data["users"][0]
 
         # Check with incomplete revelations
@@ -139,7 +138,7 @@ class TestPhotoRevealConsent:
             completed_revelation_days=completed_days,
         )
 
-        assert can_reveal == False
+        assert can_reveal is False
 
         # Check with all 7 days completed
         completed_days = [1, 2, 3, 4, 5, 6, 7]
@@ -150,7 +149,7 @@ class TestPhotoRevealConsent:
             completed_revelation_days=completed_days,
         )
 
-        assert can_reveal == True
+        assert can_reveal
 
     @pytest.mark.unit
     @pytest.mark.photo_reveal
@@ -158,7 +157,7 @@ class TestPhotoRevealConsent:
         self, photo_reveal_service, soul_connection_data
     ):
         """Test that users can withdraw photo reveal consent"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         user = soul_connection_data["users"][0]
 
         # Give initial consent
@@ -176,7 +175,7 @@ class TestPhotoRevealConsent:
         )
 
         assert withdrawn["reveal_status"] == "withdrawn"
-        assert withdrawn["success"] is True
+        assert withdrawn["success"]
         assert "consent withdrawn successfully" in withdrawn["message"].lower()
 
 
@@ -189,7 +188,7 @@ class TestPhotoRevealAPI:
         self, client, authenticated_user, authenticated_user_connection
     ):
         """Test giving consent for photo reveal via API"""
-        connection = authenticated_user_connection["connection"]
+        _connection = authenticated_user_connection["connection"]
 
         consent_data = {
             "connection_id": connection.id,
@@ -216,7 +215,7 @@ class TestPhotoRevealAPI:
         self, client, authenticated_user, soul_connection_data
     ):
         """Test withdrawing consent for photo reveal"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
 
         # First give consent
         consent_data = {"connection_id": connection.id, "consent_given": True}
@@ -247,7 +246,7 @@ class TestPhotoRevealAPI:
         self, client, authenticated_user, soul_connection_data
     ):
         """Test photo upload for reveal system"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
 
         # Mock photo upload data
         photo_data = {
@@ -276,7 +275,7 @@ class TestPhotoRevealAPI:
         self, client, authenticated_user, soul_connection_data
     ):
         """Test checking mutual reveal status for connection"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
 
         response = client.get(
             f"/api/v1/photo-reveal/status/{connection.id}",
@@ -326,7 +325,7 @@ class TestPhotoRevealAPI:
                 "photo_base64": "data:image/jpeg;base64,testphotodata",
             }
 
-            upload_response = client.post(
+            _upload_response = client.post(
                 "/api/v1/photo-reveal/upload", json=photo_data, headers=headers1
             )
 
@@ -365,10 +364,10 @@ class TestPhotoRevealSecurity:
         ]
 
         for valid_url in valid_urls:
-            assert photo_reveal_service.validate_photo_url(valid_url) == True
+            assert photo_reveal_service.validate_photo_url(valid_url)
 
         for invalid_url in invalid_urls:
-            assert photo_reveal_service.validate_photo_url(invalid_url) == False
+            assert photo_reveal_service.validate_photo_url(invalid_url) is False
 
     @pytest.mark.unit
     @pytest.mark.photo_reveal
@@ -405,7 +404,7 @@ class TestPhotoRevealSecurity:
         # Mock inappropriate content detection
         def mock_content_check(photo_data):
             # Simulate AI content moderation
-            inappropriate_indicators = [
+            _inappropriate_indicators = [
                 "explicit_content",
                 "not_face_photo",
                 "multiple_people",
@@ -422,7 +421,7 @@ class TestPhotoRevealSecurity:
         ):
             result = photo_reveal_service.validate_photo_content("mock_photo_data")
 
-            assert result["is_appropriate"] == True
+            assert result["is_appropriate"]
             assert result["confidence_score"] > 0.9
 
     @pytest.mark.unit
@@ -441,7 +440,7 @@ class TestPhotoRevealSecurity:
 
         assert "encrypted_url" in stored_info
         assert "storage_key" in stored_info
-        assert stored_info["encrypted"] == True
+        assert stored_info["encrypted"]
 
         # Original photo data should not be in the URL
         assert b"mock_photo_binary_data" not in stored_info["encrypted_url"].encode()
@@ -451,7 +450,7 @@ class TestPhotoRevealSecurity:
     @pytest.mark.security
     def test_photo_access_time_limits(self, photo_reveal_service, soul_connection_data):
         """Test that photo access has time limits for privacy"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         user = soul_connection_data["users"][0]
 
         # Create photo reveal
@@ -467,7 +466,7 @@ class TestPhotoRevealSecurity:
         is_expired = photo_reveal_service.is_photo_access_expired(photo_reveal)
 
         # Photos should have limited viewing window
-        assert is_expired == True  # 30 days should be expired
+        assert is_expired  # 30 days should be expired
 
         # Recent photo should still be accessible
         recent_photo = PhotoReveal(
@@ -479,7 +478,7 @@ class TestPhotoRevealSecurity:
         )
 
         is_recent_expired = photo_reveal_service.is_photo_access_expired(recent_photo)
-        assert is_recent_expired == False
+        assert is_recent_expired is False
 
 
 class TestPhotoRevealBusinessLogic:
@@ -491,7 +490,7 @@ class TestPhotoRevealBusinessLogic:
         self, photo_reveal_service, soul_connection_data
     ):
         """Test that photo reveal updates connection stage appropriately"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         users = soul_connection_data["users"][:2]
 
         # Mock that both users have given consent and revealed photos
@@ -520,7 +519,7 @@ class TestPhotoRevealBusinessLogic:
     @pytest.mark.photo_reveal
     def test_partial_reveal_handling(self, photo_reveal_service, soul_connection_data):
         """Test handling when only one user reveals photo"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         user1, user2 = soul_connection_data["users"][:2]
 
         # Only user1 gives consent and reveals
@@ -529,10 +528,10 @@ class TestPhotoRevealBusinessLogic:
         # Check mutual reveal status
         mutual_status = photo_reveal_service.get_mutual_reveal_status(connection.id)
 
-        assert mutual_status["user1_consented"] == True
-        assert mutual_status["user2_consented"] == False
-        assert mutual_status["mutual_reveal_possible"] == False
-        assert mutual_status["photos_revealed"] == False
+        assert mutual_status["user1_consented"]
+        assert mutual_status["user2_consented"] is False
+        assert mutual_status["mutual_reveal_possible"] is False
+        assert mutual_status["photos_revealed"] is False
 
     @pytest.mark.unit
     @pytest.mark.photo_reveal
@@ -540,10 +539,10 @@ class TestPhotoRevealBusinessLogic:
         self, photo_reveal_service, soul_connection_data
     ):
         """Test that photo reveals trigger appropriate notifications"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         user1, user2 = soul_connection_data["users"][:2]
 
-        with patch("app.services.push_notification.send_notification") as mock_notify:
+        with patch("app.services.push_notification.send_notification") as _mock_notify:
             # User1 gives consent
             photo_reveal_service.give_consent(
                 connection_id=connection.id, user_id=user1.id
@@ -565,7 +564,7 @@ class TestPhotoRevealBusinessLogic:
     @pytest.mark.photo_reveal
     def test_photo_reveal_analytics(self, photo_reveal_service, soul_connection_data):
         """Test photo reveal analytics and insights"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
 
         analytics = photo_reveal_service.get_reveal_analytics(connection.id)
 
@@ -602,7 +601,7 @@ class TestPhotoRevealBusinessLogic:
 
         # Photo processing should be reasonably fast
         assert processing_time < 5.0  # 5 seconds max for large photo
-        assert result["processed"] == True
+        assert result["processed"]
 
 
 class TestPhotoRevealIntegration:
@@ -614,7 +613,7 @@ class TestPhotoRevealIntegration:
         self, client, authenticated_user, authenticated_user_connection
     ):
         """Test photo reveal after completing full revelation cycle"""
-        connection = authenticated_user_connection["connection"]
+        _connection = authenticated_user_connection["connection"]
 
         # Complete all 7 days of revelations first
         revelation_types = [
@@ -673,7 +672,7 @@ class TestPhotoRevealIntegration:
         self, photo_reveal_service, soul_connection_data
     ):
         """Test that photo reveals affect future matching preferences"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         users = soul_connection_data["users"][:2]
 
         # Complete photo reveal process
@@ -705,7 +704,7 @@ class TestPhotoRevealIntegration:
         self, client, authenticated_user, soul_connection_data
     ):
         """Test integration between photo reveal and dinner planning"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
 
         # Complete photo reveal
         consent_data = {"connection_id": connection.id, "consent_given": True}

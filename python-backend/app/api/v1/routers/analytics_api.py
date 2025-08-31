@@ -1,18 +1,19 @@
 """
 Analytics API Router - Phase 4 User Analytics and Engagement Tracking
-Comprehensive analytics endpoints for user insights, system metrics, and engagement tracking
+Comprehensive analytics endpoints for user insights, system metrics, and
+engagement tracking
 """
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from app.api.v1.deps import get_current_user
 from app.core.database import get_db
-from app.models.soul_analytics import AnalyticsEventType
+from app.models.soul_analytics import AnalyticsEventType, UserEngagementAnalytics
 from app.models.user import User
 from app.services.analytics_service import analytics_service
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -255,7 +256,10 @@ async def track_batch_events(
             "success": True,
             "totalEvents": len(events),
             "successfulTracks": successful_tracks,
-            "message": f"Successfully tracked {successful_tracks} out of {len(events)} events",
+            "message": (
+                f"Successfully tracked {successful_tracks} out of "
+                f"{len(events)} events"
+            ),
         }
 
     except Exception as e:

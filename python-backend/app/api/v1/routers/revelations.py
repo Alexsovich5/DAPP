@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import List
 
 from app.api.v1.deps import get_current_user
@@ -11,7 +12,6 @@ from app.schemas.daily_revelation import (
     DailyRevelationResponse,
     DailyRevelationUpdate,
     RevelationPrompt,
-    RevelationTimelineResponse,
 )
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -23,38 +23,77 @@ router = APIRouter(tags=["revelations"])
 REVELATION_PROMPTS = {
     1: {
         "revelation_type": RevelationType.PERSONAL_VALUE,
-        "prompt_text": "Share a personal value that's important to you in relationships",
-        "example_response": "I deeply value loyalty and trust. Once someone enters my life, I believe in being completely honest and dependable with them.",
+        "prompt_text": (
+            "Share a personal value that's important to you in relationships"
+        ),
+        "example_response": (
+            "I deeply value loyalty and trust. Once someone enters my life, "
+            "I believe in being completely honest and dependable with them."
+        ),
     },
     2: {
         "revelation_type": RevelationType.MEANINGFUL_EXPERIENCE,
-        "prompt_text": "Describe a meaningful experience that shaped who you are today",
-        "example_response": "Traveling alone to a new country taught me that I'm more resilient than I thought and that genuine connections can happen anywhere.",
+        "prompt_text": (
+            "Describe a meaningful experience that shaped who you are today"
+        ),
+        "example_response": (
+            "Traveling alone to a new country taught me that I'm more "
+            "resilient than I thought and that genuine connections can happen "
+            "anywhere."
+        ),
     },
     3: {
         "revelation_type": RevelationType.HOPE_OR_DREAM,
-        "prompt_text": "Share a hope or dream that excites you about the future",
-        "example_response": "I dream of creating a home filled with warmth and laughter, where friends feel welcomed and love is the foundation.",
+        "prompt_text": (
+            "Share a hope or dream that excites you about the future"
+        ),
+        "example_response": (
+            "I dream of creating a home filled with warmth and laughter, "
+            "where friends feel welcomed and love is the foundation."
+        ),
     },
     4: {
         "revelation_type": RevelationType.WHAT_MAKES_LAUGH,
-        "prompt_text": "Describe what makes you laugh and brings joy to your everyday life",
-        "example_response": "I find joy in silly moments - dancing in the kitchen while cooking, random conversations with strangers, and those unexpected moments of perfect timing.",
+        "prompt_text": (
+            "Describe what makes you laugh and brings joy to your "
+            "everyday life"
+        ),
+        "example_response": (
+            "I find joy in silly moments - dancing in the kitchen while "
+            "cooking, random conversations with strangers, and those "
+            "unexpected moments of perfect timing."
+        ),
     },
     5: {
         "revelation_type": RevelationType.CHALLENGE_OVERCOME,
-        "prompt_text": "Share a challenge you've overcome and what it taught you",
-        "example_response": "Learning to set boundaries taught me that saying 'no' to some things means saying 'yes' to what truly matters to me.",
+        "prompt_text": (
+            "Share a challenge you've overcome and what it taught you"
+        ),
+        "example_response": (
+            "Learning to set boundaries taught me that saying 'no' to some "
+            "things means saying 'yes' to what truly matters to me."
+        ),
     },
     6: {
         "revelation_type": RevelationType.IDEAL_CONNECTION,
-        "prompt_text": "Describe your ideal way to connect with someone special",
-        "example_response": "I love deep conversations over coffee that stretch for hours, where time disappears and we discover unexpected common ground.",
+        "prompt_text": (
+            "Describe your ideal way to connect with someone special"
+        ),
+        "example_response": (
+            "I love deep conversations over coffee that stretch for hours, "
+            "where time disappears and we discover unexpected common ground."
+        ),
     },
     7: {
         "revelation_type": RevelationType.PHOTO_REVEAL,
-        "prompt_text": "If you feel a connection, this is the day to share your photo and see each other",
-        "example_response": "After sharing our souls this week, I'm excited to put a face to the amazing person I've been getting to know.",
+        "prompt_text": (
+            "If you feel a connection, this is the day to share your photo "
+            "and see each other"
+        ),
+        "example_response": (
+            "After sharing our souls this week, I'm excited to put a face "
+            "to the amazing person I've been getting to know."
+        ),
     },
 }
 
@@ -232,7 +271,6 @@ def get_revelation_timeline(
         # Get partner info
         partner_id = connection.get_partner_id(current_user.id)
         partner = db.query(User).filter(User.id == partner_id).first()
-        partner_name = partner.first_name if partner else "Partner"
 
         # Build timeline data structure matching Phase 3 frontend
         timeline_days = []

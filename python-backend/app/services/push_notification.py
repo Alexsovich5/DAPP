@@ -259,7 +259,7 @@ class PushNotificationService:
                 db.query(PushSubscription)
                 .filter(
                     PushSubscription.user_id == user_id,
-                    PushSubscription.is_active is True,
+                    PushSubscription.is_active,
                 )
                 .all()
             )

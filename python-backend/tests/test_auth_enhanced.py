@@ -4,8 +4,8 @@ Tests JWT refresh, rate limiting, emotional onboarding, and security flows
 """
 
 import time
-from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
+from datetime import datetime
+from unittest.mock import patch
 
 import jwt
 import pytest
@@ -15,7 +15,6 @@ from app.core.security import (
     get_password_hash,
     validate_password_strength,
     verify_password,
-    verify_token,
 )
 from app.models.user import User
 from fastapi import status
@@ -258,7 +257,7 @@ class TestEmotionalOnboardingAuth:
             data = response.json()
             assert data["email"] == "souluser@example.com"
             assert "emotional_onboarding_completed" in data
-            assert data.get("emotional_onboarding_completed", False) == True
+            assert data.get("emotional_onboarding_completed", False)
 
     @pytest.mark.integration
     @pytest.mark.soul_connections
@@ -287,7 +286,7 @@ class TestEmotionalOnboardingAuth:
         # Should include user data with onboarding status
         assert "user" in data
         user_data = data["user"]
-        assert user_data["emotional_onboarding_completed"] == False
+        assert user_data["emotional_onboarding_completed"] is False
 
     @pytest.mark.integration
     @pytest.mark.soul_connections
@@ -381,10 +380,10 @@ class TestPasswordSecurity:
         assert hashed.startswith("$2b$")  # bcrypt format
 
         # Verify correct password
-        assert verify_password(original_password, hashed) == True
+        assert verify_password(original_password, hashed)
 
         # Reject incorrect password
-        assert verify_password("WrongPassword", hashed) == False
+        assert verify_password("WrongPassword", hashed) is False
 
         # Same password should produce different hashes (salt)
         hash2 = get_password_hash(original_password)

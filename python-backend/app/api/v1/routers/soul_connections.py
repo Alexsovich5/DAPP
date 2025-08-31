@@ -57,8 +57,8 @@ def discover_soul_connections(
         # Build query for potential matches
         query = db.query(User).filter(
             User.id.notin_(excluded_user_ids),
-            User.is_active is True,
-            User.emotional_onboarding_completed is True,
+            User.is_active,
+            User.emotional_onboarding_completed,
         )
 
         # Apply age filters if specified

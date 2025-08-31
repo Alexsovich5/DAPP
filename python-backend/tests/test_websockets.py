@@ -330,7 +330,7 @@ class TestTypingIndicators:
         # Should successfully process the notification request
         assert response.status_code == 200
         data = response.json()
-        assert data["success"] is True
+        assert data["success"]
         assert "notification sent" in data["message"].lower()
 
     @pytest.mark.asyncio
@@ -345,7 +345,7 @@ class TestTypingIndicators:
 
         # Should be marked as typing
         is_typing = realtime_service.is_user_typing(connection_id, user_id)
-        assert is_typing is True
+        assert is_typing
 
         # Simulate timeout (mock time passing)
         with patch("time.time", return_value=time.time() + 30):  # 30 seconds later
@@ -393,7 +393,7 @@ class TestPresenceStatus:
 
         # Connect user
         connection_manager.connect(mock_websocket, user_id)
-        assert connection_manager.is_user_online(user_id) is True
+        assert connection_manager.is_user_online(user_id)
 
         # Disconnect user
         connection_manager.disconnect(user_id)
@@ -449,7 +449,7 @@ class TestPresenceStatus:
         # But user can choose public presence
         realtime_service.set_presence_privacy(user1.id, "public")
         is_visible_public = realtime_service.is_user_visible_online(user1.id, user2.id)
-        assert is_visible_public is True
+        assert is_visible_public
 
 
 class TestRealtimeNotifications:
@@ -556,7 +556,7 @@ class TestRealtimeNotifications:
         )
 
         # Should be queued
-        assert result["queued"] is True
+        assert result["queued"]
         assert result["delivery_status"] == "pending"
 
         # Check notification queue
@@ -651,7 +651,7 @@ class TestWebSocketSecurity:
             "message_type": "text",
         }
 
-        assert realtime_service.validate_incoming_message(valid_message) is True
+        assert realtime_service.validate_incoming_message(valid_message)
 
     @pytest.mark.asyncio
     @pytest.mark.security
@@ -670,7 +670,7 @@ class TestWebSocketSecurity:
         }
 
         is_authorized = realtime_service.is_message_authorized(valid_message)
-        assert is_authorized is True
+        assert is_authorized
 
         # User tries to send to connection they're not part of - should fail
         invalid_message = {

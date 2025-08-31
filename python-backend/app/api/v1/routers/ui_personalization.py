@@ -4,7 +4,8 @@ API endpoints for dynamic UI adaptation based on user interaction patterns
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Any, Dict, List
 
 from app.core.auth import get_current_user
 from app.core.database import get_db
@@ -25,6 +26,7 @@ from app.schemas.ui_personalization_schemas import (
 )
 from app.services.ui_personalization_service import ui_personalization_engine
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 router = APIRouter(tags=["ui-personalization"])
@@ -389,7 +391,7 @@ async def get_active_ab_tests(
             .filter(
                 and_(
                     UIABTestParticipation.ui_profile_id == ui_profile.id,
-                    UIABTestParticipation.is_active is True,
+                    UIABTestParticipation.is_active,
                 )
             )
             .all()
@@ -425,7 +427,7 @@ async def trigger_real_time_adaptation(
 ):
     """Trigger real-time UI adaptation based on current context"""
     try:
-        ui_profile = await ui_personalization_engine.get_or_create_ui_profile(
+        await ui_personalization_engine.get_or_create_ui_profile(
             current_user.id, db
         )
 
@@ -537,9 +539,3 @@ async def generate_analytics_recommendations(
         recommendations.append("Try enabling micro-interactions to improve engagement")
 
     return recommendations
-
-
-# Import required modules
-from datetime import datetime
-
-from sqlalchemy import and_

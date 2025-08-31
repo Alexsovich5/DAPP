@@ -3,11 +3,12 @@ Comprehensive tests for Daily Revelation System
 Tests the core "Soul Before Skin" 7-day revelation cycle
 """
 
-from datetime import datetime, timedelta
+import time
+from datetime import datetime
 from unittest.mock import patch
 
 import pytest
-from app.models.daily_revelation import DailyRevelation, RevelationType
+from app.models.daily_revelation import RevelationType
 from app.models.soul_connection import ConnectionStage
 from app.services.revelation_service import RevelationService
 from fastapi import status
@@ -74,7 +75,7 @@ class TestRevelationService:
         self, revelation_service, soul_connection_data, db_session
     ):
         """Test creating a new daily revelation"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         user = soul_connection_data["users"][0]
 
         # Try to create revelation for day 4 (should be available)
@@ -103,7 +104,7 @@ class TestRevelationService:
         self, revelation_service, soul_connection_data, db_session
     ):
         """Test retrieving complete revelation timeline for connection"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
 
         timeline = revelation_service.get_connection_revelations(
             db_session, connection.id, soul_connection_data["users"][0].id
@@ -127,7 +128,7 @@ class TestRevelationService:
         self, revelation_service, soul_connection_data, db_session
     ):
         """Test validation of revelation day numbers (1-7)"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         user = soul_connection_data["users"][0]
 
         # Valid day numbers should work (only test day 1 to avoid progression logic)
@@ -138,7 +139,7 @@ class TestRevelationService:
             day=1,
             content="Day 1 revelation content",
         )
-        assert revelation["success"] == True
+        assert revelation["success"]
         assert revelation["revelation"]["day"] == 1
 
         # Test invalid day - service returns error rather than raising exception
@@ -149,7 +150,7 @@ class TestRevelationService:
             day=8,
             content="Invalid day revelation",
         )
-        assert invalid_result["success"] == False
+        assert invalid_result["success"] is False
         assert "Invalid revelation day" in invalid_result["error"]
 
     @pytest.mark.unit
@@ -158,11 +159,11 @@ class TestRevelationService:
         self, revelation_service, soul_connection_data, db_session
     ):
         """Test revelation content validation and requirements"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         user = soul_connection_data["users"][0]
 
         # Empty content should be rejected
-        empty_result = revelation_service.create_revelation(
+        revelation_service.create_revelation(
             db=db_session,
             connection_id=connection.id,
             user_id=user.id,
@@ -173,7 +174,7 @@ class TestRevelationService:
         # Just verify empty content is handled appropriately
 
         # Test short content
-        short_result = revelation_service.create_revelation(
+        revelation_service.create_revelation(
             db=db_session,
             connection_id=connection.id,
             user_id=user.id,
@@ -190,7 +191,7 @@ class TestRevelationService:
             day=1,
             content="I deeply value honesty, compassion, and genuine connection in all my relationships.",
         )
-        assert good_revelation["success"] == True
+        assert good_revelation["success"]
 
     @pytest.mark.unit
     @pytest.mark.revelations
@@ -198,7 +199,7 @@ class TestRevelationService:
         self, revelation_service, soul_connection_data, db_session
     ):
         """Test that users cannot submit duplicate revelations for the same day"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         user = soul_connection_data["users"][0]
 
         # Create first revelation for day 1
@@ -209,7 +210,7 @@ class TestRevelationService:
             day=1,
             content="My first day 1 revelation",
         )
-        assert first_revelation["success"] == True
+        assert first_revelation["success"]
 
         # Attempt to create duplicate revelation for same day
         duplicate_result = revelation_service.create_revelation(
@@ -219,7 +220,7 @@ class TestRevelationService:
             day=1,
             content="My duplicate day 1 revelation",
         )
-        assert duplicate_result["success"] == False
+        assert duplicate_result["success"] is False
         assert "Already shared" in duplicate_result["error"]
 
     @pytest.mark.unit
@@ -228,7 +229,7 @@ class TestRevelationService:
         self, revelation_service, soul_connection_data, db_session
     ):
         """Test that revelations must follow proper day progression"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         user = soul_connection_data["users"][0]
 
         # Should not be able to skip to day 3 without completing days 1 and 2
@@ -239,7 +240,7 @@ class TestRevelationService:
             day=3,
             content="Skipping to day 3",
         )
-        assert skip_result["success"] == False
+        assert skip_result["success"] is False
         assert "not yet unlocked" in skip_result["error"]
 
         # Should be able to start with day 1
@@ -250,10 +251,10 @@ class TestRevelationService:
             day=1,
             content="Starting with day 1",
         )
-        assert day1_result["success"] == True
+        assert day1_result["success"]
 
         # Test day 2 - may work depending on current revelation day logic
-        day2_result = revelation_service.create_revelation(
+        revelation_service.create_revelation(
             db=db_session,
             connection_id=connection.id,
             user_id=user.id,
@@ -272,7 +273,7 @@ class TestRevelationAPI:
         self, client, authenticated_user, soul_connection_data
     ):
         """Test creating revelation via API"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
 
         revelation_data = {
             "connection_id": connection.id,
@@ -301,7 +302,7 @@ class TestRevelationAPI:
         self, client, authenticated_user, soul_connection_data
     ):
         """Test getting revelation timeline via API"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
 
         response = client.get(
             f"/api/v1/revelations/timeline/{connection.id}",
@@ -392,7 +393,7 @@ class TestRevelationAPI:
         self, client, authenticated_user, soul_connection_data
     ):
         """Test content moderation for inappropriate revelations"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
 
         inappropriate_content = [
             "Here's my phone number: 555-123-4567 call me",  # Contact info sharing
@@ -435,7 +436,7 @@ class TestRevelationTiming:
     @freeze_time("2025-01-01 10:00:00")
     def test_revelation_daily_timing(self, revelation_service, soul_connection_data):
         """Test that revelations follow proper daily timing"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         user = soul_connection_data["users"][0]
 
         # Create revelation on day 1
@@ -469,7 +470,7 @@ class TestRevelationTiming:
         self, revelation_service, soul_connection_data
     ):
         """Test tracking revelation completion for both users"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         user1, user2 = soul_connection_data["users"][:2]
 
         # User 1 completes day 1
@@ -483,9 +484,9 @@ class TestRevelationTiming:
 
         # Check completion status
         completion_status = revelation_service.get_completion_status(connection.id)
-        assert completion_status["day_1"]["user1_completed"] == True
-        assert completion_status["day_1"]["user2_completed"] == False
-        assert completion_status["day_1"]["both_completed"] == False
+        assert completion_status["day_1"]["user1_completed"]
+        assert completion_status["day_1"]["user2_completed"] is False
+        assert completion_status["day_1"]["both_completed"] is False
 
         # User 2 completes day 1
         revelation_service.create_revelation(
@@ -498,7 +499,7 @@ class TestRevelationTiming:
 
         # Now both should be completed
         completion_status = revelation_service.get_completion_status(connection.id)
-        assert completion_status["day_1"]["both_completed"] == True
+        assert completion_status["day_1"]["both_completed"]
 
     @pytest.mark.unit
     @pytest.mark.revelations
@@ -506,7 +507,7 @@ class TestRevelationTiming:
         self, revelation_service, soul_connection_data
     ):
         """Test detection of complete 7-day revelation cycle"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         user = soul_connection_data["users"][0]
 
         # Complete all 7 days
@@ -531,11 +532,11 @@ class TestRevelationTiming:
 
         # Check if cycle is complete
         is_complete = revelation_service.is_cycle_complete(connection.id, user.id)
-        assert is_complete == True
+        assert is_complete
 
         # Should be eligible for photo reveal
         can_reveal = revelation_service.can_photo_reveal(connection.id, user.id)
-        assert can_reveal == True
+        assert can_reveal
 
 
 class TestRevelationIntegration:
@@ -547,7 +548,7 @@ class TestRevelationIntegration:
         self, client, authenticated_user, soul_connection_data
     ):
         """Test that revelation completion affects connection stage progression"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
 
         # Initially should be in early stage
         response = client.get(
@@ -606,7 +607,7 @@ class TestRevelationIntegration:
         self, client, authenticated_user, soul_connection_data
     ):
         """Test that revelation sharing triggers appropriate notifications"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
 
         revelation_data = {
             "connection_id": connection.id,
@@ -615,7 +616,7 @@ class TestRevelationIntegration:
             "content": "A deeply personal value I hold dear",
         }
 
-        with patch("app.services.push_notification.send_notification") as mock_notify:
+        with patch("app.services.push_notification.send_notification") as _mock_notify:
             response = client.post(
                 "/api/v1/revelations/create",
                 json=revelation_data,
@@ -633,13 +634,12 @@ class TestRevelationIntegration:
         self, client, authenticated_user, performance_config
     ):
         """Test revelation timeline retrieval performance"""
-        import time
 
         # This would need a connection with many revelations for proper testing
         connection_id = 1  # Mock connection ID
 
         start_time = time.time()
-        response = client.get(
+        client.get(
             f"/api/v1/revelations/timeline/{connection_id}",
             headers=authenticated_user["headers"],
         )

@@ -1,12 +1,11 @@
 """
 Comprehensive A/B Testing Framework Validation Tests
-Tests A/B experiment management, user assignment, and result tracking for dating platform
+Tests A/B experiment management, user assignment, and result tracking for
+dating platform
 """
 
-import json
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from fastapi import status
@@ -137,7 +136,7 @@ class MockABTestingService:
             },
         }
 
-    def calculate_statistical_significance(self, control_data, treatment_data):
+    def calculate_statistical_significance_detailed(self, control_data, treatment_data):
         return {
             "p_value": 0.03,
             "confidence_level": 0.95,
@@ -299,7 +298,7 @@ class TestABTestingFramework:
         )
 
         # Create control variant
-        control_variant = ab_service.create_variant(
+        _control_variant = ab_service.create_variant(
             experiment_id=experiment.id,
             variant_name="control",
             variant_config={
@@ -311,7 +310,7 @@ class TestABTestingFramework:
         )
 
         # Create treatment variant
-        treatment_variant = ab_service.create_variant(
+        _treatment_variant = ab_service.create_variant(
             experiment_id=experiment.id,
             variant_name="enhanced_prompts",
             variant_config={
@@ -324,7 +323,7 @@ class TestABTestingFramework:
         )
 
         assert control_variant.variant_name == "control"
-        assert treatment_variant.variant_config["emotional_depth_hints"] == True
+        assert treatment_variant.variant_config["emotional_depth_hints"]
 
         # Variants should sum to 100%
         total_traffic = (
@@ -387,7 +386,7 @@ class TestABTestingFramework:
     @pytest.mark.ab_testing
     def test_experiment_traffic_allocation(self, ab_service, matching_users):
         """Test that traffic allocation is respected"""
-        users = [matching_users["user1"], matching_users["user2"]]
+        _users = [matching_users["user1"], matching_users["user2"]]
 
         # Create experiment with 0% traffic (should not assign anyone)
         zero_traffic_experiment = ab_service.create_experiment(
@@ -433,7 +432,7 @@ class TestExperimentMetricsTracking:
     @pytest.mark.ab_testing
     def test_conversion_event_tracking(self, ab_service, soul_connection_data):
         """Test tracking conversion events for experiment analysis"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         user = soul_connection_data["users"][0]
 
         # Create experiment and assign user
@@ -446,7 +445,7 @@ class TestExperimentMetricsTracking:
         )
 
         ab_service.create_variant(experiment.id, "control", {}, 0.5)
-        assignment = ab_service.assign_user_to_experiment(user.id, experiment.id)
+        _assignment = ab_service.assign_user_to_experiment(user.id, experiment.id)
 
         # Track conversion events
         ab_service.track_conversion_event(
@@ -473,7 +472,7 @@ class TestExperimentMetricsTracking:
     @pytest.mark.ab_testing
     def test_experiment_performance_analysis(self, ab_service, matching_users):
         """Test analyzing experiment performance across variants"""
-        users = [matching_users["user1"], matching_users["user2"]]
+        _users = [matching_users["user1"], matching_users["user2"]]
 
         experiment = ab_service.create_experiment(
             {
@@ -483,8 +482,8 @@ class TestExperimentMetricsTracking:
             }
         )
 
-        control_variant = ab_service.create_variant(experiment.id, "control", {}, 0.5)
-        treatment_variant = ab_service.create_variant(
+        _control_variant = ab_service.create_variant(experiment.id, "control", {}, 0.5)
+        _treatment_variant = ab_service.create_variant(
             experiment.id, "treatment", {}, 0.5
         )
 
@@ -531,7 +530,7 @@ class TestExperimentMetricsTracking:
 
         assert significance_result["p_value"] < 0.05  # Statistically significant
         assert significance_result["confidence_level"] >= 0.95
-        assert significance_result["is_significant"] == True
+        assert significance_result["is_significant"]
         assert significance_result["effect_size"] > 0
         assert significance_result["recommended_action"] in [
             "adopt_treatment",
@@ -727,12 +726,12 @@ class TestExperimentFeatureIntegration:
         self, client, authenticated_user, soul_connection_data
     ):
         """Test A/B testing integration with revelation system"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
 
         # Test revelation endpoint without patching - just verify the endpoint works
         # The actual A/B testing integration would be implemented at the service level
         response = client.get(
-            f"/api/v1/revelations/prompts/1", headers=authenticated_user["headers"]
+            "/api/v1/revelations/prompts/1", headers=authenticated_user["headers"]
         )
 
         assert response.status_code in [
@@ -744,7 +743,7 @@ class TestExperimentFeatureIntegration:
     @pytest.mark.ab_testing
     def test_photo_reveal_timing_experiment(self, ab_service, soul_connection_data):
         """Test A/B experiment affecting photo reveal timing"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         user = soul_connection_data["users"][0]
 
         # Create photo reveal timing experiment
@@ -756,11 +755,11 @@ class TestExperimentFeatureIntegration:
             }
         )
 
-        control_variant = ab_service.create_variant(
+        _control_variant = ab_service.create_variant(
             experiment.id, "control", {"reveal_day_requirement": 7}, 0.5
         )
 
-        treatment_variant = ab_service.create_variant(
+        _treatment_variant = ab_service.create_variant(
             experiment.id,
             "flexible_timing",
             {"reveal_day_requirement": 5, "user_choice": True},
@@ -774,7 +773,7 @@ class TestExperimentFeatureIntegration:
             assert assignment.variant_config["reveal_day_requirement"] == 7
         else:
             assert assignment.variant_config["reveal_day_requirement"] == 5
-            assert assignment.variant_config["user_choice"] == True
+            assert assignment.variant_config["user_choice"]
 
 
 class TestExperimentSafety:
@@ -868,7 +867,7 @@ class TestExperimentSafety:
             experiment.id, poor_performance
         )
 
-        assert safety_check["should_stop"] == True
+        assert safety_check["should_stop"]
         assert len(safety_check["violations"]) >= 3
         assert "min_conversion_rate" in safety_check["violations"]
 
@@ -919,7 +918,7 @@ class TestExperimentReporting:
                 report["variants"]["treatment"]["conversion_rate"]
                 > report["variants"]["control"]["conversion_rate"]
             )
-            assert report["statistical_significance"]["is_significant"] == True
+            assert report["statistical_significance"]["is_significant"]
             assert report["recommendations"]["winner"] == "treatment"
 
     @pytest.mark.performance
@@ -934,7 +933,7 @@ class TestExperimentReporting:
         for i in range(100):
             # Mock user assignment call
             user_id = i + 1
-            experiment_assignments = ab_service.get_user_experiment_assignments(user_id)
+            _experiment_assignments = ab_service.get_user_experiment_assignments(user_id)
 
         total_time = time.time() - start_time
 

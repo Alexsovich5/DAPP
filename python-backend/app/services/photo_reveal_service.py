@@ -202,7 +202,7 @@ class PhotoRevealService:
             # If setting as primary, unset other primary photos
             if is_primary:
                 db.query(UserPhoto).filter(
-                    UserPhoto.user_id == user_id, UserPhoto.is_profile_primary is True
+                    UserPhoto.user_id == user_id, UserPhoto.is_profile_primary
                 ).update({"is_profile_primary": False})
 
             db.add(photo)
@@ -355,7 +355,7 @@ class PhotoRevealService:
                 db.query(UserPhoto)
                 .filter(
                     UserPhoto.user_id == partner_id,
-                    UserPhoto.is_profile_primary is True,
+                    UserPhoto.is_profile_primary,
                 )
                 .first()
             )
@@ -612,7 +612,7 @@ class PhotoRevealService:
                 .filter(
                     PhotoRevealPermission.photo_id == photo.id,
                     PhotoRevealPermission.viewer_id == viewer_id,
-                    PhotoRevealPermission.is_active is True,
+                    PhotoRevealPermission.is_active,
                 )
                 .first()
             )
@@ -659,7 +659,7 @@ class PhotoRevealService:
             eligible_timelines = (
                 db.query(PhotoRevealTimeline)
                 .filter(
-                    PhotoRevealTimeline.auto_reveal_enabled is True,
+                    PhotoRevealTimeline.auto_reveal_enabled,
                     PhotoRevealTimeline.photos_revealed is False,
                     PhotoRevealTimeline.current_stage != PhotoRevealStage.DECLINED,
                 )
@@ -680,7 +680,7 @@ class PhotoRevealService:
                         db.query(UserPhoto)
                         .filter(
                             UserPhoto.user_id == connection.user1_id,
-                            UserPhoto.is_profile_primary is True,
+                            UserPhoto.is_profile_primary,
                         )
                         .first()
                     )
@@ -689,7 +689,7 @@ class PhotoRevealService:
                         db.query(UserPhoto)
                         .filter(
                             UserPhoto.user_id == connection.user2_id,
-                            UserPhoto.is_profile_primary is True,
+                            UserPhoto.is_profile_primary,
                         )
                         .first()
                     )
@@ -912,7 +912,7 @@ class PhotoRevealService:
                 db.query(UserPhoto)
                 .filter(
                     UserPhoto.user_id == connection.user1_id,
-                    UserPhoto.is_profile_primary is True,
+                    UserPhoto.is_profile_primary,
                 )
                 .first()
             )
@@ -922,7 +922,7 @@ class PhotoRevealService:
                 db.query(UserPhoto)
                 .filter(
                     UserPhoto.user_id == connection.user2_id,
-                    UserPhoto.is_profile_primary is True,
+                    UserPhoto.is_profile_primary,
                 )
                 .first()
             )

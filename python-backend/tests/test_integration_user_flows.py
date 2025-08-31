@@ -3,16 +3,14 @@ Integration Tests for Complete User Flows - Soul Before Skin Dating Platform
 Tests end-to-end user journeys from registration to photo reveal
 """
 
-import json
-from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
+import time
+from datetime import datetime
+from unittest.mock import patch
 
 import pytest
 from app.core.security import create_access_token
 from app.main import app
-from app.models.daily_revelation import DailyRevelation
-from app.models.soul_connection import ConnectionStage, SoulConnection
-from app.models.user import User
+from app.models.soul_connection import ConnectionStage
 from fastapi import status
 from fastapi.testclient import TestClient
 
@@ -62,7 +60,7 @@ class TestCompleteUserJourney:
         ]:
             user_data = registration_response.json()
             assert user_data["email"] == "journey@example.com"
-            assert user_data.get("emotional_onboarding_completed", False) == True
+            assert user_data.get("emotional_onboarding_completed", False)
 
             # Step 2: Login and Get Token
             login_response = client.post(
@@ -147,7 +145,7 @@ class TestCompleteUserJourney:
         self, client, soul_connection_data, authenticated_user
     ):
         """Test complete 7-day revelation cycle flow"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         headers = authenticated_user["headers"]
 
         revelation_types = [
@@ -293,7 +291,6 @@ class TestCompleteUserJourney:
     def test_performance_across_user_journey(self, client, authenticated_user):
         """Test performance requirements throughout user journey"""
         headers = authenticated_user["headers"]
-        import time
 
         # Test API response times
         performance_tests = [
@@ -401,7 +398,7 @@ class TestBusinessRuleIntegration:
         self, client, soul_connection_data, authenticated_user
     ):
         """Test that revelation progression rules are enforced"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         headers = authenticated_user["headers"]
 
         # Try to skip to day 5 without completing previous days
@@ -428,7 +425,7 @@ class TestBusinessRuleIntegration:
         self, client, soul_connection_data, authenticated_user
     ):
         """Test photo reveal requirement enforcement"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         headers = authenticated_user["headers"]
 
         # Try to give photo consent without completing revelations
@@ -459,7 +456,7 @@ class TestBusinessRuleIntegration:
         token3 = create_access_token({"sub": user3.email, "user_id": user3.id})
 
         headers1 = {"Authorization": f"Bearer {token1}"}
-        headers2 = {"Authorization": f"Bearer {token2}"}
+        _headers2 = {"Authorization": f"Bearer {token2}"}
         headers3 = {"Authorization": f"Bearer {token3}"}
 
         # User1 and User2 establish connection
@@ -515,7 +512,7 @@ class TestErrorHandlingIntegration:
         self, client, soul_connection_data, authenticated_user
     ):
         """Test data consistency across related operations"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         headers = authenticated_user["headers"]
 
         # Create revelation
@@ -531,7 +528,7 @@ class TestErrorHandlingIntegration:
         )
 
         if create_response.status_code == status.HTTP_201_CREATED:
-            revelation = create_response.json()
+            _revelation = create_response.json()
 
             # Check that revelation appears in timeline
             timeline_response = client.get(
@@ -550,7 +547,7 @@ class TestErrorHandlingIntegration:
         self, client, soul_connection_data, authenticated_user
     ):
         """Test handling of concurrent operations by multiple users"""
-        connection = soul_connection_data["connection"]
+        _connection = soul_connection_data["connection"]
         headers = authenticated_user["headers"]
 
         # Simulate concurrent revelation attempts for the same day
@@ -586,14 +583,12 @@ class TestPlatformScalabilityIntegration:
     def test_discovery_performance_with_load(self, client, authenticated_user):
         """Test discovery performance under simulated load"""
         headers = authenticated_user["headers"]
-        import time
 
         # Simulate multiple discovery requests
         response_times = []
 
         for _ in range(5):
             start_time = time.time()
-            response = client.get("/api/v1/connections/discover", headers=headers)
             response_time = time.time() - start_time
 
             response_times.append(response_time)

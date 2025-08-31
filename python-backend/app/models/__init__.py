@@ -2,13 +2,13 @@
 # A/B Testing models
 from app.models.ab_testing import (
     Experiment,
-    ExperimentVariant,
-    UserAssignment,
     ExperimentEvent,
     ExperimentResults,
     ExperimentStatus,
-    VariantType,
+    ExperimentVariant,
     MetricType,
+    UserAssignment,
+    VariantType,
 )
 
 # Personalization models (before user model to avoid circular imports)
@@ -69,7 +69,6 @@ from app.models.soul_analytics import (
     UserRetentionMetrics,
 )
 from app.models.soul_connection import (
-    ConnectionEnergyLevel,
     ConnectionStage,
     SoulConnection,
 )

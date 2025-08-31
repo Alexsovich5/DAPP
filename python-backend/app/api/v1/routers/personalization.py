@@ -10,11 +10,8 @@ from app.core.auth import get_current_user
 from app.core.database import get_db
 from app.models.personalization_models import (
     AlgorithmOptimization,
-    ContentFeedback,
-    ContentType,
     ConversationFlowAnalytics,
     PersonalizedContent,
-    UserPersonalizationProfile,
 )
 from app.models.user import User
 from app.schemas.personalization_schemas import (
@@ -417,9 +414,7 @@ async def get_optimization_history(
 ):
     """Get algorithm optimization history for analytics"""
     try:
-        query = db.query(AlgorithmOptimization).filter(
-            AlgorithmOptimization.is_active is True
-        )
+        query = db.query(AlgorithmOptimization).filter(AlgorithmOptimization.is_active)
 
         if optimization_type:
             query = query.filter(

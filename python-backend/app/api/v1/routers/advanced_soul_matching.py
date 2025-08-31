@@ -714,7 +714,7 @@ async def get_enhanced_discovery_matches(
             .filter(
                 User.id != current_user.id,
                 ~User.id.in_(connected_user_ids),
-                User.emotional_onboarding_completed is True,
+                User.emotional_onboarding_completed,
             )
             .limit(limit * 2)
             .all()

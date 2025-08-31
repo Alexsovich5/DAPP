@@ -7,20 +7,19 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
+from app.core.database import Base
 from sqlalchemy import (
+    JSON,
+    Boolean,
     Column,
+    DateTime,
+    Float,
+    ForeignKey,
     Integer,
     String,
-    Boolean,
-    Float,
-    DateTime,
-    JSON,
     Text,
-    ForeignKey,
 )
 from sqlalchemy.orm import relationship
-
-from app.core.database import Base
 
 
 class ExperimentStatus(Enum):
@@ -83,9 +82,7 @@ class Experiment(Base):
     # Metadata
     created_by = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
-    )
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     variants = relationship(
@@ -120,9 +117,7 @@ class ExperimentVariant(Base):
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
-    )
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     experiment = relationship("Experiment", back_populates="variants")
@@ -235,9 +230,7 @@ class ExperimentResults(Base):
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
-    )
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     experiment = relationship("Experiment")

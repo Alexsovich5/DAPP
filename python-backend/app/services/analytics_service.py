@@ -217,7 +217,7 @@ class AnalyticsService:
                 db.query(User)
                 .filter(
                     User.created_at >= cutoff_date,
-                    User.emotional_onboarding_completed is True,
+                    User.emotional_onboarding_completed,
                 )
                 .count()
             )
@@ -225,9 +225,7 @@ class AnalyticsService:
             # Profile completion
             profile_complete_users = (
                 db.query(User)
-                .filter(
-                    User.created_at >= cutoff_date, User.is_profile_complete is True
-                )
+                .filter(User.created_at >= cutoff_date, User.is_profile_complete)
                 .count()
             )
 
@@ -893,9 +891,7 @@ class AnalyticsService:
             "trend": (
                 "increasing"
                 if weeks_data[0] > weeks_data[-1]
-                else "decreasing"
-                if weeks_data[0] < weeks_data[-1]
-                else "stable"
+                else "decreasing" if weeks_data[0] < weeks_data[-1] else "stable"
             ),
         }
 
@@ -922,15 +918,15 @@ class AnalyticsService:
     ) -> Optional[Dict[str, Any]]:
         """Get A/B test results and statistical analysis"""
         try:
+            import numpy as np
+            import scipy.stats as stats
             from app.models.ab_testing import (
                 Experiment,
-                ExperimentVariant,
                 ExperimentEvent,
+                ExperimentVariant,
                 UserAssignment,
             )
             from sqlalchemy import func
-            import scipy.stats as stats
-            import numpy as np
 
             # Get experiment
             experiment = (
@@ -1074,13 +1070,14 @@ class AnalyticsService:
     ) -> bool:
         """Track A/B test event and metrics"""
         try:
+            import uuid
+
             from app.models.ab_testing import (
                 Experiment,
-                ExperimentVariant,
                 ExperimentEvent,
+                ExperimentVariant,
                 UserAssignment,
             )
-            import uuid
 
             # Get experiment and variant
             experiment = (

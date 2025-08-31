@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 
 from app.api.v1.deps import get_current_user
 from app.core.database import get_db
-from app.models.user import User, UserEmotionalState
+from app.models.user import User
 from app.services.message_service import message_service
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
@@ -346,7 +346,7 @@ async def search_messages(
     try:
         from app.models.message import Message
         from app.models.soul_connection import SoulConnection
-        from sqlalchemy import and_, or_
+        from sqlalchemy import or_
 
         # Get user's accessible connections
         user_connections = (
@@ -418,7 +418,6 @@ async def search_messages(
                     "content": message.content,
                     "emotional_state": message.emotional_state,
                     "created_at": message.created_at.isoformat(),
-                    "match_context": self._get_match_context(message.content, query),
                 }
             )
 
