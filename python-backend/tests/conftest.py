@@ -72,7 +72,7 @@ db_module.get_db = patched_get_db
 # Now import app components - they will use our patched database
 from app.core.database import Base  # noqa: E402
 from app.core.security import create_access_token  # noqa: E402
-from app.core.security import get_password_hash
+from app.core.security import get_password_hash  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models.match import Match, MatchStatus  # noqa: E402
 from app.models.profile import Profile  # noqa: E402
@@ -80,7 +80,7 @@ from app.models.user import User  # noqa: E402
 
 # Import test factories
 from tests.factories import DailyRevelationFactory  # noqa: E402
-from tests.factories import (
+from tests.factories import (  # noqa: E402
     MessageFactory,
     PhotoRevealFactory,
     ProfileFactory,
@@ -467,6 +467,24 @@ def photo_reveal_service(db_session):
     service = PhotoRevealService()
     service.db = db_session  # Inject the test database session
     return service
+
+
+@pytest.fixture
+def realtime_service(db_session):
+    """Real-time service instance for testing WebSocket functionality"""
+    from app.services.realtime import ConnectionManager
+
+    service = ConnectionManager(db_session)
+    return service
+
+
+@pytest.fixture
+def connection_manager(db_session):
+    """Connection manager instance for testing (alias for realtime_service)"""
+    from app.services.realtime_connection_manager import RealtimeConnectionManager
+
+    manager = RealtimeConnectionManager()
+    return manager
 
 
 @pytest.fixture
