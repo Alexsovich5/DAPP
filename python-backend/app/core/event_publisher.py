@@ -260,9 +260,12 @@ class EventPublisher:
             message_headers = {
                 "content_type": "application/json",
                 "delivery_mode": 2,  # Persistent
-                "priority": priority,
-                **headers if headers else {}
+                "priority": priority
             }
+            
+            # Add custom headers if provided
+            if headers:
+                message_headers.update(headers)
 
             if expiration:
                 message_headers["expiration"] = str(expiration)
