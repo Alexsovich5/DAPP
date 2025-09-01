@@ -1,0 +1,304 @@
+# Sentiment Analysis Service Production Deployment
+# Multi-modal sentiment analysis with BERT and behavioral analysis
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentiment-service
+  namespace: dinner-first-prod
+  labels:
+    app: sentiment-service
+    version: v1.0.0
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: sentiment-service
+      version: v1.0.0
+  template:
+    metadata:
+      labels:
+        app: sentiment-service
+        version: v1.0.0
+        service: sentiment
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - sentiment-service
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: sentiment-service
+        image: dinner-first/sentiment-service:v1.0.0
+        ports:
+        - containerPort: 8000
+          name: http
+        - containerPort: 8080
+          name: metrics
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: sentiment-db-secret
+              key: connection-string
+        - name: REDIS_CLUSTER_ENDPOINTS
+          value: "redis-cluster.dinner-first-redis.svc.cluster.local:6379"
+        - name: RABBITMQ_URL
+          valueFrom:
+            secretKeyRef:
+              name: messaging-secrets
+              key: rabbitmq-url
+        - name: ML_MODEL_REGISTRY_URL
+          value: "http://ml-model-registry.dinner-first-prod.svc.cluster.local:8080"
+        - name: HUGGINGFACE_CACHE_DIR
+          value: "/app/models/huggingface"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: PROMETHEUS_ENABLED
+          value: "true"
+        - name: JAEGER_AGENT_HOST
+          value: "jaeger-agent.dinner-first-monitoring.svc.cluster.local"
+        - name: CUDA_VISIBLE_DEVICES
+          value: ""  # CPU-only for now
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "3Gi"
+            cpu: "1500m"
+            # nvidia.com/gpu: 1  # Uncomment if GPU available
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 10
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 15
+          failureThreshold: 3
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+        - name: model-cache
+          mountPath: /app/models
+        - name: logs-volume
+          mountPath: /app/logs
+      initContainers:
+      - name: model-downloader
+        image: dinner-first/model-downloader:latest
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Downloading BERT models..."
+          python /scripts/download_models.py --model bert-base-uncased --cache-dir /app/models/huggingface
+          python /scripts/download_models.py --model cardiffnlp/twitter-roberta-base-sentiment-latest --cache-dir /app/models/huggingface
+          echo "Models downloaded successfully"
+        volumeMounts:
+        - name: model-cache
+          mountPath: /app/models
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: config-volume
+        configMap:
+          name: sentiment-service-config
+      - name: model-cache
+        emptyDir:
+          sizeLimit: 8Gi
+      - name: logs-volume
+        emptyDir: {}
+      serviceAccountName: sentiment-service-account
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentiment-service
+  namespace: dinner-first-prod
+  labels:
+    app: sentiment-service
+spec:
+  selector:
+    app: sentiment-service
+  ports:
+  - port: 8000
+    targetPort: 8000
+    name: http
+  - port: 8080
+    targetPort: 8080
+    name: metrics
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sentiment-service-config
+  namespace: dinner-first-prod
+data:
+  app.yaml: |
+    server:
+      port: 8000
+      host: "0.0.0.0"
+      workers: 2
+
+    redis:
+      cluster_endpoints:
+        - "redis-cluster.dinner-first-redis.svc.cluster.local:6379"
+      sentiment_db: 4
+      cache_ttl: 3600
+      max_connections: 30
+
+    database:
+      pool_size: 20
+      max_overflow: 30
+      pool_timeout: 30
+      pool_recycle: 3600
+
+    ml_models:
+      text_model: "cardiffnlp/twitter-roberta-base-sentiment-latest"
+      emotion_model: "j-hartmann/emotion-english-distilroberta-base"
+      behavioral_model: "behavioral_v1.0.0"
+      model_cache_size: 3
+      inference_timeout: 10
+      batch_size: 32
+
+    sentiment_analysis:
+      confidence_threshold: 0.7
+      enable_text_analysis: true
+      enable_behavioral_analysis: true
+      enable_temporal_analysis: true
+      enable_contextual_analysis: true
+
+      text_preprocessing:
+        max_length: 512
+        truncation: true
+        padding: true
+
+      behavioral_features:
+        - response_time
+        - typing_patterns
+        - emoji_usage
+        - punctuation_patterns
+        - message_length_variance
+
+      temporal_features:
+        - time_of_day
+        - day_of_week
+        - response_frequency
+        - conversation_duration
+
+      contextual_features:
+        - conversation_stage
+        - previous_sentiment
+        - user_relationship_history
+        - platform_context
+
+    performance:
+      request_timeout: 25
+      circuit_breaker:
+        failure_threshold: 3
+        recovery_timeout: 30
+        request_volume_threshold: 10
+      batch_processing:
+        enabled: true
+        max_batch_size: 50
+        batch_timeout: 5
+
+    monitoring:
+      prometheus_enabled: true
+      jaeger_enabled: true
+      log_level: "INFO"
+      custom_metrics_enabled: true
+      sentiment_accuracy_tracking: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sentiment-db-secret
+  namespace: dinner-first-prod
+type: Opaque
+data:
+  connection-string: cG9zdGdyZXNxbDovL3VzZXI6cGFzc0BzZW50aW1lbnQtZGIuZGlubmVyLWZpcnN0LXByb2Quc3ZjLmNsdXN0ZXIubG9jYWw6NTQzMi9zZW50aW1lbnRfZGI=  # Base64 encoded
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sentiment-service-account
+  namespace: dinner-first-prod
+  labels:
+    app: sentiment-service
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: sentiment-service-hpa
+  namespace: dinner-first-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: sentiment-service
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: sentiment_analysis_queue_length
+      target:
+        type: AverageValue
+        averageValue: "20"
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 90
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 30
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 90

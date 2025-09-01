@@ -1,0 +1,511 @@
+# Prometheus Configuration for Sprint 8 - Advanced Microservices Architecture
+# Comprehensive monitoring for Dinner First platform with enhanced metrics collection
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'dinner-first-prod'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - "alertmanager:9093"
+
+# Load recording rules and alerting rules
+rule_files:
+  - "alert_rules.yml"
+  - "recording_rules.yml"
+
+# Scrape configuration
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+
+  # Kong API Gateway
+  - job_name: 'kong-gateway'
+    static_configs:
+      - targets: ['kong-gateway:8000']
+    metrics_path: /metrics
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: kong-gateway:8000
+
+  # Microservices discovery via Consul
+  - job_name: 'microservices'
+    consul_sd_configs:
+      - server: 'consul:8500'
+        services: []
+    relabel_configs:
+      - source_labels: [__meta_consul_service]
+        target_label: service
+      - source_labels: [__meta_consul_node]
+        target_label: node
+      - source_labels: [__meta_consul_tags]
+        target_label: tags
+        regex: '(.*)service_type:([^,]+)(.*)'
+        replacement: '${2}'
+      - source_labels: [__meta_consul_service_port]
+        target_label: __address__
+        regex: '(.+)'
+        replacement: '${1}'
+
+  # Auth Service
+  - job_name: 'auth-service'
+    static_configs:
+      - targets: ['auth-service:8000']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'auth_.*'
+        target_label: service_type
+        replacement: 'authentication'
+
+  # AI Matching Service
+  - job_name: 'matching-service'
+    static_configs:
+      - targets: ['matching-service:8000']
+    metrics_path: /metrics
+    scrape_interval: 20s  # Longer interval for AI service
+    scrape_timeout: 15s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'ml_.*|matching_.*'
+        target_label: service_type
+        replacement: 'ai_matching'
+
+  # Sentiment Analysis Service
+  - job_name: 'sentiment-service'
+    static_configs:
+      - targets: ['sentiment-service:8000']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'sentiment_.*|emotion_.*'
+        target_label: service_type
+        replacement: 'sentiment_analysis'
+
+  # Messaging Service
+  - job_name: 'messaging-service'
+    static_configs:
+      - targets: ['messaging-service:8000']
+    metrics_path: /metrics
+    scrape_interval: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'message_.*|websocket_.*'
+        target_label: service_type
+        replacement: 'messaging'
+
+  # Profile Service
+  - job_name: 'profile-service'
+    static_configs:
+      - targets: ['profile-service:8000']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'profile_.*|user_.*'
+        target_label: service_type
+        replacement: 'user_profile'
+
+  # Redis Cluster
+  - job_name: 'redis-cluster'
+    static_configs:
+      - targets:
+        - 'redis-node-1:6379'
+        - 'redis-node-2:6380'
+        - 'redis-node-3:6381'
+        - 'redis-node-4:6382'
+        - 'redis-node-5:6383'
+        - 'redis-node-6:6384'
+    metrics_path: /metrics
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: redis_instance
+
+  # Redis Exporter
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'redis-cluster'
+
+  # RabbitMQ
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['rabbitmq:15692']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  # PostgreSQL databases
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets:
+        - 'postgres-exporter-auth:9187'
+        - 'postgres-exporter-matching:9187'
+        - 'postgres-exporter-messaging:9187'
+        - 'postgres-exporter-profiles:9187'
+    scrape_interval: 60s
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: 'postgres-exporter-(.+):9187'
+        target_label: database
+        replacement: '${1}'
+
+  # Node Exporter (system metrics)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets:
+        - 'node-exporter:9100'
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: node
+        replacement: 'dinner-first-node'
+
+  # cAdvisor (container metrics)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'container-metrics'
+
+  # Istio Service Mesh
+  - job_name: 'istio-mesh'
+    kubernetes_sd_configs:
+      - role: endpoints
+        namespaces:
+          names:
+          - dinner-first-prod
+          - istio-system
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: istio-proxy;http-monitoring
+      - source_labels: [__address__, __meta_kubernetes_endpoint_port_number]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: ${1}:15090
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_service_name]
+        action: replace
+        target_label: service_name
+
+  # Custom Application Metrics
+  - job_name: 'dinner-first-custom'
+    static_configs:
+      - targets: ['metrics-aggregator:8080']
+    metrics_path: /custom-metrics
+    scrape_interval: 30s
+    honor_labels: true
+
+  # Jaeger (distributed tracing)
+  - job_name: 'jaeger'
+    static_configs:
+      - targets: ['jaeger:14269']
+    metrics_path: /metrics
+    scrape_interval: 60s
+
+  # Blackbox exporter (endpoint monitoring)
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - https://api.dinner-first.app/health
+        - https://dinner-first.app
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  # Federation from other Prometheus instances
+  - job_name: 'federate'
+    scrape_interval: 60s
+    honor_labels: true
+    metrics_path: '/federate'
+    params:
+      'match[]':
+        - '{service="dinner-first"}'
+        - '{__name__=~"job:.*"}'
+        - '{__name__=~"dinner_first:.*"}'
+    static_configs:
+      - targets:
+        - 'prometheus-staging:9090'
+        - 'prometheus-dev:9090'
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: 'prometheus-(.+):9090'
+        target_label: environment
+        replacement: '${1}'
+
+# Storage configuration
+storage:
+  tsdb:
+    path: /prometheus
+    retention.time: 30d
+    retention.size: 50GB
+    wal-compression: true
+
+# Remote write for long-term storage
+remote_write:
+  - url: "http://thanos-receive:19291/api/v1/receive"
+    queue_config:
+      max_shards: 200
+      max_samples_per_send: 1000
+      batch_send_deadline: 5s
+      min_backoff: 30ms
+      max_backoff: 100ms
+    write_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'dinner_first_.*|kong_.*|redis_.*|ml_.*|sentiment_.*'
+        action: keep
+
+# Recording rules for performance
+recording_rules:
+  - name: dinner_first.rules
+    interval: 30s
+    rules:
+      # Request rate calculations
+      - record: dinner_first:request_rate:rate5m
+        expr: rate(http_requests_total[5m])
+        labels:
+          aggregation: "rate5m"
+
+      - record: dinner_first:request_duration:p95:rate5m
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+        labels:
+          quantile: "95"
+
+      - record: dinner_first:request_duration:p99:rate5m
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))
+        labels:
+          quantile: "99"
+
+      # Error rate calculations
+      - record: dinner_first:error_rate:rate5m
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m])
+        labels:
+          aggregation: "error_rate"
+
+      # Cache metrics
+      - record: dinner_first:cache_hit_ratio:rate5m
+        expr: rate(cache_requests_total{status="hit"}[5m]) / rate(cache_requests_total[5m])
+        labels:
+          aggregation: "cache_performance"
+
+      # AI/ML metrics
+      - record: dinner_first:ml_prediction_rate:rate5m
+        expr: rate(ml_model_predictions_total[5m])
+        labels:
+          aggregation: "ml_performance"
+
+      - record: dinner_first:sentiment_analysis_accuracy:avg5m
+        expr: avg_over_time(sentiment_analysis_accuracy[5m])
+        labels:
+          aggregation: "sentiment_performance"
+
+      # Business metrics
+      - record: dinner_first:user_registration_rate:rate1h
+        expr: rate(user_registration_total[1h])
+        labels:
+          aggregation: "business_metrics"
+
+      - record: dinner_first:match_success_rate:rate1h
+        expr: rate(matching_successful_total[1h]) / rate(matching_attempts_total[1h])
+        labels:
+          aggregation: "business_metrics"
+
+      - record: dinner_first:message_delivery_rate:rate5m
+        expr: rate(message_sent_total{status="delivered"}[5m]) / rate(message_sent_total[5m])
+        labels:
+          aggregation: "messaging_performance"
+
+      # System resource utilization
+      - record: dinner_first:cpu_utilization:avg5m
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+        labels:
+          aggregation: "system_resources"
+
+      - record: dinner_first:memory_utilization:avg5m
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+        labels:
+          aggregation: "system_resources"
+
+      - record: dinner_first:disk_utilization:avg5m
+        expr: 100 - ((node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes)
+        labels:
+          aggregation: "system_resources"
+
+      # Redis cluster health
+      - record: dinner_first:redis_cluster_health:current
+        expr: min(up{job="redis-cluster"})
+        labels:
+          aggregation: "infrastructure_health"
+
+      # Database connection health
+      - record: dinner_first:database_health:current
+        expr: min(up{job="postgres-exporter"})
+        labels:
+          aggregation: "infrastructure_health"
+
+      # Service mesh metrics
+      - record: dinner_first:istio_success_rate:rate5m
+        expr: rate(istio_requests_total{response_code!~"5.."}[5m]) / rate(istio_requests_total[5m])
+        labels:
+          aggregation: "service_mesh"
+
+      - record: dinner_first:istio_p99_latency:rate5m
+        expr: histogram_quantile(0.99, rate(istio_request_duration_milliseconds_bucket[5m]))
+        labels:
+          aggregation: "service_mesh"
+
+# Alerting rules
+alerting_rules:
+  groups:
+  - name: dinner_first_alerts
+    rules:
+    # High-priority production alerts
+    - alert: ServiceDown
+      expr: up == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Service {{ $labels.job }} is down"
+        description: "Service {{ $labels.job }} has been down for more than 1 minute."
+
+    - alert: HighErrorRate
+      expr: dinner_first:error_rate:rate5m > 0.05
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High error rate detected"
+        description: "Error rate is {{ $value | humanizePercentage }} for service {{ $labels.service }}"
+
+    - alert: HighLatency
+      expr: dinner_first:request_duration:p99:rate5m > 1.0
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High latency detected"
+        description: "99th percentile latency is {{ $value }}s for service {{ $labels.service }}"
+
+    - alert: CacheHitRatioLow
+      expr: dinner_first:cache_hit_ratio:rate5m < 0.7
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Low cache hit ratio"
+        description: "Cache hit ratio is {{ $value | humanizePercentage }} for {{ $labels.cache_level }}"
+
+    - alert: MLModelAccuracyDrop
+      expr: sentiment_analysis_accuracy < 0.8
+      for: 15m
+      labels:
+        severity: warning
+      annotations:
+        summary: "ML model accuracy dropped"
+        description: "Sentiment analysis accuracy is {{ $value | humanizePercentage }}"
+
+    - alert: DatabaseConnectionsHigh
+      expr: pg_stat_activity_count > 80
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High database connections"
+        description: "Database {{ $labels.database }} has {{ $value }} active connections"
+
+    - alert: RedisMemoryHigh
+      expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+      for: 10m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Redis memory usage high"
+        description: "Redis instance {{ $labels.instance }} memory usage is {{ $value | humanizePercentage }}"
+
+    - alert: DiskSpaceRunningOut
+      expr: dinner_first:disk_utilization:avg5m > 85
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Disk space running out"
+        description: "Disk usage is {{ $value }}% on {{ $labels.instance }}"
+
+    - alert: HighCPUUsage
+      expr: dinner_first:cpu_utilization:avg5m > 80
+      for: 15m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High CPU usage"
+        description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+
+    - alert: UserRegistrationRateAnomaly
+      expr: abs(dinner_first:user_registration_rate:rate1h - dinner_first:user_registration_rate:rate1h offset 1d) > dinner_first:user_registration_rate:rate1h * 0.5
+      for: 30m
+      labels:
+        severity: info
+      annotations:
+        summary: "User registration rate anomaly"
+        description: "User registration rate has changed significantly compared to yesterday"
+
+    - alert: MatchingServiceUnhealthy
+      expr: ml_model_predictions_total == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Matching service not processing predictions"
+        description: "AI matching service has not processed any predictions in the last 5 minutes"
+
+# Web configuration
+web:
+  console:
+    libraries:
+      - /etc/prometheus/console_libraries
+    templates:
+      - /etc/prometheus/consoles
+  enable-lifecycle: true
+  enable-admin-api: true
+  page-title: "Dinner First - Production Monitoring"
+  cors:
+    origin: ".*"

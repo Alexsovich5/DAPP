@@ -1,0 +1,309 @@
+# Profile Service Production Deployment
+# User profile management with emotional profile features
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: profile-service
+  namespace: dinner-first-prod
+  labels:
+    app: profile-service
+    version: v1.0.0
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: profile-service
+      version: v1.0.0
+  template:
+    metadata:
+      labels:
+        app: profile-service
+        version: v1.0.0
+        service: profile
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - profile-service
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: profile-service
+        image: dinner-first/profile-service:v1.0.0
+        ports:
+        - containerPort: 8000
+          name: http
+        - containerPort: 8080
+          name: metrics
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: profile-db-secret
+              key: connection-string
+        - name: REDIS_CLUSTER_ENDPOINTS
+          value: "redis-cluster.dinner-first-redis.svc.cluster.local:6379"
+        - name: RABBITMQ_URL
+          valueFrom:
+            secretKeyRef:
+              name: messaging-secrets
+              key: rabbitmq-url
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: PROMETHEUS_ENABLED
+          value: "true"
+        - name: JAEGER_AGENT_HOST
+          value: "jaeger-agent.dinner-first-monitoring.svc.cluster.local"
+        - name: FILE_UPLOAD_SERVICE_URL
+          value: "http://file-upload-service.dinner-first-prod.svc.cluster.local:8000"
+        - name: IMAGE_PROCESSING_SERVICE_URL
+          value: "http://image-processing-service.dinner-first-prod.svc.cluster.local:8000"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+        - name: logs-volume
+          mountPath: /app/logs
+      volumes:
+      - name: config-volume
+        configMap:
+          name: profile-service-config
+      - name: logs-volume
+        emptyDir: {}
+      serviceAccountName: profile-service-account
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: profile-service
+  namespace: dinner-first-prod
+  labels:
+    app: profile-service
+spec:
+  selector:
+    app: profile-service
+  ports:
+  - port: 8000
+    targetPort: 8000
+    name: http
+  - port: 8080
+    targetPort: 8080
+    name: metrics
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: profile-service-config
+  namespace: dinner-first-prod
+data:
+  app.yaml: |
+    server:
+      port: 8000
+      host: "0.0.0.0"
+      workers: 3
+
+    redis:
+      cluster_endpoints:
+        - "redis-cluster.dinner-first-redis.svc.cluster.local:6379"
+      profiles_db: 1
+      cache_ttl: 3600
+      max_connections: 50
+
+    database:
+      pool_size: 20
+      max_overflow: 30
+      pool_timeout: 30
+      pool_recycle: 3600
+
+    profile_features:
+      emotional_profiling_enabled: true
+      soul_before_skin_mode: true
+      progressive_revelation_enabled: true
+      compatibility_scoring_enabled: true
+
+      profile_fields:
+        basic_info:
+          - first_name
+          - age
+          - location
+          - gender
+        emotional_profile:
+          - life_philosophy
+          - core_values
+          - personality_traits
+          - communication_style
+          - interests
+          - relationship_goals
+        progressive_fields:
+          - photos  # Only revealed after connection
+          - detailed_background
+          - lifestyle_preferences
+          - future_plans
+
+      validation_rules:
+        min_age: 18
+        max_age: 80
+        required_fields:
+          - first_name
+          - age
+          - emotional_profile
+        max_interests: 20
+        max_bio_length: 2000
+
+    file_handling:
+      max_file_size_mb: 10
+      allowed_image_types:
+        - jpg
+        - jpeg
+        - png
+        - webp
+      max_photos_per_user: 6
+      image_processing_enabled: true
+      auto_resize_enabled: true
+
+      storage:
+        provider: "s3"  # or "local" for development
+        bucket_name: "dinner-first-profile-images"
+        cdn_enabled: true
+
+    privacy_security:
+      profile_visibility_levels:
+        - hidden
+        - emotional_only
+        - partial
+        - full
+      default_visibility: "emotional_only"
+
+      data_anonymization:
+        enabled: true
+        fields_to_anonymize:
+          - exact_location
+          - full_name
+          - contact_info
+
+      consent_management:
+        photo_reveal_consent_required: true
+        data_sharing_consent_required: true
+        analytics_consent_required: false
+
+    performance:
+      request_timeout: 25
+      circuit_breaker:
+        failure_threshold: 3
+        recovery_timeout: 30
+        request_volume_threshold: 10
+
+      caching:
+        profile_cache_ttl: 3600
+        image_cache_ttl: 86400
+        search_cache_ttl: 1800
+
+    monitoring:
+      prometheus_enabled: true
+      jaeger_enabled: true
+      log_level: "INFO"
+      custom_metrics_enabled: true
+      profile_completion_tracking: true
+      privacy_compliance_monitoring: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: profile-db-secret
+  namespace: dinner-first-prod
+type: Opaque
+data:
+  connection-string: cG9zdGdyZXNxbDovL3VzZXI6cGFzc0Bwcm9maWxlLWRiLmRpbm5lci1maXJzdC1wcm9kLnN2Yy5jbHVzdGVyLmxvY2FsOjU0MzIvcHJvZmlsZV9kYg==  # Base64 encoded
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: profile-service-account
+  namespace: dinner-first-prod
+  labels:
+    app: profile-service
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: profile-service-hpa
+  namespace: dinner-first-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: profile-service
+  minReplicas: 3
+  maxReplicas: 12
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: profile_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "50"
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 90
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 30
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 90

@@ -1,0 +1,331 @@
+# RabbitMQ Production Deployment
+# High-availability message broker with clustering and monitoring
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-config
+  namespace: dinner-first-messaging
+data:
+  enabled_plugins: |
+    [rabbitmq_management,rabbitmq_peer_discovery_k8s,rabbitmq_prometheus].
+
+  rabbitmq.conf: |
+    # Clustering
+    cluster_formation.peer_discovery_backend = rabbit_peer_discovery_k8s
+    cluster_formation.k8s.host = kubernetes.default.svc.cluster.local
+    cluster_formation.node_cleanup.interval = 30
+    cluster_formation.node_cleanup.only_log_warning = true
+    cluster_partition_handling = autoheal
+
+    # Network and protocol settings
+    listeners.tcp.default = 5672
+    management.tcp.port = 15672
+    management.tcp.ip = 0.0.0.0
+    prometheus.tcp.port = 15692
+
+    # Memory and disk limits
+    vm_memory_high_watermark.relative = 0.6
+    disk_free_limit.relative = 2.0
+
+    # Queue settings
+    queue_master_locator = min-masters
+
+    # Security
+    management.user = admin
+    management.password = dinner-first-admin-2025
+    default_user = dinner-first
+    default_pass = dinner-first-messaging-2025
+
+    # Logging
+    log.console = true
+    log.console.level = info
+    log.file = /var/log/rabbitmq/rabbitmq.log
+    log.file.level = info
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rabbitmq-secret
+  namespace: dinner-first-messaging
+type: Opaque
+data:
+  rabbitmq-password: ZGlubmVyLWZpcnN0LW1lc3NhZ2luZy0yMDI1  # Base64: dinner-first-messaging-2025
+  rabbitmq-admin-password: ZGlubmVyLWZpcnN0LWFkbWluLTIwMjU=  # Base64: dinner-first-admin-2025
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rabbitmq-peer-discovery
+  namespace: dinner-first-messaging
+rules:
+- apiGroups: [""]
+  resources: ["endpoints"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: rabbitmq-peer-discovery
+  namespace: dinner-first-messaging
+subjects:
+- kind: ServiceAccount
+  name: rabbitmq
+  namespace: dinner-first-messaging
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rabbitmq-peer-discovery
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rabbitmq
+  namespace: dinner-first-messaging
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq
+  namespace: dinner-first-messaging
+  labels:
+    app: rabbitmq
+spec:
+  serviceName: rabbitmq-headless
+  replicas: 3
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "15692"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: rabbitmq
+      terminationGracePeriodSeconds: 10
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - rabbitmq
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: rabbitmq
+        image: rabbitmq:3.12-management-alpine
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/rabbitmq
+        - name: rabbitmq-data
+          mountPath: /var/lib/rabbitmq
+        - name: rabbitmq-logs
+          mountPath: /var/log/rabbitmq
+        ports:
+        - name: http
+          protocol: TCP
+          containerPort: 15672
+        - name: amqp
+          protocol: TCP
+          containerPort: 5672
+        - name: prometheus
+          protocol: TCP
+          containerPort: 15692
+        - name: epmd
+          protocol: TCP
+          containerPort: 4369
+        - name: dist
+          protocol: TCP
+          containerPort: 25672
+        env:
+        - name: MY_POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: MY_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: RABBITMQ_USE_LONGNAME
+          value: "true"
+        - name: K8S_SERVICE_NAME
+          value: rabbitmq-headless
+        - name: RABBITMQ_NODENAME
+          value: rabbit@$(MY_POD_NAME).$(K8S_SERVICE_NAME).$(MY_POD_NAMESPACE).svc.cluster.local
+        - name: K8S_HOSTNAME_SUFFIX
+          value: .$(K8S_SERVICE_NAME).$(MY_POD_NAMESPACE).svc.cluster.local
+        - name: RABBITMQ_ERLANG_COOKIE
+          value: "dinner-first-rabbitmq-cluster-cookie"
+        - name: RABBITMQ_DEFAULT_USER
+          value: "dinner-first"
+        - name: RABBITMQ_DEFAULT_PASS
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: rabbitmq-password
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        readinessProbe:
+          exec:
+            command:
+            - rabbitmq-diagnostics
+            - ping
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 3
+        livenessProbe:
+          exec:
+            command:
+            - rabbitmq-diagnostics
+            - status
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 15
+          failureThreshold: 3
+      volumes:
+      - name: config-volume
+        configMap:
+          name: rabbitmq-config
+          items:
+          - key: rabbitmq.conf
+            path: rabbitmq.conf
+          - key: enabled_plugins
+            path: enabled_plugins
+      - name: rabbitmq-logs
+        emptyDir: {}
+  volumeClaimTemplates:
+  - metadata:
+      name: rabbitmq-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 8Gi
+      storageClassName: fast-ssd
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-headless
+  namespace: dinner-first-messaging
+  labels:
+    app: rabbitmq
+spec:
+  clusterIP: None
+  ports:
+  - name: amqp
+    port: 5672
+    targetPort: 5672
+  - name: management
+    port: 15672
+    targetPort: 15672
+  - name: prometheus
+    port: 15692
+    targetPort: 15692
+  - name: epmd
+    port: 4369
+    targetPort: 4369
+  - name: dist
+    port: 25672
+    targetPort: 25672
+  selector:
+    app: rabbitmq
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: dinner-first-messaging
+  labels:
+    app: rabbitmq
+spec:
+  type: ClusterIP
+  ports:
+  - name: amqp
+    port: 5672
+    targetPort: 5672
+  - name: management
+    port: 15672
+    targetPort: 15672
+  - name: prometheus
+    port: 15692
+    targetPort: 15692
+  selector:
+    app: rabbitmq
+---
+# RabbitMQ Cluster Initialization Job
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rabbitmq-cluster-init
+  namespace: dinner-first-messaging
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: rabbitmq
+      containers:
+      - name: rabbitmq-cluster-init
+        image: rabbitmq:3.12-management-alpine
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          echo "Waiting for RabbitMQ cluster to be ready..."
+          sleep 60
+
+          export RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS="-rabbit log_levels [{connection,error},{default,info}] disk_free_limit 2147483648"
+
+          # Wait for all nodes to be ready
+          for i in {0..2}; do
+            echo "Checking rabbitmq-${i}..."
+            rabbitmq-diagnostics -n "rabbit@rabbitmq-${i}.rabbitmq-headless.dinner-first-messaging.svc.cluster.local" ping
+          done
+
+          # Set up exchanges and queues
+          rabbitmqadmin -H rabbitmq-0.rabbitmq-headless.dinner-first-messaging.svc.cluster.local \
+            -u dinner-first -p dinner-first-messaging-2025 \
+            declare exchange name=dinner_first.events type=topic durable=true
+
+          rabbitmqadmin -H rabbitmq-0.rabbitmq-headless.dinner-first-messaging.svc.cluster.local \
+            -u dinner-first -p dinner-first-messaging-2025 \
+            declare exchange name=dinner_first.dlx type=topic durable=true
+
+          # Create queues for each service
+          for service in auth matching sentiment messaging profile; do
+            rabbitmqadmin -H rabbitmq-0.rabbitmq-headless.dinner-first-messaging.svc.cluster.local \
+              -u dinner-first -p dinner-first-messaging-2025 \
+              declare queue name="${service}.events" durable=true
+
+            rabbitmqadmin -H rabbitmq-0.rabbitmq-headless.dinner-first-messaging.svc.cluster.local \
+              -u dinner-first -p dinner-first-messaging-2025 \
+              declare binding source=dinner_first.events destination="${service}.events" \
+              routing_key="${service}.*"
+          done
+
+          echo "RabbitMQ cluster initialization completed successfully"
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: "dinner-first"
+        - name: RABBITMQ_DEFAULT_PASS
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: rabbitmq-password

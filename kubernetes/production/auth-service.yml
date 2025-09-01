@@ -1,0 +1,248 @@
+# Authentication Service Production Deployment
+# Enhanced auth service with Redis integration and high availability
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: dinner-first-prod
+  labels:
+    app: auth-service
+    version: v2.0.0
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: auth-service
+      version: v2.0.0
+  template:
+    metadata:
+      labels:
+        app: auth-service
+        version: v2.0.0
+        service: auth
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - auth-service
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: auth-service
+        image: dinner-first/auth-service:v2.0.0
+        ports:
+        - containerPort: 8000
+          name: http
+        - containerPort: 8080
+          name: metrics
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: auth-db-secret
+              key: connection-string
+        - name: REDIS_CLUSTER_ENDPOINTS
+          value: "redis-cluster.dinner-first-redis.svc.cluster.local:6379"
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: auth-secrets
+              key: jwt-secret
+        - name: RABBITMQ_URL
+          valueFrom:
+            secretKeyRef:
+              name: messaging-secrets
+              key: rabbitmq-url
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: PROMETHEUS_ENABLED
+          value: "true"
+        - name: TRACING_ENABLED
+          value: "true"
+        - name: JAEGER_AGENT_HOST
+          value: "jaeger-agent.dinner-first-monitoring.svc.cluster.local"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+        - name: logs-volume
+          mountPath: /app/logs
+      volumes:
+      - name: config-volume
+        configMap:
+          name: auth-service-config
+      - name: logs-volume
+        emptyDir: {}
+      serviceAccountName: auth-service-account
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: dinner-first-prod
+  labels:
+    app: auth-service
+spec:
+  selector:
+    app: auth-service
+  ports:
+  - port: 8000
+    targetPort: 8000
+    name: http
+  - port: 8080
+    targetPort: 8080
+    name: metrics
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-service-config
+  namespace: dinner-first-prod
+data:
+  app.yaml: |
+    server:
+      port: 8000
+      host: "0.0.0.0"
+
+    redis:
+      cluster_endpoints:
+        - "redis-cluster.dinner-first-redis.svc.cluster.local:6379"
+      session_db: 0
+      cache_ttl: 3600
+      max_connections: 100
+
+    database:
+      pool_size: 20
+      max_overflow: 30
+      pool_timeout: 30
+      pool_recycle: 3600
+
+    jwt:
+      algorithm: "HS256"
+      access_token_expire_minutes: 30
+      refresh_token_expire_days: 7
+
+    security:
+      rate_limiting:
+        requests_per_minute: 100
+        burst_size: 10
+      password_requirements:
+        min_length: 8
+        require_special: true
+        require_numbers: true
+
+    monitoring:
+      prometheus_enabled: true
+      jaeger_enabled: true
+      log_level: "INFO"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: auth-secrets
+  namespace: dinner-first-prod
+type: Opaque
+data:
+  jwt-secret: ZGlubmVyLWZpcnN0LXNlY3JldC1rZXktcHJvZC0yMDI1  # Base64 encoded
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: auth-db-secret
+  namespace: dinner-first-prod
+type: Opaque
+data:
+  connection-string: cG9zdGdyZXNxbDovL3VzZXI6cGFzc0BhdXRoLWRiLmRpbm5lci1maXJzdC1wcm9kLnN2Yy5jbHVzdGVyLmxvY2FsOjU0MzIvYXV0aF9kYg==  # Base64 encoded
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: auth-service-account
+  namespace: dinner-first-prod
+  labels:
+    app: auth-service
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: auth-service-hpa
+  namespace: dinner-first-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: auth-service
+  minReplicas: 3
+  maxReplicas: 15
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: http_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "100"
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60

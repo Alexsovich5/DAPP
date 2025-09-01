@@ -1,0 +1,36 @@
+# Kubernetes Production Deployment - Sprint 8 Enhanced Microservices Architecture
+# Comprehensive production-ready deployment for Dinner First platform
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dinner-first-prod
+  labels:
+    name: dinner-first-prod
+    environment: production
+    istio-injection: enabled
+    monitoring: enabled
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dinner-first-monitoring
+  labels:
+    name: dinner-first-monitoring
+    environment: production
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dinner-first-redis
+  labels:
+    name: dinner-first-redis
+    environment: production
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dinner-first-messaging
+  labels:
+    name: dinner-first-messaging
+    environment: production

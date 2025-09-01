@@ -1,0 +1,659 @@
+# Istio Service Mesh Configuration - Sprint 8 Enhanced Microservices Architecture
+# Advanced traffic management, security, and observability for Dinner First platform
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dinner-first-prod
+  labels:
+    istio-injection: enabled
+---
+# Istio Gateway Configuration
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: dinner-first-gateway
+  namespace: dinner-first-prod
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: dinner-first-tls
+    hosts:
+    - api.dinner-first.app
+    - "*.dinner-first.app"
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - api.dinner-first.app
+    - "*.dinner-first.app"
+    redirect:
+      httpsRedirect: true
+---
+# Virtual Service for API Routes
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: dinner-first-api-routes
+  namespace: dinner-first-prod
+spec:
+  hosts:
+  - api.dinner-first.app
+  gateways:
+  - dinner-first-gateway
+  http:
+  # Auth Service Routes
+  - match:
+    - uri:
+        prefix: /api/v1/auth
+    route:
+    - destination:
+        host: auth-service
+        port:
+          number: 8000
+        subset: v2
+    fault:
+      delay:
+        percentage:
+          value: 0.1
+        fixedDelay: 5s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: 5xx,reset,connect-failure,refused-stream
+    timeout: 30s
+    headers:
+      request:
+        add:
+          x-service-name: auth-service
+          x-request-source: istio-gateway
+
+  # AI Matching Service Routes (with canary deployment)
+  - match:
+    - uri:
+        prefix: /api/v1/ai-matching
+    route:
+    - destination:
+        host: matching-service
+        port:
+          number: 8000
+        subset: v2-stable
+      weight: 90
+    - destination:
+        host: matching-service
+        port:
+          number: 8000
+        subset: v3-canary
+      weight: 10
+    fault:
+      delay:
+        percentage:
+          value: 0.05
+        fixedDelay: 2s
+    retries:
+      attempts: 2
+      perTryTimeout: 15s
+      retryOn: 5xx,reset,connect-failure
+    timeout: 45s
+    headers:
+      request:
+        add:
+          x-service-name: matching-service
+          x-canary-deployment: "true"
+
+  # Sentiment Analysis Service Routes
+  - match:
+    - uri:
+        prefix: /api/v1/sentiment
+    route:
+    - destination:
+        host: sentiment-service
+        port:
+          number: 8000
+        subset: v1
+    retries:
+      attempts: 3
+      perTryTimeout: 8s
+      retryOn: 5xx,reset,connect-failure
+    timeout: 25s
+    headers:
+      request:
+        add:
+          x-service-name: sentiment-service
+          x-processing-priority: high
+
+  # Messaging Service Routes
+  - match:
+    - uri:
+        prefix: /api/v1/messages
+    route:
+    - destination:
+        host: messaging-service
+        port:
+          number: 8000
+        subset: v1
+    retries:
+      attempts: 2
+      perTryTimeout: 12s
+      retryOn: 5xx,reset,connect-failure
+    timeout: 35s
+    headers:
+      request:
+        add:
+          x-service-name: messaging-service
+          x-realtime-enabled: "true"
+
+  # Profile Service Routes
+  - match:
+    - uri:
+        prefix: /api/v1/profiles
+    - uri:
+        prefix: /api/v1/users
+    route:
+    - destination:
+        host: profile-service
+        port:
+          number: 8000
+        subset: v1
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: 5xx,reset,connect-failure
+    timeout: 30s
+    headers:
+      request:
+        add:
+          x-service-name: profile-service
+          x-cache-enabled: "true"
+---
+# Destination Rules with Circuit Breakers and Load Balancing
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: auth-service-destination
+  namespace: dinner-first-prod
+spec:
+  host: auth-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 20
+        maxRetries: 3
+        consecutiveGatewayErrors: 5
+        interval: 30s
+        baseEjectionTime: 30s
+        maxEjectionPercent: 50
+    circuitBreaker:
+      consecutiveErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+    loadBalancer:
+      simple: LEAST_CONN
+    outlierDetection:
+      consecutive5xxErrors: 3
+      consecutiveGatewayErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+  subsets:
+  - name: v2
+    labels:
+      version: v2.0.0
+    trafficPolicy:
+      portLevelSettings:
+      - port:
+          number: 8000
+        connectionPool:
+          tcp:
+            maxConnections: 50
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: matching-service-destination
+  namespace: dinner-first-prod
+spec:
+  host: matching-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 50
+      http:
+        http1MaxPendingRequests: 25
+        http2MaxRequests: 50
+        maxRequestsPerConnection: 10
+        maxRetries: 2
+    circuitBreaker:
+      consecutiveErrors: 2
+      interval: 60s
+      baseEjectionTime: 60s
+      maxEjectionPercent: 30
+    loadBalancer:
+      simple: ROUND_ROBIN
+    outlierDetection:
+      consecutive5xxErrors: 2
+      consecutiveGatewayErrors: 2
+      interval: 60s
+      baseEjectionTime: 60s
+      maxEjectionPercent: 30
+      minHealthPercent: 50
+  subsets:
+  - name: v2-stable
+    labels:
+      version: v2.0.0
+      deployment: stable
+  - name: v3-canary
+    labels:
+      version: v3.0.0
+      deployment: canary
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 20
+        http:
+          http1MaxPendingRequests: 10
+          maxRequestsPerConnection: 5
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: sentiment-service-destination
+  namespace: dinner-first-prod
+spec:
+  host: sentiment-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 75
+      http:
+        http1MaxPendingRequests: 40
+        http2MaxRequests: 75
+        maxRequestsPerConnection: 15
+        maxRetries: 3
+    circuitBreaker:
+      consecutiveErrors: 3
+      interval: 45s
+      baseEjectionTime: 45s
+      maxEjectionPercent: 40
+    loadBalancer:
+      simple: LEAST_CONN
+    outlierDetection:
+      consecutive5xxErrors: 3
+      consecutiveGatewayErrors: 3
+      interval: 45s
+      baseEjectionTime: 45s
+      maxEjectionPercent: 40
+      minHealthPercent: 40
+  subsets:
+  - name: v1
+    labels:
+      version: v1.0.0
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: messaging-service-destination
+  namespace: dinner-first-prod
+spec:
+  host: messaging-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        tcpNoDelay: true
+      http:
+        http1MaxPendingRequests: 60
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 25
+        maxRetries: 2
+        h2UpgradePolicy: UPGRADE
+    circuitBreaker:
+      consecutiveErrors: 4
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+    loadBalancer:
+      simple: ROUND_ROBIN
+    outlierDetection:
+      consecutive5xxErrors: 4
+      consecutiveGatewayErrors: 4
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+  subsets:
+  - name: v1
+    labels:
+      version: v1.0.0
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: profile-service-destination
+  namespace: dinner-first-prod
+spec:
+  host: profile-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 80
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 80
+        maxRequestsPerConnection: 20
+        maxRetries: 3
+    circuitBreaker:
+      consecutiveErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 40
+    loadBalancer:
+      simple: LEAST_CONN
+    outlierDetection:
+      consecutive5xxErrors: 3
+      consecutiveGatewayErrors: 3
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 40
+      minHealthPercent: 35
+  subsets:
+  - name: v1
+    labels:
+      version: v1.0.0
+---
+# Security: PeerAuthentication for mTLS
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default-peer-authentication
+  namespace: dinner-first-prod
+spec:
+  mtls:
+    mode: STRICT
+---
+# Security: Authorization Policy
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: dinner-first-authorization
+  namespace: dinner-first-prod
+spec:
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"]
+  - from:
+    - source:
+        namespaces: ["dinner-first-prod"]
+  - to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+---
+# Security: JWT Authentication Policy
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: jwt-auth
+  namespace: dinner-first-prod
+spec:
+  selector:
+    matchLabels:
+      app: matching-service
+  jwtRules:
+  - issuer: "dinner-first-auth-service"
+    jwksUri: "http://auth-service.dinner-first-prod.svc.cluster.local:8000/.well-known/jwks.json"
+    audiences:
+    - "dinner-first-api"
+    forwardOriginalToken: true
+---
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: jwt-auth-messaging
+  namespace: dinner-first-prod
+spec:
+  selector:
+    matchLabels:
+      app: messaging-service
+  jwtRules:
+  - issuer: "dinner-first-auth-service"
+    jwksUri: "http://auth-service.dinner-first-prod.svc.cluster.local:8000/.well-known/jwks.json"
+    audiences:
+    - "dinner-first-api"
+    forwardOriginalToken: true
+---
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: jwt-auth-profiles
+  namespace: dinner-first-prod
+spec:
+  selector:
+    matchLabels:
+      app: profile-service
+  jwtRules:
+  - issuer: "dinner-first-auth-service"
+    jwksUri: "http://auth-service.dinner-first-prod.svc.cluster.local:8000/.well-known/jwks.json"
+    audiences:
+    - "dinner-first-api"
+    forwardOriginalToken: true
+---
+# Observability: Telemetry Configuration
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: dinner-first-telemetry
+  namespace: dinner-first-prod
+spec:
+  metrics:
+  - providers:
+    - name: prometheus
+  - overrides:
+    - match:
+        metric: ALL_METRICS
+      tagOverrides:
+        request_id:
+          operation: UPSERT
+          value: "%REQ(x-request-id)%"
+        service_name:
+          operation: UPSERT
+          value: "%REQ(x-service-name)%"
+        user_id:
+          operation: UPSERT
+          value: "%REQ(x-user-id)%"
+  tracing:
+  - providers:
+    - name: jaeger
+  accessLogging:
+  - providers:
+    - name: otel
+---
+# Traffic Management: Fault Injection for Testing
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: chaos-testing
+  namespace: dinner-first-prod
+spec:
+  hosts:
+  - matching-service
+  http:
+  - match:
+    - headers:
+        x-chaos-test:
+          exact: "true"
+    fault:
+      delay:
+        percentage:
+          value: 10
+        fixedDelay: 5s
+      abort:
+        percentage:
+          value: 5
+        httpStatus: 503
+    route:
+    - destination:
+        host: matching-service
+        subset: v2-stable
+  - route:
+    - destination:
+        host: matching-service
+        subset: v2-stable
+---
+# Service Monitor for Prometheus
+apiVersion: v1
+kind: Service
+metadata:
+  name: istio-proxy-metrics
+  namespace: dinner-first-prod
+  labels:
+    app: istio-proxy-metrics
+spec:
+  ports:
+  - name: http-monitoring
+    port: 15090
+    targetPort: 15090
+  selector:
+    app: auth-service
+---
+# Network Policy for Security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dinner-first-network-policy
+  namespace: dinner-first-prod
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system
+    - namespaceSelector:
+        matchLabels:
+          name: dinner-first-prod
+    ports:
+    - protocol: TCP
+      port: 8000
+    - protocol: TCP
+      port: 15090  # Envoy admin port
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: dinner-first-prod
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443  # HTTPS
+    - protocol: TCP
+      port: 53   # DNS
+    - protocol: UDP
+      port: 53   # DNS
+---
+# Horizontal Pod Autoscaler for Services
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: auth-service-hpa
+  namespace: dinner-first-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: auth-service
+  minReplicas: 3
+  maxReplicas: 15
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Object
+    object:
+      metric:
+        name: istio_request_duration_milliseconds_sum
+      target:
+        type: AverageValue
+        averageValue: "100"
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: matching-service-hpa
+  namespace: dinner-first-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: matching-service
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 75
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 120
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 30
+    scaleDown:
+      stabilizationWindowSeconds: 600
+      policies:
+      - type: Percent
+        value: 5
+        periodSeconds: 120
