@@ -263,7 +263,6 @@ def get_revelation_timeline(
 
         # Get partner info
         partner_id = connection.get_partner_id(current_user.id)
-        partner = db.query(User).filter(User.id == partner_id).first()
 
         # Build timeline data structure matching Phase 3 frontend
         timeline_days = []
@@ -661,6 +660,75 @@ def give_photo_consent(
         logger.error(f"Error giving photo consent: {str(e)}")
         db.rollback()
         raise HTTPException(status_code=500, detail="Error giving photo consent")
+
+
+@router.put("/{revelation_id}/react")
+def react_to_revelation(
+    revelation_id: int,
+    reaction_data: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    React to a revelation with an emoji or response.
+    """
+    try:
+        revelation = (
+            db.query(DailyRevelation)
+            .filter(DailyRevelation.id == revelation_id)
+            .first()
+        )
+
+        if not revelation:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Revelation not found"
+            )
+
+        # Verify user has access to this revelation's connection
+        connection = (
+            db.query(SoulConnection)
+            .filter(
+                SoulConnection.id == revelation.connection_id,
+                (
+                    (SoulConnection.user1_id == current_user.id)
+                    | (SoulConnection.user2_id == current_user.id)
+                ),
+            )
+            .first()
+        )
+
+        if not connection:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have access to this revelation",
+            )
+
+        # Store reaction (you may want to create a separate reactions table)
+        if not revelation.reactions:
+            revelation.reactions = {}
+
+        revelation.reactions[str(current_user.id)] = {
+            "emoji": reaction_data.get("emoji", "❤️"),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+
+        db.commit()
+
+        return {
+            "success": True,
+            "message": "Reaction added successfully",
+            "revelation_id": revelation_id,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error reacting to revelation: {str(e)}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error adding reaction",
+        )
 
 
 @router.get("/analytics/{connection_id}")

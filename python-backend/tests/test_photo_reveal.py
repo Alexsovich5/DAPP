@@ -64,19 +64,21 @@ class TestPhotoRevealConsent:
         # Cannot reveal without consent
         with pytest.raises(ValueError, match="consent required"):
             photo_reveal_service.reveal_photo(
-                connection_id=connection.id,
+                connection_id=_connection.id,
                 user_id=user1.id,
                 photo_url="https://example.com/photo.jpg",
                 force_reveal=False,
             )
 
         # Give consent first
-        photo_reveal_service.give_consent(connection_id=connection.id, user_id=user1.id)
+        photo_reveal_service.give_consent(
+            connection_id=_connection.id, user_id=user1.id
+        )
 
         # Should still fail without mutual consent
         with pytest.raises(ValueError, match="mutual consent"):
             photo_reveal_service.reveal_photo(
-                connection_id=connection.id,
+                connection_id=_connection.id,
                 user_id=user1.id,
                 photo_url="https://example.com/photo.jpg",
                 force_reveal=False,
@@ -99,7 +101,7 @@ class TestPhotoRevealConsent:
             current_time = datetime.now()
 
             can_reveal = photo_reveal_service.can_reveal_photo(
-                connection_id=connection.id,
+                connection_id=_connection.id,
                 user_id=user.id,
                 connection_start_date=connection_start,
                 current_date=current_time,
@@ -112,7 +114,7 @@ class TestPhotoRevealConsent:
             current_time = datetime.now()
 
             can_reveal = photo_reveal_service.can_reveal_photo(
-                connection_id=connection.id,
+                connection_id=_connection.id,
                 user_id=user.id,
                 connection_start_date=connection_start,
                 current_date=current_time,
@@ -133,7 +135,7 @@ class TestPhotoRevealConsent:
         completed_days = [1, 2, 3]  # Only 3 days completed
 
         can_reveal = photo_reveal_service.can_reveal_based_on_revelations(
-            connection_id=connection.id,
+            connection_id=_connection.id,
             user_id=user.id,
             completed_revelation_days=completed_days,
         )
@@ -144,7 +146,7 @@ class TestPhotoRevealConsent:
         completed_days = [1, 2, 3, 4, 5, 6, 7]
 
         can_reveal = photo_reveal_service.can_reveal_based_on_revelations(
-            connection_id=connection.id,
+            connection_id=_connection.id,
             user_id=user.id,
             completed_revelation_days=completed_days,
         )
@@ -162,14 +164,14 @@ class TestPhotoRevealConsent:
 
         # Give initial consent
         consent = photo_reveal_service.give_consent(
-            connection_id=connection.id, user_id=user.id
+            connection_id=_connection.id, user_id=user.id
         )
 
         assert consent.reveal_status == RevealStatus.CONSENTED.value
 
         # Withdraw consent
         withdrawn = photo_reveal_service.withdraw_consent(
-            connection_id=connection.id,
+            connection_id=_connection.id,
             user_id=user.id,
             reason="Changed my mind about revealing photos",
         )
@@ -191,7 +193,7 @@ class TestPhotoRevealAPI:
         _connection = authenticated_user_connection["connection"]
 
         consent_data = {
-            "connection_id": connection.id,
+            "connection_id": _connection.id,
             "consent_given": True,
             "consent_message": "I'm ready to share my photo after our meaningful revelations",
         }
@@ -207,7 +209,7 @@ class TestPhotoRevealAPI:
         if response.status_code in [status.HTTP_200_OK, status.HTTP_201_CREATED]:
             data = response.json()
             assert data["reveal_status"] == RevealStatus.CONSENTED.value
-            assert data["connection_id"] == connection.id
+            assert data["connection_id"] == _connection.id
 
     @pytest.mark.integration
     @pytest.mark.photo_reveal
@@ -218,7 +220,7 @@ class TestPhotoRevealAPI:
         _connection = soul_connection_data["connection"]
 
         # First give consent
-        consent_data = {"connection_id": connection.id, "consent_given": True}
+        consent_data = {"connection_id": _connection.id, "consent_given": True}
         client.post(
             "/api/v1/photo-reveal/consent",
             json=consent_data,
@@ -227,7 +229,7 @@ class TestPhotoRevealAPI:
 
         # Then withdraw consent
         withdrawal_data = {
-            "connection_id": connection.id,
+            "connection_id": _connection.id,
             "consent_given": False,
             "reason": "I've decided I'm not ready to share photos yet",
         }
@@ -250,7 +252,7 @@ class TestPhotoRevealAPI:
 
         # Mock photo upload data
         photo_data = {
-            "connection_id": connection.id,
+            "connection_id": _connection.id,
             "photo_base64": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD...",  # Truncated base64
             "photo_description": "A genuine smile after our beautiful soul connection journey",
         }
@@ -278,7 +280,7 @@ class TestPhotoRevealAPI:
         _connection = soul_connection_data["connection"]
 
         response = client.get(
-            f"/api/v1/photo-reveal/status/{connection.id}",
+            f"/api/v1/photo-reveal/status/{_connection.id}",
             headers=authenticated_user["headers"],
         )
 
@@ -455,7 +457,7 @@ class TestPhotoRevealSecurity:
 
         # Create photo reveal
         photo_reveal = PhotoReveal(
-            connection_id=connection.id,
+            connection_id=_connection.id,
             user_id=user.id,
             photo_url="https://example.com/photo.jpg",
             reveal_status=RevealStatus.REVEALED.value,
@@ -470,7 +472,7 @@ class TestPhotoRevealSecurity:
 
         # Recent photo should still be accessible
         recent_photo = PhotoReveal(
-            connection_id=connection.id,
+            connection_id=_connection.id,
             user_id=user.id,
             photo_url="https://example.com/photo2.jpg",
             reveal_status=RevealStatus.REVEALED.value,
@@ -496,17 +498,17 @@ class TestPhotoRevealBusinessLogic:
         # Mock that both users have given consent and revealed photos
         for user in users:
             photo_reveal_service.give_consent(
-                connection_id=connection.id, user_id=user.id
+                connection_id=_connection.id, user_id=user.id
             )
             photo_reveal_service.reveal_photo(
-                connection_id=connection.id,
+                connection_id=_connection.id,
                 user_id=user.id,
                 photo_url=f"https://example.com/{user.id}_photo.jpg",
                 force_reveal=True,  # For testing
             )
 
         # Connection stage should progress to dinner planning
-        new_stage = photo_reveal_service.get_suggested_connection_stage(connection.id)
+        new_stage = photo_reveal_service.get_suggested_connection_stage(_connection.id)
 
         expected_stages = [
             ConnectionStage.DINNER_PLANNING.value,
@@ -523,10 +525,12 @@ class TestPhotoRevealBusinessLogic:
         user1, user2 = soul_connection_data["users"][:2]
 
         # Only user1 gives consent and reveals
-        photo_reveal_service.give_consent(connection_id=connection.id, user_id=user1.id)
+        photo_reveal_service.give_consent(
+            connection_id=_connection.id, user_id=user1.id
+        )
 
         # Check mutual reveal status
-        mutual_status = photo_reveal_service.get_mutual_reveal_status(connection.id)
+        mutual_status = photo_reveal_service.get_mutual_reveal_status(_connection.id)
 
         assert mutual_status["user1_consented"]
         assert mutual_status["user2_consented"] is False
@@ -545,7 +549,7 @@ class TestPhotoRevealBusinessLogic:
         with patch("app.services.push_notification.send_notification") as _mock_notify:
             # User1 gives consent
             photo_reveal_service.give_consent(
-                connection_id=connection.id, user_id=user1.id
+                connection_id=_connection.id, user_id=user1.id
             )
 
             # Should notify user2 about consent
@@ -553,7 +557,7 @@ class TestPhotoRevealBusinessLogic:
 
             # User2 also gives consent
             photo_reveal_service.give_consent(
-                connection_id=connection.id, user_id=user2.id
+                connection_id=_connection.id, user_id=user2.id
             )
 
             # Should trigger mutual consent notification
@@ -566,7 +570,7 @@ class TestPhotoRevealBusinessLogic:
         """Test photo reveal analytics and insights"""
         _connection = soul_connection_data["connection"]
 
-        analytics = photo_reveal_service.get_reveal_analytics(connection.id)
+        analytics = photo_reveal_service.get_reveal_analytics(_connection.id)
 
         expected_metrics = [
             "days_to_consent",
@@ -628,7 +632,7 @@ class TestPhotoRevealIntegration:
 
         for day, revelation_type in enumerate(revelation_types, 1):
             revelation_data = {
-                "connection_id": connection.id,
+                "connection_id": _connection.id,
                 "day_number": day,
                 "revelation_type": revelation_type,
                 "content": f"Day {day} revelation content for photo reveal testing",
@@ -649,7 +653,7 @@ class TestPhotoRevealIntegration:
 
         # Now photo reveal should be eligible
         consent_data = {
-            "connection_id": connection.id,
+            "connection_id": _connection.id,
             "consent_given": True,
             "message": "Completed our soul journey - ready to see your beautiful face!",
         }
@@ -678,10 +682,10 @@ class TestPhotoRevealIntegration:
         # Complete photo reveal process
         for user in users:
             photo_reveal_service.give_consent(
-                connection_id=connection.id, user_id=user.id
+                connection_id=_connection.id, user_id=user.id
             )
             photo_reveal_service.reveal_photo(
-                connection_id=connection.id,
+                connection_id=_connection.id,
                 user_id=user.id,
                 photo_url=f"https://example.com/{user.id}_photo.jpg",
                 force_reveal=True,
@@ -707,7 +711,7 @@ class TestPhotoRevealIntegration:
         _connection = soul_connection_data["connection"]
 
         # Complete photo reveal
-        consent_data = {"connection_id": connection.id, "consent_given": True}
+        consent_data = {"connection_id": _connection.id, "consent_given": True}
         client.post(
             "/api/v1/photo-reveal/consent",
             json=consent_data,
@@ -716,7 +720,7 @@ class TestPhotoRevealIntegration:
 
         # Check if dinner planning is unlocked
         dinner_response = client.get(
-            f"/api/v1/dinner-planning/status/{connection.id}",
+            f"/api/v1/dinner-planning/status/{_connection.id}",
             headers=authenticated_user["headers"],
         )
 

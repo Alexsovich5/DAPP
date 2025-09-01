@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from app.api.v1.deps import get_current_user
 from app.core.database import get_db
@@ -25,6 +25,42 @@ class OnboardingData(BaseModel):
     interests: List[str]
 
 
+def calculate_emotional_depth_score(data: OnboardingData) -> float:
+    """
+    Calculate emotional depth score based on onboarding responses.
+    Score is between 0-100 based on response quality and depth.
+    """
+    score = 0.0
+
+    # Check emotional response depth (30 points)
+    if len(data.relationship_values) > 50:
+        score += 10
+    if len(data.ideal_evening) > 50:
+        score += 10
+    if len(data.feeling_understood) > 50:
+        score += 10
+
+    # Check core values completeness (20 points)
+    if data.core_values and len(data.core_values) > 0:
+        score += 20
+
+    # Check personality traits (20 points)
+    if data.personality_traits and len(data.personality_traits) > 0:
+        score += 20
+
+    # Check communication style (15 points)
+    if data.communication_style and len(data.communication_style) > 0:
+        score += 15
+
+    # Check interests diversity (15 points)
+    if data.interests and len(data.interests) >= 3:
+        score += 15
+    elif data.interests and len(data.interests) > 0:
+        score += 10
+
+    return min(score, 100.0)
+
+
 @router.post("/complete", response_model=UserSchema)
 def complete_onboarding(
     onboarding_data: OnboardingData,
@@ -40,9 +76,20 @@ def complete_onboarding(
         # Update user with onboarding data
         current_user.emotional_onboarding_completed = True
         current_user.interests = onboarding_data.interests
+        current_user.core_values = onboarding_data.core_values
+        current_user.personality_traits = onboarding_data.personality_traits
+        current_user.communication_style = onboarding_data.communication_style
 
-        # Store additional emotional data as JSON (you might want to create separate tables for this)
-        # For now, we'll store it in existing fields or you can add new JSON fields to the user model
+        # Store emotional responses for matching algorithms
+        current_user.emotional_responses = {
+            "relationship_values": onboarding_data.relationship_values,
+            "ideal_evening": onboarding_data.ideal_evening,
+            "feeling_understood": onboarding_data.feeling_understood,
+        }
+
+        # Calculate initial emotional depth score (0-100)
+        emotional_depth_score = calculate_emotional_depth_score(onboarding_data)
+        current_user.emotional_depth_score = emotional_depth_score
 
         # Commit the changes
         db.commit()

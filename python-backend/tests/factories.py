@@ -115,7 +115,7 @@ class SoulConnectionFactory(factory.alchemy.SQLAlchemyModelFactory):
 
     user1_id = factory.Sequence(lambda n: n)
     user2_id = factory.Sequence(lambda n: n + 1000)  # Ensure different IDs
-    # initiated_by will be set manually when creating connections
+    initiated_by = factory.LazyAttribute(lambda obj: obj.user1_id)  # Default to user1
     connection_stage = factory.fuzzy.FuzzyChoice(
         [stage.value for stage in ConnectionStage]
     )

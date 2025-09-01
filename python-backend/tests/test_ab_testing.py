@@ -298,7 +298,7 @@ class TestABTestingFramework:
         )
 
         # Create control variant
-        _control_variant = ab_service.create_variant(
+        control_variant = ab_service.create_variant(
             experiment_id=experiment.id,
             variant_name="control",
             variant_config={
@@ -310,7 +310,7 @@ class TestABTestingFramework:
         )
 
         # Create treatment variant
-        _treatment_variant = ab_service.create_variant(
+        treatment_variant = ab_service.create_variant(
             experiment_id=experiment.id,
             variant_name="enhanced_prompts",
             variant_config={
@@ -386,7 +386,7 @@ class TestABTestingFramework:
     @pytest.mark.ab_testing
     def test_experiment_traffic_allocation(self, ab_service, matching_users):
         """Test that traffic allocation is respected"""
-        _users = [matching_users["user1"], matching_users["user2"]]
+        users = [matching_users["user1"], matching_users["user2"]]
 
         # Create experiment with 0% traffic (should not assign anyone)
         zero_traffic_experiment = ab_service.create_experiment(
@@ -432,7 +432,7 @@ class TestExperimentMetricsTracking:
     @pytest.mark.ab_testing
     def test_conversion_event_tracking(self, ab_service, soul_connection_data):
         """Test tracking conversion events for experiment analysis"""
-        _connection = soul_connection_data["connection"]
+        connection = soul_connection_data["connection"]
         user = soul_connection_data["users"][0]
 
         # Create experiment and assign user
@@ -445,7 +445,7 @@ class TestExperimentMetricsTracking:
         )
 
         ab_service.create_variant(experiment.id, "control", {}, 0.5)
-        _assignment = ab_service.assign_user_to_experiment(user.id, experiment.id)
+        assignment = ab_service.assign_user_to_experiment(user.id, experiment.id)
 
         # Track conversion events
         ab_service.track_conversion_event(
