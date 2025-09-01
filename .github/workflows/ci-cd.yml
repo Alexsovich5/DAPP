@@ -184,7 +184,7 @@ jobs:
       - name: Validate Sprint 8 imports
         run: |
           cd python-backend
-          python test_sprint8_imports.py
+          python tests/manual/test_sprint8_imports.py
 
       - name: Run unit tests
         run: |
@@ -196,7 +196,7 @@ jobs:
           cd python-backend
           # Run integration-style tests (user flows and system tests)
           pytest tests/test_integration_user_flows.py tests/test_soul_connections.py -v --tb=short
-          
+
       - name: Run Sprint 8 microservices tests
         run: |
           cd python-backend
