@@ -4,9 +4,7 @@ Comprehensive Router Tests
 Tests for all API endpoints and routers
 """
 
-import json
-from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from app.api.v1.deps import get_db
@@ -269,7 +267,7 @@ class TestOnboardingRouter:
             response = client.get("/api/v1/onboarding/status", headers=auth_headers)
             assert response.status_code == 200
             data = response.json()
-            assert data["completed"] == True
+            assert data["completed"] is True
 
 
 class TestRevelationsRouter:
@@ -393,4 +391,4 @@ class TestHealthRouter:
             response = client.get("/ready")
             assert response.status_code == 200
             data = response.json()
-            assert data["ready"] == True
+            assert data["ready"] is True

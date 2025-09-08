@@ -3,12 +3,11 @@ Comprehensive Tests for Soul Compatibility Service
 Tests all methods and edge cases to achieve 80%+ coverage
 """
 
-from datetime import date, datetime
+from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
 import pytest
 from app.models.soul_connection import ConnectionEnergyLevel
-from app.models.user import User
 from app.services.soul_compatibility_service import (
     CompatibilityScore,
     SoulCompatibilityService,
@@ -1000,3 +999,265 @@ class TestEdgeCases:
         score = service._calculate_demographic_compatibility(user1, user2)
         assert isinstance(score, float)
         assert score >= 40  # Should handle unicode correctly
+
+
+class TestSoulCompatibilityServicePrivateMethods:
+    """Test private helper methods for comprehensive coverage"""
+
+    @pytest.fixture
+    def service(self):
+        return SoulCompatibilityService()
+
+    def test_initialize_value_keywords(self, service):
+        """Test value keywords initialization"""
+        keywords = service._initialize_value_keywords()
+
+        assert isinstance(keywords, dict)
+        assert len(keywords) > 0
+        # Check for expected categories
+        assert "family" in keywords
+        assert "career" in keywords
+        assert "relationships" in keywords
+
+        # Check structure of keywords
+        for category, values in keywords.items():
+            assert isinstance(values, dict)
+            for subcategory, keyword_list in values.items():
+                assert isinstance(keyword_list, list)
+                assert all(isinstance(keyword, str) for keyword in keyword_list)
+
+    def test_initialize_personality_traits(self, service):
+        """Test personality traits initialization"""
+        traits = service._initialize_personality_traits()
+
+        assert isinstance(traits, dict)
+        assert len(traits) > 0
+
+        # Check for expected trait dimensions
+        expected_traits = [
+            "openness",
+            "conscientiousness",
+            "extroversion",
+            "agreeableness",
+            "neuroticism",
+        ]
+        for trait in expected_traits:
+            assert trait in traits
+            assert isinstance(traits[trait], dict)
+
+        # Check structure
+        for trait_name, trait_data in traits.items():
+            assert "high" in trait_data
+            assert "low" in trait_data
+            assert isinstance(trait_data["high"], list)
+            assert isinstance(trait_data["low"], list)
+
+    def test_calculate_location_compatibility_same_city(self, service, db_session):
+        """Test location compatibility for same city"""
+        UserFactory._meta.sqlalchemy_session = db_session
+
+        user1 = UserFactory(location="San Francisco, CA")
+        user2 = UserFactory(location="San Francisco, CA")
+
+        score = service._calculate_location_compatibility(user1, user2)
+
+        assert isinstance(score, float)
+        assert score >= 80  # Same city should score high
+
+    def test_calculate_location_compatibility_different_countries(
+        self, service, db_session
+    ):
+        """Test location compatibility for different countries"""
+        UserFactory._meta.sqlalchemy_session = db_session
+
+        user1 = UserFactory(location="New York, USA")
+        user2 = UserFactory(location="London, UK")
+
+        score = service._calculate_location_compatibility(user1, user2)
+
+        assert isinstance(score, float)
+        assert score <= 30  # Different countries should score low
+
+    def test_calculate_location_compatibility_missing_data(self, service, db_session):
+        """Test location compatibility with missing location data"""
+        UserFactory._meta.sqlalchemy_session = db_session
+
+        user1 = UserFactory(location=None)
+        user2 = UserFactory(location="New York, USA")
+
+        score = service._calculate_location_compatibility(user1, user2)
+
+        assert isinstance(score, float)
+        assert 0 <= score <= 100
+
+    def test_calculate_lifestyle_compatibility_similar(self, service, db_session):
+        """Test lifestyle compatibility for similar users"""
+        UserFactory._meta.sqlalchemy_session = db_session
+
+        user1 = UserFactory(
+            lifestyle_preferences={
+                "activity_level": "high",
+                "social_preference": "outgoing",
+                "work_life_balance": "balanced",
+            }
+        )
+        user2 = UserFactory(
+            lifestyle_preferences={
+                "activity_level": "high",
+                "social_preference": "outgoing",
+                "work_life_balance": "balanced",
+            }
+        )
+
+        score = service._calculate_lifestyle_compatibility(user1, user2)
+
+        assert isinstance(score, float)
+        assert score >= 70  # Similar lifestyles should score high
+
+    def test_calculate_lifestyle_compatibility_different(self, service, db_session):
+        """Test lifestyle compatibility for different users"""
+        UserFactory._meta.sqlalchemy_session = db_session
+
+        user1 = UserFactory(
+            lifestyle_preferences={
+                "activity_level": "low",
+                "social_preference": "introverted",
+                "work_life_balance": "work_focused",
+            }
+        )
+        user2 = UserFactory(
+            lifestyle_preferences={
+                "activity_level": "high",
+                "social_preference": "outgoing",
+                "work_life_balance": "life_focused",
+            }
+        )
+
+        score = service._calculate_lifestyle_compatibility(user1, user2)
+
+        assert isinstance(score, float)
+        assert score <= 40  # Different lifestyles should score low
+
+    def test_calculate_lifestyle_compatibility_missing_data(self, service, db_session):
+        """Test lifestyle compatibility with missing data"""
+        UserFactory._meta.sqlalchemy_session = db_session
+
+        user1 = UserFactory(lifestyle_preferences=None)
+        user2 = UserFactory(lifestyle_preferences={"activity_level": "medium"})
+
+        score = service._calculate_lifestyle_compatibility(user1, user2)
+
+        assert isinstance(score, float)
+        assert 0 <= score <= 100
+
+    def test_calculate_age_compatibility_perfect_match(self, service, db_session):
+        """Test age compatibility for same age users"""
+        UserFactory._meta.sqlalchemy_session = db_session
+
+        birth_date = datetime.now() - timedelta(days=25 * 365)  # 25 years old
+        user1 = UserFactory(date_of_birth=birth_date)
+        user2 = UserFactory(date_of_birth=birth_date)
+
+        score = service._calculate_age_compatibility(user1, user2)
+
+        assert isinstance(score, float)
+        assert score >= 95  # Same age should score very high
+
+    def test_calculate_age_compatibility_moderate_gap(self, service, db_session):
+        """Test age compatibility for moderate age gap"""
+        UserFactory._meta.sqlalchemy_session = db_session
+
+        user1 = UserFactory(
+            date_of_birth=datetime.now() - timedelta(days=25 * 365)
+        )  # 25 years old
+        user2 = UserFactory(
+            date_of_birth=datetime.now() - timedelta(days=30 * 365)
+        )  # 30 years old
+
+        score = service._calculate_age_compatibility(user1, user2)
+
+        assert isinstance(score, float)
+        assert 60 <= score <= 90  # Moderate gap should be acceptable
+
+    def test_calculate_age_compatibility_large_gap(self, service, db_session):
+        """Test age compatibility for large age gap"""
+        UserFactory._meta.sqlalchemy_session = db_session
+
+        user1 = UserFactory(
+            date_of_birth=datetime.now() - timedelta(days=25 * 365)
+        )  # 25 years old
+        user2 = UserFactory(
+            date_of_birth=datetime.now() - timedelta(days=45 * 365)
+        )  # 45 years old
+
+        score = service._calculate_age_compatibility(user1, user2)
+
+        assert isinstance(score, float)
+        assert score <= 50  # Large gap should score low
+
+    def test_calculate_vector_similarity_identical(self, service):
+        """Test vector similarity for identical vectors"""
+        vec1 = [1.0, 0.5, 0.8, 0.3]
+        vec2 = [1.0, 0.5, 0.8, 0.3]
+
+        similarity = service._calculate_vector_similarity(vec1, vec2)
+
+        assert similarity == 1.0
+
+    def test_calculate_vector_similarity_orthogonal(self, service):
+        """Test vector similarity for orthogonal vectors"""
+        vec1 = [1.0, 0.0, 0.0, 0.0]
+        vec2 = [0.0, 1.0, 0.0, 0.0]
+
+        similarity = service._calculate_vector_similarity(vec1, vec2)
+
+        assert similarity == 0.0
+
+    def test_calculate_vector_similarity_opposite(self, service):
+        """Test vector similarity for opposite vectors"""
+        vec1 = [1.0, 1.0, 1.0, 1.0]
+        vec2 = [-1.0, -1.0, -1.0, -1.0]
+
+        similarity = service._calculate_vector_similarity(vec1, vec2)
+
+        assert similarity == -1.0
+
+    def test_extract_value_signals_family(self, service):
+        """Test value signal extraction for family-related text"""
+        text = "Family is the most important thing to me. I love spending time with my children and parents."
+
+        signals = service._extract_value_signals(text, "family")
+
+        assert isinstance(signals, dict)
+        assert len(signals) > 0
+        # Should detect family-related signals
+        family_score = sum(signals.values())
+        assert family_score > 0.5
+
+    def test_extract_value_signals_career(self, service):
+        """Test value signal extraction for career-related text"""
+        text = "My career is my passion. I work hard to achieve success and build my professional reputation."
+
+        signals = service._extract_value_signals(text, "career")
+
+        assert isinstance(signals, dict)
+        assert len(signals) > 0
+        # Should detect career-related signals
+        career_score = sum(signals.values())
+        assert career_score > 0.5
+
+    def test_extract_value_signals_empty_text(self, service):
+        """Test value signal extraction with empty text"""
+        signals = service._extract_value_signals("", "family")
+
+        assert isinstance(signals, dict)
+        # Should handle empty text gracefully
+
+    def test_extract_value_signals_unknown_category(self, service):
+        """Test value signal extraction with unknown category"""
+        text = "I love music and art."
+
+        signals = service._extract_value_signals(text, "unknown_category")
+
+        assert isinstance(signals, dict)
+        # Should handle unknown categories gracefully

@@ -5,20 +5,15 @@ Tests for missing coverage to achieve 75%+ coverage
 
 import asyncio
 from datetime import datetime, timedelta
-from io import BytesIO
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from app.models.photo_reveal import (
     PhotoConsentType,
     PhotoPrivacyLevel,
-    PhotoRevealRequest,
     PhotoRevealStage,
-    PhotoRevealTimeline,
     UserPhoto,
 )
-from app.models.soul_connection import SoulConnection
-from app.models.user import User
 from app.services.photo_reveal_service import PhotoRevealService, PhotoRevealStatus
 from fastapi import UploadFile
 from tests.factories import SoulConnectionFactory, UserFactory
@@ -290,7 +285,7 @@ class TestPhotoRevealServiceCore:
 
         assert isinstance(result, dict)
         assert "status" in result
-        assert result["consent_granted"] == True
+        assert result["consent_granted"] is True
         mock_db.commit.assert_called()
 
     @pytest.mark.asyncio
@@ -313,7 +308,7 @@ class TestPhotoRevealServiceCore:
         )
 
         assert isinstance(result, dict)
-        assert result["consent_granted"] == False
+        assert result["consent_granted"] is False
 
     @pytest.mark.asyncio
     async def test_get_photo_with_permissions_success(self, service, test_user1):
@@ -349,7 +344,7 @@ class TestPhotoRevealServiceCore:
         )
 
         assert isinstance(result, dict)
-        assert result["access_granted"] == False
+        assert result["access_granted"] is False
 
     @pytest.mark.asyncio
     async def test_process_automatic_reveals(self, service):
@@ -397,7 +392,7 @@ class TestPhotoValidationMethods:
 
         result = service._validate_photo_file(mock_file)
 
-        assert result["valid"] == True
+        assert result["valid"] is True
         assert result["file_type"] == "jpeg"
         assert result["size"] == 2000000
 
@@ -410,7 +405,7 @@ class TestPhotoValidationMethods:
 
         result = service._validate_photo_file(mock_file)
 
-        assert result["valid"] == True
+        assert result["valid"] is True
         assert result["file_type"] == "png"
 
     def test_validate_photo_file_too_large(self, service):
@@ -422,7 +417,7 @@ class TestPhotoValidationMethods:
 
         result = service._validate_photo_file(mock_file)
 
-        assert result["valid"] == False
+        assert result["valid"] is False
         assert "too large" in result["error"]
 
     def test_validate_photo_file_invalid_type(self, service):
@@ -434,7 +429,7 @@ class TestPhotoValidationMethods:
 
         result = service._validate_photo_file(mock_file)
 
-        assert result["valid"] == False
+        assert result["valid"] is False
         assert "Invalid file type" in result["error"]
 
     def test_validate_photo_file_no_filename(self, service):
@@ -446,13 +441,12 @@ class TestPhotoValidationMethods:
 
         result = service._validate_photo_file(mock_file)
 
-        assert result["valid"] == False
+        assert result["valid"] is False
         assert "filename is required" in result["error"]
 
     @pytest.mark.asyncio
     async def test_store_encrypted_photo(self, service):
         """Test photo storage (mocked)"""
-        mock_db = Mock()
         photo_data = b"fake_image_data"
         filename = "test.jpg"
 
@@ -468,12 +462,11 @@ class TestPhotoValidationMethods:
     @pytest.mark.asyncio
     async def test_queue_photo_moderation(self, service):
         """Test queuing photo for moderation"""
-        mock_db = Mock()
         mock_photo = Mock()
         mock_photo.id = 1
         mock_photo.encrypted_url = "photo_url"
 
-        result = await service._queue_photo_moderation(mock_photo, mock_db)
+        result = await service._queue_photo_moderation(mock_photo, Mock())
 
         # Should return success status
         assert isinstance(result, bool)
@@ -481,7 +474,6 @@ class TestPhotoValidationMethods:
     @pytest.mark.asyncio
     async def test_generate_photo_previews(self, service):
         """Test generating photo previews"""
-        mock_db = Mock()
         mock_photo = Mock()
         mock_photo.id = 1
         mock_photo.encrypted_url = "original_photo_url"
@@ -526,6 +518,7 @@ class TestTimelineManagement:
         result = await service._get_or_create_timeline(connection_id=1, db=mock_db)
 
         # Should create and return new timeline
+        assert result is not None
         mock_db.add.assert_called()
         mock_db.commit.assert_called()
 
@@ -542,6 +535,7 @@ class TestTimelineManagement:
         result = await service._get_or_create_timeline(connection_id=1, db=mock_db)
 
         # Should return existing timeline without creating new one
+        assert result == mock_timeline
         assert mock_db.add.call_count == 0
 
     @pytest.mark.asyncio
@@ -706,4 +700,296 @@ class TestUtilityMethods:
         assert status.connection_id == 1
         assert status.current_stage == PhotoRevealStage.CONSENT_PHASE
         assert status.progress_percentage == 57.1
-        assert status.mutual_consent_achieved == False
+        assert status.mutual_consent_achieved is False
+
+
+class TestPhotoRevealServicePrivateMethods:
+    """Test private helper methods for comprehensive coverage"""
+
+    @pytest.fixture
+    def service(self):
+        """Create service instance without db dependency"""
+        return PhotoRevealService()
+
+    @pytest.fixture
+    def mock_db(self):
+        """Mock database session"""
+        db = Mock()
+        db.add = Mock()
+        db.commit = Mock()
+        db.refresh = Mock()
+        db.query = Mock()
+        return db
+
+    def test_validate_photo_file_valid_image(self, service):
+        """Test photo file validation with valid image"""
+        # Mock valid image file
+        mock_file = Mock(spec=UploadFile)
+        mock_file.filename = "test_photo.jpg"
+        mock_file.content_type = "image/jpeg"
+        mock_file.size = 1024 * 1024 * 2  # 2MB
+
+        result = service._validate_photo_file(mock_file)
+
+        assert result["is_valid"] is True
+        assert result["file_type"] == "jpg"
+        assert "error" not in result
+
+    def test_validate_photo_file_invalid_type(self, service):
+        """Test photo file validation with invalid file type"""
+        mock_file = Mock(spec=UploadFile)
+        mock_file.filename = "test_document.pdf"
+        mock_file.content_type = "application/pdf"
+        mock_file.size = 1024 * 512  # 512KB
+
+        result = service._validate_photo_file(mock_file)
+
+        assert result["is_valid"] is False
+        assert "error" in result
+
+    def test_validate_photo_file_too_large(self, service):
+        """Test photo file validation with file too large"""
+        mock_file = Mock(spec=UploadFile)
+        mock_file.filename = "large_photo.jpg"
+        mock_file.content_type = "image/jpeg"
+        mock_file.size = 1024 * 1024 * 11  # 11MB (over limit)
+
+        result = service._validate_photo_file(mock_file)
+
+        assert result["is_valid"] is False
+        assert "too large" in result["error"].lower()
+
+    @pytest.mark.asyncio
+    async def test_store_encrypted_photo(self, service):
+        """Test encrypted photo storage"""
+        mock_photo = Mock()
+        mock_photo.id = 1
+        mock_photo.file_path = "/path/to/photo.jpg"
+        mock_photo.encrypted_data = b"encrypted_photo_data"
+
+        with patch(
+            "app.services.photo_reveal_service.encrypt_file_data"
+        ) as mock_encrypt:
+            mock_encrypt.return_value = b"encrypted_data"
+
+            with patch(
+                "app.services.photo_reveal_service.store_file_securely"
+            ) as mock_store:
+                mock_store.return_value = "/secure/path/photo.enc"
+
+                result = await service._store_encrypted_photo(mock_photo, b"photo_data")
+
+                assert result == "/secure/path/photo.enc"
+                mock_encrypt.assert_called_once_with(b"photo_data")
+                mock_store.assert_called_once_with(
+                    b"encrypted_data", mock_photo.file_path
+                )
+
+    @pytest.mark.asyncio
+    async def test_queue_photo_moderation(self, service, mock_db):
+        """Test queueing photo for moderation"""
+        mock_photo = Mock(spec=UserPhoto)
+        mock_photo.id = 1
+        mock_photo.user_id = 1
+        mock_photo.file_path = "/path/to/photo.jpg"
+
+        with patch("app.services.photo_reveal_service.moderation_queue") as mock_queue:
+            mock_queue.enqueue.return_value = True
+
+            result = await service._queue_photo_moderation(mock_photo, mock_db)
+
+            assert result is True
+            mock_queue.enqueue.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_generate_photo_previews(self, service):
+        """Test photo preview generation"""
+        mock_photo = Mock(spec=UserPhoto)
+        mock_photo.id = 1
+        mock_photo.file_path = "/path/to/photo.jpg"
+
+        with patch(
+            "app.services.photo_reveal_service.generate_thumbnails"
+        ) as mock_thumbs:
+            mock_thumbs.return_value = [
+                "/path/to/thumb_small.jpg",
+                "/path/to/thumb_large.jpg",
+            ]
+
+            result = await service._generate_photo_previews(mock_photo)
+
+            assert result is not None
+            mock_thumbs.assert_called_once_with(mock_photo.file_path)
+
+    @pytest.mark.asyncio
+    async def test_can_request_early_reveal(self, service, mock_db):
+        """Test early reveal request eligibility"""
+        mock_timeline = Mock()
+        mock_timeline.stage = PhotoRevealStage.PHOTO_UPLOADED
+        mock_timeline.connection_id = 1
+        mock_timeline.created_at = datetime.now() - timedelta(days=5)
+
+        # Mock connection with good compatibility
+        mock_connection = Mock()
+        mock_connection.compatibility_score = 85.0
+        mock_connection.total_messages_exchanged = 50
+
+        mock_db.query.return_value.filter.return_value.first.return_value = (
+            mock_connection
+        )
+
+        result = await service._can_request_early_reveal(mock_timeline, 1, mock_db)
+
+        # Should allow early reveal with high compatibility and good engagement
+        assert isinstance(result, dict)
+        assert "eligible" in result
+
+    @pytest.mark.asyncio
+    async def test_check_consent_request_eligibility_eligible(self, service, mock_db):
+        """Test consent request eligibility check - eligible case"""
+        mock_timeline = Mock()
+        mock_timeline.connection_id = 1
+        mock_timeline.user1_consent_status = PhotoConsentType.PENDING
+        mock_timeline.user2_consent_status = PhotoConsentType.PENDING
+        mock_timeline.last_consent_request_at = None
+
+        mock_user = Mock()
+        mock_user.id = 1
+
+        result = await service._check_consent_request_eligibility(
+            mock_timeline, mock_user, mock_db
+        )
+
+        assert isinstance(result, dict)
+        assert result.get("eligible") is not None
+
+    @pytest.mark.asyncio
+    async def test_check_consent_request_eligibility_too_recent(self, service, mock_db):
+        """Test consent request eligibility - too recent request"""
+        mock_timeline = Mock()
+        mock_timeline.connection_id = 1
+        mock_timeline.user1_consent_status = PhotoConsentType.PENDING
+        mock_timeline.user2_consent_status = PhotoConsentType.PENDING
+        mock_timeline.last_consent_request_at = datetime.now() - timedelta(
+            hours=1
+        )  # Too recent
+
+        mock_user = Mock()
+        mock_user.id = 1
+
+        result = await service._check_consent_request_eligibility(
+            mock_timeline, mock_user, mock_db
+        )
+
+        assert isinstance(result, dict)
+        # Should not be eligible due to recent request
+        assert (
+            result.get("eligible") is False
+            or "too recent" in str(result.get("reason", "")).lower()
+        )
+
+    @pytest.mark.asyncio
+    async def test_check_mutual_consent_both_agreed(self, service, mock_db):
+        """Test mutual consent check - both users agreed"""
+        mock_timeline = Mock()
+        mock_timeline.user1_consent_status = PhotoConsentType.AGREED
+        mock_timeline.user2_consent_status = PhotoConsentType.AGREED
+        mock_timeline.mutual_consent_achieved_at = None
+
+        result = await service._check_mutual_consent(mock_timeline, mock_db)
+
+        assert result is True
+        # Should update the mutual consent timestamp
+        assert mock_timeline.mutual_consent_achieved_at is not None
+        mock_db.commit.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_check_mutual_consent_not_ready(self, service, mock_db):
+        """Test mutual consent check - not both agreed"""
+        mock_timeline = Mock()
+        mock_timeline.user1_consent_status = PhotoConsentType.AGREED
+        mock_timeline.user2_consent_status = PhotoConsentType.PENDING
+        mock_timeline.mutual_consent_achieved_at = None
+
+        result = await service._check_mutual_consent(mock_timeline, mock_db)
+
+        assert result is False
+        # Should not update timestamp
+        assert mock_timeline.mutual_consent_achieved_at is None
+
+    @pytest.mark.asyncio
+    async def test_execute_photo_reveal(self, service, mock_db):
+        """Test photo reveal execution"""
+        mock_timeline = Mock()
+        mock_timeline.id = 1
+        mock_timeline.connection_id = 1
+        mock_timeline.stage = PhotoRevealStage.MUTUAL_CONSENT
+        mock_timeline.photos_revealed_at = None
+
+        with patch.object(
+            service, "_generate_reveal_notifications"
+        ) as mock_notifications:
+            with patch.object(service, "_update_connection_stage") as mock_update:
+                result = await service._execute_photo_reveal(mock_timeline, mock_db)
+
+                assert result is True
+                assert mock_timeline.stage == PhotoRevealStage.PHOTOS_REVEALED
+                assert mock_timeline.photos_revealed_at is not None
+                mock_notifications.assert_called_once()
+                mock_update.assert_called_once()
+                mock_db.commit.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_execute_automatic_reveal_conditions_met(self, service, mock_db):
+        """Test automatic reveal execution when conditions are met"""
+        mock_timeline = Mock()
+        mock_timeline.id = 1
+        mock_timeline.connection_id = 1
+        mock_timeline.stage = PhotoRevealStage.WAITING_PERIOD
+        mock_timeline.automatic_reveal_at = datetime.now() - timedelta(
+            hours=1
+        )  # Past due
+        mock_timeline.photos_revealed_at = None
+
+        # Mock connection meeting reveal criteria
+        mock_connection = Mock()
+        mock_connection.total_messages_exchanged = 100
+        mock_connection.revelation_completion_percentage = 80.0
+        mock_connection.created_at = datetime.now() - timedelta(days=8)
+
+        mock_db.query.return_value.filter.return_value.first.return_value = (
+            mock_connection
+        )
+
+        with patch.object(service, "_execute_photo_reveal") as mock_execute:
+            mock_execute.return_value = True
+
+            result = await service._execute_automatic_reveal(mock_timeline, mock_db)
+
+            assert result is True
+            mock_execute.assert_called_once_with(mock_timeline, mock_db)
+
+    @pytest.mark.asyncio
+    async def test_execute_automatic_reveal_conditions_not_met(self, service, mock_db):
+        """Test automatic reveal when conditions are not met"""
+        mock_timeline = Mock()
+        mock_timeline.id = 1
+        mock_timeline.connection_id = 1
+        mock_timeline.stage = PhotoRevealStage.WAITING_PERIOD
+        mock_timeline.automatic_reveal_at = datetime.now() - timedelta(hours=1)
+
+        # Mock connection NOT meeting reveal criteria
+        mock_connection = Mock()
+        mock_connection.total_messages_exchanged = 10  # Too few messages
+        mock_connection.revelation_completion_percentage = 30.0  # Too low completion
+        mock_connection.created_at = datetime.now() - timedelta(days=3)  # Too recent
+
+        mock_db.query.return_value.filter.return_value.first.return_value = (
+            mock_connection
+        )
+
+        result = await service._execute_automatic_reveal(mock_timeline, mock_db)
+
+        # Should postpone reveal
+        assert result is False
+        assert mock_timeline.automatic_reveal_at > datetime.now()
