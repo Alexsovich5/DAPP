@@ -6,7 +6,7 @@ Tests for user behavior analytics and insights generation
 
 import json
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from app.models.daily_revelation import DailyRevelation
@@ -55,7 +55,7 @@ def test_connection():
     connection.user2_id = 2
     connection.compatibility_score = 85.0
     connection.total_messages_exchanged = 150
-    connection.connection_stage = ConnectionStage.ACTIVE_CONNECTION
+    connection.connection_stage = ConnectionStage.DEEPER_CONNECTION
     connection.created_at = datetime.now() - timedelta(days=14)
     return connection
 

@@ -87,7 +87,7 @@ export class ChatService {
   }
 
   private setupWebSocket(): void {
-    const socketUrl = `${environment.socketUrl}/chat`;
+    const socketUrl = `${environment.socketUrl}/api/v1/ws/connect`;
     console.log('Connecting to WebSocket:', socketUrl);
 
     this.socket$ = webSocket({

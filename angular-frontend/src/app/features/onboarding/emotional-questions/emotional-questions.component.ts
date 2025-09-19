@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { StorageService } from '../../../core/services/storage.service';
+import { OnboardingApiService, OnboardingData } from '../../../core/services/onboarding-api.service';
 import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skeleton-loader.component';
 
 @Component({
@@ -61,12 +62,17 @@ import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skel
           <p class="hint">Think about communication styles, gestures, or deeper connections.</p>
         </div>
 
+        <!-- Error Display -->
+        <div class="error-message" *ngIf="error" role="alert" aria-live="assertive">
+          <p>{{ error }}</p>
+        </div>
+
         <div class="form-actions">
           <button
             type="submit"
             class="btn btn-primary btn-full"
             [disabled]="!emotionalForm.valid || isSaving">
-            Continue to Personality Assessment
+            {{ isSaving ? 'Completing Your Soul Profile...' : 'Complete Soul Profile' }}
           </button>
         </div>
       </form>
@@ -146,6 +152,20 @@ import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skel
       font-style: italic;
     }
 
+    .error-message {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      color: #dc2626;
+    }
+
+    .error-message p {
+      margin: 0;
+      font-size: 0.875rem;
+    }
+
     .form-actions {
       margin-top: 2rem;
       text-align: center;
@@ -192,12 +212,14 @@ export class EmotionalQuestionsComponent implements OnInit {
 
   emotionalForm!: FormGroup;
   isSaving = false;
+  error: string | null = null;
   private autosaveTimer: any;
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private storage: StorageService
+    private storage: StorageService,
+    private onboardingApi: OnboardingApiService
   ) {}
 
   ngOnInit(): void {
@@ -247,22 +269,55 @@ export class EmotionalQuestionsComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.emotionalForm.valid) {
+    if (this.emotionalForm.valid && !this.isSaving) {
       this.isSaving = true;
-      // Store form data for later submission
-      const emotionalData = this.emotionalForm.value;
-      console.log('Saving emotional data:', emotionalData);
-      this.storage.setJson('onboarding_emotional', emotionalData);
+      this.error = null;
 
-      // Verify data was saved
-      const savedData = this.storage.getJson('onboarding_emotional');
-      console.log('Verified saved emotional data:', savedData);
+      const formData = this.emotionalForm.value;
 
-      // Navigate to next step
-      setTimeout(() => {
-        this.isSaving = false;
-        this.router.navigate(['/onboarding/personality-assessment']);
-      }, 600);
+      // Get additional data from localStorage (interests, etc.)
+      const personalityData = this.storage.getJson('onboarding_personality') || {};
+      const interestsData = this.storage.getJson('onboarding_interests') || [];
+
+      // Combine all onboarding data
+      const onboardingData: OnboardingData = {
+        relationship_values: formData.relationship_values,
+        ideal_evening: formData.ideal_evening,
+        feeling_understood: formData.feeling_understood,
+        core_values: personalityData,
+        personality_traits: personalityData,
+        communication_style: { preferred_style: 'deep_conversation' },
+        interests: Array.isArray(interestsData) ? interestsData : []
+      };
+
+      console.log('Submitting complete onboarding data:', onboardingData);
+
+      // Submit to backend API
+      this.onboardingApi.completeOnboarding(onboardingData).subscribe({
+        next: (response) => {
+          console.log('Onboarding completed successfully:', response);
+
+          // Store form data locally for recovery
+          this.storage.setJson('onboarding_emotional', formData);
+
+          // Clear temporary onboarding data
+          this.storage.removeItem('onboarding_personality');
+          this.storage.removeItem('onboarding_interests');
+
+          this.isSaving = false;
+
+          // Navigate to discovery page
+          this.router.navigate(['/discover']);
+        },
+        error: (error) => {
+          console.error('Onboarding submission failed:', error);
+          this.error = error?.error?.detail || 'Failed to complete onboarding. Please try again.';
+          this.isSaving = false;
+
+          // Still save locally as backup
+          this.storage.setJson('onboarding_emotional', formData);
+        }
+      });
     }
   }
 
