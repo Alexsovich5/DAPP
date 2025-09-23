@@ -286,6 +286,127 @@ export class HapticFeedbackService {
   }
 
   /**
+   * Enhanced match celebration haptic sequence
+   */
+  triggerMatchCelebration(compatibilityScore: number): void {
+    if (!this.canProvideHaptics()) return;
+
+    if (compatibilityScore >= 95) {
+      // Soul mate celebration - magical euphoric pattern
+      this.triggerSoulmateCelebration();
+    } else if (compatibilityScore >= 85) {
+      // Exceptional match - strong celebration burst
+      this.triggerExceptionalMatchCelebration();
+    } else if (compatibilityScore >= 70) {
+      // Good match - joyful celebration
+      this.triggerGoodMatchCelebration();
+    } else {
+      // Standard match - gentle celebration
+      this.triggerStandardMatchCelebration();
+    }
+  }
+
+  /**
+   * Soul mate level match celebration - most euphoric haptic experience
+   */
+  private triggerSoulmateCelebration(): void {
+    // Multi-phase celebration with building intensity
+    setTimeout(() => this.vibrate([100, 50, 120, 50, 150]), 0);
+    setTimeout(() => this.vibrate([80, 40, 100, 40, 130, 40, 160]), 300);
+    setTimeout(() => this.vibrate([60, 30, 90, 30, 120, 30, 150, 30, 120, 30, 90]), 700);
+    setTimeout(() => this.vibrate([40, 20, 60, 20, 80, 20, 100, 20, 80, 20, 60, 20, 40]), 1200);
+  }
+
+  /**
+   * Exceptional match celebration (85-94% compatibility)
+   */
+  private triggerExceptionalMatchCelebration(): void {
+    // Strong, confident celebration pattern
+    setTimeout(() => this.vibrate([80, 40, 100, 40, 120]), 0);
+    setTimeout(() => this.vibrate([60, 30, 90, 30, 110, 30, 90]), 400);
+    setTimeout(() => this.vibrate([50, 25, 75, 25, 100, 25, 75]), 800);
+  }
+
+  /**
+   * Good match celebration (70-84% compatibility)
+   */
+  private triggerGoodMatchCelebration(): void {
+    // Warm, uplifting celebration
+    setTimeout(() => this.vibrate([70, 35, 90, 35, 110]), 0);
+    setTimeout(() => this.vibrate([50, 25, 75, 25, 100]), 350);
+  }
+
+  /**
+   * Standard match celebration (< 70% compatibility)
+   */
+  private triggerStandardMatchCelebration(): void {
+    // Gentle, encouraging celebration
+    this.vibrate([60, 30, 80, 30, 100]);
+  }
+
+  /**
+   * Photo reveal celebration haptic sequence
+   */
+  triggerPhotoRevealCelebration(): void {
+    if (!this.canProvideHaptics()) return;
+
+    // Magical reveal pattern - like unwrapping a gift
+    setTimeout(() => this.vibrate([50, 100, 50]), 0);
+    setTimeout(() => this.vibrate([75, 50, 100, 50, 125]), 200);
+    setTimeout(() => this.vibrate([40, 30, 60, 30, 80, 30, 100]), 500);
+  }
+
+  /**
+   * First message celebration (when users connect and start chatting)
+   */
+  triggerFirstMessageCelebration(): void {
+    if (!this.canProvideHaptics()) return;
+
+    // Warm, connection-building pattern
+    this.vibrate([80, 40, 100, 40, 120, 40, 100, 40, 80]);
+  }
+
+  /**
+   * Mutual interest discovery celebration
+   */
+  triggerMutualInterestCelebration(): void {
+    if (!this.canProvideHaptics()) return;
+
+    // Delightful discovery pattern
+    this.vibrate([60, 20, 80, 20, 100, 20, 120, 20, 100, 20, 80]);
+  }
+
+  /**
+   * Progressive revelation step completion
+   */
+  triggerRevelationStepCelebration(dayNumber: number): void {
+    if (!this.canProvideHaptics()) return;
+
+    // Pattern that builds with each day (1-7)
+    const basePattern = [50, 25];
+    const buildingPattern = [];
+
+    for (let i = 0; i < dayNumber; i++) {
+      buildingPattern.push(50 + (i * 10));
+      buildingPattern.push(25);
+    }
+
+    this.vibrate(buildingPattern);
+  }
+
+  /**
+   * Anniversary celebration (for long-term connections)
+   */
+  triggerAnniversaryCelebration(): void {
+    if (!this.canProvideHaptics()) return;
+
+    // Special commemorative pattern
+    setTimeout(() => this.vibrate([100, 50, 100, 50, 150]), 0);
+    setTimeout(() => this.vibrate([80, 40, 120, 40, 160]), 300);
+    setTimeout(() => this.vibrate([60, 30, 100, 30, 140, 30, 100]), 600);
+  }
+
+  /**
    * Trigger elastic tension feedback (for swipe physics)
    */
   triggerElasticTensionFeedback(tension: number): void {

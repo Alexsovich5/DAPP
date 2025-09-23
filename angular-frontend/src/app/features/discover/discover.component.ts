@@ -16,13 +16,19 @@ import { SoulConnectionService } from '@core/services/soul-connection.service';
 import { AuthService } from '@core/services/auth.service';
 import { ErrorLoggingService } from '@core/services/error-logging.service';
 import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
+import { LoadingStateService } from '@core/services/loading-state.service';
+import { SoulConnectionRealtimeService } from '@core/services/soul-connection-realtime.service';
+import { WebSocketPoolService } from '@core/services/websocket-pool.service';
 import { ErrorBoundaryComponent } from '@shared/components/error-boundary/error-boundary.component';
 import { DiscoverEmptyStateComponent } from './discover-empty-state.component';
 import { SoulLoadingComponent } from '@shared/components/soul-loading/soul-loading.component';
 import { CompatibilityScoreComponent } from '@shared/components/compatibility-score/compatibility-score.component';
 import { SoulOrbComponent } from '@shared/components/soul-orb/soul-orb.component';
+import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skeleton-loader.component';
+import { WebSocketStatusComponent } from '@shared/components/websocket-status/websocket-status.component';
 import { OnboardingTargetDirective } from '@shared/directives/onboarding-target.directive';
 import { SwipeDirective } from '@shared/directives/swipe.directive';
+import { LoadingStateDirective } from '@shared/directives/loading-state.directive';
 import { ABTestDirective, ABTestConfigPipe } from '@shared/directives/ab-test.directive';
 import { SwipeEvent } from '@core/services/swipe-gesture.service';
 import { ABTestingService } from '@core/services/ab-testing.service';
@@ -39,8 +45,18 @@ import { User } from '../../core/interfaces/auth.interfaces';
       <div class="discover-container">
         <!-- Soul Discovery Header -->
         <div class="discovery-header" role="banner">
-          <h1 id="discovery-title">Soul Discovery</h1>
-          <p class="tagline" aria-describedby="discovery-title">Discover connections based on emotional compatibility, not just photos</p>
+          <div class="header-content">
+            <div class="title-section">
+              <h1 id="discovery-title">Soul Discovery</h1>
+              <p class="tagline" aria-describedby="discovery-title">Discover connections based on emotional compatibility, not just photos</p>
+            </div>
+            <app-websocket-status
+              [showText]="false"
+              [showMetrics]="true"
+              [compact]="true"
+              class="realtime-status">
+            </app-websocket-status>
+          </div>
         </div>
 
         <!-- Discovery Filters -->
@@ -163,6 +179,18 @@ import { User } from '../../core/interfaces/auth.interfaces';
           [progressSteps]="4"
           [currentProgress]="loadingProgress">
         </app-soul-loading>
+
+        <!-- Skeleton Loading State (Alternative) -->
+        <div
+          class="discovery-skeletons"
+          *appLoadingState="'discover-souls'"
+          [appLoadingStateSkeleton]="'profile-card'"
+          [appLoadingStateSkeletonCount]="3"
+          [appLoadingStateShowMessage]="true"
+          role="status"
+          aria-label="Loading soul connections">
+          <!-- Skeleton loaders will be injected here -->
+        </div>
 
         <!-- Error State -->
         <div
@@ -462,8 +490,11 @@ import { User } from '../../core/interfaces/auth.interfaces';
     SoulLoadingComponent,
     CompatibilityScoreComponent,
     SoulOrbComponent,
+    SkeletonLoaderComponent,
+    WebSocketStatusComponent,
     OnboardingTargetDirective,
     SwipeDirective,
+    LoadingStateDirective,
     ABTestDirective,
     ABTestConfigPipe
   ],
@@ -519,12 +550,18 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     private readonly authService: AuthService,
     private readonly errorLoggingService: ErrorLoggingService,
     private readonly hapticFeedbackService: HapticFeedbackService,
-    private readonly abTestingService: ABTestingService
+    private readonly abTestingService: ABTestingService,
+    private readonly loadingStateService: LoadingStateService,
+    private readonly soulRealtimeService: SoulConnectionRealtimeService,
+    private readonly wsPoolService: WebSocketPoolService
   ) {}
 
   ngOnInit(): void {
     // Initialize A/B testing
     this.initializeABTesting();
+
+    // Initialize real-time features
+    this.initializeRealtimeFeatures();
 
     // Check authentication and onboarding status
     this.authService.currentUser$.subscribe(user => {
@@ -1177,24 +1214,45 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Enhanced loading with progress updates
+   * Enhanced loading with progress updates and skeleton loaders
    */
   private async loadDiscoveriesWithProgress(): Promise<void> {
     this.isLoading = true;
     this.loadingProgress = 0;
     this.error = null;
 
+    // Start loading state with progress tracking
+    this.loadingStateService.startLoading(
+      LoadingStateService.LOADING_KEYS.DISCOVER_SOULS,
+      LoadingStateService.LOADING_MESSAGES[LoadingStateService.LOADING_KEYS.DISCOVER_SOULS]
+    );
+
     try {
       // Step 1: Analyzing your profile
       this.loadingProgress = 0;
+      this.loadingStateService.updateProgress(
+        LoadingStateService.LOADING_KEYS.DISCOVER_SOULS,
+        20,
+        'Analyzing your soul profile...'
+      );
       await this.delay(800);
 
       // Step 2: Finding compatible souls
       this.loadingProgress = 1;
+      this.loadingStateService.updateProgress(
+        LoadingStateService.LOADING_KEYS.DISCOVER_SOULS,
+        40,
+        'Finding compatible souls...'
+      );
       await this.delay(800);
 
       // Step 3: Calculating compatibility
       this.loadingProgress = 2;
+      this.loadingStateService.updateProgress(
+        LoadingStateService.LOADING_KEYS.DISCOVER_SOULS,
+        70,
+        'Calculating soul compatibility...'
+      );
 
       const discoveries = await new Promise<DiscoveryResponse[]>((resolve, reject) => {
         this.soulConnectionService.discoverSoulConnections(this.discoveryFilters).subscribe({
@@ -1205,6 +1263,11 @@ export class DiscoverComponent implements OnInit, OnDestroy {
 
       // Step 4: Preparing your matches
       this.loadingProgress = 3;
+      this.loadingStateService.updateProgress(
+        LoadingStateService.LOADING_KEYS.DISCOVER_SOULS,
+        90,
+        'Preparing your soul connections...'
+      );
       await this.delay(500);
 
       this.discoveries = discoveries;
@@ -1213,6 +1276,16 @@ export class DiscoverComponent implements OnInit, OnDestroy {
       this.discoveries.forEach(d => {
         this.cardAnimations.set(d.user_id, 'default');
       });
+
+      // Complete loading state
+      this.loadingStateService.updateProgress(
+        LoadingStateService.LOADING_KEYS.DISCOVER_SOULS,
+        100,
+        'Soul connections ready!'
+      );
+
+      // Stop loading state
+      this.loadingStateService.stopLoading(LoadingStateService.LOADING_KEYS.DISCOVER_SOULS);
 
       // Announce results to screen reader
       if (this.discoveries.length === 0) {
@@ -1223,6 +1296,13 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     } catch (error: any) {
       console.error('Discovery error:', error);
       this.error = error.message || 'Failed to load soul connections';
+
+      // Set error state in loading service
+      this.loadingStateService.setError(
+        LoadingStateService.LOADING_KEYS.DISCOVER_SOULS,
+        this.error
+      );
+
       this.announceAction(`Error loading connections: ${this.error}`);
       this.errorLoggingService.logError(error, {
         component: 'discover',
@@ -1248,10 +1328,18 @@ export class DiscoverComponent implements OnInit, OnDestroy {
    * Get swipe configuration for discovery cards
    */
   getSwipeConfig() {
+    // Adaptive configuration based on device capabilities
+    const isMobile = this.isMobileDevice();
+    const screenWidth = window.innerWidth;
+    const isSmallScreen = screenWidth < 768;
+
     return {
-      threshold: 80, // Higher threshold for intentional swipes
-      velocityThreshold: 0.5, // Faster swipe required
-      timeThreshold: 400, // Quick swipe within 400ms
+      // Adaptive threshold based on screen size and device type
+      threshold: isMobile ? (isSmallScreen ? 60 : 70) : 80,
+      // Lower velocity threshold for touch devices for better responsiveness
+      velocityThreshold: isMobile ? 0.3 : 0.5,
+      // Longer time threshold for mobile to accommodate different gesture speeds
+      timeThreshold: isMobile ? 600 : 400,
       enabledDirections: ['left', 'right', 'up'] as ('left' | 'right' | 'up' | 'down')[],
       hapticFeedback: true,
       preventDefaultEvents: true
@@ -1259,70 +1347,147 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Detect if user is on mobile device
+   */
+  private isMobileDevice(): boolean {
+    return 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 768;
+  }
+
+  /**
+   * Reset card visual state after swipe interaction
+   */
+  private resetCardVisuals(element: HTMLElement): void {
+    element.style.transition = '';
+    element.style.transform = '';
+    element.style.opacity = '';
+    element.style.filter = '';
+    element.classList.remove('swipe-left-preview', 'swipe-right-preview', 'swipe-up-preview');
+  }
+
+  /**
    * Handle swipe left gesture (Pass/Reject)
    */
   onSwipeLeft(discovery: DiscoveryResponse, event: SwipeEvent): void {
-    // Add visual feedback
+    // Reset transform and add pass animation
     const element = event.element;
+    this.resetCardVisuals(element);
     element.classList.add('swipe-pass', 'swipe-left-preview');
 
-    // Trigger haptic feedback
+    // Enhanced mobile haptic feedback
     this.hapticFeedbackService.triggerPassFeedback();
 
     // Announce action for accessibility
     this.announceAction(`Passed on ${this.getPartnerName(discovery)}`);
 
+    // Enhanced mobile animation
+    if (this.isMobileDevice()) {
+      element.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+      element.style.transform = 'translateX(-100vw) rotate(-15deg)';
+      element.style.opacity = '0';
+    }
+
     // Perform pass action with animation
     setTimeout(() => {
       this.handlePassAction(discovery);
       element.classList.remove('swipe-pass', 'swipe-left-preview');
-    }, 200);
+    }, this.isMobileDevice() ? 300 : 200);
 
     // Log swipe action
     console.log('Swipe pass action:', {
       userId: discovery.user_id,
       compatibilityScore: discovery.compatibility.total_compatibility,
       swipeVelocity: event.velocity,
-      swipeDistance: event.distance
+      swipeDistance: event.distance,
+      isMobile: this.isMobileDevice()
     });
   }
 
   /**
-   * Handle swipe move to preview physics-based movement
+   * Handle swipe move to preview physics-based movement with enhanced mobile feedback
    */
   onSwipeMove(event: SwipeEvent): void {
     const element = event.element;
     const deltaX = event.deltaX || 0;
     const deltaY = event.deltaY || 0;
-    const rotation = Math.max(-20, Math.min(20, deltaX / 10));
+    const isMobile = this.isMobileDevice();
+
+    // Enhanced mobile responsiveness
+    const sensitivity = isMobile ? 0.8 : 1.0; // Reduce movement sensitivity on mobile
+    const adjustedDeltaX = deltaX * sensitivity;
+    const adjustedDeltaY = deltaY * sensitivity;
+
+    // More subtle rotation for mobile to prevent disorientation
+    const maxRotation = isMobile ? 15 : 20;
+    const rotation = Math.max(-maxRotation, Math.min(maxRotation, adjustedDeltaX / 10));
+
+    // Scale effect based on distance moved
+    const distance = Math.sqrt(adjustedDeltaX * adjustedDeltaX + adjustedDeltaY * adjustedDeltaY);
+    const maxDistance = isMobile ? 120 : 150;
+    const scaleEffect = Math.max(0.95, 1 - (distance / maxDistance) * 0.05);
+
+    // Apply smooth transform with enhanced mobile effects
     element.style.transition = 'transform 0s';
-    element.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotation}deg)`;
+    element.style.transform = `translate(${adjustedDeltaX}px, ${adjustedDeltaY}px) rotate(${rotation}deg) scale(${scaleEffect})`;
+
+    // Enhanced visual feedback based on swipe direction and distance
+    element.style.filter = `brightness(${1 + Math.abs(adjustedDeltaX) / 1000})`;
+
+    // Add directional preview classes for enhanced visual feedback
+    element.classList.remove('swipe-left-preview', 'swipe-right-preview', 'swipe-up-preview');
+
+    const threshold = isMobile ? 40 : 50;
+    if (Math.abs(adjustedDeltaX) > threshold || Math.abs(adjustedDeltaY) > threshold) {
+      if (adjustedDeltaX < -threshold) {
+        element.classList.add('swipe-left-preview');
+      } else if (adjustedDeltaX > threshold) {
+        element.classList.add('swipe-right-preview');
+      } else if (adjustedDeltaY < -threshold) {
+        element.classList.add('swipe-up-preview');
+      }
+    }
   }
 
   /**
    * Handle swipe right gesture (Like/Connect)
    */
   onSwipeRight(discovery: DiscoveryResponse, event: SwipeEvent): void {
-    // Add visual feedback
+    // Reset transform and add connect animation
     const element = event.element;
+    this.resetCardVisuals(element);
     element.classList.add('swipe-like', 'swipe-right-preview');
 
-    // Trigger haptic feedback based on compatibility
+    // Enhanced haptic feedback with match celebration
     const compatibilityScore = discovery.compatibility.total_compatibility;
-    if (compatibilityScore >= 90) {
-      this.hapticFeedbackService.triggerSuccessFeedback(); // Strong feedback for high compatibility
-    } else {
-      this.hapticFeedbackService.triggerSelectionFeedback();
+
+    // Trigger enhanced match celebration haptic sequence
+    this.hapticFeedbackService.triggerMatchCelebration(compatibilityScore);
+
+    // Additional haptic feedback for mutual interests
+    if (discovery.profile_preview.interests && discovery.profile_preview.interests.length > 0) {
+      setTimeout(() => {
+        this.hapticFeedbackService.triggerMutualInterestCelebration();
+      }, 500);
     }
 
     // Announce action for accessibility
     this.announceAction(`Connected with ${this.getPartnerName(discovery)}`);
 
+    // Enhanced mobile animation with heart effect
+    if (this.isMobileDevice()) {
+      element.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+      element.style.transform = 'translateX(100vw) rotate(15deg) scale(1.1)';
+
+      // Add heart animation for high compatibility
+      if (compatibilityScore >= 80) {
+        element.style.filter = 'hue-rotate(320deg) brightness(1.2)';
+      }
+    }
+
     // Perform connect action with animation
     setTimeout(() => {
       this.handleConnectAction(discovery);
       element.classList.remove('swipe-like', 'swipe-right-preview');
-    }, 200);
+    }, this.isMobileDevice() ? 300 : 200);
 
     // Log swipe action
     console.log('Swipe connect action:', {
@@ -1508,5 +1673,141 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     this.announceAction('Action undone.');
     // Focus restored card
     setTimeout(() => this.navigateToCard(index), 0);
+  }
+
+  /**
+   * Initialize real-time WebSocket features for live compatibility updates
+   */
+  private initializeRealtimeFeatures(): void {
+    // Subscribe to real-time compatibility updates for discovered users
+    this.soulRealtimeService.subscribeToCompatibilityUpdates('discovery')
+      .subscribe(update => {
+        this.handleCompatibilityUpdate(update);
+      });
+
+    // Subscribe to presence updates for discovered users
+    this.soulRealtimeService.subscribeToPresenceUpdates(
+      this.discoveries.map(d => d.user_id.toString())
+    ).subscribe(presence => {
+      this.handlePresenceUpdate(presence);
+    });
+
+    // Subscribe to new match notifications
+    this.soulRealtimeService.subscribeToConnectionStateChanges('discovery')
+      .subscribe(update => {
+        if (update.type === 'match_found') {
+          this.handleNewMatchNotification(update);
+        }
+      });
+
+    // Monitor connection health and show status
+    this.soulRealtimeService.getConnectionHealth()
+      .subscribe(health => {
+        if (health === 'disconnected' || health === 'poor') {
+          this.announceAction(`Real-time connection ${health}. Some features may be limited.`);
+        }
+      });
+  }
+
+  /**
+   * Handle real-time compatibility score updates
+   */
+  private handleCompatibilityUpdate(update: any): void {
+    const discoveryIndex = this.discoveries.findIndex(
+      d => d.user_id.toString() === update.connectionId
+    );
+
+    if (discoveryIndex !== -1) {
+      const discovery = this.discoveries[discoveryIndex];
+      const previousScore = discovery.compatibility.total_compatibility;
+
+      // Update the compatibility score
+      discovery.compatibility.total_compatibility = update.newScore;
+      discovery.compatibility.breakdown = update.breakdown;
+
+      // Announce significant changes
+      const scoreDiff = Math.abs(update.newScore - previousScore);
+      if (scoreDiff >= 5) {
+        const direction = update.newScore > previousScore ? 'increased' : 'decreased';
+        this.announceAction(
+          `Compatibility with ${discovery.profile_preview.first_name} ${direction} to ${update.newScore}%`
+        );
+
+        // Add visual indicator for updated card
+        this.cardAnimations.set(discovery.user_id, 'highlight');
+        setTimeout(() => {
+          this.cardAnimations.set(discovery.user_id, 'default');
+        }, 2000);
+      }
+    }
+  }
+
+  /**
+   * Handle user presence updates
+   */
+  private handlePresenceUpdate(presence: any): void {
+    const discoveryIndex = this.discoveries.findIndex(
+      d => d.user_id.toString() === presence.userId
+    );
+
+    if (discoveryIndex !== -1) {
+      const discovery = this.discoveries[discoveryIndex];
+
+      // Add presence indicator to profile preview
+      if (!discovery.profile_preview.presence) {
+        discovery.profile_preview.presence = {};
+      }
+
+      discovery.profile_preview.presence.status = presence.status;
+      discovery.profile_preview.presence.lastSeen = presence.lastSeen;
+      discovery.profile_preview.presence.activity = presence.currentActivity;
+
+      // Announce if user comes online while viewing their card
+      if (presence.status === 'online' && this.currentCardIndex === discoveryIndex) {
+        this.announceAction(`${discovery.profile_preview.first_name} is now online`);
+      }
+    }
+  }
+
+  /**
+   * Handle new match notifications
+   */
+  private handleNewMatchNotification(update: any): void {
+    this.announceAction('New soul match found! Check your connections to see your latest match.');
+
+    // Optionally trigger haptic feedback
+    this.hapticFeedbackService.trigger('connection');
+
+    // Show success animation or notification
+    this.triggerMatchCelebration();
+  }
+
+  /**
+   * Trigger match celebration animation
+   */
+  private triggerMatchCelebration(): void {
+    // Add celebration class to container
+    const container = document.querySelector('.discover-container');
+    if (container) {
+      container.classList.add('match-celebration');
+      setTimeout(() => {
+        container.classList.remove('match-celebration');
+      }, 3000);
+    }
+  }
+
+  /**
+   * Send real-time energy pulse when user interacts with cards
+   */
+  private sendEnergyPulse(discovery: DiscoveryResponse, action: 'view' | 'like' | 'pass'): void {
+    if (this.currentUser) {
+      const energyLevel = action === 'like' ? 5 : action === 'view' ? 3 : 1;
+
+      this.soulRealtimeService.sendEnergyPulse(
+        discovery.user_id.toString(),
+        energyLevel,
+        'left'
+      );
+    }
   }
 }
