@@ -272,8 +272,10 @@ metadata:
   namespace: dinner-first-prod
 type: Opaque
 data:
-  rabbitmq-url: YW1xcDovL3VzZXI6cGFzc0ByYWJiaXRtcS5kaW5uZXItZmlyc3QtbWVzc2FnaW5nLnN2Yy5jbHVzdGVyLmxvY2FsOjU2NzI=  # Base64 encoded
-  encryption-key: ZGlubmVyLWZpcnN0LW1lc3NhZ2UtZW5jcnlwdGlvbi1rZXktMjAyNQ==  # Base64 encoded
+  # Values populated from environment variables via CI/CD pipeline
+  # See .env.messaging.production.example for required variables
+  rabbitmq-url: ${RABBITMQ_URL_B64}
+  encryption-key: ${MESSAGE_ENCRYPTION_KEY_B64}
 ---
 apiVersion: v1
 kind: ServiceAccount
