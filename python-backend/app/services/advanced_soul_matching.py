@@ -487,13 +487,27 @@ class AdvancedSoulMatchingService:
                 starters.append("What's the best advice someone has ever given you?")
                 starters.append("How do you prefer to celebrate good news?")
 
-            # Default starters if none matched
-            if not starters:
-                starters = [
-                    "What's something you're really passionate about right now?",
-                    "What's the most interesting thing that's happened to you this week?",
-                    "If you could learn any new skill instantly, what would it be?",
-                ]
+            # Emotional compatibility starters
+            if any("emotional" in strength.lower() for strength in strengths):
+                starters.append("What makes you feel most understood by someone?")
+                starters.append("How do you show care for people you love?")
+
+            # Ensure minimum number of starters
+            generic_starters = [
+                "What's something you're really passionate about right now?",
+                "What's the most interesting thing that's happened to you this week?",
+                "If you could learn any new skill instantly, what would it be?",
+                "What's a small thing that always brightens your day?",
+                "What's the best piece of advice you'd give to your younger self?",
+            ]
+
+            # Add generic starters if we need more
+            while len(starters) < 3:
+                for starter in generic_starters:
+                    if starter not in starters:
+                        starters.append(starter)
+                        if len(starters) >= 3:
+                            break
 
             # Limit to top 5 most relevant
             return starters[:5]

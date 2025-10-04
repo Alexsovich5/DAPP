@@ -556,6 +556,13 @@ class TestEnhancedMatchQualityService:
         """Test full comprehensive match quality assessment"""
         user1, user2 = high_quality_match_users
 
+        # Create service with mock services
+        enhanced_match_service = EnhancedMatchQualityService(
+            soul_compatibility_service=mock_soul_service,
+            advanced_matching_service_param=mock_advanced_service,
+            emotional_depth_service_param=mock_depth_service
+        )
+
         # Mock service responses
         mock_soul_compat = Mock()
         mock_soul_compat.total_score = 85.0
@@ -581,15 +588,9 @@ class TestEnhancedMatchQualityService:
         mock_depth_compat.user2_depth.confidence = 78.0
 
         # Setup mock returns
-        enhanced_match_service.soul_compatibility_service.calculate_compatibility.return_value = (
-            mock_soul_compat
-        )
-        enhanced_match_service.advanced_matching_service.calculate_advanced_compatibility.return_value = (
-            mock_advanced_compat
-        )
-        enhanced_match_service.emotional_depth_service.calculate_depth_compatibility.return_value = (
-            mock_depth_compat
-        )
+        mock_soul_service.calculate_compatibility.return_value = mock_soul_compat
+        mock_advanced_service.calculate_advanced_compatibility.return_value = mock_advanced_compat
+        mock_depth_service.calculate_depth_compatibility.return_value = mock_depth_compat
 
         # Perform assessment
         result = enhanced_match_service.assess_comprehensive_match_quality(

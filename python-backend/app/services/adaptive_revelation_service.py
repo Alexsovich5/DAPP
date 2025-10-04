@@ -131,7 +131,7 @@ class AdaptiveRevelationEngine:
             db.query(DailyRevelation)
             .filter(
                 and_(
-                    DailyRevelation.user_id == user.id,
+                    DailyRevelation.sender_id == user.id,
                     DailyRevelation.connection_id == connection.id,
                     DailyRevelation.day_number < revelation_day,
                 )
@@ -241,7 +241,18 @@ class AdaptiveRevelationEngine:
         Select the most appropriate revelation theme based on context analysis
         """
         available_themes = self.revelation_themes[revelation_day]
-        user_preferences = context["personalization_profile"].topic_preferences or {}
+
+        # Safe handling of user preferences
+        try:
+            profile = context.get("personalization_profile")
+            if profile and hasattr(profile, 'topic_preferences'):
+                user_preferences = profile.topic_preferences or {}
+                if not isinstance(user_preferences, dict):
+                    user_preferences = {}
+            else:
+                user_preferences = {}
+        except (AttributeError, TypeError):
+            user_preferences = {}
 
         # Score each theme based on user preferences and context
         theme_scores = {}
@@ -250,10 +261,19 @@ class AdaptiveRevelationEngine:
 
             # User preference alignment
             if theme_name in user_preferences:
-                score += user_preferences[theme_name] * 0.4
+                try:
+                    preference_score = float(user_preferences[theme_name]) * 0.4
+                    score += preference_score
+                except (ValueError, TypeError):
+                    score += 0.2  # Default moderate preference
 
             # Compatibility with partner
-            compatibility_bonus = context["compatibility_score"] * 0.3
+            try:
+                compatibility_score = float(context.get("compatibility_score", 0.7))
+            except (ValueError, TypeError):
+                compatibility_score = 0.7  # Default fallback
+
+            compatibility_bonus = compatibility_score * 0.3
             if (
                 theme_data.get("requires_high_compatibility", False)
                 and compatibility_bonus < 0.6
@@ -263,8 +283,10 @@ class AdaptiveRevelationEngine:
                 score += compatibility_bonus * 0.2
 
             # Previous revelation analysis
+            previous_revelations = context.get("previous_revelations") or []
             previous_themes = [
-                rev.revelation_type for rev in context["previous_revelations"]
+                rev.revelation_type for rev in previous_revelations
+                if hasattr(rev, 'revelation_type')
             ]
             if theme_name not in previous_themes:
                 score += 0.2  # Bonus for variety
@@ -272,11 +294,17 @@ class AdaptiveRevelationEngine:
                 score -= 0.1  # Penalty for repetition
 
             # Communication style compatibility
-            comm_style = context[
-                "personalization_profile"
-            ].preferred_communication_style
-            if theme_data.get("communication_style") == comm_style:
-                score += 0.3
+            try:
+                profile = context.get("personalization_profile")
+                comm_style = (
+                    profile.preferred_communication_style
+                    if profile and hasattr(profile, 'preferred_communication_style')
+                    else None
+                )
+                if theme_data.get("communication_style") == comm_style:
+                    score += 0.3
+            except (AttributeError, TypeError):
+                pass  # Skip communication style bonus if data is corrupted
 
             theme_scores[theme_name] = score
 
@@ -611,7 +639,7 @@ class AdaptiveRevelationEngine:
         """
         revelations = (
             db.query(DailyRevelation)
-            .filter(DailyRevelation.user_id == user_id)
+            .filter(DailyRevelation.sender_id == user_id)
             .order_by(DailyRevelation.created_at.desc())
             .limit(20)
             .all()
