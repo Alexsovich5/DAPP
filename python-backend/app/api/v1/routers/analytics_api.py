@@ -53,7 +53,8 @@ async def track_user_event(
 
 @router.get("/user/engagement-score")
 async def get_user_engagement_score(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get current user's engagement score"""
     try:
@@ -77,7 +78,8 @@ async def get_user_engagement_score(
 
 @router.get("/user/insights")
 async def get_user_insights(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get personalized insights for current user"""
     try:
@@ -116,7 +118,10 @@ async def get_dashboard_summary(
 
         return {
             "period": f"Last {days} days",
-            "user": {"engagementScore": user_engagement, "insights": user_insights},
+            "user": {
+                "engagementScore": user_engagement,
+                "insights": user_insights,
+            },
             "system": {
                 "activeUsers": {
                     "daily": engagement_metrics.daily_active_users,
@@ -139,7 +144,8 @@ async def get_dashboard_summary(
 
 @router.get("/metrics/engagement")
 async def get_engagement_metrics(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get overall engagement metrics"""
     try:
@@ -167,7 +173,8 @@ async def get_engagement_metrics(
 
 @router.get("/metrics/connections")
 async def get_connection_metrics(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get soul connection metrics"""
     try:
@@ -197,7 +204,8 @@ async def get_connection_metrics(
 
 @router.get("/metrics/system-health")
 async def get_system_health_metrics(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get system health and performance metrics"""
     try:
@@ -269,7 +277,8 @@ async def track_batch_events(
 
 @router.get("/realtime/active-users")
 async def get_realtime_active_users(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get real-time active user count"""
     try:

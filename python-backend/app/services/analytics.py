@@ -6,9 +6,9 @@ import json
 import logging
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional
 
 import geoip2.database
 import redis
@@ -276,10 +276,14 @@ class AnalyticsService:
 
             # Event counters
             pipe.hincrby(
-                f"metrics:hourly:{hour_key}", f"events:{event_data['event_type']}", 1
+                f"metrics:hourly:{hour_key}",
+                f"events:{event_data['event_type']}",
+                1,
             )
             pipe.hincrby(
-                f"metrics:daily:{day_key}", f"events:{event_data['event_type']}", 1
+                f"metrics:daily:{day_key}",
+                f"events:{event_data['event_type']}",
+                1,
             )
 
             # User activity
@@ -362,7 +366,10 @@ class AnalyticsService:
                     "active_users": active_users_hour,
                     "metrics": hourly_metrics,
                 },
-                "daily": {"active_users": active_users_day, "metrics": daily_metrics},
+                "daily": {
+                    "active_users": active_users_day,
+                    "metrics": daily_metrics,
+                },
             }
 
         except Exception as e:
@@ -484,7 +491,11 @@ class AnalyticsService:
 
         # Store in matching events table
         await self._store_matching_event(
-            user1_id, user2_id, match_type, compatibility_score, algorithm_version
+            user1_id,
+            user2_id,
+            match_type,
+            compatibility_score,
+            algorithm_version,
         )
 
         return await self.track_event(event)
@@ -714,7 +725,10 @@ async def track_request_event(
         session_id=session_id,
         event_type=EventType.PAGE_VIEW,
         event_category=EventCategory.USER_BEHAVIOR,
-        properties={"request_path": request_path, "request_method": request_method},
+        properties={
+            "request_path": request_path,
+            "request_method": request_method,
+        },
         timestamp=datetime.utcnow(),
         page_url=request_path,
     )

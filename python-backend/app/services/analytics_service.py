@@ -8,25 +8,20 @@ import logging
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from app.models.daily_revelation import DailyRevelation
-from app.models.message import Message
-from app.models.realtime_state import AnimationEvent, LiveTypingSession, UserPresence
 from app.models.soul_analytics import (
     AnalyticsEventType,
-    CompatibilityAccuracyTracking,
     EmotionalJourneyTracking,
-    SoulConnectionAnalytics,
     SystemPerformanceMetrics,
     UserEngagementAnalytics,
     UserRetentionMetrics,
 )
 from app.models.soul_connection import SoulConnection
 from app.models.user import User
-from sqlalchemy import and_, asc, desc, func, or_
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
-from sqlalchemy.sql import text
 
 logger = logging.getLogger(__name__)
 
@@ -629,7 +624,8 @@ class AnalyticsService:
                     .filter(
                         UserEngagementAnalytics.user_id == user_id,
                         UserEngagementAnalytics.created_at.between(
-                            user.created_at, user.created_at + timedelta(days=1)
+                            user.created_at,
+                            user.created_at + timedelta(days=1),
                         ),
                     )
                     .first()
@@ -644,7 +640,8 @@ class AnalyticsService:
                     .filter(
                         UserEngagementAnalytics.user_id == user_id,
                         UserEngagementAnalytics.created_at.between(
-                            user.created_at, user.created_at + timedelta(days=7)
+                            user.created_at,
+                            user.created_at + timedelta(days=7),
                         ),
                     )
                     .first()
@@ -658,7 +655,8 @@ class AnalyticsService:
                     .filter(
                         UserEngagementAnalytics.user_id == user_id,
                         UserEngagementAnalytics.created_at.between(
-                            user.created_at, user.created_at + timedelta(days=30)
+                            user.created_at,
+                            user.created_at + timedelta(days=30),
                         ),
                     )
                     .first()
@@ -891,7 +889,7 @@ class AnalyticsService:
             "trend": (
                 "increasing"
                 if weeks_data[0] > weeks_data[-1]
-                else "decreasing" if weeks_data[0] < weeks_data[-1] else "stable"
+                else ("decreasing" if weeks_data[0] < weeks_data[-1] else "stable")
             ),
         }
 
@@ -923,10 +921,8 @@ class AnalyticsService:
             from app.models.ab_testing import (
                 Experiment,
                 ExperimentEvent,
-                ExperimentVariant,
                 UserAssignment,
             )
-            from sqlalchemy import func
 
             # Get experiment
             experiment = (
@@ -976,7 +972,8 @@ class AnalyticsService:
 
             # Statistical significance calculation
             control_variant = next(
-                (v for v in variants_data if v["variant_type"] == "control"), None
+                (v for v in variants_data if v["variant_type"] == "control"),
+                None,
             )
             treatment_variants = [
                 v for v in variants_data if v["variant_type"] == "treatment"
@@ -1070,7 +1067,7 @@ class AnalyticsService:
     ) -> bool:
         """Track A/B test event and metrics"""
         try:
-            import uuid
+            pass
 
             from app.models.ab_testing import (
                 Experiment,

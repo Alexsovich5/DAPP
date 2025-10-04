@@ -9,14 +9,13 @@ import hashlib
 # import io
 import json
 import logging
-from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
+from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from functools import wraps
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import redis
-from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -359,7 +358,8 @@ class MobileAPIService:
             "first_name": match_data.get("first_name"),
             "age": match_data.get("age"),
             "photos": await self._optimize_photo_urls(
-                match_data.get("photos", [])[:3], config  # Max 3 photos for matches
+                match_data.get("photos", [])[:3],
+                config,  # Max 3 photos for matches
             ),
             "compatibility_score": match_data.get("compatibility_score"),
             "distance_km": match_data.get("distance_km"),
@@ -384,7 +384,8 @@ class MobileAPIService:
             "first_name": user_data.get("first_name"),
             "age": user_data.get("age"),
             "photos": await self._optimize_photo_urls(
-                user_data.get("photos", [])[:4], config  # Max 4 photos for discovery
+                user_data.get("photos", [])[:4],
+                config,  # Max 4 photos for discovery
             ),
             "bio_preview": self._truncate_text(user_data.get("bio", ""), 60),
             "interests_preview": user_data.get("interests", [])[:3],
@@ -413,7 +414,8 @@ class MobileAPIService:
                 "url": optimized_url,
                 "thumbnail_url": f"{photo['url']}?w=200&q={max(60, config.image_quality-20)}&fm=webp",
                 "width": min(
-                    photo.get("width", config.max_image_size), config.max_image_size
+                    photo.get("width", config.max_image_size),
+                    config.max_image_size,
                 ),
                 "height": self._calculate_optimized_height(
                     photo.get("width", config.max_image_size),
@@ -466,7 +468,10 @@ class MobileAPIService:
         return text[: max_length - 3] + "..."
 
     def _generate_profile_cache_key(
-        self, user_id: int, client_info: MobileClientInfo, config: OptimizationConfig
+        self,
+        user_id: int,
+        client_info: MobileClientInfo,
+        config: OptimizationConfig,
     ) -> str:
         """Generate cache key for profile data"""
         key_components = [

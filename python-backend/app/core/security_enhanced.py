@@ -9,16 +9,14 @@ import re
 
 # import secrets
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
 
 import redis
 from cryptography.fernet import Fernet
-from fastapi import HTTPException, Request
-from fastapi_limiter import FastAPILimiter
+from fastapi import Request
 from fastapi_limiter.depends import RateLimiter
-from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +153,7 @@ class DatingPlatformSecurity:
 
     async def detect_account_takeover(self, user_id: int, request: Request) -> bool:
         """Detect potential account takeover attempts"""
-        cache_key = f"login_pattern:{user_id}"
+        _ = f"login_pattern:{user_id}"
 
         # Get recent login data
         recent_logins = await self._get_recent_logins(user_id)
@@ -313,7 +311,7 @@ class DatingPlatformSecurity:
         self, user_id: int, action: str, metadata: Dict
     ) -> Dict:
         """Comprehensive behavioral analysis for threat detection"""
-        behavior_key = f"behavior:{user_id}"
+        _ = f"behavior:{user_id}"
 
         # Store action in behavior history
         await self._store_user_action(user_id, action, metadata)
@@ -367,10 +365,16 @@ class DatingPlatformSecurity:
         # Determine risk level and actions
         if analysis["behavioral_score"] > 60:
             analysis["risk_level"] = SecurityLevel.CRITICAL
-            analysis["recommended_actions"] = ["suspend_account", "manual_review"]
+            analysis["recommended_actions"] = [
+                "suspend_account",
+                "manual_review",
+            ]
         elif analysis["behavioral_score"] > 40:
             analysis["risk_level"] = SecurityLevel.HIGH
-            analysis["recommended_actions"] = ["limit_actions", "increase_monitoring"]
+            analysis["recommended_actions"] = [
+                "limit_actions",
+                "increase_monitoring",
+            ]
         elif analysis["behavioral_score"] > 20:
             analysis["risk_level"] = SecurityLevel.MEDIUM
             analysis["recommended_actions"] = ["monitor_closely"]

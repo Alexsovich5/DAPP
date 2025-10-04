@@ -35,7 +35,8 @@ logger = logging.getLogger(__name__)
 
 @router.get("/profile", response_model=UIProfileResponse)
 async def get_ui_profile(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get user's UI personalization profile"""
     try:
@@ -108,7 +109,9 @@ async def generate_ui_personalizations(
     """Generate UI personalizations based on user behavior"""
     try:
         personalizations = await ui_personalization_engine.generate_ui_personalizations(
-            user_id=current_user.id, current_context=request.current_context, db=db
+            user_id=current_user.id,
+            current_context=request.current_context,
+            db=db,
         )
 
         return UIPersonalizationResponse(
@@ -283,7 +286,11 @@ async def update_ui_preferences(
                 old_value = getattr(ui_profile, field)
                 setattr(ui_profile, field, value)
                 updated_fields.append(
-                    {"field": field, "old_value": old_value, "new_value": value}
+                    {
+                        "field": field,
+                        "old_value": old_value,
+                        "new_value": value,
+                    }
                 )
 
         # Record the preference change as a personalization event
@@ -375,7 +382,8 @@ async def submit_personalization_feedback(
 
 @router.get("/ab-tests")
 async def get_active_ab_tests(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get active A/B tests for UI personalization"""
     try:

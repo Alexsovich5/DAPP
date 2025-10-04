@@ -4,14 +4,15 @@ Security Headers Test Script
 Tests that all security headers are properly implemented in the Dinner First API
 """
 
-import json
 import sys
-from typing import Dict, List, Tuple
+from typing import Dict
 
 import requests
 
 
-def test_security_headers(base_url: str = "http://localhost:5000") -> Dict[str, bool]:
+def test_security_headers(
+    base_url: str = "http://localhost:5000",
+) -> Dict[str, bool]:
     """
     Test all security headers on the API endpoints
 
@@ -24,7 +25,12 @@ def test_security_headers(base_url: str = "http://localhost:5000") -> Dict[str, 
     results = {}
 
     # Test endpoints
-    endpoints = ["/", "/health", "/api/v1/docs", "/api/v1/auth/login"]  # POST endpoint
+    endpoints = [
+        "/",
+        "/health",
+        "/api/v1/docs",
+        "/api/v1/auth/login",
+    ]  # POST endpoint
 
     print(f"🔒 Testing Security Headers for {base_url}")
     print("=" * 60)
@@ -80,7 +86,7 @@ def test_security_headers(base_url: str = "http://localhost:5000") -> Dict[str, 
                 "Access-Control-Allow-Headers": "CORS headers",
             }
 
-            print(f"   \n   CORS Headers:")
+            print("   \n   CORS Headers:")
             for header, description in cors_headers.items():
                 present = header in headers
                 status = "✅" if present else "❌"
@@ -89,7 +95,7 @@ def test_security_headers(base_url: str = "http://localhost:5000") -> Dict[str, 
 
             # Check for removed/secured headers
             insecure_headers = ["Server", "X-Powered-By"]
-            print(f"   \n   Security Header Removal:")
+            print("   \n   Security Header Removal:")
             for header in insecure_headers:
                 removed = header not in headers
                 status = "✅" if removed else "⚠️"
@@ -105,11 +111,13 @@ def test_security_headers(base_url: str = "http://localhost:5000") -> Dict[str, 
     return results
 
 
-def test_cors_preflight(base_url: str = "http://localhost:5000") -> Dict[str, any]:
+def test_cors_preflight(
+    base_url: str = "http://localhost:5000",
+) -> Dict[str, any]:
     """
     Test CORS preflight requests
     """
-    print(f"\n🌐 Testing CORS Preflight Requests")
+    print("\n🌐 Testing CORS Preflight Requests")
     print("=" * 40)
 
     try:
@@ -139,7 +147,10 @@ def test_cors_preflight(base_url: str = "http://localhost:5000") -> Dict[str, an
             status = "✅" if value != "NOT PRESENT" else "❌"
             print(f"{status} {header}: {value}")
 
-        return {"status_code": response.status_code, "headers": dict(response.headers)}
+        return {
+            "status_code": response.status_code,
+            "headers": dict(response.headers),
+        }
 
     except requests.exceptions.RequestException as e:
         print(f"❌ Error testing CORS preflight: {str(e)}")
@@ -150,10 +161,10 @@ def generate_security_report(results: Dict[str, any]) -> None:
     """
     Generate a summary security report
     """
-    print(f"\n📊 Security Headers Summary Report")
+    print("\n📊 Security Headers Summary Report")
     print("=" * 50)
 
-    total_endpoints = len(results)
+    len(results)
     total_headers_checked = 0
     total_headers_present = 0
 
@@ -171,7 +182,7 @@ def generate_security_report(results: Dict[str, any]) -> None:
         )
 
     # Security recommendations
-    print(f"\n🛡️  Security Recommendations:")
+    print("\n🛡️  Security Recommendations:")
     print("- Ensure HTTPS is enabled in production")
     print("- Verify CSP policy allows necessary resources only")
     print("- Test CORS configuration with actual frontend domain")
@@ -211,7 +222,7 @@ if __name__ == "__main__":
         # Generate report
         generate_security_report(header_results)
 
-        print(f"\n✅ Security test completed successfully!")
+        print("\n✅ Security test completed successfully!")
         print(f"💡 Run with: python test_security_headers.py {base_url}")
 
     except Exception as e:

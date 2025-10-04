@@ -97,7 +97,11 @@ async def validation_error_handler(request: Request, exc: ValidationError):
     for error in exc.errors():
         field_path = " -> ".join(str(loc) for loc in error["loc"])
         error_details.append(
-            {"field": field_path, "message": error["msg"], "type": error["type"]}
+            {
+                "field": field_path,
+                "message": error["msg"],
+                "type": error["type"],
+            }
         )
 
     return JSONResponse(

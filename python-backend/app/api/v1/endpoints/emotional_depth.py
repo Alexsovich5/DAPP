@@ -194,7 +194,8 @@ async def analyze_depth_compatibility(
 
 @router.get("/summary/me", response_model=Dict[str, Any])
 async def get_my_emotional_depth_summary(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get a summary of the current user's emotional depth profile.
@@ -250,7 +251,9 @@ async def get_my_emotional_depth_summary(
 # Helper functions for response formatting
 
 
-def _generate_personal_insights(depth_metrics: EmotionalDepthMetrics) -> List[str]:
+def _generate_personal_insights(
+    depth_metrics: EmotionalDepthMetrics,
+) -> List[str]:
     """Generate personalized insights based on depth analysis"""
     insights = []
 
@@ -280,7 +283,9 @@ def _generate_personal_insights(depth_metrics: EmotionalDepthMetrics) -> List[st
     return insights[:3]  # Return top 3 insights
 
 
-def _generate_depth_recommendations(depth_metrics: EmotionalDepthMetrics) -> List[str]:
+def _generate_depth_recommendations(
+    depth_metrics: EmotionalDepthMetrics,
+) -> List[str]:
     """Generate recommendations for emotional depth development"""
     recommendations = []
 

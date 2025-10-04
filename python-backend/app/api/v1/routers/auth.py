@@ -7,7 +7,6 @@ from app.core.database import get_db
 from app.core.security import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     create_access_token,
-    create_refresh_token,
     get_password_hash,
     verify_password,
     verify_token,
@@ -163,7 +162,9 @@ def login(
 
 
 @router.get("/me", response_model=UserSchema)
-def get_current_user_info(current_user: User = Depends(get_current_user)) -> Any:
+def get_current_user_info(
+    current_user: User = Depends(get_current_user),
+) -> Any:
     """Get current user information."""
     return current_user
 
@@ -187,20 +188,23 @@ def refresh_access_token(
         payload = verify_token(refresh_token)
         if not payload:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid refresh token",
             )
 
         # Check if token is actually a refresh token
         if payload.get("type") != "refresh":
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type"
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token type",
             )
 
         # Get user email from token
         user_email = payload.get("sub")
         if not user_email:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token payload",
             )
 
         # Verify user exists and is active

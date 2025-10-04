@@ -10,23 +10,16 @@ import math
 import random
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
-from app.models.ai_models import (
-    BehavioralPattern,
-    CompatibilityPrediction,
-    MLModel,
-    ModelPrediction,
-    PersonalizedRecommendation,
-    UserProfile,
-)
+from app.models.ai_models import CompatibilityPrediction, UserProfile
 from app.models.daily_revelation import DailyRevelation
 from app.models.message import Message
 from app.models.soul_analytics import AnalyticsEventType
 from app.models.soul_connection import SoulConnection
 from app.models.user import User
 from app.services.analytics_service import analytics_service
-from sqlalchemy import and_, desc, func, or_
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -115,7 +108,7 @@ class AIMatchingService:
             )
 
             # Analyze behavioral patterns
-            behavior_analysis = await self._analyze_behavioral_patterns(user_id, db)
+            await self._analyze_behavioral_patterns(user_id, db)
 
             # Generate embeddings
             personality_vector = await self._generate_personality_embedding(
@@ -299,7 +292,7 @@ class AIMatchingService:
     ) -> List[MatchRecommendation]:
         """Generate AI-powered personalized match recommendations"""
         try:
-            user_profile = await self._ensure_user_profile(user_id, db)
+            await self._ensure_user_profile(user_id, db)
 
             # Get potential matches (users not already connected)
             existing_connections = (
@@ -368,7 +361,8 @@ class AIMatchingService:
 
             # Sort by compatibility score and confidence
             recommendations.sort(
-                key=lambda x: (x.compatibility_score * x.confidence_level), reverse=True
+                key=lambda x: (x.compatibility_score * x.confidence_level),
+                reverse=True,
             )
 
             # Limit results
@@ -417,7 +411,10 @@ class AIMatchingService:
             # Message patterns
             messages = (
                 db.query(Message)
-                .filter(Message.sender_id == user_id, Message.created_at >= cutoff_date)
+                .filter(
+                    Message.sender_id == user_id,
+                    Message.created_at >= cutoff_date,
+                )
                 .all()
             )
 
@@ -623,9 +620,20 @@ class AIMatchingService:
         )
 
         # Attachment style (simplified)
-        secure_keywords = ["trust", "secure", "comfortable", "open", "reliable"]
+        secure_keywords = [
+            "trust",
+            "secure",
+            "comfortable",
+            "open",
+            "reliable",
+        ]
         anxious_keywords = ["worry", "anxious", "need", "fear", "clingy"]
-        avoidant_keywords = ["independent", "space", "alone", "self-sufficient"]
+        avoidant_keywords = [
+            "independent",
+            "space",
+            "alone",
+            "self-sufficient",
+        ]
 
         secure_score = self._calculate_keyword_score(text_content, secure_keywords)
         anxious_score = self._calculate_keyword_score(text_content, anxious_keywords)
@@ -844,13 +852,43 @@ class AIMatchingService:
         text_content = " ".join([r.content for r in revelations if r.content])
 
         value_categories = {
-            "family": ["family", "children", "parents", "siblings", "relatives"],
+            "family": [
+                "family",
+                "children",
+                "parents",
+                "siblings",
+                "relatives",
+            ],
             "career": ["work", "career", "success", "achievement", "goals"],
-            "spirituality": ["spiritual", "faith", "believe", "religion", "soul"],
-            "health": ["health", "fitness", "wellness", "exercise", "nutrition"],
+            "spirituality": [
+                "spiritual",
+                "faith",
+                "believe",
+                "religion",
+                "soul",
+            ],
+            "health": [
+                "health",
+                "fitness",
+                "wellness",
+                "exercise",
+                "nutrition",
+            ],
             "creativity": ["creative", "art", "music", "write", "create"],
-            "adventure": ["adventure", "travel", "explore", "new", "experience"],
-            "security": ["security", "stable", "safe", "comfortable", "secure"],
+            "adventure": [
+                "adventure",
+                "travel",
+                "explore",
+                "new",
+                "experience",
+            ],
+            "security": [
+                "security",
+                "stable",
+                "safe",
+                "comfortable",
+                "secure",
+            ],
             "freedom": ["freedom", "independent", "free", "liberty", "choice"],
         }
 
@@ -1269,7 +1307,10 @@ class AIMatchingService:
         return reasons[:4]  # Return max 4 reasons
 
     def _generate_potential_challenges(
-        self, profile1: UserProfile, profile2: UserProfile, conflict_prediction: float
+        self,
+        profile1: UserProfile,
+        profile2: UserProfile,
+        conflict_prediction: float,
     ) -> List[str]:
         """Generate potential relationship challenges"""
         challenges = []

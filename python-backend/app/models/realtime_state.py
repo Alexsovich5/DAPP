@@ -4,7 +4,7 @@ Support typing indicators, presence, and live connection states
 """
 
 import enum
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from app.core.database import Base
 from sqlalchemy import (

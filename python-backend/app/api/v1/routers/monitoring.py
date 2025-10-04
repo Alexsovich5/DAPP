@@ -6,11 +6,11 @@ import asyncio
 # import json
 import logging
 import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from datetime import datetime
+from typing import Dict
 
 import psutil
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -209,44 +209,44 @@ async def get_prometheus_metrics():
 
         # Application metrics
         metrics_lines.append(
-            f"# HELP dinner_first_requests_total Total number of requests"
+            "# HELP dinner_first_requests_total Total number of requests"
         )
-        metrics_lines.append(f"# TYPE dinner_first_requests_total counter")
+        metrics_lines.append("# TYPE dinner_first_requests_total counter")
         metrics_lines.append(
             f"dinner_first_requests_total {metrics_store['requests_total']}"
         )
 
-        metrics_lines.append(f"# HELP dinner_first_errors_total Total number of errors")
-        metrics_lines.append(f"# TYPE dinner_first_errors_total counter")
+        metrics_lines.append("# HELP dinner_first_errors_total Total number of errors")
+        metrics_lines.append("# TYPE dinner_first_errors_total counter")
         metrics_lines.append(
             f"dinner_first_errors_total {metrics_store['errors_total']}"
         )
 
-        metrics_lines.append(f"# HELP dinner_first_active_users Number of active users")
-        metrics_lines.append(f"# TYPE dinner_first_active_users gauge")
+        metrics_lines.append("# HELP dinner_first_active_users Number of active users")
+        metrics_lines.append("# TYPE dinner_first_active_users gauge")
         metrics_lines.append(
             f"dinner_first_active_users {metrics_store['active_users']}"
         )
 
         # System metrics
         metrics_lines.append(
-            f"# HELP dinner_first_cpu_usage_percent CPU usage percentage"
+            "# HELP dinner_first_cpu_usage_percent CPU usage percentage"
         )
-        metrics_lines.append(f"# TYPE dinner_first_cpu_usage_percent gauge")
+        metrics_lines.append("# TYPE dinner_first_cpu_usage_percent gauge")
         metrics_lines.append(f"dinner_first_cpu_usage_percent {psutil.cpu_percent()}")
 
         metrics_lines.append(
-            f"# HELP dinner_first_memory_usage_percent Memory usage percentage"
+            "# HELP dinner_first_memory_usage_percent Memory usage percentage"
         )
-        metrics_lines.append(f"# TYPE dinner_first_memory_usage_percent gauge")
+        metrics_lines.append("# TYPE dinner_first_memory_usage_percent gauge")
         metrics_lines.append(
             f"dinner_first_memory_usage_percent {psutil.virtual_memory().percent}"
         )
 
         # Database metrics
         db_metrics = await get_database_metrics()
-        metrics_lines.append(f"# HELP dinner_first_db_connections Database connections")
-        metrics_lines.append(f"# TYPE dinner_first_db_connections gauge")
+        metrics_lines.append("# HELP dinner_first_db_connections Database connections")
+        metrics_lines.append("# TYPE dinner_first_db_connections gauge")
         metrics_lines.append(
             f"dinner_first_db_connections {db_metrics.get('active_connections', 0)}"
         )
@@ -630,6 +630,6 @@ async def track_request_metrics(request, call_next):
 
         return response
 
-    except Exception as e:
+    except Exception:
         metrics_store["errors_total"] += 1
         raise

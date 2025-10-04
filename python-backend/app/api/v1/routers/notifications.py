@@ -95,7 +95,8 @@ async def subscribe_to_notifications(
             }
         else:
             raise HTTPException(
-                status_code=400, detail="Failed to subscribe to push notifications"
+                status_code=400,
+                detail="Failed to subscribe to push notifications",
             )
 
     except Exception as e:
@@ -234,7 +235,8 @@ async def send_bulk_notifications(
 
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Failed to send bulk notifications: {str(e)}"
+            status_code=500,
+            detail=f"Failed to send bulk notifications: {str(e)}",
         )
 
 
@@ -378,7 +380,9 @@ async def send_revelation_reminder(
 
 
 @router.get("/preferences", response_model=NotificationPreferencesResponse)
-async def get_notification_preferences(current_user: User = Depends(get_current_user)):
+async def get_notification_preferences(
+    current_user: User = Depends(get_current_user),
+):
     """
     Get user's notification preferences
     """
@@ -450,7 +454,8 @@ async def update_notification_preferences(
             }
         else:
             raise HTTPException(
-                status_code=400, detail="Failed to update notification preferences"
+                status_code=400,
+                detail="Failed to update notification preferences",
             )
 
     except Exception as e:
@@ -517,7 +522,8 @@ async def track_notification_click(
 
 @router.get("/subscriptions")
 async def get_user_subscriptions(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get user's active push subscriptions
@@ -546,7 +552,7 @@ async def get_user_subscriptions(
                     ),
                     "user_agent": sub.user_agent,
                     "created_at": sub.created_at.isoformat(),
-                    "last_used": sub.last_used.isoformat() if sub.last_used else None,
+                    "last_used": (sub.last_used.isoformat() if sub.last_used else None),
                 }
             )
 
@@ -564,7 +570,8 @@ async def get_user_subscriptions(
 
 @router.post("/test")
 async def test_notification(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Send a test notification to verify push setup
@@ -583,7 +590,10 @@ async def test_notification(
         )
 
         if success:
-            return {"success": True, "message": "Test notification sent successfully"}
+            return {
+                "success": True,
+                "message": "Test notification sent successfully",
+            }
         else:
             raise HTTPException(
                 status_code=400,

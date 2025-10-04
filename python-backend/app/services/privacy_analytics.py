@@ -9,7 +9,7 @@ import uuid
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 
 import redis
 from clickhouse_driver import Client
@@ -298,7 +298,10 @@ class PrivacyCompliantAnalyticsService:
             return False
 
     async def collect_analytics_event(
-        self, user_id: int, event_data: Dict[str, Any], required_consent: ConsentType
+        self,
+        user_id: int,
+        event_data: Dict[str, Any],
+        required_consent: ConsentType,
     ) -> bool:
         """
         Collect analytics event only if user has appropriate consent
@@ -315,7 +318,10 @@ class PrivacyCompliantAnalyticsService:
                     user_id,
                     "data_collection_rejected",
                     "analytics_event",
-                    {"reason": "no_consent", "consent_type": required_consent.value},
+                    {
+                        "reason": "no_consent",
+                        "consent_type": required_consent.value,
+                    },
                 )
                 return False
 
@@ -333,7 +339,10 @@ class PrivacyCompliantAnalyticsService:
                 "consent_version": await self._get_user_consent_version(user_id),
             }
 
-            final_event_data = {**encrypted_data, "privacy_metadata": privacy_metadata}
+            final_event_data = {
+                **encrypted_data,
+                "privacy_metadata": privacy_metadata,
+            }
 
             # Store in analytics system
             await self._store_privacy_compliant_event(user_id, final_event_data)
@@ -386,7 +395,9 @@ class PrivacyCompliantAnalyticsService:
                     cleanup_results["processed_policies"].append(
                         {
                             "data_type": data_type,
-                            "anonymized": anonymized_count if anonymization_date else 0,
+                            "anonymized": (
+                                anonymized_count if anonymization_date else 0
+                            ),
                             "deleted": deleted_count,
                         }
                     )
@@ -449,7 +460,7 @@ class PrivacyCompliantAnalyticsService:
             )  # 2 years
 
             # Also store in ClickHouse for audit trail
-            consent_record = {
+            _ = {
                 "consent_id": consent.consent_id,
                 "user_id": consent.user_id,
                 "consent_types": [ct.value for ct in consent.consent_types],
@@ -681,23 +692,19 @@ class PrivacyCompliantAnalyticsService:
         """Anonymize user events"""
         # Replace user_id with anonymous_id in user_events table
         # Remove IP addresses, user agents, and other PII
-        pass
 
     async def _anonymize_profile_interactions(self, user_id: int, anonymous_id: str):
         """Anonymize profile interactions"""
         # Replace user IDs with anonymous IDs
         # Keep interaction patterns but remove identifying information
-        pass
 
     async def _anonymize_message_events(self, user_id: int, anonymous_id: str):
         """Anonymize message events"""
         # Remove message content, keep metadata for analytics
-        pass
 
     async def _anonymize_business_events(self, user_id: int, anonymous_id: str):
         """Anonymize business events"""
         # Keep transaction data for accounting, anonymize user references
-        pass
 
     def _apply_data_minimization(
         self, event_data: Dict[str, Any], consent_type: ConsentType
@@ -726,7 +733,12 @@ class PrivacyCompliantAnalyticsService:
         encrypted_data = data.copy()
 
         # Fields that should be encrypted
-        sensitive_fields = ["ip_address", "user_agent", "location", "device_id"]
+        sensitive_fields = [
+            "ip_address",
+            "user_agent",
+            "location",
+            "device_id",
+        ]
 
         for field in sensitive_fields:
             if field in encrypted_data:
@@ -757,7 +769,7 @@ class PrivacyCompliantAnalyticsService:
             )
 
             # Store audit log
-            audit_key = f"privacy_audit:{audit_log.audit_id}"
+            _ = f"privacy_audit:{audit_log.audit_id}"
             audit_data = asdict(audit_log)
             audit_data["timestamp"] = audit_log.timestamp.isoformat()
 
@@ -789,17 +801,14 @@ class PrivacyCompliantAnalyticsService:
         """Store analytics event with privacy compliance"""
         # This would store the event in the analytics system
         # with proper privacy metadata and encryption
-        pass
 
     async def _delete_personalization_data(self, user_id: int):
         """Delete personalization data for a user"""
         # Remove recommendation models, preference data, etc.
-        pass
 
     async def _delete_marketing_data(self, user_id: int):
         """Delete marketing data for a user"""
         # Remove marketing preferences, campaign data, etc.
-        pass
 
     async def _get_user_profile_data(self, user_id: int) -> Dict[str, Any]:
         """Get user's profile data for access request"""
@@ -825,10 +834,12 @@ class PrivacyCompliantAnalyticsService:
     async def _delete_user_data_type(self, user_id: int, data_type: str):
         """Delete specific data type for a user"""
         # Implementation would delete from appropriate tables
-        pass
 
     async def _anonymize_old_data(
-        self, data_type: str, anonymization_date: datetime, deletion_date: datetime
+        self,
+        data_type: str,
+        anonymization_date: datetime,
+        deletion_date: datetime,
     ) -> int:
         """Anonymize old data based on retention policy"""
         # Mock implementation

@@ -20,7 +20,10 @@ def test_create_match(client, test_user, auth_headers):
 def test_create_invalid_match(client, test_user, auth_headers):
     """Test creating a match with invalid data"""
     # Test self-match
-    data = {"recipient_id": test_user["user_id"], "restaurant_preference": "Italian"}
+    data = {
+        "recipient_id": test_user["user_id"],
+        "restaurant_preference": "Italian",
+    }
     response = client.post("/api/v1/matches/", json=data, headers=auth_headers)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["detail"] == "Cannot create a match with yourself"

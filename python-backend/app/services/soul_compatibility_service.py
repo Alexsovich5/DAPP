@@ -58,7 +58,12 @@ class SoulCompatibilityService:
         }
 
         # Threshold levels
-        self.thresholds = {"soulmate": 90.0, "high": 75.0, "medium": 60.0, "low": 40.0}
+        self.thresholds = {
+            "soulmate": 90.0,
+            "high": 75.0,
+            "medium": 60.0,
+            "low": 40.0,
+        }
 
         # Value keywords for semantic matching
         self.value_keywords = self._initialize_value_keywords()
@@ -232,7 +237,11 @@ class SoulCompatibilityService:
                         if set1 and set2:
                             # Check for direct conflicts
                             conflicts = {
-                                "commitment": {"freedom", "independence", "adventure"},
+                                "commitment": {
+                                    "freedom",
+                                    "independence",
+                                    "adventure",
+                                },
                                 "stability": {
                                     "adventure",
                                     "travel",
@@ -958,7 +967,12 @@ class SoulCompatibilityService:
 
     def _compare_response_expectations(self, response1: str, response2: str) -> float:
         """Compare response time expectations"""
-        response_scores = {"immediate": 4, "quick": 3, "moderate": 2, "flexible": 1}
+        response_scores = {
+            "immediate": 4,
+            "quick": 3,
+            "moderate": 2,
+            "flexible": 1,
+        }
 
         score1 = response_scores.get(response1, 2)
         score2 = response_scores.get(response2, 2)

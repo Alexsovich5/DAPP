@@ -4,22 +4,19 @@ Comprehensive test of the Soul Before Skin photo reveal timeline
 """
 
 import asyncio
-import json
 from datetime import datetime, timedelta
 
-from app.core.database import SessionLocal, get_db
+from app.core.database import SessionLocal
 from app.models.daily_revelation import DailyRevelation
 from app.models.photo_reveal import (
     PhotoConsentType,
     PhotoPrivacyLevel,
-    PhotoRevealStage,
     PhotoRevealTimeline,
     UserPhoto,
 )
 from app.models.soul_connection import SoulConnection
 from app.models.user import User
 from app.services.photo_reveal_service import photo_reveal_service
-from sqlalchemy.orm import Session
 
 
 async def test_photo_reveal_workflow():
@@ -100,7 +97,11 @@ async def test_photo_reveal_workflow():
                 "user": user1,
                 "content": "I find peace in quiet moments together",
             },
-            {"day": 4, "user": user2, "content": "Laughter is my love language"},
+            {
+                "day": 4,
+                "user": user2,
+                "content": "Laughter is my love language",
+            },
             {
                 "day": 5,
                 "user": user1,
@@ -161,7 +162,7 @@ async def test_photo_reveal_workflow():
         db.add(user2_photo)
         db.commit()
 
-        print(f"   ✅ Photos uploaded for both users")
+        print("   ✅ Photos uploaded for both users")
         print(f"   📸 {user1.first_name}: {user1_photo.original_filename}")
         print(f"   📸 {user2.first_name}: {user2_photo.original_filename}")
 
@@ -194,7 +195,7 @@ async def test_photo_reveal_workflow():
         )
 
         if consent_result.success:
-            print(f"   ✅ Consent request sent successfully")
+            print("   ✅ Consent request sent successfully")
             print(f"   📩 Request ID: {consent_result.request_id}")
             print(f"   ⏰ Expires: {consent_result.expires_at}")
         else:
@@ -213,7 +214,7 @@ async def test_photo_reveal_workflow():
             )
 
             if response_result["success"]:
-                print(f"   ✅ Consent granted successfully")
+                print("   ✅ Consent granted successfully")
                 print(
                     f"   💕 Mutual consent achieved: {response_result['mutual_consent_achieved']}"
                 )
@@ -292,7 +293,7 @@ async def test_photo_reveal_workflow():
             db.query(User).filter(User.id.in_([user1.id, user2.id])).delete()
             db.commit()
             print("\n🧹 Test data cleaned up")
-        except:
+        except Exception:
             pass
 
         db.close()

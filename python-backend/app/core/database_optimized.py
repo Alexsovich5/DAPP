@@ -8,7 +8,7 @@ import logging
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from functools import wraps
 from typing import Any, Dict, Generator, List, Optional
 
@@ -18,7 +18,7 @@ from redis.exceptions import RedisError
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import QueuePool, StaticPool
+from sqlalchemy.pool import QueuePool
 
 logger = logging.getLogger(__name__)
 
@@ -830,7 +830,7 @@ class DatabaseOptimizer:
                                     "calls": int(row.calls),
                                     "total_exec_time_ms": float(row.total_exec_time),
                                     "mean_exec_time_ms": float(row.mean_exec_time),
-                                    "rows_affected": int(row.rows) if row.rows else 0,
+                                    "rows_affected": (int(row.rows) if row.rows else 0),
                                     "cache_hit_percent": (
                                         float(row.hit_percent)
                                         if row.hit_percent
@@ -993,7 +993,9 @@ def cached_query(cache_key_prefix: str, ttl: int = 300):
 
             optimizer = get_database_optimizer()
             return optimizer.query_with_cache(
-                cache_key, lambda session: func(session, *args[1:], **kwargs), ttl
+                cache_key,
+                lambda session: func(session, *args[1:], **kwargs),
+                ttl,
             )
 
         return wrapper

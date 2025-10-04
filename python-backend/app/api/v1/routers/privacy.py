@@ -204,7 +204,10 @@ async def submit_data_subject_request(
         )
 
         # Process request in background for non-urgent requests
-        if request_type in [DataSubjectRight.ACCESS, DataSubjectRight.DATA_PORTABILITY]:
+        if request_type in [
+            DataSubjectRight.ACCESS,
+            DataSubjectRight.DATA_PORTABILITY,
+        ]:
             background_tasks.add_task(
                 privacy_service.process_data_subject_request, privacy_request
             )
@@ -324,7 +327,8 @@ async def update_privacy_preferences(
         for update in consent_updates:
             if update["action"] == "grant":
                 result = await privacy_service.collect_user_consent(
-                    user_id=current_user.id, consent_categories=[update["category"]]
+                    user_id=current_user.id,
+                    consent_categories=[update["category"]],
                 )
             else:
                 result = await privacy_service.withdraw_consent(
@@ -373,7 +377,7 @@ async def request_data_rectification(
             notes=f"Field: {request.field_name}, Current: {request.current_value}, Correct: {request.correct_value}, Reason: {request.reason}",
         )
 
-        result = await privacy_service.process_data_subject_request(privacy_request)
+        await privacy_service.process_data_subject_request(privacy_request)
 
         return {
             "success": True,
@@ -458,7 +462,8 @@ async def request_account_deletion(
             f"Error processing account deletion for user {current_user.id}: {str(e)}"
         )
         raise HTTPException(
-            status_code=500, detail="Failed to process account deletion request"
+            status_code=500,
+            detail="Failed to process account deletion request",
         )
 
 

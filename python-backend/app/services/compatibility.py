@@ -1,6 +1,5 @@
 # import re
-from datetime import datetime
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 
 class CompatibilityCalculator:
@@ -30,7 +29,14 @@ class CompatibilityCalculator:
                     "committed",
                     "stable",
                 ],
-                "growth": ["learn", "improve", "develop", "evolve", "grow", "better"],
+                "growth": [
+                    "learn",
+                    "improve",
+                    "develop",
+                    "evolve",
+                    "grow",
+                    "better",
+                ],
                 "adventure": [
                     "explore",
                     "travel",
@@ -277,7 +283,8 @@ class CompatibilityCalculator:
         )
 
         values_score = self.calculate_values_compatibility(
-            user1_data.get("core_values", {}), user2_data.get("core_values", {})
+            user1_data.get("core_values", {}),
+            user2_data.get("core_values", {}),
         )
 
         demographic_score = self.calculate_demographic_compatibility(
@@ -326,7 +333,11 @@ class CompatibilityCalculator:
             return "Explore Further"
 
     def _generate_compatibility_explanation(
-        self, total: float, interests: float, values: float, demographics: float
+        self,
+        total: float,
+        interests: float,
+        values: float,
+        demographics: float,
     ) -> str:
         """Generate human-readable explanation of compatibility."""
         explanations = []

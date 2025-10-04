@@ -9,8 +9,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-# Test database URL
-SQLALCHEMY_DATABASE_URL = "postgresql://postgres:postgres@localhost/test_dinner_app"
+# Test database URL - use main database for testing
+SQLALCHEMY_DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/dinner_first"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

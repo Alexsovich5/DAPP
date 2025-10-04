@@ -7,15 +7,15 @@ Soul-themed messaging with emotional context and real-time delivery
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from app.models.message import Message
 from app.models.soul_analytics import AnalyticsEventType
 from app.models.soul_connection import SoulConnection
-from app.models.user import User, UserEmotionalState
+from app.models.user import User
 from app.services.analytics_service import analytics_service
 from app.services.realtime_connection_manager import MessageType, realtime_manager
-from sqlalchemy import and_, desc, or_
+from sqlalchemy import desc, or_
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -357,7 +357,7 @@ class MessageService:
                     ),
                     total_messages=connection.total_messages_exchanged,
                     last_message_at=connection.last_message_at,
-                    last_message_content=last_message.content if last_message else "",
+                    last_message_content=(last_message.content if last_message else ""),
                     unread_count=unread_count,
                     emotional_energy=connection.current_energy_level,
                     conversation_stage=connection.stage,
@@ -428,7 +428,7 @@ class MessageService:
             if not connection:
                 return False
 
-            partner_id = connection.get_partner_id(user_id)
+            connection.get_partner_id(user_id)
 
             # Broadcast typing status to partner
             await realtime_manager.handle_typing_indicator(

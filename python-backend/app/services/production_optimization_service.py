@@ -10,28 +10,18 @@ import logging
 
 # import time
 from datetime import datetime, timedelta
-from decimal import Decimal
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 import psutil
 from app.models.production_optimization_models import (
-    BackupOperation,
-    CacheEntry,
-    CDNConfiguration,
-    DatabaseOptimization,
-    LoadBalancingConfig,
     MetricType,
     MonitoringStatus,
-    OptimizationType,
     PerformanceMetric,
-    SecurityAudit,
-    SecurityLevel,
     SystemMonitoring,
 )
-from app.models.user import User
 
 # import redis
-from sqlalchemy import and_, desc, func, or_, text
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -56,9 +46,17 @@ class ProductionOptimizationEngine:
         }
 
         self.optimization_strategies = {
-            "database": ["query_optimization", "indexing", "connection_pooling"],
+            "database": [
+                "query_optimization",
+                "indexing",
+                "connection_pooling",
+            ],
             "caching": ["redis_caching", "application_caching", "cdn_caching"],
-            "api": ["rate_limiting", "response_compression", "async_processing"],
+            "api": [
+                "rate_limiting",
+                "response_compression",
+                "async_processing",
+            ],
             "security": [
                 "input_validation",
                 "authentication",
@@ -478,7 +476,11 @@ class ProductionOptimizationEngine:
         """Configure backup and disaster recovery systems"""
         backup_config = {
             "environment": environment,
-            "backup_types": ["database_backup", "file_backup", "configuration_backup"],
+            "backup_types": [
+                "database_backup",
+                "file_backup",
+                "configuration_backup",
+            ],
             "backup_frequency": {
                 "database": "daily",
                 "files": "weekly",
@@ -505,7 +507,11 @@ class ProductionOptimizationEngine:
             "health_checks": True,
             "failover": True,
             "sticky_sessions": False,
-            "configuration": {"check_interval": 30, "timeout": 5, "retries": 3},
+            "configuration": {
+                "check_interval": 30,
+                "timeout": 5,
+                "retries": 3,
+            },
         }
 
         return load_balancing_config
@@ -564,7 +570,10 @@ class ProductionOptimizationEngine:
             }
         except Exception as e:
             logger.warning(f"Could not fetch database performance metrics: {str(e)}")
-            return {"status": "monitoring_unavailable", "estimated_performance": "good"}
+            return {
+                "status": "monitoring_unavailable",
+                "estimated_performance": "good",
+            }
 
     async def _monitor_system_resources(self) -> Dict[str, Any]:
         """Monitor system resource usage"""

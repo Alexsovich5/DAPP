@@ -488,7 +488,10 @@ class MLModelRegistry:
             # test traffic)
             new_model = await self.get_model_version(model_name, new_version)
             if not new_model:
-                return {"new_model_better": False, "reason": "New model not found"}
+                return {
+                    "new_model_better": False,
+                    "reason": "New model not found",
+                }
 
             # Compare metrics
             current_score = (
@@ -607,7 +610,11 @@ class MLModelRegistry:
         )
 
     async def _log_ab_test_result(
-        self, model_name: str, current_version: str, new_version: str, result: Dict
+        self,
+        model_name: str,
+        current_version: str,
+        new_version: str,
+        result: Dict,
     ):
         """Log A/B test results for analysis"""
         cluster = await self.redis_client.get_cluster(3)  # Analytics database

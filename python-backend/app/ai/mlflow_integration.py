@@ -156,7 +156,11 @@ class MLflowExperimentManager:
         mlflow.log_artifacts(local_path, artifact_path)
 
     async def log_model(
-        self, model: Any, artifact_path: str, model_type: str = "sklearn", **kwargs
+        self,
+        model: Any,
+        artifact_path: str,
+        model_type: str = "sklearn",
+        **kwargs,
     ):
         """Log a model to the current MLflow run"""
         if model_type == "sklearn":
@@ -229,7 +233,9 @@ class MLflowModelRegistry:
 
             if description:
                 self.client.update_model_version(
-                    name=name, version=model_version.version, description=description
+                    name=name,
+                    version=model_version.version,
+                    description=description,
                 )
 
             # Cache model version metadata
@@ -450,7 +456,9 @@ class ABTestingFramework:
         # Store assignment
         assignment = {"model_version": model_version, "variant": model_variant}
         await self.redis_client.set(
-            assignment_key, json.dumps(assignment), ex=86400 * config["duration_days"]
+            assignment_key,
+            json.dumps(assignment),
+            ex=86400 * config["duration_days"],
         )
 
         return model_version, model_variant
@@ -534,7 +542,11 @@ class ABTestingFramework:
         return [json.loads(outcome) for outcome in outcomes_data]
 
     async def _update_ab_test_metrics(
-        self, test_id: str, variant: str, outcome_value: float, outcome_type: str
+        self,
+        test_id: str,
+        variant: str,
+        outcome_value: float,
+        outcome_type: str,
     ):
         """Update aggregate metrics for A/B test"""
         metrics_key = f"ab_test:metrics:{test_id}:{variant}"
@@ -544,7 +556,11 @@ class ABTestingFramework:
         if current_metrics:
             metrics = json.loads(current_metrics)
         else:
-            metrics = {"total_samples": 0, "total_value": 0.0, "conversions": 0}
+            metrics = {
+                "total_samples": 0,
+                "total_value": 0.0,
+                "conversions": 0,
+            }
 
         # Update metrics
         metrics["total_samples"] += 1

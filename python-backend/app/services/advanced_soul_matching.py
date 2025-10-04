@@ -13,14 +13,11 @@ import logging
 
 # import math
 # import re
-from collections import Counter, defaultdict
-from dataclasses import asdict, dataclass
-from datetime import date, datetime, time
+from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional
 
-from app.models.daily_revelation import DailyRevelation
-from app.models.soul_connection import ConnectionEnergyLevel, SoulConnection
+from app.models.soul_connection import ConnectionEnergyLevel
 from app.models.user import User
 from app.services.soul_compatibility_service import (
     CompatibilityScore,
@@ -149,7 +146,11 @@ class AdvancedSoulMatchingService:
 
             # Generate advanced insights
             relationship_prediction = self._predict_relationship_dynamic(
-                user1, user2, enhanced_total, ei_compatibility, growth_potential
+                user1,
+                user2,
+                enhanced_total,
+                ei_compatibility,
+                growth_potential,
             )
 
             growth_timeline = self._predict_growth_timeline(
@@ -157,7 +158,10 @@ class AdvancedSoulMatchingService:
             )
 
             recommended_first_date = self._suggest_first_date_type(
-                user1, user2, base_score.interests_score, base_score.personality_score
+                user1,
+                user2,
+                base_score.interests_score,
+                base_score.personality_score,
             )
 
             conversation_starters = self._generate_conversation_starters(
@@ -222,7 +226,9 @@ class AdvancedSoulMatchingService:
             )
 
             regulation_compat = self._calculate_ei_dimension_compatibility(
-                ei1.emotional_regulation, ei2.emotional_regulation, "complementary"
+                ei1.emotional_regulation,
+                ei2.emotional_regulation,
+                "complementary",
             )
 
             social_compat = self._calculate_ei_dimension_compatibility(
@@ -408,7 +414,11 @@ class AdvancedSoulMatchingService:
             return "Connection with Potential - Requires getting to know each other"
 
     def _suggest_first_date_type(
-        self, user1: User, user2: User, interests_score: float, personality_score: float
+        self,
+        user1: User,
+        user2: User,
+        interests_score: float,
+        personality_score: float,
     ) -> str:
         """Suggest optimal first date type based on compatibility analysis"""
         try:
@@ -811,7 +821,9 @@ class AdvancedSoulMatchingService:
         else:
             return "Slow development requiring significant mutual effort"
 
-    def _default_advanced_compatibility_score(self) -> AdvancedCompatibilityScore:
+    def _default_advanced_compatibility_score(
+        self,
+    ) -> AdvancedCompatibilityScore:
         """Return default advanced compatibility score when calculation fails"""
         return AdvancedCompatibilityScore(
             # Base metrics

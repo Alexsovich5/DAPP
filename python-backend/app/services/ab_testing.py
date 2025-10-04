@@ -6,7 +6,7 @@ import json
 import logging
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -380,7 +380,10 @@ class ABTestingService:
             return False
 
     async def calculate_statistical_significance(
-        self, experiment_id: str, metric_name: str, confidence_level: float = 0.95
+        self,
+        experiment_id: str,
+        metric_name: str,
+        confidence_level: float = 0.95,
     ) -> Dict[str, Any]:
         """
         Calculate statistical significance for an experiment's primary metric
@@ -467,7 +470,9 @@ class ABTestingService:
                         )
 
                         ci_lower, ci_upper = self._confidence_interval(
-                            treatment_conversions, treatment_exposures, confidence_level
+                            treatment_conversions,
+                            treatment_exposures,
+                            confidence_level,
                         )
 
                         is_significant = p_value < (1 - confidence_level)
@@ -878,7 +883,8 @@ class ABTestingService:
             }
 
             self.clickhouse.execute(
-                "INSERT INTO experiment_assignments VALUES", [assignment_record]
+                "INSERT INTO experiment_assignments VALUES",
+                [assignment_record],
             )
 
         except Exception as e:
@@ -1089,7 +1095,7 @@ class ABTestingService:
         try:
             # This would query ClickHouse for experiment data
             # For now, return mock data structure
-            query = """
+            _ = """
             SELECT
                 variant,
                 count(DISTINCT user_id) as exposures,

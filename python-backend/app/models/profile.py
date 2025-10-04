@@ -40,7 +40,9 @@ class Profile(Base):
     # Verification fields
     is_verified = Column(Boolean, default=False)
     verification_status = Column(
-        Enum(VerificationStatus), default=VerificationStatus.UNVERIFIED, nullable=False
+        Enum(VerificationStatus),
+        default=VerificationStatus.UNVERIFIED,
+        nullable=False,
     )
     verification_date = Column(DateTime, nullable=True)
     verification_method = Column(String, nullable=True)

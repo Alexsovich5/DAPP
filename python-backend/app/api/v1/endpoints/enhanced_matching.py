@@ -26,7 +26,8 @@ USERS_NOT_FOUND_ERROR = "One or both users not found"
 
 
 @router.get(
-    "/comprehensive-analysis/{user1_id}/{user2_id}", response_model=Dict[str, Any]
+    "/comprehensive-analysis/{user1_id}/{user2_id}",
+    response_model=Dict[str, Any],
 )
 async def get_comprehensive_match_analysis(
     user1_id: int,
@@ -284,7 +285,8 @@ async def get_connection_guidance(
 
 
 @router.get(
-    "/compatibility-breakdown/{user1_id}/{user2_id}", response_model=Dict[str, Any]
+    "/compatibility-breakdown/{user1_id}/{user2_id}",
+    response_model=Dict[str, Any],
 )
 async def get_compatibility_breakdown(
     user1_id: int,
@@ -426,7 +428,9 @@ def _get_confidence_description(confidence: float) -> str:
         return "Lower confidence - more data would improve accuracy"
 
 
-def _get_interaction_style_recommendation(match_quality: EnhancedMatchQuality) -> str:
+def _get_interaction_style_recommendation(
+    match_quality: EnhancedMatchQuality,
+) -> str:
     """Recommend interaction style based on match analysis"""
     if match_quality.match_quality_tier in [
         MatchQualityTier.TRANSCENDENT,
@@ -441,7 +445,9 @@ def _get_interaction_style_recommendation(match_quality: EnhancedMatchQuality) -
         return "Start with light conversation and build trust gradually"
 
 
-def _identify_success_factors(match_quality: EnhancedMatchQuality) -> List[str]:
+def _identify_success_factors(
+    match_quality: EnhancedMatchQuality,
+) -> List[str]:
     """Identify key factors for relationship success"""
     factors = []
 
@@ -459,6 +465,10 @@ def _identify_success_factors(match_quality: EnhancedMatchQuality) -> List[str]:
 
     # Default factors if none identified
     if not factors:
-        factors = ["Open communication", "Mutual respect", "Patience with differences"]
+        factors = [
+            "Open communication",
+            "Mutual respect",
+            "Patience with differences",
+        ]
 
     return factors[:4]  # Return top 4 factors

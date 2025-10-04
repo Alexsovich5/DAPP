@@ -11,5 +11,7 @@ router = APIRouter()
 
 # Include the enhanced matching endpoints
 router.include_router(
-    enhanced_matching_router, prefix="/enhanced-matching", tags=["enhanced-matching"]
+    enhanced_matching_router,
+    prefix="/enhanced-matching",
+    tags=["enhanced-matching"],
 )

@@ -128,7 +128,10 @@ async def upload_photo(
     """
     try:
         result = await photo_reveal_service.upload_user_photo(
-            user_id=current_user.id, photo_file=file, is_primary=is_primary, db=db
+            user_id=current_user.id,
+            photo_file=file,
+            is_primary=is_primary,
+            db=db,
         )
 
         return PhotoUploadResponse(**result.__dict__)
@@ -143,7 +146,8 @@ async def upload_photo(
 
 @router.get("/my-photos")
 async def get_my_photos(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get current user's uploaded photos with metadata"""
     try:
@@ -387,7 +391,9 @@ async def give_photo_consent(
             # Withdraw consent
             reason = consent_data.get("reason", "User withdrew consent")
             result = photo_reveal_service.withdraw_consent(
-                connection_id=connection_id, user_id=current_user.id, reason=reason
+                connection_id=connection_id,
+                user_id=current_user.id,
+                reason=reason,
             )
 
             return {
@@ -465,7 +471,9 @@ async def request_photo_consent(
             "request_id": result.request_id,
             "status": result.status,
             "message": result.message,
-            "expires_at": result.expires_at.isoformat() if result.expires_at else None,
+            "expires_at": (
+                result.expires_at.isoformat() if result.expires_at else None
+            ),
             "can_retry_at": (
                 result.can_retry_at.isoformat() if result.can_retry_at else None
             ),
@@ -516,7 +524,8 @@ async def respond_to_consent_request(
 
         if not result["success"]:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail=result["message"]
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=result["message"],
             )
 
         return result
@@ -533,7 +542,8 @@ async def respond_to_consent_request(
 
 @router.get("/consent/pending")
 async def get_pending_consent_requests(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get pending photo consent requests for current user"""
     try:
@@ -643,7 +653,8 @@ async def get_photo_with_privacy(
 
 @router.get("/permissions/active")
 async def get_active_photo_permissions(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get active photo viewing permissions for current user"""
     try:
@@ -704,7 +715,8 @@ async def get_active_photo_permissions(
 
 @router.post("/admin/process-automatic-reveals")
 async def process_automatic_reveals(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Process automatic photo reveals for eligible timelines

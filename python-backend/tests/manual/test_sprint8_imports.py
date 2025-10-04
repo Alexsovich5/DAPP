@@ -5,7 +5,6 @@ Tests if Sprint 8 microservices components can be imported safely in CI environm
 """
 
 import importlib.util
-import os
 import sys
 from unittest.mock import Mock
 
@@ -55,13 +54,14 @@ def test_sprint8_components():
 
     # Get the correct path relative to script location
     import os
+
     script_dir = os.path.dirname(os.path.abspath(__file__))
     backend_dir = os.path.dirname(os.path.dirname(script_dir))
-    
+
     test_files = [
         os.path.join(backend_dir, "app/core/redis_cluster_manager.py"),
         os.path.join(backend_dir, "app/core/event_publisher.py"),
-        os.path.join(backend_dir, "app/ai/sentiment_analysis.py"), 
+        os.path.join(backend_dir, "app/ai/sentiment_analysis.py"),
         os.path.join(backend_dir, "app/ai/ml_model_registry.py"),
         os.path.join(backend_dir, "app/core/advanced_caching.py"),
     ]
