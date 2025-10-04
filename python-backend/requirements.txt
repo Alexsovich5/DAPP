@@ -35,9 +35,7 @@ freezegun>=1.2.2  # Time mocking for tests
 sqlalchemy-utils>=0.41.1  # Database utilities for testing
 
 # Sprint 8: Microservices Architecture Dependencies
-aioredis>=2.0.1  # Async Redis client
-redis>=5.0.1  # Redis Python client
-redis-py-cluster>=2.1.3  # Redis cluster support
+redis>=5.0.1  # Redis Python client with built-in cluster support
 pika>=1.3.2  # RabbitMQ client for event-driven architecture
 celery>=5.3.4  # Distributed task queue
 transformers>=4.35.0  # Hugging Face transformers for sentiment analysis

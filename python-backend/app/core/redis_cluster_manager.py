@@ -11,14 +11,14 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
 try:
-    import aioredis
-    from aioredis.exceptions import RedisError
+    from redis.asyncio import Redis as AsyncRedis
+    from redis.exceptions import RedisError
 except ImportError:
-    aioredis = None
+    AsyncRedis = None
     RedisError = Exception
 
 try:
-    from rediscluster import RedisCluster
+    from redis.cluster import RedisCluster
 except ImportError:
     RedisCluster = None
 
@@ -55,7 +55,7 @@ class RedisClusterManager:
         ]
 
         # Connection pools for different databases
-        self._connection_pools: Dict[DatabaseType, aioredis.ConnectionPool] = {}
+        self._connection_pools: Dict[DatabaseType, Any] = {}
         self._cluster_clients: Dict[DatabaseType, RedisCluster] = {}
 
         # Performance monitoring
@@ -109,8 +109,8 @@ class RedisClusterManager:
         for db_type in DatabaseType:
             config = self._db_configs[db_type]
 
-            # Create async connection pool
-            pool = aioredis.ConnectionPool.from_url(
+            # Create async Redis client
+            client = AsyncRedis.from_url(
                 f"redis://:{self._get_redis_password()}@{self.cluster_nodes[0]['host']}:"
                 f"{self.cluster_nodes[0]['port']}/{db_type.value}",
                 max_connections=config["max_connections"],
@@ -122,8 +122,9 @@ class RedisClusterManager:
                     3: 5,  # TCP_KEEPCNT
                 },
                 health_check_interval=30,
+                decode_responses=True,
             )
-            self._connection_pools[db_type] = pool
+            self._connection_pools[db_type] = client
 
             # Create cluster client for synchronous operations
             cluster_client = RedisCluster(
@@ -141,12 +142,12 @@ class RedisClusterManager:
 
         return os.getenv("REDIS_PASSWORD", "dinner_first_redis_2025")
 
-    async def get_client(self, db_type: DatabaseType) -> aioredis.Redis:
+    async def get_client(self, db_type: DatabaseType) -> AsyncRedis:
         """Get async Redis client for specific database type"""
         if db_type not in self._connection_pools:
             raise ValueError(f"Unknown database type: {db_type}")
 
-        return aioredis.Redis(connection_pool=self._connection_pools[db_type])
+        return self._connection_pools[db_type]
 
     def get_cluster_client(self, db_type: DatabaseType) -> RedisCluster:
         """Get synchronous Redis cluster client for specific database type"""
@@ -487,11 +488,11 @@ class RedisClusterManager:
 
     async def close_connections(self):
         """Close all Redis connections"""
-        for pool in self._connection_pools.values():
-            await pool.disconnect()
+        for client in self._connection_pools.values():
+            await client.close()
 
-        for client in self._cluster_clients.values():
-            client.connection_pool.disconnect()
+        for cluster_client in self._cluster_clients.values():
+            await cluster_client.close()
 
         logger.info("All Redis connections closed")
 
