@@ -10,7 +10,9 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatChipsModule } from '@angular/material/chips';
-import { ProfileService } from '../../core/services/profile.service';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { ProfileService, UserProfileData } from '../../core/services/profile.service';
+import { AuthService } from '../../core/services/auth.service';
 
 interface ProfilePictureResponse {
   message: string;
@@ -33,7 +35,8 @@ interface ProfilePictureResponse {
     MatProgressBarModule,
     MatSelectModule,
     MatSliderModule,
-    MatChipsModule
+    MatChipsModule,
+    MatSlideToggleModule
   ]
 })
 export class ProfileComponent implements OnInit {
@@ -43,6 +46,7 @@ export class ProfileComponent implements OnInit {
   error: string | null = null;
   uploadError: string | null = null;
   successMessage: string | null = null;
+  currentUser: UserProfileData | null = null;
 
   readonly dietaryOptions = [
     'vegetarian', 'vegan', 'pescatarian', 'gluten-free',
@@ -52,7 +56,11 @@ export class ProfileComponent implements OnInit {
 
   readonly genderOptions = ['male', 'female', 'non-binary'];
 
-  constructor(private readonly fb: FormBuilder, private readonly profileService: ProfileService) {
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly profileService: ProfileService,
+    private readonly authService: AuthService
+  ) {
     this.profileForm = this.fb.group({
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
@@ -61,6 +69,20 @@ export class ProfileComponent implements OnInit {
       profilePicture: [null],
       interests: [[]],
       dietaryPreferences: [[]],
+
+      // Soul Before Skin fields
+      soulProfileVisibility: ['discovery'],
+      photoSharingConsent: [false],
+      coreValues: this.fb.group({
+        relationshipValues: [''],
+        idealEvening: [''],
+        feelingUnderstood: ['']
+      }),
+      communicationStyle: this.fb.group({
+        preferredStyle: ['deep_conversation'],
+        responsePreference: ['flexible']
+      }),
+
       locationPreferences: this.fb.group({
         city: ['', [Validators.required]],
         maxDistance: [30, [Validators.min(5), Validators.max(100)]]
@@ -83,7 +105,27 @@ export class ProfileComponent implements OnInit {
     this.isLoading = true;
     this.profileService.getProfile().subscribe({
       next: (profile) => {
-        this.profileForm.patchValue(profile);
+        this.currentUser = profile;
+
+        // Map profile data to form structure
+        const formData = {
+          ...profile,
+          firstName: profile.first_name,
+          lastName: profile.last_name,
+          soulProfileVisibility: profile.soul_profile_visibility || 'discovery',
+          photoSharingConsent: profile.photo_sharing_consent || false,
+          coreValues: {
+            relationshipValues: profile.emotional_responses?.relationship_values || '',
+            idealEvening: profile.emotional_responses?.ideal_evening || '',
+            feelingUnderstood: profile.emotional_responses?.feeling_understood || ''
+          },
+          communicationStyle: {
+            preferredStyle: profile.communication_style?.preferred_style || 'deep_conversation',
+            responsePreference: profile.communication_style?.response_preference || 'flexible'
+          }
+        };
+
+        this.profileForm.patchValue(formData);
       },
       error: (err) => {
         this.error = err.message ?? 'Failed to load profile';
@@ -127,7 +169,20 @@ export class ProfileComponent implements OnInit {
         interests: formValue.interests || [],
         dietary_preferences: formValue.dietaryPreferences || [],
         gender: formValue.gender,
-        date_of_birth: formValue.dateOfBirth
+        date_of_birth: formValue.dateOfBirth,
+
+        // Soul Before Skin fields
+        emotional_responses: {
+          relationship_values: formValue.coreValues?.relationshipValues,
+          ideal_evening: formValue.coreValues?.idealEvening,
+          feeling_understood: formValue.coreValues?.feelingUnderstood
+        },
+        communication_style: {
+          preferred_style: formValue.communicationStyle?.preferredStyle,
+          response_preference: formValue.communicationStyle?.responsePreference
+        },
+        soul_profile_visibility: formValue.soulProfileVisibility,
+        photo_sharing_consent: formValue.photoSharingConsent
       };
 
       this.profileService.updateProfile(profileData).subscribe({
@@ -174,5 +229,14 @@ export class ProfileComponent implements OnInit {
       return value.name;
     }
     return value.split('/').pop() ?? 'No file selected';
+  }
+
+  getDepthScoreDescription(score: number): string {
+    if (score >= 90) return 'Exceptional emotional depth and self-awareness';
+    if (score >= 80) return 'High emotional intelligence and introspection';
+    if (score >= 70) return 'Good emotional awareness and connection ability';
+    if (score >= 60) return 'Developing emotional depth and understanding';
+    if (score >= 50) return 'Basic emotional awareness with room for growth';
+    return 'Early stages of emotional self-discovery';
   }
 }

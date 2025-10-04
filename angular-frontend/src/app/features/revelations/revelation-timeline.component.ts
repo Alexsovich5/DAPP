@@ -699,6 +699,8 @@ export class RevelationTimelineComponent implements OnInit, OnDestroy {
   @Input() partnerName: string | null = null;
   @Input() canShareToday = true;
   @Input() isPhotoRevealReady = false;
+  @Input() connectionData: any = null; // Soul connection data with consent status
+  @Input() currentUserId: number | null = null;
 
   @Output() dayClicked = new EventEmitter<RevelationDayData>();
   @Output() shareRevelation = new EventEmitter<number>();
@@ -853,6 +855,8 @@ export class RevelationTimelineComponent implements OnInit, OnDestroy {
   }
 
   givePhotoConsent(): void {
+    if (this.hasGivenConsent()) return;
+
     this.hapticService.triggerSuccessFeedback();
     this.photoConsentGiven.emit();
   }
@@ -891,13 +895,28 @@ export class RevelationTimelineComponent implements OnInit, OnDestroy {
   }
 
   isMutualConsentGiven(): boolean {
-    // This would be determined by the backend data
-    return false; // Placeholder
+    if (!this.connectionData) return false;
+
+    // Check if both users have given photo consent
+    return this.connectionData.user1_photo_consent && this.connectionData.user2_photo_consent;
   }
 
   hasGivenConsent(): boolean {
-    // This would track user's consent status
-    return false; // Placeholder
+    if (!this.connectionData) return false;
+
+    // Check if current user has given consent
+    // Assuming we have a way to identify the current user
+    const currentUserId = this.getCurrentUserId(); // We'll need to inject this
+
+    if (this.connectionData.user1_id === currentUserId) {
+      return this.connectionData.user1_photo_consent;
+    } else {
+      return this.connectionData.user2_photo_consent;
+    }
+  }
+
+  private getCurrentUserId(): number {
+    return this.currentUserId || 0;
   }
 
   getSnippet(content: string | null): string {

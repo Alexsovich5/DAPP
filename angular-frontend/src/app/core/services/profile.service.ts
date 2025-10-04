@@ -22,6 +22,16 @@ export interface UserProfileData {
   is_profile_complete: boolean;
   created_at?: string;
   updated_at?: string;
+
+  // Soul Before Skin specific fields
+  emotional_onboarding_completed?: boolean;
+  emotional_depth_score?: number;
+  core_values?: Record<string, any>;
+  personality_traits?: Record<string, any>;
+  communication_style?: Record<string, any>;
+  emotional_responses?: Record<string, string>;
+  soul_profile_visibility?: 'hidden' | 'connections_only' | 'discovery' | 'public';
+  photo_sharing_consent?: boolean;
 }
 
 export interface ProfileUpdateData {
@@ -33,6 +43,21 @@ export interface ProfileUpdateData {
   dietary_preferences?: string[];
   gender?: string;
   date_of_birth?: string;
+
+  // Soul Before Skin fields
+  core_values?: Record<string, any>;
+  personality_traits?: Record<string, any>;
+  communication_style?: {
+    preferred_style?: string;
+    response_preference?: string;
+  };
+  emotional_responses?: {
+    relationship_values?: string;
+    ideal_evening?: string;
+    feeling_understood?: string;
+  };
+  soul_profile_visibility?: 'hidden' | 'connections_only' | 'discovery' | 'public';
+  photo_sharing_consent?: boolean;
 }
 
 export interface ProfilePictureResponse {
