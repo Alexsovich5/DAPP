@@ -9,7 +9,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict
 
 logger = logging.getLogger(__name__)
 
@@ -145,7 +145,10 @@ class UserSafetyService:
 
         except Exception as e:
             logger.error(f"Error submitting safety report: {str(e)}")
-            return {"success": False, "error": f"Failed to submit report: {str(e)}"}
+            return {
+                "success": False,
+                "error": f"Failed to submit report: {str(e)}",
+            }
 
     async def _validate_report(self, report: UserReport) -> Dict:
         """Validate report data"""
@@ -321,7 +324,11 @@ class UserSafetyService:
 
         await self._take_immediate_action(
             user_id,
-            {"action_required": True, "action_type": action_type, "reason": reason},
+            {
+                "action_required": True,
+                "action_type": action_type,
+                "reason": reason,
+            },
         )
 
     def _get_estimated_review_time(self, category: ReportCategory) -> str:
@@ -367,7 +374,9 @@ class UserSafetyService:
             "safety_score": safety_score,
             "total_reports": len(user_reports),
             "active_restrictions": active_restrictions,
-            "last_report_date": user_reports[-1]["timestamp"] if user_reports else None,
+            "last_report_date": (
+                user_reports[-1]["timestamp"] if user_reports else None
+            ),
             "status": "restricted" if active_restrictions else "good_standing",
         }
 

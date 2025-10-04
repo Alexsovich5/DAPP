@@ -149,30 +149,98 @@ class MultiModalSentimentAnalyzer:
             "😊": {"polarity": 0.7, "arousal": 0.5, "emotional_state": "joy"},
             "😄": {"polarity": 0.75, "arousal": 0.6, "emotional_state": "joy"},
             "🙂": {"polarity": 0.6, "arousal": 0.3, "emotional_state": "joy"},
-            "👍": {"polarity": 0.6, "arousal": 0.4, "emotional_state": "trust"},
+            "👍": {
+                "polarity": 0.6,
+                "arousal": 0.4,
+                "emotional_state": "trust",
+            },
             "🎉": {"polarity": 0.8, "arousal": 0.9, "emotional_state": "joy"},
             # Neutral emojis
-            "😐": {"polarity": 0.0, "arousal": 0.1, "emotional_state": "neutral"},
-            "🤔": {"polarity": 0.1, "arousal": 0.3, "emotional_state": "anticipation"},
-            "😌": {"polarity": 0.3, "arousal": 0.2, "emotional_state": "trust"},
+            "😐": {
+                "polarity": 0.0,
+                "arousal": 0.1,
+                "emotional_state": "neutral",
+            },
+            "🤔": {
+                "polarity": 0.1,
+                "arousal": 0.3,
+                "emotional_state": "anticipation",
+            },
+            "😌": {
+                "polarity": 0.3,
+                "arousal": 0.2,
+                "emotional_state": "trust",
+            },
             # Negative emojis
-            "😔": {"polarity": -0.6, "arousal": 0.3, "emotional_state": "sadness"},
-            "😢": {"polarity": -0.7, "arousal": 0.5, "emotional_state": "sadness"},
-            "😞": {"polarity": -0.65, "arousal": 0.4, "emotional_state": "sadness"},
-            "😕": {"polarity": -0.5, "arousal": 0.3, "emotional_state": "sadness"},
-            "👎": {"polarity": -0.6, "arousal": 0.4, "emotional_state": "disgust"},
+            "😔": {
+                "polarity": -0.6,
+                "arousal": 0.3,
+                "emotional_state": "sadness",
+            },
+            "😢": {
+                "polarity": -0.7,
+                "arousal": 0.5,
+                "emotional_state": "sadness",
+            },
+            "😞": {
+                "polarity": -0.65,
+                "arousal": 0.4,
+                "emotional_state": "sadness",
+            },
+            "😕": {
+                "polarity": -0.5,
+                "arousal": 0.3,
+                "emotional_state": "sadness",
+            },
+            "👎": {
+                "polarity": -0.6,
+                "arousal": 0.4,
+                "emotional_state": "disgust",
+            },
             # Very negative emojis
-            "😡": {"polarity": -0.9, "arousal": 0.9, "emotional_state": "anger"},
-            "🤬": {"polarity": -0.95, "arousal": 0.95, "emotional_state": "anger"},
-            "😠": {"polarity": -0.8, "arousal": 0.8, "emotional_state": "anger"},
-            "💔": {"polarity": -0.85, "arousal": 0.7, "emotional_state": "sadness"},
+            "😡": {
+                "polarity": -0.9,
+                "arousal": 0.9,
+                "emotional_state": "anger",
+            },
+            "🤬": {
+                "polarity": -0.95,
+                "arousal": 0.95,
+                "emotional_state": "anger",
+            },
+            "😠": {
+                "polarity": -0.8,
+                "arousal": 0.8,
+                "emotional_state": "anger",
+            },
+            "💔": {
+                "polarity": -0.85,
+                "arousal": 0.7,
+                "emotional_state": "sadness",
+            },
             # Complex emotions
             "😂": {"polarity": 0.8, "arousal": 0.9, "emotional_state": "joy"},
-            "🤣": {"polarity": 0.85, "arousal": 0.95, "emotional_state": "joy"},
+            "🤣": {
+                "polarity": 0.85,
+                "arousal": 0.95,
+                "emotional_state": "joy",
+            },
             "😅": {"polarity": 0.5, "arousal": 0.6, "emotional_state": "joy"},
-            "😬": {"polarity": -0.2, "arousal": 0.6, "emotional_state": "fear"},
-            "🙄": {"polarity": -0.4, "arousal": 0.3, "emotional_state": "disgust"},
-            "😩": {"polarity": -0.7, "arousal": 0.8, "emotional_state": "sadness"},
+            "😬": {
+                "polarity": -0.2,
+                "arousal": 0.6,
+                "emotional_state": "fear",
+            },
+            "🙄": {
+                "polarity": -0.4,
+                "arousal": 0.3,
+                "emotional_state": "disgust",
+            },
+            "😩": {
+                "polarity": -0.7,
+                "arousal": 0.8,
+                "emotional_state": "sadness",
+            },
         }
 
     async def analyze_sentiment(
@@ -757,7 +825,9 @@ class MultiModalSentimentAnalyzer:
                 data["timestamp"] = result.timestamp.isoformat()
 
             await self.redis_manager.set_with_expiry(
-                cache_key, json.dumps(data), expiry_seconds=self.sentiment_cache_ttl
+                cache_key,
+                json.dumps(data),
+                expiry_seconds=self.sentiment_cache_ttl,
             )
 
         except Exception as e:
@@ -781,7 +851,9 @@ class MultiModalSentimentAnalyzer:
                 ),
                 "processing_time_ms": result.processing_time_ms,
                 "model_version": result.model_version,
-                "timestamp": result.timestamp.isoformat() if result.timestamp else None,
+                "timestamp": (
+                    result.timestamp.isoformat() if result.timestamp else None
+                ),
             }
 
             # Determine routing key based on sentiment intensity
@@ -793,7 +865,9 @@ class MultiModalSentimentAnalyzer:
                 routing_key = "sentiment.analyzed.low_intensity"
 
             await self.event_publisher.publish_event(
-                exchange="sentiment_events", routing_key=routing_key, data=event_data
+                exchange="sentiment_events",
+                routing_key=routing_key,
+                data=event_data,
             )
 
         except Exception as e:

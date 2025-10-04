@@ -262,7 +262,10 @@ async def track_custom_event(
         success = await analytics_service.track_event(event)
 
         if success:
-            return {"status": "success", "message": "Event tracked successfully"}
+            return {
+                "status": "success",
+                "message": "Event tracked successfully",
+            }
         else:
             raise HTTPException(status_code=500, detail="Failed to track event")
 

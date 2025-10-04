@@ -5,13 +5,9 @@ Enhanced user interface optimization, mobile experience, and interactive feature
 
 # import json
 import logging
-from datetime import datetime, timedelta
-from decimal import Decimal
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict
 
 from app.models.advanced_ui_models import (
-    AccessibilityFeature,
-    AccessibilityProfile,
     AnimationType,
     ComponentType,
     DesignSystem,
@@ -20,12 +16,8 @@ from app.models.advanced_ui_models import (
     MobileGesture,
     UIComponentOptimization,
     UIExperienceProfile,
-    UIPersonalizationSettings,
-    UserJourney,
 )
 from app.models.user import User
-from app.services.ui_personalization_service import ui_personalization_engine
-from sqlalchemy import and_, desc, func, or_
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -96,8 +88,14 @@ class AdvancedUIExperienceEngine:
                 "animation_reduction": 0.8,
                 "transition_simplification": True,
             },
-            "screen_reader": {"aria_enhancements": True, "semantic_structure": True},
-            "motor_assistance": {"larger_targets": True, "gesture_alternatives": True},
+            "screen_reader": {
+                "aria_enhancements": True,
+                "semantic_structure": True,
+            },
+            "motor_assistance": {
+                "larger_targets": True,
+                "gesture_alternatives": True,
+            },
         }
 
     async def create_personalized_ui_experience(
@@ -163,7 +161,10 @@ class AdvancedUIExperienceEngine:
             raise
 
     async def implement_advanced_animation_system(
-        self, user_id: int, animation_context: Dict[str, Any], db: Session = None
+        self,
+        user_id: int,
+        animation_context: Dict[str, Any],
+        db: Session = None,
     ) -> Dict[str, Any]:
         """Implement advanced animation system with emotional intelligence"""
         try:

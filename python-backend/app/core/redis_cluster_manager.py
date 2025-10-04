@@ -156,7 +156,11 @@ class RedisClusterManager:
         return self._cluster_clients[db_type]
 
     async def set_with_ttl(
-        self, db_type: DatabaseType, key: str, value: Any, ttl: Optional[int] = None
+        self,
+        db_type: DatabaseType,
+        key: str,
+        value: Any,
+        ttl: Optional[int] = None,
     ) -> bool:
         """
         Set key-value pair with TTL based on database type
@@ -461,7 +465,8 @@ class RedisClusterManager:
                     health_status["database_status"][db_type.name] = {
                         "status": "healthy",
                         "response_time_ms": round(
-                            self._performance_stats["average_response_time"] * 1000, 2
+                            self._performance_stats["average_response_time"] * 1000,
+                            2,
                         ),
                     }
                 else:

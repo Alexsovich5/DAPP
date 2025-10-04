@@ -7,23 +7,19 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import List
 
-from app.models.soul_connection import ConnectionEnergyLevel, SoulConnection
 from app.models.user import User
 from app.services.advanced_soul_matching import (
     AdvancedCompatibilityScore,
-    AdvancedSoulMatchingService,
     advanced_matching_service,
 )
 from app.services.emotional_depth_service import (
     DepthCompatibilityScore,
-    EmotionalDepthService,
     emotional_depth_service,
 )
 from app.services.soul_compatibility_service import (
     CompatibilityScore,
-    SoulCompatibilityService,
     compatibility_service,
 )
 from sqlalchemy.orm import Session
@@ -89,11 +85,22 @@ class EnhancedMatchQuality:
 class EnhancedMatchQualityService:
     """Service for comprehensive match quality assessment"""
 
-    def __init__(self, soul_compatibility_service=None, advanced_matching_service_param=None, emotional_depth_service_param=None):
+    def __init__(
+        self,
+        soul_compatibility_service=None,
+        advanced_matching_service_param=None,
+        emotional_depth_service_param=None,
+    ):
         # Store service references for testing and dependency injection
-        self.soul_compatibility_service = soul_compatibility_service or compatibility_service
-        self.advanced_matching_service = advanced_matching_service_param or advanced_matching_service
-        self.emotional_depth_service = emotional_depth_service_param or emotional_depth_service
+        self.soul_compatibility_service = (
+            soul_compatibility_service or compatibility_service
+        )
+        self.advanced_matching_service = (
+            advanced_matching_service_param or advanced_matching_service
+        )
+        self.emotional_depth_service = (
+            emotional_depth_service_param or emotional_depth_service
+        )
 
         # Algorithm weights for composite scoring
         self.component_weights = {
@@ -123,16 +130,20 @@ class EnhancedMatchQualityService:
         """
         try:
             # Run all compatibility analyses
-            soul_compatibility = self.soul_compatibility_service.calculate_compatibility(
-                user1, user2, db
+            soul_compatibility = (
+                self.soul_compatibility_service.calculate_compatibility(
+                    user1, user2, db
+                )
             )
             advanced_compatibility = (
                 self.advanced_matching_service.calculate_advanced_compatibility(
                     user1, user2, db
                 )
             )
-            depth_compatibility = self.emotional_depth_service.calculate_depth_compatibility(
-                user1, user2, db
+            depth_compatibility = (
+                self.emotional_depth_service.calculate_depth_compatibility(
+                    user1, user2, db
+                )
             )
 
             # Calculate composite compatibility score
@@ -153,7 +164,9 @@ class EnhancedMatchQualityService:
 
             # Generate enhanced insights
             relationship_timeline = self._generate_relationship_timeline(
-                total_compatibility, advanced_compatibility, depth_compatibility
+                total_compatibility,
+                advanced_compatibility,
+                depth_compatibility,
             )
 
             connection_strengths = self._identify_connection_strengths(

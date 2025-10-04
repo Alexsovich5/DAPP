@@ -7,7 +7,7 @@ This document outlines the organized structure of the Python backend codebase.
 ```
 python-backend/
 ├── app/                          # Main application code
-│   ├── api/                      # API routes and endpoints  
+│   ├── api/                      # API routes and endpoints
 │   ├── core/                     # Core functionality (auth, database, etc.)
 │   ├── models/                   # Database models
 │   ├── ai/                       # AI/ML components (Sprint 8)
@@ -78,7 +78,7 @@ All tests should be run from the `python-backend` directory:
 # Run all tests
 pytest tests/
 
-# Run specific test categories  
+# Run specific test categories
 pytest tests/integration/
 pytest tests/validation/
 

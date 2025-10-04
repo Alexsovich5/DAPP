@@ -72,7 +72,8 @@ def create_profile(
 @router.get("/", response_model=ProfileSchema)
 @router.get("/me", response_model=ProfileSchema)
 def get_my_profile(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> Any:
     """Get current user's profile."""
     if not current_user.profile:
@@ -141,7 +142,8 @@ async def upload_photo(
         current_photos = current_user.profile.profile_photos or []
         if len(current_photos) >= 5:  # Maximum 5 photos per profile
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail=MAX_PHOTOS_REACHED
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=MAX_PHOTOS_REACHED,
             )
 
         # Upload file and get URL
@@ -252,7 +254,8 @@ async def approve_verification(
 
     if current_user.email not in ADMIN_EMAILS:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
         )
 
     profile = db.query(Profile).filter(Profile.user_id == user_id).first()

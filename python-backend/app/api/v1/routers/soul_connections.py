@@ -294,7 +294,8 @@ def initiate_soul_connection(
 
 @router.get("/active", response_model=List[SoulConnectionResponse])
 def get_active_connections(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get all active soul connections for the current user.
@@ -472,7 +473,11 @@ def update_connection_stage(
             # This is the main validation the test is checking for
             if (
                 current_stage
-                in ["soul_discovery", "initial_connection", "active_connection"]
+                in [
+                    "soul_discovery",
+                    "initial_connection",
+                    "active_connection",
+                ]
                 and new_stage == "photo_reveal"
             ):
                 raise HTTPException(

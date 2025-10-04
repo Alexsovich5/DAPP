@@ -2,7 +2,7 @@
 # Dinner First Dating Platform
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field, validator
 
@@ -54,7 +54,10 @@ class ConversationStarter(BaseModel):
     """AI-generated conversation starter"""
 
     message: str = Field(
-        ..., min_length=10, max_length=500, description="Conversation starter text"
+        ...,
+        min_length=10,
+        max_length=500,
+        description="Conversation starter text",
     )
     category: str = Field(
         ...,
@@ -97,7 +100,10 @@ class BatchMatchingRequest(BaseModel):
         ..., min_items=1, max_items=100, description="Candidate user IDs"
     )
     min_compatibility_score: float = Field(
-        default=50.0, ge=0, le=100, description="Minimum compatibility threshold"
+        default=50.0,
+        ge=0,
+        le=100,
+        description="Minimum compatibility threshold",
     )
     include_conversation_starters: bool = Field(
         default=False, description="Include conversation starters"

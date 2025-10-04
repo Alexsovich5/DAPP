@@ -473,7 +473,11 @@ class PerformanceAlert(Base):
 
     # Indexes for performance
     __table_args__ = (
-        Index("ix_performance_alerts_severity_time", "alert_severity", "triggered_at"),
+        Index(
+            "ix_performance_alerts_severity_time",
+            "alert_severity",
+            "triggered_at",
+        ),
         Index("ix_performance_alerts_resolved", "resolved_at"),
         Index("ix_performance_alerts_environment", "environment", "triggered_at"),
     )

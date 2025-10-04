@@ -4,11 +4,9 @@
 import logging
 import time
 import uuid
-from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from app.models.soul_analytics import AnalyticsEventType
-from app.services.analytics_service import analytics_service
 from fastapi import Request, Response
 from fastapi.middleware.base import BaseHTTPMiddleware
 
@@ -200,7 +198,12 @@ class AnalyticsMiddleware(BaseHTTPMiddleware):
         if not event_type and request.method == "GET" and response.status_code == 200:
             if any(
                 pattern in request.url.path
-                for pattern in ["/discover", "/matches", "/messages", "/profile"]
+                for pattern in [
+                    "/discover",
+                    "/matches",
+                    "/messages",
+                    "/profile",
+                ]
             ):
                 event_type = AnalyticsEventType.PAGE_VIEW
 
@@ -295,8 +298,8 @@ class PerformanceTrackingMiddleware(BaseHTTPMiddleware):
     ):
         """Track slow API requests"""
 
-        user_id = self._extract_user_id(request)
-        session_id = str(uuid.uuid4())
+        self._extract_user_id(request)
+        str(uuid.uuid4())
 
         # Track slow request as performance event
         await self.analytics_service.track_system_performance(
@@ -311,8 +314,8 @@ class PerformanceTrackingMiddleware(BaseHTTPMiddleware):
     ):
         """Track API error responses"""
 
-        user_id = self._extract_user_id(request)
-        session_id = str(uuid.uuid4())
+        self._extract_user_id(request)
+        str(uuid.uuid4())
 
         # Track error response as system metric
         await self.analytics_service.track_system_performance(

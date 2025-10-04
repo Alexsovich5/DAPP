@@ -289,7 +289,10 @@ class PushNotificationService:
             return False
 
     async def send_to_subscription(
-        self, subscription: PushSubscription, payload: NotificationPayload, db: Session
+        self,
+        subscription: PushSubscription,
+        payload: NotificationPayload,
+        db: Session,
     ) -> bool:
         """Send notification to specific subscription"""
         try:
@@ -519,7 +522,11 @@ class PushNotificationService:
         )
 
     async def notify_connection_request(
-        self, user_id: int, requester_name: str, compatibility_score: float, db: Session
+        self,
+        user_id: int,
+        requester_name: str,
+        compatibility_score: float,
+        db: Session,
     ) -> bool:
         """Send connection request notification"""
         return await self.send_notification(
@@ -573,7 +580,9 @@ class PushNotificationService:
 
                 # Cache for 1 hour
                 self.redis_client.setex(
-                    cache_key, 3600, json.dumps({k.value: v for k, v in prefs.items()})
+                    cache_key,
+                    3600,
+                    json.dumps({k.value: v for k, v in prefs.items()}),
                 )
 
             return prefs.get(notification_type.value, True)

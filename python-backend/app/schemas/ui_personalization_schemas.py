@@ -4,7 +4,7 @@ Pydantic models for UI personalization API request/response validation
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, validator
 
@@ -127,7 +127,10 @@ class UIPersonalizationResponse(BaseModel):
     )
     generated_at: datetime
     confidence_score: float = Field(
-        ..., ge=0.0, le=1.0, description="Overall confidence in personalizations"
+        ...,
+        ge=0.0,
+        le=1.0,
+        description="Overall confidence in personalizations",
     )
     applied_strategies: List[str] = Field(
         ..., description="Personalization strategies applied"
@@ -139,10 +142,12 @@ class PersonalizationInsightResponse(BaseModel):
 
     id: int
     insight_type: str = Field(
-        ..., description="Type of insight (pattern, preference, anomaly, opportunity)"
+        ...,
+        description="Type of insight (pattern, preference, anomaly, opportunity)",
     )
     category: str = Field(
-        ..., description="Insight category (usability, accessibility, performance)"
+        ...,
+        description="Insight category (usability, accessibility, performance)",
     )
     title: str = Field(..., description="Insight title")
     description: str = Field(..., description="Detailed description")
@@ -150,7 +155,8 @@ class PersonalizationInsightResponse(BaseModel):
         None, description="Recommended action to take"
     )
     priority: str = Field(
-        ..., description="Implementation priority (low, medium, high, critical)"
+        ...,
+        description="Implementation priority (low, medium, high, critical)",
     )
     confidence: float = Field(
         ..., ge=0.0, le=1.0, description="Confidence in the insight"
@@ -269,7 +275,8 @@ class InteractionPattern(BaseModel):
         ..., ge=0.0, le=1.0, description="Confidence in pattern detection"
     )
     impact_on_ux: str = Field(
-        ..., description="Impact on user experience (positive, negative, neutral)"
+        ...,
+        description="Impact on user experience (positive, negative, neutral)",
     )
     recommendations: List[str] = Field(
         default=[], description="Recommendations based on this pattern"

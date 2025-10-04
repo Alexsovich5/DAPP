@@ -5,12 +5,11 @@ import asyncio
 import json
 import logging
 import time
-from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List
 
 # import pandas as pd
 import redis
@@ -153,7 +152,9 @@ class DataPipelineService:
 
             # Add to Redis stream
             self.redis.xadd(
-                stream_key, event_data, maxlen=10000  # Keep last 10k events per stream
+                stream_key,
+                event_data,
+                maxlen=10000,  # Keep last 10k events per stream
             )
 
             logger.debug(
@@ -534,7 +535,14 @@ class DataPipelineService:
     def _analyze_message_sentiment(self, message_text: str) -> float:
         """Analyze message sentiment (mock implementation)"""
         # Simple sentiment analysis - would use actual NLP model
-        positive_words = ["great", "awesome", "love", "amazing", "wonderful", "excited"]
+        positive_words = [
+            "great",
+            "awesome",
+            "love",
+            "amazing",
+            "wonderful",
+            "excited",
+        ]
         negative_words = ["hate", "terrible", "awful", "bad", "disappointing"]
 
         text_lower = message_text.lower()
@@ -595,7 +603,6 @@ class DataPipelineService:
     async def _determine_customer_segment(self, user_id: int) -> str:
         """Determine customer segment"""
         # Mock segmentation logic
-        segments = ["premium", "engaged_free", "casual", "new_user"]
         return "engaged_free"  # Mock return
 
     def _parse_stream_event(self, fields: Dict, stream_type: StreamType) -> StreamEvent:
@@ -743,7 +750,8 @@ class DataPipelineService:
                 # Store metrics in Redis
                 metrics_key = "pipeline_metrics"
                 self.redis.hset(
-                    metrics_key, mapping={k: str(v) for k, v in self.metrics.items()}
+                    metrics_key,
+                    mapping={k: str(v) for k, v in self.metrics.items()},
                 )
 
                 await asyncio.sleep(60)  # Collect every minute
@@ -784,7 +792,11 @@ class DataPipelineService:
 
     async def _get_user_session_context(self, user_id: int) -> Dict[str, Any]:
         """Get user session context"""
-        return {"session_duration": 1800, "pages_viewed": 5, "actions_taken": 3}
+        return {
+            "session_duration": 1800,
+            "pages_viewed": 5,
+            "actions_taken": 3,
+        }
 
     def _parse_device_insights(self, user_agent: str) -> Dict[str, Any]:
         """Parse device insights from user agent"""

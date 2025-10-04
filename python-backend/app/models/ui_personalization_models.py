@@ -5,7 +5,7 @@ Dynamic UI adaptation based on user interaction patterns and preferences
 
 import enum
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from app.core.database import Base
 from sqlalchemy import (

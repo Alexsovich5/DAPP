@@ -8,11 +8,9 @@ import logging
 
 # import math
 # import re
-from collections import Counter, defaultdict
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Set
 
 from app.models.daily_revelation import DailyRevelation
 from app.models.user import User
@@ -309,8 +307,12 @@ class EmotionalDepthService:
             vulnerability_score += category_score * weights.get(category, 1.0)
 
         # Bonus for having good coverage across multiple categories
-        categories_with_matches = sum(1 for score in category_scores.values() if score > 0)
-        coverage_bonus = (categories_with_matches / len(self.vulnerability_patterns)) * 20
+        categories_with_matches = sum(
+            1 for score in category_scores.values() if score > 0
+        )
+        coverage_bonus = (
+            categories_with_matches / len(self.vulnerability_patterns)
+        ) * 20
 
         # Calculate base score (out of maximum possible with caps)
         max_possible_per_category = 5  # Cap we set above
@@ -786,10 +788,26 @@ class EmotionalDepthService:
 
         type_patterns = {
             VulnerabilityIndicator.EMOTIONAL: ["feel", "emotion", "heart"],
-            VulnerabilityIndicator.RELATIONAL: ["relationship", "partner", "love"],
-            VulnerabilityIndicator.PERSONAL: ["struggle", "challenge", "growth"],
-            VulnerabilityIndicator.SPIRITUAL: ["believe", "meaning", "purpose"],
-            VulnerabilityIndicator.INTELLECTUAL: ["think", "learn", "understand"],
+            VulnerabilityIndicator.RELATIONAL: [
+                "relationship",
+                "partner",
+                "love",
+            ],
+            VulnerabilityIndicator.PERSONAL: [
+                "struggle",
+                "challenge",
+                "growth",
+            ],
+            VulnerabilityIndicator.SPIRITUAL: [
+                "believe",
+                "meaning",
+                "purpose",
+            ],
+            VulnerabilityIndicator.INTELLECTUAL: [
+                "think",
+                "learn",
+                "understand",
+            ],
         }
 
         for vuln_type, patterns in type_patterns.items():
@@ -819,7 +837,11 @@ class EmotionalDepthService:
 
     def _extract_authenticity_markers(self, text: str) -> List[str]:
         """Extract authenticity markers"""
-        return ["Personal pronouns usage", "Specific examples", "Honest expression"]
+        return [
+            "Personal pronouns usage",
+            "Specific examples",
+            "Honest expression",
+        ]
 
     def _assess_emotional_availability(self, text: str) -> float:
         """Assess emotional availability for relationship"""

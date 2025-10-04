@@ -5,7 +5,7 @@ Dynamic content personalization and intelligent user experience adaptation
 
 import enum
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Dict
 
 from app.core.database import Base
 from sqlalchemy import (

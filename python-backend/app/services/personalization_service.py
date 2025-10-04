@@ -8,21 +8,19 @@ import logging
 
 # import math
 import random
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from app.models.ai_models import CompatibilityPrediction, UserProfile
+from app.models.ai_models import CompatibilityPrediction
 from app.models.personalization_models import (
     AlgorithmOptimization,
     ContentFeedback,
     ContentType,
-    ConversationFlowAnalytics,
     PersonalizationStrategy,
     PersonalizedContent,
     UserPersonalizationProfile,
 )
-from app.models.user import User
-from sqlalchemy import and_, func, or_
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -71,7 +69,11 @@ class PersonalizationEngine:
         return profile
 
     async def generate_conversation_starters(
-        self, user_id: int, target_user_id: int, count: int = 5, db: Session = None
+        self,
+        user_id: int,
+        target_user_id: int,
+        count: int = 5,
+        db: Session = None,
     ) -> List[Dict[str, Any]]:
         """Generate personalized conversation starters using AI"""
         try:
@@ -130,7 +132,10 @@ class PersonalizationEngine:
 
             for template in base_prompts:
                 personalized_prompt = await self._personalize_revelation_prompt(
-                    template, user_profile, flow_analysis, connection_context
+                    template,
+                    user_profile,
+                    flow_analysis,
+                    connection_context,
                 )
                 prompts.append(personalized_prompt)
 
@@ -166,7 +171,10 @@ class PersonalizationEngine:
 
             for strategy in reply_strategies[:3]:  # Generate 3 smart replies
                 reply = await self._generate_smart_reply(
-                    user_profile, message_analysis, strategy, conversation_context
+                    user_profile,
+                    message_analysis,
+                    strategy,
+                    conversation_context,
                 )
                 if reply:
                     replies.append(reply)
@@ -210,7 +218,11 @@ class PersonalizationEngine:
             return self._get_default_ui_settings()
 
     async def record_content_feedback(
-        self, user_id: int, content_id: int, feedback_data: Dict[str, Any], db: Session
+        self,
+        user_id: int,
+        content_id: int,
+        feedback_data: Dict[str, Any],
+        db: Session,
     ) -> bool:
         """Record user feedback on personalized content for optimization"""
         try:
@@ -243,7 +255,10 @@ class PersonalizationEngine:
             return False
 
     async def optimize_algorithm_performance(
-        self, optimization_type: str, target_metrics: Dict[str, float], db: Session
+        self,
+        optimization_type: str,
+        target_metrics: Dict[str, float],
+        db: Session,
     ) -> Dict[str, Any]:
         """Real-time algorithm optimization based on performance metrics"""
         try:
@@ -434,7 +449,10 @@ class PersonalizationEngine:
         """Personalize a content template with user-specific data"""
 
         personalized_text = template["template"]
-        metadata = {"template_id": template.get("id"), "personalization_factors": []}
+        metadata = {
+            "template_id": template.get("id"),
+            "personalization_factors": [],
+        }
 
         # Replace variables with personalized content
         for variable in template.get("variables", []):
@@ -476,9 +494,19 @@ class PersonalizationEngine:
             style = user_profile.preferred_communication_style
             adjectives = {
                 "casual": ["fun", "exciting", "cool", "awesome"],
-                "formal": ["remarkable", "significant", "notable", "impressive"],
+                "formal": [
+                    "remarkable",
+                    "significant",
+                    "notable",
+                    "impressive",
+                ],
                 "playful": ["wild", "amazing", "incredible", "fantastic"],
-                "balanced": ["interesting", "meaningful", "special", "memorable"],
+                "balanced": [
+                    "interesting",
+                    "meaningful",
+                    "special",
+                    "memorable",
+                ],
             }
             return random.choice(adjectives.get(style, adjectives["balanced"]))
 

@@ -10,9 +10,7 @@ import zipfile
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
-
-from pydantic import BaseModel
+from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -639,7 +637,7 @@ class PrivacyComplianceService:
 
         return {
             "score": min(max(score, 0), 100),
-            "level": "High" if score > 80 else "Medium" if score > 60 else "Low",
+            "level": ("High" if score > 80 else "Medium" if score > 60 else "Low"),
             "recommendations": self._get_privacy_recommendations(score),
         }
 

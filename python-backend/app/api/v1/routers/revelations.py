@@ -319,7 +319,9 @@ def get_revelation_timeline(
                     "isUnlocked": day <= current_day,
                     "userShared": user_revelation is not None,
                     "partnerShared": partner_revelation is not None,
-                    "userContent": user_revelation.content if user_revelation else None,
+                    "userContent": (
+                        user_revelation.content if user_revelation else None
+                    ),
                     "partnerContent": (
                         partner_revelation.content if partner_revelation else None
                     ),
@@ -377,7 +379,10 @@ def get_revelation_timeline(
                     else None
                 ),
             },
-            "visualization": {"completionRing": completion_percentage, "phase": phase},
+            "visualization": {
+                "completionRing": completion_percentage,
+                "phase": phase,
+            },
         }
 
     except HTTPException:
@@ -409,7 +414,8 @@ def update_revelation(
 
         if not revelation:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Revelation not found"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Revelation not found",
             )
 
         # Verify user has access to this revelation's connection

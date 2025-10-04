@@ -174,7 +174,7 @@ class AnalyticsIntelligenceEngine:
             if user_segment:
                 users = await self._get_users_by_segment(user_segment, db)
             else:
-                _users = db.query(User).filter(User.is_active).limit(10000).all()
+                db.query(User).filter(User.is_active).limit(10000).all()
 
             # Collect behavioral data
             behavioral_data = await self._collect_behavioral_data(users, db)
@@ -391,7 +391,11 @@ class AnalyticsIntelligenceEngine:
                 "prediction_metadata": {
                     "prediction_type": prediction_type,
                     "forecast_horizon_days": forecast_horizon_days,
-                    "models_used": ["time_series", "machine_learning", "statistical"],
+                    "models_used": [
+                        "time_series",
+                        "machine_learning",
+                        "statistical",
+                    ],
                     "confidence_level": model_performance.get(
                         "average_confidence", 0.85
                     ),
@@ -405,7 +409,9 @@ class AnalyticsIntelligenceEngine:
                 "matching_predictions": matching_predictions,
                 "model_performance": model_performance,
                 "actionable_recommendations": await self._generate_predictive_recommendations(
-                    behavior_predictions, churn_predictions, revenue_predictions
+                    behavior_predictions,
+                    churn_predictions,
+                    revenue_predictions,
                 ),
                 "risk_factors": await self._identify_predictive_risk_factors(
                     churn_predictions, revenue_predictions, growth_predictions
@@ -481,7 +487,8 @@ class AnalyticsIntelligenceEngine:
                     "total_revelations": total_revelations,
                     "revelations_per_user": total_revelations / max(active_users, 1),
                     "engagement_score": min(
-                        (total_revelations / max(active_users, 1)) / 7 * 100, 100
+                        (total_revelations / max(active_users, 1)) / 7 * 100,
+                        100,
                     ),
                 },
             }

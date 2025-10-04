@@ -195,7 +195,11 @@ class TestAuthCoreIntegration:
     @pytest.mark.security
     def test_create_token_for_user(self):
         """Test creating token for user data"""
-        user_data = {"sub": "user@example.com", "user_id": 1, "username": "testuser"}
+        user_data = {
+            "sub": "user@example.com",
+            "user_id": 1,
+            "username": "testuser",
+        }
 
         token = create_access_token(user_data)
         decoded = verify_token(token)
@@ -208,7 +212,11 @@ class TestAuthCoreIntegration:
     @pytest.mark.security
     def test_get_user_from_token(self):
         """Test extracting user information from token"""
-        user_data = {"sub": "user@example.com", "user_id": 42, "username": "testuser"}
+        user_data = {
+            "sub": "user@example.com",
+            "user_id": 42,
+            "username": "testuser",
+        }
 
         token = create_access_token(user_data)
         decoded = verify_token(token)
@@ -343,7 +351,6 @@ class TestAuthErrorHandling:
     def test_concurrent_auth_operations(self):
         """Test thread safety of auth operations"""
         import threading
-        import time
 
         results = []
 

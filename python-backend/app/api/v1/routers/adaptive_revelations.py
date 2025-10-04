@@ -143,7 +143,8 @@ async def get_available_revelation_themes(
 
 
 @router.get(
-    "/timing-recommendations/{connection_id}", response_model=RevelationTimingResponse
+    "/timing-recommendations/{connection_id}",
+    response_model=RevelationTimingResponse,
 )
 async def get_revelation_timing_recommendations(
     connection_id: int,
@@ -175,7 +176,10 @@ async def get_revelation_timing_recommendations(
 
         # Build context for timing analysis
         context = await adaptive_revelation_engine._build_revelation_context(
-            current_user, connection, 1, db  # Day 1 as default for timing analysis
+            current_user,
+            connection,
+            1,
+            db,  # Day 1 as default for timing analysis
         )
 
         timing_recommendation = adaptive_revelation_engine._get_timing_recommendation(
@@ -441,7 +445,8 @@ async def get_revelation_progress(
             "can_proceed_to_photo_reveal": len(user_completed_days) >= 7
             and len(partner_completed_days) >= 7,
             "days_until_photo_reveal": max(
-                0, 7 - min(len(user_completed_days), len(partner_completed_days))
+                0,
+                7 - min(len(user_completed_days), len(partner_completed_days)),
             ),
         }
 

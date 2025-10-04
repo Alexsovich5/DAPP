@@ -979,7 +979,8 @@ class CompatibilityCalculator:
         )
 
         values_score = self.calculate_values_compatibility(
-            user1_data.get("core_values", {}), user2_data.get("core_values", {})
+            user1_data.get("core_values", {}),
+            user2_data.get("core_values", {}),
         )
 
         demographic_score = self.calculate_demographic_compatibility(
@@ -1032,7 +1033,11 @@ class CompatibilityCalculator:
             return "Explore Further"
 
     def _generate_compatibility_explanation(
-        self, total: float, interests: float, values: float, demographics: float
+        self,
+        total: float,
+        interests: float,
+        values: float,
+        demographics: float,
     ) -> str:
         """Generate human-readable explanation of compatibility."""
         explanations = []

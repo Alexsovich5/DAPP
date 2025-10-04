@@ -7,9 +7,7 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
-
-from pydantic import BaseModel
+from typing import Dict
 
 logger = logging.getLogger(__name__)
 
@@ -194,11 +192,17 @@ class UserSafetyService:
             if r["reported_user_id"] == report.reported_user_id
         ]
         if len(same_user_reports) > 2:
-            return {"is_valid": False, "error": "Already reported this user recently"}
+            return {
+                "is_valid": False,
+                "error": "Already reported this user recently",
+            }
 
         # Validate evidence
         if not report.evidence or len(report.description) < 10:
-            return {"is_valid": False, "error": "Insufficient description or evidence"}
+            return {
+                "is_valid": False,
+                "error": "Insufficient description or evidence",
+            }
 
         return {"is_valid": True}
 
@@ -345,7 +349,7 @@ class UserSafetyService:
         """Analyze a safety report using various signals"""
 
         reported_user_id = report["reported_user_id"]
-        category = ReportCategory(report["category"])
+        ReportCategory(report["category"])
 
         analysis = {
             "user_history": await self._get_user_safety_history(reported_user_id),
@@ -430,7 +434,11 @@ class UserSafetyService:
         return decision
 
     async def create_safety_alert(
-        self, user_id: int, alert_type: str, description: str, metadata: Dict = None
+        self,
+        user_id: int,
+        alert_type: str,
+        description: str,
+        metadata: Dict = None,
     ) -> str:
         """Create a safety alert for monitoring"""
 
@@ -547,7 +555,6 @@ class UserSafetyService:
     async def _send_report_confirmation(self, reporter_id: int, report_id: str):
         """Send confirmation to user who submitted report"""
         # Implementation would send notification/email
-        pass
 
 
 # Configuration for automated safety actions

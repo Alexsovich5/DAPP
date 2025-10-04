@@ -188,7 +188,6 @@ class ConnectionManager:
     def send_message_to_connection(self, message: Dict[str, Any]) -> None:
         """Send message to a specific connection (synchronous wrapper)"""
         # For tests - in real implementation this would be async
-        pass
 
     def send_and_save_message(self, message_data: Dict[str, Any]) -> Dict[str, Any]:
         """Send message and save to database"""
@@ -260,7 +259,6 @@ class ConnectionManager:
         """Notify about user presence changes"""
         self.user_presence[user_id] = status == "online"
         # In real implementation, this would notify connected users
-        pass
 
 
 # Global connection manager instance reused by routers/endpoints

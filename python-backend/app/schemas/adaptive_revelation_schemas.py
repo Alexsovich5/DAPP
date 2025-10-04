@@ -35,7 +35,10 @@ class AdaptiveRevelationResponse(BaseModel):
         ..., description="Depth level (light, medium, deep, profound)"
     )
     confidence: float = Field(
-        ..., ge=0.0, le=1.0, description="AI confidence in personalization quality"
+        ...,
+        ge=0.0,
+        le=1.0,
+        description="AI confidence in personalization quality",
     )
     metadata: Optional[Dict[str, Any]] = Field(
         default=None, description="Additional prompt metadata"
@@ -153,7 +156,10 @@ class RevelationInsight(BaseModel):
         default=None, description="Suggested action"
     )
     impact_score: float = Field(
-        ..., ge=0.0, le=1.0, description="Potential impact of following insight"
+        ...,
+        ge=0.0,
+        le=1.0,
+        description="Potential impact of following insight",
     )
     data: Optional[Dict[str, Any]] = Field(default=None, description="Supporting data")
 
@@ -258,7 +264,8 @@ class AdaptiveRevelationConfig(BaseModel):
 
     user_id: int = Field(..., description="User ID")
     personalization_level: str = Field(
-        default="medium", description="Level of personalization (low, medium, high)"
+        default="medium",
+        description="Level of personalization (low, medium, high)",
     )
     preferred_themes: List[str] = Field(
         default=[], description="User's preferred themes"
@@ -327,7 +334,8 @@ class RevelationA11ySupport(BaseModel):
         default=None, description="Audio description of prompt"
     )
     simplified_language: Optional[str] = Field(
-        default=None, description="Simplified version for cognitive accessibility"
+        default=None,
+        description="Simplified version for cognitive accessibility",
     )
     visual_aids: Optional[List[str]] = Field(
         default=None, description="Visual aid suggestions"

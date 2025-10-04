@@ -111,7 +111,9 @@ def complete_onboarding(
 
 
 @router.get("/status", response_model=dict)
-def get_onboarding_status(current_user: User = Depends(get_current_user)) -> Any:
+def get_onboarding_status(
+    current_user: User = Depends(get_current_user),
+) -> Any:
     """
     Get the current onboarding status for the user.
     """

@@ -150,7 +150,11 @@ class PhotoRevealService:
             raise
 
     async def upload_user_photo(
-        self, user_id: int, photo_file: UploadFile, is_primary: bool, db: Session
+        self,
+        user_id: int,
+        photo_file: UploadFile,
+        is_primary: bool,
+        db: Session,
     ) -> PhotoUploadResult:
         """Upload and process user photo with security and moderation"""
         try:
@@ -587,7 +591,10 @@ class PhotoRevealService:
         except Exception as e:
             logger.error(f"Error responding to consent request: {str(e)}")
             db.rollback()
-            return {"success": False, "message": f"Failed to respond: {str(e)}"}
+            return {
+                "success": False,
+                "message": f"Failed to respond: {str(e)}",
+            }
 
     async def get_photo_with_permissions(
         self,
@@ -707,11 +714,20 @@ class PhotoRevealService:
                 f"Processed {processed} timelines, {revealed} automatic reveals executed"
             )
 
-            return {"processed": processed, "revealed": revealed, "success": True}
+            return {
+                "processed": processed,
+                "revealed": revealed,
+                "success": True,
+            }
 
         except Exception as e:
             logger.error(f"Error processing automatic reveals: {str(e)}")
-            return {"processed": 0, "revealed": 0, "success": False, "error": str(e)}
+            return {
+                "processed": 0,
+                "revealed": 0,
+                "success": False,
+                "error": str(e),
+            }
 
     # Helper methods
 
@@ -814,7 +830,10 @@ class PhotoRevealService:
         db.commit()
 
     async def _can_request_early_reveal(
-        self, timeline: PhotoRevealTimeline, connection: SoulConnection, db: Session
+        self,
+        timeline: PhotoRevealTimeline,
+        connection: SoulConnection,
+        db: Session,
     ) -> bool:
         """Check if early reveal request is allowed"""
         if not timeline.early_reveal_allowed:
@@ -1424,60 +1443,6 @@ class PhotoRevealService:
             return datetime.utcnow() > expiry_time
 
         return False
-
-    def can_reveal_photo(
-        self,
-        connection_id: int,
-        user_id: int,
-        connection_start_date=None,
-        current_date=None,
-    ) -> bool:
-        """Check if user can reveal photos"""
-
-        # If connection_start_date provided, check 7-day minimum requirement
-        if connection_start_date:
-            if isinstance(connection_start_date, str):
-                connection_start_date = datetime.fromisoformat(
-                    connection_start_date.replace("Z", "+00:00")
-                )
-
-            # Use current_date if provided, otherwise use utcnow
-            if current_date:
-                if isinstance(current_date, str):
-                    current_date = datetime.fromisoformat(
-                        current_date.replace("Z", "+00:00")
-                    )
-                reference_date = current_date
-            else:
-                reference_date = datetime.utcnow()
-
-            days_since_connection = (reference_date - connection_start_date).days
-            # Require at least 7 days for photo reveal
-            return days_since_connection >= 7
-
-        # Default implementation
-        return True
-
-    def can_reveal_based_on_revelations(
-        self,
-        connection_id: int,
-        user_id: int,
-        required_revelations: int = 5,
-        completed_revelation_days=None,
-    ) -> bool:
-        """Check if photo reveal is allowed based on completed revelations"""
-        # If completed_revelation_days provided, check completion requirement
-        if completed_revelation_days is not None:
-            if isinstance(completed_revelation_days, (list, tuple)):
-                completed_count = len(completed_revelation_days)
-            else:
-                completed_count = completed_revelation_days
-
-            # Check if enough revelations completed
-            return completed_count >= required_revelations
-
-        # Default implementation
-        return True
 
     def get_suggested_connection_stage(self, connection_id: int) -> str:
         """Get suggested next connection stage"""

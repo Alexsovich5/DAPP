@@ -4,7 +4,7 @@ Security Headers Test
 Tests that all security headers are properly implemented
 """
 
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 

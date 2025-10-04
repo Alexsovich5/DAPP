@@ -9,7 +9,8 @@ class MessageBase(BaseModel):
         ..., min_length=1, max_length=2000, description="Message content"
     )
     message_type: str = Field(
-        default="text", description="Type of message (text, revelation, photo, system)"
+        default="text",
+        description="Type of message (text, revelation, photo, system)",
     )
 
 

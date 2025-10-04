@@ -139,7 +139,8 @@ async def get_conversation_messages(
 
 @router.get("/conversations")
 async def get_user_conversations(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get all conversations for the current user with summary information
@@ -191,7 +192,10 @@ async def update_typing_status(
                 detail="Connection not found or access denied",
             )
 
-        return {"success": True, "message": "Typing status updated successfully"}
+        return {
+            "success": True,
+            "message": "Typing status updated successfully",
+        }
 
     except HTTPException:
         raise
@@ -237,7 +241,8 @@ async def mark_messages_as_read(
 
 @router.get("/statistics")
 async def get_message_statistics(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get messaging statistics for the current user

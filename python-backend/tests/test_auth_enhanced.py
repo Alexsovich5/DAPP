@@ -5,7 +5,6 @@ Tests JWT refresh, rate limiting, emotional onboarding, and security flows
 
 import time
 from datetime import datetime
-from unittest.mock import patch
 
 import jwt
 import pytest
@@ -97,7 +96,8 @@ class TestJWTTokenManagement:
         # Move time forward past expiration
         with freeze_time("2025-01-02 10:00:00"):
             response = client.get(
-                "/api/v1/auth/me", headers={"Authorization": f"Bearer {expired_token}"}
+                "/api/v1/auth/me",
+                headers={"Authorization": f"Bearer {expired_token}"},
             )
 
             assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -144,7 +144,10 @@ class TestRateLimiting:
     @pytest.mark.security
     def test_login_rate_limiting(self, client):
         """Test rate limiting on login attempts"""
-        login_data = {"username": "test@example.com", "password": "wrongpassword"}
+        login_data = {
+            "username": "test@example.com",
+            "password": "wrongpassword",
+        }
 
         # Make multiple rapid login attempts
         responses = []
@@ -251,9 +254,15 @@ class TestEmotionalOnboardingAuth:
         response = client.post("/api/v1/auth/register", json=registration_data)
 
         # Should succeed with enhanced registration
-        assert response.status_code in [status.HTTP_200_OK, status.HTTP_201_CREATED]
+        assert response.status_code in [
+            status.HTTP_200_OK,
+            status.HTTP_201_CREATED,
+        ]
 
-        if response.status_code in [status.HTTP_200_OK, status.HTTP_201_CREATED]:
+        if response.status_code in [
+            status.HTTP_200_OK,
+            status.HTTP_201_CREATED,
+        ]:
             data = response.json()
             assert data["email"] == "souluser@example.com"
             assert "emotional_onboarding_completed" in data
@@ -277,7 +286,10 @@ class TestEmotionalOnboardingAuth:
         # Login should succeed but with limited access
         response = client.post(
             "/api/v1/auth/login",
-            data={"username": "incomplete@example.com", "password": "testpass123"},
+            data={
+                "username": "incomplete@example.com",
+                "password": "testpass123",
+            },
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -305,7 +317,10 @@ class TestEmotionalOnboardingAuth:
         # Login to get token
         login_response = client.post(
             "/api/v1/auth/login",
-            data={"username": "noonboarding@example.com", "password": "testpass123"},
+            data={
+                "username": "noonboarding@example.com",
+                "password": "testpass123",
+            },
         )
         token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
@@ -348,7 +363,11 @@ class TestPasswordSecurity:
             "aaaaaaaa",  # Repeated characters
         ]
 
-        strong_passwords = ["MyStr0ngP@ssw0rd", "D1nn3rF1rst2025!", "S0ul8ef0r3Sk1n#"]
+        strong_passwords = [
+            "MyStr0ngP@ssw0rd",
+            "D1nn3rF1rst2025!",
+            "S0ul8ef0r3Sk1n#",
+        ]
 
         # Use the actual password validation function from security module
 
@@ -494,7 +513,13 @@ class TestSessionSecurity:
 
         # Should NOT contain sensitive information - this test verifies
         # that developers don't accidentally pass sensitive data
-        sensitive_fields = ["password", "credit_card", "ssn", "api_key", "secret"]
+        sensitive_fields = [
+            "password",
+            "credit_card",
+            "ssn",
+            "api_key",
+            "secret",
+        ]
         for field in sensitive_fields:
             assert field not in decoded
 
@@ -543,7 +568,9 @@ class TestAuthenticationIntegration:
         }
 
         create_response = client.post(
-            "/api/v1/connections/initiate", json=connection_data, headers=headers1
+            "/api/v1/connections/initiate",
+            json=connection_data,
+            headers=headers1,
         )
 
         if create_response.status_code == status.HTTP_201_CREATED:

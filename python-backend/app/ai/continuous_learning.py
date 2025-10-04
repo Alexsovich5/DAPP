@@ -475,7 +475,10 @@ class ModelRetrainer:
         self.mlflow_integration = MLflowIntegration()
 
     async def retrain_model(
-        self, model_name: str, config: LearningConfig, trigger: RetrainingTrigger
+        self,
+        model_name: str,
+        config: LearningConfig,
+        trigger: RetrainingTrigger,
     ) -> RetrainingJob:
         """Execute model retraining process"""
 
@@ -483,7 +486,10 @@ class ModelRetrainer:
             datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
 
         job = RetrainingJob(
-            job_id=job_id, model_name=model_name, trigger=trigger, config=config
+            job_id=job_id,
+            model_name=model_name,
+            trigger=trigger,
+            config=config,
         )
 
         try:
@@ -552,7 +558,8 @@ class ModelRetrainer:
             )
 
             experiment_id = await self.mlflow_integration.create_model_experiment(
-                model_name, f"Automated retraining triggered by {trigger.value}"
+                model_name,
+                f"Automated retraining triggered by {trigger.value}",
             )
 
             registered_version = await self.mlflow_integration.train_and_register_model(
@@ -761,7 +768,9 @@ class ContinuousLearningPipeline:
         logger.info("Stopped continuous learning monitoring")
 
     async def trigger_retraining(
-        self, model_name: str, trigger: RetrainingTrigger = RetrainingTrigger.MANUAL
+        self,
+        model_name: str,
+        trigger: RetrainingTrigger = RetrainingTrigger.MANUAL,
     ) -> str:
         """Manually trigger model retraining"""
 

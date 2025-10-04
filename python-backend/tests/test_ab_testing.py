@@ -89,7 +89,12 @@ class MockABTestingService:
         )
 
     def track_conversion_event(
-        self, user_id, experiment_id, event_name, event_data=None, metadata=None
+        self,
+        user_id,
+        experiment_id,
+        event_name,
+        event_data=None,
+        metadata=None,
     ):
         return {
             "event_tracked": True,
@@ -178,7 +183,10 @@ class MockABTestingService:
         }
 
     def get_user_experiment_events(self, user_id, experiment_id):
-        return [MockEvent("connection_success"), MockEvent("first_message_sent")]
+        return [
+            MockEvent("connection_success"),
+            MockEvent("first_message_sent"),
+        ]
 
     def check_experiment_safety(self, experiment_id, performance_data):
         safety_violations = []
@@ -468,7 +476,10 @@ class TestExperimentMetricsTracking:
             user_id=user.id,
             experiment_id=experiment.id,
             event_name="connection_success",
-            event_data={"connection_id": connection.id, "compatibility_score": 85.5},
+            event_data={
+                "connection_id": connection.id,
+                "compatibility_score": 85.5,
+            },
         )
 
         ab_service.track_conversion_event(
@@ -608,7 +619,10 @@ class TestExperimentAPIs:
                 },
                 {
                     "name": "enhanced_algorithm",
-                    "config": {"algorithm_version": "v3", "emotional_weighting": 1.2},
+                    "config": {
+                        "algorithm_version": "v3",
+                        "emotional_weighting": 1.2,
+                    },
                     "traffic_percentage": 0.5,
                 },
             ],
@@ -636,10 +650,14 @@ class TestExperimentAPIs:
     def test_get_user_experiments_endpoint(self, client, authenticated_user):
         """Test retrieving user's experiment assignments"""
         response = client.get(
-            "/api/v1/experiments/my-assignments", headers=authenticated_user["headers"]
+            "/api/v1/experiments/my-assignments",
+            headers=authenticated_user["headers"],
         )
 
-        assert response.status_code in [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND]
+        assert response.status_code in [
+            status.HTTP_200_OK,
+            status.HTTP_404_NOT_FOUND,
+        ]
 
         if response.status_code == status.HTTP_200_OK:
             data = response.json()
@@ -723,7 +741,8 @@ class TestExperimentFeatureIntegration:
 
             # Request soul connection discovery
             response = client.get(
-                "/api/v1/connections/discover", headers=authenticated_user["headers"]
+                "/api/v1/connections/discover",
+                headers=authenticated_user["headers"],
             )
 
             # Should succeed or indicate not implemented
@@ -743,7 +762,8 @@ class TestExperimentFeatureIntegration:
         # Test revelation endpoint without patching - just verify the endpoint works
         # The actual A/B testing integration would be implemented at the service level
         response = client.get(
-            "/api/v1/revelations/prompts/1", headers=authenticated_user["headers"]
+            "/api/v1/revelations/prompts/1",
+            headers=authenticated_user["headers"],
         )
 
         assert response.status_code in [
@@ -762,7 +782,10 @@ class TestExperimentFeatureIntegration:
             {
                 "name": "photo_reveal_timing_optimization",
                 "status": ExperimentStatus.ACTIVE.value,
-                "target_metrics": ["photo_reveal_rate", "connection_satisfaction"],
+                "target_metrics": [
+                    "photo_reveal_rate",
+                    "connection_satisfaction",
+                ],
             }
         )
 

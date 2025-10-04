@@ -3,18 +3,11 @@ Comprehensive tests for Security Headers Middleware
 Tests production-grade security for the Dinner First dating platform
 """
 
-import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
-from app.main import app
-from app.middleware.security_headers import (
-    get_secure_cors_config,
-    security_headers_middleware,
-)
-from app.utils.error_handler import get_error_cors_origin
+from app.middleware.security_headers import get_secure_cors_config
 from fastapi import status
-from fastapi.testclient import TestClient
 
 
 class TestSecurityHeadersMiddleware:
@@ -117,7 +110,7 @@ class TestSecurityHeadersMiddleware:
         response = client.get("/api/v1/auth/me")
 
         # Development might have relaxed CSP for debugging
-        csp = response.headers.get("Content-Security-Policy", "")
+        response.headers.get("Content-Security-Policy", "")
         # Should still have basic protection
         assert "Content-Security-Policy" in response.headers
 
@@ -249,7 +242,10 @@ class TestCORSConfiguration:
         )
 
         # Should allow the request
-        assert response.status_code in [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND]
+        assert response.status_code in [
+            status.HTTP_200_OK,
+            status.HTTP_404_NOT_FOUND,
+        ]
 
         # Should have CORS headers
         assert "Access-Control-Allow-Origin" in response.headers
@@ -270,7 +266,11 @@ class TestSecurityErrorHandling:
                 {"username": "invalid", "password": "wrong"},
             ),
             ("/api/v1/profiles/999999", "GET", None),
-            ("/api/v1/connections/initiate", "POST", {"target_user_id": "invalid"}),
+            (
+                "/api/v1/connections/initiate",
+                "POST",
+                {"target_user_id": "invalid"},
+            ),
         ]
 
         for endpoint, method, data in error_endpoints:
@@ -293,7 +293,10 @@ class TestSecurityErrorHandling:
         # Test various error scenarios
         response = client.post(
             "/api/v1/auth/login",
-            json={"username": "nonexistent@test.com", "password": "wrongpassword"},
+            json={
+                "username": "nonexistent@test.com",
+                "password": "wrongpassword",
+            },
         )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -398,7 +401,10 @@ class TestSecurityCompliance:
         # This test will need to be adjusted based on actual rate limiting implementation
         assert all(
             status_code
-            in [status.HTTP_401_UNAUTHORIZED, status.HTTP_429_TOO_MANY_REQUESTS]
+            in [
+                status.HTTP_401_UNAUTHORIZED,
+                status.HTTP_429_TOO_MANY_REQUESTS,
+            ]
             for status_code in responses
         )
 
@@ -411,14 +417,20 @@ class TestSecurityCompliance:
 
         # Should not be able to access other user's profile details
         response = client.get(
-            f"/api/v1/profiles/{other_user_id}", headers=authenticated_user["headers"]
+            f"/api/v1/profiles/{other_user_id}",
+            headers=authenticated_user["headers"],
         )
 
         # Should either deny access or return limited public information only
         if response.status_code == status.HTTP_200_OK:
             data = response.json()
             # Should not include private information
-            private_fields = ["email", "phone_number", "full_address", "private_notes"]
+            private_fields = [
+                "email",
+                "phone_number",
+                "full_address",
+                "private_notes",
+            ]
             for field in private_fields:
                 assert field not in data
 
@@ -429,7 +441,10 @@ class TestSecurityCompliance:
         # Test with various content types
         response = client.post(
             "/api/v1/profiles/me",
-            headers={**authenticated_user["headers"], "Content-Type": "text/plain"},
+            headers={
+                **authenticated_user["headers"],
+                "Content-Type": "text/plain",
+            },
             data="malicious content",
         )
 
@@ -449,7 +464,7 @@ class TestSecurityCompliance:
         # Measure response time with security middleware
         start_time = time.time()
         for _ in range(10):
-            response = client.get("/api/v1/auth/me")
+            client.get("/api/v1/auth/me")
         total_time = time.time() - start_time
 
         avg_response_time = total_time / 10
