@@ -201,4 +201,45 @@ export class RevelationService {
 
     return { valid: true };
   }
+
+  /**
+   * Give photo sharing consent for a connection
+   */
+  givePhotoConsent(connectionId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/revelations/photo-consent/${connectionId}`, {})
+      .pipe(
+        tap(() => this.refreshTimeline(connectionId))
+      );
+  }
+
+  /**
+   * React to a revelation with an emoji
+   */
+  reactToRevelation(revelationId: number, emoji: string): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/revelations/${revelationId}/react`, { emoji });
+  }
+
+  /**
+   * Share today's revelation for a connection
+   */
+  shareRevelation(connectionId: number, content: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/revelations/share/${connectionId}`, { content })
+      .pipe(
+        tap(() => this.refreshTimeline(connectionId))
+      );
+  }
+
+  /**
+   * Get today's revelation prompt and status
+   */
+  getTodayPrompt(connectionId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/revelations/today/${connectionId}`);
+  }
+
+  /**
+   * Get revelation analytics for a connection
+   */
+  getRevelationAnalytics(connectionId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/revelations/analytics/${connectionId}`);
+  }
 }

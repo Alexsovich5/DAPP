@@ -15,6 +15,9 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.messaging.production
+.env.secrets.*
+*.env.secrets
 
 # IDE files
 .vscode/

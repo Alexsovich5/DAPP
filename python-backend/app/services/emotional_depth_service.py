@@ -284,42 +284,65 @@ class EmotionalDepthService:
         vulnerability_score = 0.0
         text_lower = text.lower()
 
-        # Count vulnerability indicators
+        # Count vulnerability indicators per category (cap at reasonable maximum per category)
+        category_scores = {}
+        weights = {
+            "personal_struggles": 1.5,
+            "fears_insecurities": 1.4,
+            "past_experiences": 1.2,
+            "hopes_dreams": 1.1,
+            "relationship_desires": 1.3,
+        }
+
         for category, patterns in self.vulnerability_patterns.items():
             category_score = 0
             for pattern in patterns:
                 if pattern in text_lower:
                     category_score += 1
 
-            # Weight different types of vulnerability
-            weights = {
-                "personal_struggles": 1.5,
-                "fears_insecurities": 1.4,
-                "past_experiences": 1.2,
-                "hopes_dreams": 1.1,
-                "relationship_desires": 1.3,
-            }
-
+            # Cap each category at a reasonable maximum (e.g., 5 matches)
+            # This prevents one category from dominating the score
+            category_score = min(category_score, 5)
+            category_scores[category] = category_score
             vulnerability_score += category_score * weights.get(category, 1.0)
 
-        # Normalize to 0-100 scale
-        max_possible = sum(
-            len(patterns) * weight
-            for category, patterns in self.vulnerability_patterns.items()
-            for weight in [1.5, 1.4, 1.2, 1.1, 1.3]
-        ) / len(self.vulnerability_patterns)
+        # Bonus for having good coverage across multiple categories
+        categories_with_matches = sum(
+            1 for score in category_scores.values() if score > 0
+        )
+        coverage_bonus = (
+            categories_with_matches / len(self.vulnerability_patterns)
+        ) * 20
 
-        return min(100.0, (vulnerability_score / max_possible) * 100)
+        # Calculate base score (out of maximum possible with caps)
+        max_possible_per_category = 5  # Cap we set above
+        max_possible = sum(
+            max_possible_per_category * weights.get(category, 1.0)
+            for category in self.vulnerability_patterns.keys()
+        )
+
+        if max_possible == 0:
+            return 0.0
+
+        base_score = (vulnerability_score / max_possible) * 100
+        final_score = min(100.0, base_score + coverage_bonus)
+
+        return final_score
 
     def _analyze_authenticity_markers(self, text: str) -> float:
         """Analyze indicators of authentic, genuine expression"""
         authenticity_score = 0.0
         text_lower = text.lower()
 
-        # Count authenticity indicators
+        # Count authenticity indicators (cap to prevent over-scoring)
+        marker_count = 0
         for marker in self.authenticity_markers:
             if marker in text_lower:
-                authenticity_score += 1
+                marker_count += 1
+
+        # Cap authenticity markers at a reasonable maximum (8)
+        marker_count = min(marker_count, 8)
+        authenticity_score += marker_count
 
         # Bonus for personal pronouns and specific details
         personal_pronouns = [
@@ -330,8 +353,13 @@ class EmotionalDepthService:
             "i want",
             "i need",
         ]
+        pronoun_count = 0
         for pronoun in personal_pronouns:
-            authenticity_score += text_lower.count(pronoun) * 0.5
+            pronoun_count += text_lower.count(pronoun)
+
+        # Cap pronoun bonus and scale appropriately
+        pronoun_count = min(pronoun_count, 8)
+        authenticity_score += pronoun_count * 0.5
 
         # Penalty for generic responses
         generic_phrases = [
@@ -341,11 +369,18 @@ class EmotionalDepthService:
         ]
         for phrase in generic_phrases:
             if phrase in text_lower:
-                authenticity_score -= 2
+                authenticity_score -= 1
 
-        # Normalize to 0-100 scale
-        max_score = len(self.authenticity_markers) + 20  # Including pronoun bonuses
-        return min(100.0, max(0.0, (authenticity_score / max_score) * 100))
+        # Calculate score based on reasonable expected maximum
+        # Expected: 8 markers + 4 pronoun bonus = 12 max
+        max_expected_score = 12
+        base_score = (authenticity_score / max_expected_score) * 100
+
+        # Bonus for text length/detail (longer = more authentic usually)
+        length_bonus = min(10, len(text_lower) / 100)  # Up to 10% bonus for longer text
+
+        final_score = min(100.0, max(0.0, base_score + length_bonus))
+        return final_score
 
     def _analyze_empathy_indicators(self, text: str) -> float:
         """Analyze indicators of empathy and consideration for others"""
@@ -438,6 +473,15 @@ class EmotionalDepthService:
                 "frustrated",
                 "content",
                 "disappointed",
+                "open",
+                "fear",
+                "trust",
+                "love",
+                "hope",
+                "growth",
+                "empathy",
+                "compassion",
+                "intimacy",
             ],
             "complex_emotions": [
                 "ambivalent",
@@ -452,6 +496,16 @@ class EmotionalDepthService:
                 "conflicted",
                 "yearning",
                 "fulfilled",
+                "connected",
+                "intimate",
+                "compassionate",
+                "empathetic",
+                "understanding",
+                "meaningful",
+                "authentic",
+                "genuine",
+                "trustful",
+                "supportive",
             ],
             "nuanced_feelings": [
                 "bittersweet",
@@ -516,6 +570,10 @@ class EmotionalDepthService:
                 "hard time with",
                 "working through",
                 "dealing with",
+                "struggle",
+                "struggles",
+                "challenging",
+                "difficult",
             ],
             "fears_insecurities": [
                 "afraid that",
@@ -524,6 +582,12 @@ class EmotionalDepthService:
                 "fear of",
                 "anxious about",
                 "scared of",
+                "fear",
+                "fears",
+                "afraid",
+                "insecure",
+                "vulnerability",
+                "vulnerable",
             ],
             "past_experiences": [
                 "learned from",
@@ -532,6 +596,10 @@ class EmotionalDepthService:
                 "taught me",
                 "shaped me",
                 "changed me",
+                "experience",
+                "experiences",
+                "learning",
+                "growth",
             ],
             "hopes_dreams": [
                 "dream of",
@@ -540,12 +608,24 @@ class EmotionalDepthService:
                 "aspire to",
                 "long for",
                 "envision",
+                "dream",
+                "dreams",
+                "hope",
+                "hopes",
+                "aspiration",
+                "aspirations",
             ],
             "relationship_desires": [
                 "need in a relationship",
                 "want from a partner",
                 "looking for someone",
                 "hope to find",
+                "connection",
+                "intimacy",
+                "trust",
+                "understanding",
+                "emotional openness",
+                "mutual vulnerability",
             ],
         }
 
@@ -557,6 +637,15 @@ class EmotionalDepthService:
             "to be honest",
             "genuinely",
             "authentically",
+            "authentic",
+            "genuine",
+            "real",
+            "true",
+            "sincere",
+            "open",
+            "vulnerable",
+            "personal",
+            "deeply",
             "really",
             "actually",
             "truly",

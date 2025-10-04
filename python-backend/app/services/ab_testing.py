@@ -508,6 +508,100 @@ class ABTestingService:
                 "confidence_level": confidence_level,
             }
 
+    def calculate_statistical_significance_simple(
+        self, control_data: Dict[str, Any], treatment_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Simple statistical significance calculation for two groups
+
+        Args:
+            control_data: Dict with 'conversion_rate' and 'sample_size' keys
+            treatment_data: Dict with 'conversion_rate' and 'sample_size' keys
+
+        Returns:
+            Dict with statistical significance results
+        """
+        try:
+            import math
+
+            from scipy import stats
+
+            control_rate = control_data["conversion_rate"]
+            control_size = control_data["sample_size"]
+            treatment_rate = treatment_data["conversion_rate"]
+            treatment_size = treatment_data["sample_size"]
+
+            # Calculate z-test for proportions
+            control_successes = int(control_rate * control_size)
+            treatment_successes = int(treatment_rate * treatment_size)
+
+            # Pooled proportion
+            total_successes = control_successes + treatment_successes
+            total_size = control_size + treatment_size
+            pooled_p = total_successes / total_size if total_size > 0 else 0
+
+            # Standard error
+            se = (
+                math.sqrt(
+                    pooled_p * (1 - pooled_p) * (1 / control_size + 1 / treatment_size)
+                )
+                if pooled_p > 0 and pooled_p < 1
+                else 1
+            )
+
+            # Z-statistic
+            z_stat = (treatment_rate - control_rate) / se if se > 0 else 0
+
+            # Two-tailed p-value
+            p_value = 2 * (1 - stats.norm.cdf(abs(z_stat)))
+
+            # Effect size (Cohen's h for proportions)
+            effect_size = 2 * (
+                math.asin(math.sqrt(treatment_rate))
+                - math.asin(math.sqrt(control_rate))
+            )
+
+            # Is significant at 95% confidence level?
+            is_significant = p_value < 0.05
+            confidence_level = 0.95
+
+            # Recommendation logic
+            if is_significant and effect_size > 0.2:  # Large effect
+                recommended_action = "adopt_treatment"
+            elif is_significant and effect_size > 0.1:  # Medium effect
+                recommended_action = "adopt_treatment"
+            elif is_significant:
+                recommended_action = "continue_testing"
+            else:
+                recommended_action = "continue_testing"
+
+            return {
+                "p_value": p_value,
+                "confidence_level": confidence_level,
+                "is_significant": is_significant,
+                "effect_size": abs(effect_size),
+                "recommended_action": recommended_action,
+                "z_statistic": z_stat,
+                "control_conversion_rate": control_rate,
+                "treatment_conversion_rate": treatment_rate,
+                "lift": (
+                    (treatment_rate - control_rate) / control_rate
+                    if control_rate > 0
+                    else 0
+                ),
+            }
+
+        except Exception as e:
+            # Fallback response for any calculation errors
+            return {
+                "p_value": 1.0,
+                "confidence_level": 0.95,
+                "is_significant": False,
+                "effect_size": 0.0,
+                "recommended_action": "continue_testing",
+                "error": str(e),
+            }
+
     async def analyze_experiment_performance(
         self, experiment_id: str, include_secondary_metrics: bool = True
     ) -> Dict[str, Any]:

@@ -85,7 +85,23 @@ class EnhancedMatchQuality:
 class EnhancedMatchQualityService:
     """Service for comprehensive match quality assessment"""
 
-    def __init__(self):
+    def __init__(
+        self,
+        soul_compatibility_service=None,
+        advanced_matching_service_param=None,
+        emotional_depth_service_param=None,
+    ):
+        # Store service references for testing and dependency injection
+        self.soul_compatibility_service = (
+            soul_compatibility_service or compatibility_service
+        )
+        self.advanced_matching_service = (
+            advanced_matching_service_param or advanced_matching_service
+        )
+        self.emotional_depth_service = (
+            emotional_depth_service_param or emotional_depth_service
+        )
+
         # Algorithm weights for composite scoring
         self.component_weights = {
             "soul_compatibility": 0.35,  # Core soul connection metrics
@@ -114,16 +130,20 @@ class EnhancedMatchQualityService:
         """
         try:
             # Run all compatibility analyses
-            soul_compatibility = compatibility_service.calculate_compatibility(
-                user1, user2, db
-            )
-            advanced_compatibility = (
-                advanced_matching_service.calculate_advanced_compatibility(
+            soul_compatibility = (
+                self.soul_compatibility_service.calculate_compatibility(
                     user1, user2, db
                 )
             )
-            depth_compatibility = emotional_depth_service.calculate_depth_compatibility(
-                user1, user2, db
+            advanced_compatibility = (
+                self.advanced_matching_service.calculate_advanced_compatibility(
+                    user1, user2, db
+                )
+            )
+            depth_compatibility = (
+                self.emotional_depth_service.calculate_depth_compatibility(
+                    user1, user2, db
+                )
             )
 
             # Calculate composite compatibility score
@@ -620,11 +640,11 @@ class EnhancedMatchQualityService:
         """Return default enhanced match quality when analysis fails"""
 
         # Create default component scores
-        default_soul = compatibility_service._default_compatibility_score()
+        default_soul = self.soul_compatibility_service._default_compatibility_score()
         default_advanced = (
-            advanced_matching_service._default_advanced_compatibility_score()
+            self.advanced_matching_service._default_advanced_compatibility_score()
         )
-        default_depth = emotional_depth_service._default_depth_compatibility()
+        default_depth = self.emotional_depth_service._default_depth_compatibility()
 
         return EnhancedMatchQuality(
             total_compatibility=60.0,
