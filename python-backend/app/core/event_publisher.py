@@ -99,18 +99,30 @@ class EventSchema:
             "properties": {
                 "user_id": {"type": "integer"},
                 "email": {"type": "string", "format": "email"},
-                "registration_timestamp": {"type": "string", "format": "date-time"},
+                "registration_timestamp": {
+                    "type": "string",
+                    "format": "date-time",
+                },
                 "onboarding_completed": {"type": "boolean"},
             },
         },
         EventType.MATCH_CREATED: {
             "type": "object",
-            "required": ["match_id", "user1_id", "user2_id", "compatibility_score"],
+            "required": [
+                "match_id",
+                "user1_id",
+                "user2_id",
+                "compatibility_score",
+            ],
             "properties": {
                 "match_id": {"type": "integer"},
                 "user1_id": {"type": "integer"},
                 "user2_id": {"type": "integer"},
-                "compatibility_score": {"type": "number", "minimum": 0, "maximum": 1},
+                "compatibility_score": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                },
                 "created_timestamp": {"type": "string", "format": "date-time"},
             },
         },
@@ -120,9 +132,16 @@ class EventSchema:
             "properties": {
                 "user_id": {"type": "integer"},
                 "message_id": {"type": "integer"},
-                "sentiment_score": {"type": "number", "minimum": -1, "maximum": 1},
+                "sentiment_score": {
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 1,
+                },
                 "emotions": {"type": "array", "items": {"type": "string"}},
-                "analysis_timestamp": {"type": "string", "format": "date-time"},
+                "analysis_timestamp": {
+                    "type": "string",
+                    "format": "date-time",
+                },
             },
         },
     }
@@ -182,7 +201,7 @@ class EventPublisher:
             await self.channel.set_qos(prefetch_count=100)
 
             # Create dead letter exchange
-            dlx_exchange = await self.channel.declare_exchange(
+            _ = await self.channel.declare_exchange(
                 self.dlx_name, ExchangeType.TOPIC, durable=True
             )
 
@@ -302,7 +321,9 @@ class EventPublisher:
                     self._update_stats(publish_time, success=True)
 
                     EVENTS_PUBLISHED.labels(
-                        exchange=exchange, routing_key=routing_key, status="success"
+                        exchange=exchange,
+                        routing_key=routing_key,
+                        status="success",
                     ).inc()
                     EVENT_PUBLISH_DURATION.observe(publish_time)
 
@@ -422,7 +443,10 @@ class EventPublisher:
             test_success = await self.publish_event(
                 exchange=EventExchange.SYSTEM_EVENTS.value,
                 routing_key="health.check",
-                event_data={"test": True, "timestamp": datetime.utcnow().isoformat()},
+                event_data={
+                    "test": True,
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
             )
 
             return {

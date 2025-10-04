@@ -6,20 +6,19 @@ Validates core functionality without full pytest setup
 
 import os
 import sys
-from datetime import datetime
 from unittest.mock import Mock
 
 # Add app to path
 sys.path.append(os.path.join(os.path.dirname(__file__), "app"))
 
-from app.services.advanced_soul_matching import AdvancedSoulMatchingService
-from app.services.emotional_depth_service import (
+from app.services.advanced_soul_matching import (  # noqa: E402
+    AdvancedSoulMatchingService,
+)
+from app.services.emotional_depth_service import (  # noqa: E402
     EmotionalDepthLevel,
     EmotionalDepthService,
-    VulnerabilityIndicator,
 )
-from app.services.enhanced_match_quality_service import (
-    ConnectionPrediction,
+from app.services.enhanced_match_quality_service import (  # noqa: E402
     EnhancedMatchQualityService,
     MatchQualityTier,
 )
@@ -137,7 +136,7 @@ def test_integration_scenario():
 
     # Test that services can work together
     depth_service = EmotionalDepthService()
-    enhanced_service = EnhancedMatchQualityService()
+    EnhancedMatchQualityService()
 
     # Mock database
     mock_db = Mock()
@@ -157,7 +156,7 @@ def test_performance_benchmarks():
     """Test basic performance requirements"""
     print("Testing Performance Benchmarks...")
 
-    import time
+    import time  # noqa: E402
 
     # Test service initialization time
     start_time = time.time()
@@ -173,7 +172,9 @@ def test_performance_benchmarks():
     for i in range(100):
         service._determine_match_quality_tier(85.0)
         service._calculate_composite_score(
-            Mock(total_score=80), Mock(total_score=85), Mock(compatibility_score=82)
+            Mock(total_score=80),
+            Mock(total_score=85),
+            Mock(compatibility_score=82),
         )
     computation_time = time.time() - start_time
 
@@ -216,7 +217,7 @@ def run_validation_tests():
 
     except Exception as e:
         print(f"\n❌ TEST FAILED: {str(e)}")
-        import traceback
+        import traceback  # noqa: E402
 
         traceback.print_exc()
         return False

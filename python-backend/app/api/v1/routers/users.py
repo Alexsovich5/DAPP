@@ -19,7 +19,9 @@ router = APIRouter(tags=["users"])
 
 
 @router.get("/me", response_model=UserSchema)
-def get_current_user_info(current_user: User = Depends(get_current_user)) -> Any:
+def get_current_user_info(
+    current_user: User = Depends(get_current_user),
+) -> Any:
     """Get current user information."""
     return current_user
 
@@ -88,7 +90,8 @@ async def upload_profile_picture(
     # Validate file type
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="File must be an image"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File must be an image",
         )
 
     # Validate file size (5MB limit)
@@ -192,7 +195,8 @@ def _get_matched_user_ids(db: Session, current_user_id: int) -> set:
         db.query(Match)
         .filter(
             or_(
-                Match.sender_id == current_user_id, Match.receiver_id == current_user_id
+                Match.sender_id == current_user_id,
+                Match.receiver_id == current_user_id,
             )
         )
         .all()
@@ -351,15 +355,15 @@ def get_match_percentage(
     # Calculate compatibility using existing scoring functions
     scores = {
         "cuisine": _calculate_cuisine_score(
-            current_user.profile.cuisine_preferences if current_user.profile else "",
-            other_user.profile.cuisine_preferences if other_user.profile else "",
+            (current_user.profile.cuisine_preferences if current_user.profile else ""),
+            (other_user.profile.cuisine_preferences if other_user.profile else ""),
         ),
         "location": _calculate_location_score(
             current_user.location or "", other_user.location or ""
         ),
         "dietary": _calculate_dietary_score(
-            current_user.profile.dietary_restrictions if current_user.profile else "",
-            other_user.profile.dietary_restrictions if other_user.profile else "",
+            (current_user.profile.dietary_restrictions if current_user.profile else ""),
+            (other_user.profile.dietary_restrictions if other_user.profile else ""),
         ),
         "interests": _calculate_interests_compatibility(
             current_user.interests, other_user.interests

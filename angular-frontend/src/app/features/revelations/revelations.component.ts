@@ -1,9 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { RevelationService } from '../../core/services/revelation.service';
 import { SoulConnectionService } from '../../core/services/soul-connection.service';
+import { HapticFeedbackService } from '../../core/services/haptic-feedback.service';
+import { RevelationKeyboardNavigationService } from './revelation-keyboard-navigation.service';
 import { RevelationsEmptyStateComponent } from './revelations-empty-state.component';
 import {
   RevelationPrompt,
@@ -17,7 +20,7 @@ import {
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, RevelationsEmptyStateComponent],
   template: `
-    <div class="revelations-container">
+    <div class="revelations-container" #revelationContainer>
       <header class="revelations-header">
         <button class="back-btn" (click)="goBack()">
           <span>←</span> Back
@@ -38,16 +41,25 @@ import {
         </div>
 
         <div class="progress-visual">
-          <div class="day-circles">
+          <div class="day-circles" role="tablist" aria-label="Revelation journey progress">
             <div
               *ngFor="let day of [1,2,3,4,5,6,7]"
               class="day-circle"
               [class.completed]="day < timeline.current_day"
               [class.current]="day === timeline.current_day"
               [class.future]="day > timeline.current_day"
+              [attr.id]="'day-' + day"
+              role="tab"
+              [attr.aria-selected]="day === timeline.current_day"
+              [attr.aria-controls]="'day-panel-' + day"
+              [attr.tabindex]="day === timeline.current_day ? 0 : -1"
+              [attr.aria-label]="'Day ' + day + ': ' + getDayLabel(day) + (day < timeline.current_day ? ' (completed)' : day === timeline.current_day ? ' (current)' : ' (upcoming)')"
+              (click)="navigateToDay(day)"
+              (keydown.enter)="navigateToDay(day)"
+              (keydown.space)="navigateToDay(day); $event.preventDefault()"
             >
-              <span class="day-number">{{day}}</span>
-              <div class="day-label">{{getDayLabel(day)}}</div>
+              <span class="day-number" aria-hidden="true">{{day}}</span>
+              <div class="day-label" aria-hidden="true">{{getDayLabel(day)}}</div>
             </div>
           </div>
           <div class="progress-line">
@@ -80,7 +92,7 @@ import {
             </div>
           </div>
 
-          <form [formGroup]="revelationForm" (ngSubmit)="shareRevelation()" class="revelation-form">
+          <form [formGroup]="revelationForm" (ngSubmit)="shareRevelation()" class="revelation-form" role="form" aria-labelledby="current-prompt-title">
             <div class="form-group">
               <label for="revelation-content">Your Revelation:</label>
               <textarea
@@ -89,6 +101,9 @@ import {
                 placeholder="Share something meaningful from your heart..."
                 rows="4"
                 [class.error]="revelationForm.get('content')?.invalid && revelationForm.get('content')?.touched"
+                [attr.aria-describedby]="revelationForm.get('content')?.invalid && revelationForm.get('content')?.touched ? 'revelation-error' : 'revelation-help'"
+                aria-required="true"
+                (keydown)="handleFormKeydown($event)"
               ></textarea>
               <div class="error-message" *ngIf="revelationForm.get('content')?.invalid && revelationForm.get('content')?.touched">
                 Please share your revelation (minimum 20 characters)
@@ -119,12 +134,17 @@ import {
       <div class="revelations-timeline" *ngIf="timeline && timeline.revelations.length > 0">
         <h3>Your Revelation Journey</h3>
 
-        <div class="timeline-container">
+        <div class="timeline-container" role="log" aria-label="Revelation timeline">
           <div
-            *ngFor="let revelation of sortedRevelations"
+            *ngFor="let revelation of sortedRevelations; let i = index"
             class="revelation-item"
             [class.sent]="revelation.sender_id === currentUserId"
             [class.received]="revelation.sender_id !== currentUserId"
+            [attr.id]="'revelation-' + revelation.id"
+            role="article"
+            [attr.aria-label]="'Revelation ' + (i + 1) + ' of ' + sortedRevelations.length + ' from ' + (revelation.sender_id === currentUserId ? 'you' : revelation.sender_name)"
+            [attr.tabindex]="0"
+            (keydown)="handleTimelineItemKeydown($event, revelation)"
           >
             <div class="revelation-meta">
               <div class="day-badge">Day {{revelation.day_number}}</div>
@@ -794,9 +814,119 @@ import {
         gap: 1rem;
       }
     }
+
+    /* Keyboard navigation styles */
+    .keyboard-focused {
+      outline: 2px solid var(--primary-color, #ec4899) !important;
+      outline-offset: 2px;
+      box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.2);
+      transition: all 0.2s ease;
+    }
+
+    .keyboard-highlighted {
+      background-color: var(--highlight-bg, rgba(236, 72, 153, 0.1));
+      border: 2px solid var(--primary-color, #ec4899);
+      transform: scale(1.02);
+      transition: all 0.3s ease;
+    }
+
+    .day-circle {
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .day-circle:hover,
+    .day-circle:focus {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .day-circle.keyboard-highlighted {
+      transform: scale(1.08);
+      box-shadow: 0 6px 20px rgba(236, 72, 153, 0.3);
+    }
+
+    .day-circle:focus-visible {
+      outline: 2px solid var(--primary-color, #ec4899);
+      outline-offset: 4px;
+    }
+
+    .revelation-item {
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .revelation-item:hover,
+    .revelation-item:focus {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .revelation-item.keyboard-highlighted {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 35px rgba(236, 72, 153, 0.2);
+      border-left: 4px solid var(--primary-color, #ec4899);
+    }
+
+    .revelation-item:focus-visible {
+      outline: 2px solid var(--primary-color, #ec4899);
+      outline-offset: 2px;
+    }
+
+    /* Enhanced focus styles for form elements */
+    #revelation-content:focus {
+      outline: 2px solid var(--primary-color, #ec4899);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.1);
+      border-color: var(--primary-color, #ec4899);
+    }
+
+    .share-btn:focus,
+    .action-btn:focus,
+    .consent-btn:focus {
+      outline: 2px solid var(--primary-color, #ec4899);
+      outline-offset: 2px;
+      box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.2);
+    }
+
+    /* Screen reader only content */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+      .keyboard-focused,
+      .keyboard-highlighted,
+      .day-circle,
+      .revelation-item {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+
+    /* High contrast mode support */
+    @media (prefers-contrast: high) {
+      .keyboard-focused,
+      .keyboard-highlighted {
+        outline-width: 3px;
+        outline-style: solid;
+        outline-color: ButtonText;
+      }
+    }
   `]
 })
-export class RevelationsComponent implements OnInit {
+export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild('revelationContainer', { static: false }) revelationContainer!: ElementRef;
   connectionId: number | null = null;
   timeline: RevelationTimeline | null = null;
   currentPrompt: RevelationPrompt | null = null;
@@ -813,12 +943,18 @@ export class RevelationsComponent implements OnInit {
   confettiPieces = Array.from({ length: 24 }).map((_, i) => i);
   whatsNext: string | null = null;
 
+  // Keyboard navigation
+  private keyboardNavSubscription?: Subscription;
+  private isKeyboardNavigationEnabled = true;
+
   constructor(
     private revelationService: RevelationService,
     private soulConnectionService: SoulConnectionService,
     private route: ActivatedRoute,
     private router: Router,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private hapticFeedbackService: HapticFeedbackService,
+    private keyboardNavigationService: RevelationKeyboardNavigationService
   ) {
     this.revelationForm = this.formBuilder.group({
       content: ['', [Validators.required, Validators.minLength(20)]]
@@ -832,6 +968,17 @@ export class RevelationsComponent implements OnInit {
         this.loadRevelationData();
       }
     });
+  }
+
+  ngAfterViewInit() {
+    this.initializeKeyboardNavigation();
+  }
+
+  ngOnDestroy() {
+    this.keyboardNavigationService.destroy();
+    if (this.keyboardNavSubscription) {
+      this.keyboardNavSubscription.unsubscribe();
+    }
   }
 
   loadRevelationData() {
@@ -948,6 +1095,10 @@ export class RevelationsComponent implements OnInit {
 
     this.revelationService.createRevelation(revelationData).subscribe({
       next: () => {
+        // Enhanced haptic feedback for revelation step completion
+        const dayNumber = this.currentPrompt?.day_number || 1;
+        this.hapticFeedbackService.triggerRevelationStepCelebration(dayNumber);
+
         // Reset form and reload data
         this.revelationForm.reset();
         this.loadRevelationData();
@@ -971,17 +1122,50 @@ export class RevelationsComponent implements OnInit {
     });
   }
 
-  async reactToRevelation(revelation: DailyRevelation) {
-    // Implement revelation reactions
-    console.log('React to revelation:', revelation.id);
+  async reactToRevelation(revelation: DailyRevelation, emoji: string = '❤️') {
+    try {
+      await this.revelationService.reactToRevelation(revelation.id, emoji).toPromise();
+
+      // Update local state if needed
+      if (!revelation.reactions) {
+        revelation.reactions = {};
+      }
+      revelation.reactions[this.currentUserId.toString()] = {
+        emoji,
+        timestamp: new Date().toISOString()
+      };
+
+      // Enhanced haptic feedback for revelation reactions
+      this.hapticFeedbackService.triggerSelectionFeedback();
+
+      console.log(`Reacted to revelation ${revelation.id} with ${emoji}`);
+    } catch (error) {
+      console.error('Error reacting to revelation:', error);
+    }
   }
 
   async togglePhotoConsent() {
-    this.userConsent = !this.userConsent;
+    if (!this.connectionId || this.userConsent) return;
 
-    // In real app, update this via API
-    if (this.userConsent && this.partnerConsent) {
-      this.photoRevealed = true;
+    try {
+      const response = await this.revelationService.givePhotoConsent(this.connectionId).toPromise();
+
+      this.userConsent = true;
+      this.photoRevealed = response?.mutualConsent || false;
+
+      if (this.photoRevealed) {
+        this.showCelebrate = true;
+
+        // Enhanced haptic feedback for photo reveal celebration
+        this.hapticFeedbackService.triggerPhotoRevealCelebration();
+
+        // Hide celebration after animation
+        setTimeout(() => {
+          this.showCelebrate = false;
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Error giving photo consent:', error);
     }
   }
 
@@ -1002,5 +1186,228 @@ export class RevelationsComponent implements OnInit {
 
   goBack() {
     this.router.navigate(['/matches']);
+  }
+
+  /**
+   * Handle keyboard events in the revelation form
+   */
+  handleFormKeydown(event: KeyboardEvent): void {
+    const { key, ctrlKey, metaKey } = event;
+
+    // Ctrl/Cmd + Enter to submit form
+    if ((ctrlKey || metaKey) && key === 'Enter') {
+      event.preventDefault();
+      if (this.revelationForm.valid) {
+        this.shareRevelation();
+      }
+    }
+
+    // Escape to blur form
+    if (key === 'Escape') {
+      (event.target as HTMLElement).blur();
+    }
+  }
+
+  /**
+   * Handle keyboard events on timeline items
+   */
+  handleTimelineItemKeydown(event: KeyboardEvent, revelation: DailyRevelation): void {
+    const { key } = event;
+
+    switch (key) {
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        // Focus on the first action button if available
+        const actionButtons = (event.target as HTMLElement).querySelectorAll('.action-btn');
+        if (actionButtons.length > 0) {
+          (actionButtons[0] as HTMLElement).focus();
+        }
+        break;
+      case 'r':
+        // Quick read action
+        if (revelation.sender_id !== this.currentUserId) {
+          this.markAsRead(revelation);
+        }
+        break;
+      case 'h':
+        // Quick react action
+        if (revelation.sender_id !== this.currentUserId) {
+          this.reactToRevelation(revelation);
+        }
+        break;
+    }
+  }
+
+  /**
+   * Initialize keyboard navigation for the revelations component
+   */
+  private initializeKeyboardNavigation(): void {
+    if (!this.revelationContainer || !this.isKeyboardNavigationEnabled) return;
+
+    this.keyboardNavigationService.initialize(this.revelationContainer, {
+      enableArrowKeys: true,
+      enableTabTrapping: true,
+      enableShortcuts: true,
+      announceChanges: true
+    });
+
+    // Listen to navigation events
+    this.keyboardNavSubscription = this.keyboardNavigationService.navigationEvents$.subscribe(
+      event => {
+        this.handleKeyboardNavigationEvent(event);
+      }
+    );
+
+    // Update navigable elements when the view changes
+    setTimeout(() => {
+      this.keyboardNavigationService.updateNavigableElements();
+    }, 100);
+  }
+
+  /**
+   * Handle keyboard navigation events
+   */
+  private handleKeyboardNavigationEvent(event: any): void {
+    const { action, element, index } = event;
+
+    switch (action) {
+      case 'navigate':
+        // Trigger haptic feedback for navigation
+        this.hapticFeedbackService.triggerRevelationStepCelebration();
+
+        // Update UI state based on navigation
+        if (element.type === 'step') {
+          this.highlightCurrentDay(element.element);
+        } else if (element.type === 'timeline-item') {
+          this.highlightTimelineItem(element.element);
+        }
+        break;
+    }
+  }
+
+  /**
+   * Highlight the current day being focused
+   */
+  private highlightCurrentDay(dayElement: HTMLElement): void {
+    // Remove previous highlights
+    const allDayCircles = this.revelationContainer.nativeElement.querySelectorAll('.day-circle');
+    allDayCircles.forEach(circle => circle.classList.remove('keyboard-highlighted'));
+
+    // Add highlight to current day
+    dayElement.classList.add('keyboard-highlighted');
+
+    // Announce day information
+    const dayNumber = dayElement.querySelector('.day-number')?.textContent;
+    const dayLabel = dayElement.querySelector('.day-label')?.textContent;
+    if (dayNumber && dayLabel) {
+      this.announceToScreenReader(`Day ${dayNumber}: ${dayLabel}`);
+    }
+  }
+
+  /**
+   * Highlight the current timeline item being focused
+   */
+  private highlightTimelineItem(itemElement: HTMLElement): void {
+    // Remove previous highlights
+    const allTimelineItems = this.revelationContainer.nativeElement.querySelectorAll('.revelation-item');
+    allTimelineItems.forEach(item => item.classList.remove('keyboard-highlighted'));
+
+    // Add highlight to current item
+    itemElement.classList.add('keyboard-highlighted');
+
+    // Announce timeline item information
+    const dayBadge = itemElement.querySelector('.day-badge')?.textContent;
+    const senderName = itemElement.querySelector('.sender-name')?.textContent;
+    const revelationType = itemElement.querySelector('.revelation-type')?.textContent;
+
+    if (dayBadge && senderName && revelationType) {
+      this.announceToScreenReader(`${dayBadge} revelation from ${senderName}: ${revelationType}`);
+    }
+  }
+
+  /**
+   * Update keyboard navigation when the view changes
+   */
+  updateKeyboardNavigation(): void {
+    if (this.keyboardNavigationService) {
+      setTimeout(() => {
+        this.keyboardNavigationService.updateNavigableElements();
+      }, 50);
+    }
+  }
+
+  /**
+   * Navigate to a specific day programmatically
+   */
+  navigateToDay(day: number): void {
+    this.keyboardNavigationService.navigateToDay(day);
+  }
+
+  /**
+   * Focus the revelation form for immediate input
+   */
+  focusRevelationForm(): void {
+    this.keyboardNavigationService.focusRevelationForm();
+  }
+
+  /**
+   * Navigate through timeline items
+   */
+  navigateTimeline(direction: 'next' | 'previous'): void {
+    this.keyboardNavigationService.navigateTimelineItems(direction);
+  }
+
+  /**
+   * Toggle keyboard navigation on/off
+   */
+  toggleKeyboardNavigation(): void {
+    this.isKeyboardNavigationEnabled = !this.isKeyboardNavigationEnabled;
+
+    if (this.isKeyboardNavigationEnabled) {
+      this.initializeKeyboardNavigation();
+    } else {
+      this.keyboardNavigationService.destroy();
+    }
+
+    this.announceToScreenReader(
+      `Keyboard navigation ${this.isKeyboardNavigationEnabled ? 'enabled' : 'disabled'}`
+    );
+  }
+
+  /**
+   * Get keyboard navigation help text
+   */
+  getKeyboardHelpText(): string {
+    return `
+      Keyboard Navigation Help:
+      • Arrow Keys: Navigate between elements
+      • Tab/Shift+Tab: Move forward/backward
+      • Enter/Space: Activate buttons
+      • Home/End: Go to first/last element
+      • Ctrl+F: Focus revelation form
+      • Ctrl+T: Navigate timeline items
+      • Ctrl+1-7: Jump to specific day
+      • Escape: Exit navigation mode
+    `;
+  }
+
+  /**
+   * Announce messages to screen readers
+   */
+  private announceToScreenReader(message: string): void {
+    const announcement = document.createElement('div');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.className = 'sr-only';
+    announcement.textContent = message;
+
+    document.body.appendChild(announcement);
+
+    setTimeout(() => {
+      if (announcement.parentNode) {
+        document.body.removeChild(announcement);
+      }
+    }, 1000);
   }
 }

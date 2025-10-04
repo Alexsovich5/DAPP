@@ -3,25 +3,23 @@ Multi-Modal Sentiment Analysis System for Sprint 8 - Advanced Microservices Arch
 Real-time sentiment analysis with behavioral, temporal, and contextual intelligence
 """
 
-import asyncio
-import json
 import re
 import time
 import uuid
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import structlog
-from ai.ml_model_registry import MLModelRegistry, ModelStatus, ModelType
+from ai.ml_model_registry import MLModelRegistry
 from core.event_publisher import EventPublisher, EventType
 
 # Import our Redis cluster manager and event publisher
 from core.redis_cluster_manager import DatabaseType, RedisClusterManager
 from prometheus_client import Counter, Gauge, Histogram
 from textblob import TextBlob
-from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
+from transformers import pipeline
 
 logger = structlog.get_logger(__name__)
 
@@ -38,10 +36,14 @@ EMOTION_DETECTIONS = Counter(
     "emotion_detections_total", "Total emotion detections", ["emotion_type"]
 )
 MOOD_CHANGES = Counter(
-    "mood_changes_total", "Total mood changes detected", ["from_mood", "to_mood"]
+    "mood_changes_total",
+    "Total mood changes detected",
+    ["from_mood", "to_mood"],
 )
 SENTIMENT_ACCURACY = Gauge(
-    "sentiment_analysis_accuracy", "Sentiment analysis accuracy", ["model_version"]
+    "sentiment_analysis_accuracy",
+    "Sentiment analysis accuracy",
+    ["model_version"],
 )
 
 
@@ -425,7 +427,11 @@ class TemporalSentimentAnalyzer:
             historical_data = await self._get_historical_sentiment(user_id, time_window)
 
             if not historical_data:
-                return {"sentiment_score": 0.0, "confidence": 0.0, "trend": "stable"}
+                return {
+                    "sentiment_score": 0.0,
+                    "confidence": 0.0,
+                    "trend": "stable",
+                }
 
             # Analyze trends
             trend_analysis = await self._analyze_sentiment_trend(historical_data)
@@ -456,7 +462,10 @@ class TemporalSentimentAnalyzer:
         # This would query actual historical data from Redis or database
         # For now, return mock data
         return [
-            {"timestamp": datetime.utcnow() - timedelta(hours=i), "sentiment": 0.1 * i}
+            {
+                "timestamp": datetime.utcnow() - timedelta(hours=i),
+                "sentiment": 0.1 * i,
+            }
             for i in range(24)
         ]
 
@@ -1153,7 +1162,6 @@ sentiment_analyzer: Optional[MultiModalSentimentAnalyzer] = None
 
 def get_sentiment_analyzer() -> MultiModalSentimentAnalyzer:
     """Get global sentiment analyzer instance"""
-    global sentiment_analyzer
     if sentiment_analyzer is None:
         raise Exception(
             "Sentiment analyzer not initialized. Call init_sentiment_analyzer first."

@@ -1,16 +1,40 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
+import { ScreenReaderService } from '../../../core/services/screen-reader.service';
 
 @Component({
   selector: 'app-soul-connection',
   standalone: true,
   imports: [CommonModule, SoulOrbComponent],
   template: `
-    <div class="soul-connection-container" [ngClass]="[layout, connectionState]">
+    <div
+      class="soul-connection-container"
+      [ngClass]="[layout, connectionState]"
+      role="region"
+      [attr.aria-label]="getConnectionAriaLabel()"
+      [attr.aria-describedby]="'connection-description-' + connectionId"
+      tabindex="0"
+      (keydown)="handleKeydown($event)"
+      (focus)="announceConnectionDetails()"
+    >
+
+      <!-- Hidden description for screen readers -->
+      <div
+        [id]="'connection-description-' + connectionId"
+        class="sr-only"
+        [attr.aria-live]="announceChanges ? 'polite' : 'off'"
+      >
+        {{getDetailedConnectionDescription()}}
+      </div>
 
       <!-- First Soul -->
-      <div class="soul-position left">
+      <div
+        class="soul-position left"
+        role="group"
+        [attr.aria-labelledby]="'left-soul-label-' + connectionId"
+        [attr.aria-describedby]="'left-soul-desc-' + connectionId"
+      >
         <app-soul-orb
           [type]="leftSoul.type"
           [size]="orbSize"
@@ -19,14 +43,45 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
           [compatibilityScore]="compatibilityScore"
           [showCompatibility]="showCompatibility && isLeftSelected"
           [showParticles]="leftSoul.showParticles"
-          [showSparkles]="leftSoul.showSparkles">
+          [showSparkles]="leftSoul.showSparkles"
+          [ariaLabel]="getLeftSoulAriaLabel()"
+        >
         </app-soul-orb>
-        <div class="soul-label" *ngIf="leftSoul.label">{{leftSoul.label}}</div>
+        <div
+          class="soul-label"
+          *ngIf="leftSoul.label"
+          [id]="'left-soul-label-' + connectionId"
+        >
+          {{leftSoul.label}}
+        </div>
+        <div
+          [id]="'left-soul-desc-' + connectionId"
+          class="sr-only"
+        >
+          {{getLeftSoulDescription()}}
+        </div>
       </div>
 
       <!-- Connection Visualization -->
-      <div class="connection-area">
-        <svg class="connection-svg" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid meet">
+      <div
+        class="connection-area"
+        role="img"
+        [attr.aria-label]="getConnectionVisualizationLabel()"
+        [attr.aria-describedby]="'connection-viz-desc-' + connectionId"
+      >
+        <div
+          [id]="'connection-viz-desc-' + connectionId"
+          class="sr-only"
+        >
+          {{getConnectionVisualizationDescription()}}
+        </div>
+        <svg
+          class="connection-svg"
+          viewBox="0 0 200 100"
+          preserveAspectRatio="xMidYMid meet"
+          [attr.aria-hidden]="true"
+          role="presentation"
+        >
           <defs>
             <!-- Connection gradient -->
             <linearGradient id="connection-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -107,15 +162,31 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
         </svg>
 
         <!-- Compatibility display -->
-        <div class="compatibility-meter" *ngIf="showCompatibilityMeter">
-          <div class="compatibility-bar">
+        <div
+          class="compatibility-meter"
+          *ngIf="showCompatibilityMeter"
+          role="meter"
+          [attr.aria-label]="'Soul compatibility: ' + compatibilityScore + ' percent'"
+          [attr.aria-valuenow]="compatibilityScore"
+          [attr.aria-valuemin]="0"
+          [attr.aria-valuemax]="100"
+          [attr.aria-valuetext]="compatibilityScore + '% - ' + compatibilityText"
+          [attr.aria-describedby]="'compatibility-desc-' + connectionId"
+        >
+          <div
+            [id]="'compatibility-desc-' + connectionId"
+            class="sr-only"
+          >
+            {{getCompatibilityDescription()}}
+          </div>
+          <div class="compatibility-bar" aria-hidden="true">
             <div
               class="compatibility-fill"
               [style.width.%]="compatibilityScore"
               [ngClass]="compatibilityLevel">
             </div>
           </div>
-          <div class="compatibility-info">
+          <div class="compatibility-info" aria-hidden="true">
             <span class="score">{{compatibilityScore}}%</span>
             <span class="level">{{compatibilityText}}</span>
           </div>
@@ -123,7 +194,12 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       </div>
 
       <!-- Second Soul -->
-      <div class="soul-position right">
+      <div
+        class="soul-position right"
+        role="group"
+        [attr.aria-labelledby]="'right-soul-label-' + connectionId"
+        [attr.aria-describedby]="'right-soul-desc-' + connectionId"
+      >
         <app-soul-orb
           [type]="rightSoul.type"
           [size]="orbSize"
@@ -132,13 +208,33 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
           [compatibilityScore]="compatibilityScore"
           [showCompatibility]="showCompatibility && !isLeftSelected"
           [showParticles]="rightSoul.showParticles"
-          [showSparkles]="rightSoul.showSparkles">
+          [showSparkles]="rightSoul.showSparkles"
+          [ariaLabel]="getRightSoulAriaLabel()"
+        >
         </app-soul-orb>
-        <div class="soul-label" *ngIf="rightSoul.label">{{rightSoul.label}}</div>
+        <div
+          class="soul-label"
+          *ngIf="rightSoul.label"
+          [id]="'right-soul-label-' + connectionId"
+        >
+          {{rightSoul.label}}
+        </div>
+        <div
+          [id]="'right-soul-desc-' + connectionId"
+          class="sr-only"
+        >
+          {{getRightSoulDescription()}}
+        </div>
       </div>
 
       <!-- Connection status message -->
-      <div class="connection-status" *ngIf="statusMessage">
+      <div
+        class="connection-status"
+        *ngIf="statusMessage"
+        role="status"
+        [attr.aria-live]="announceChanges ? 'polite' : 'off'"
+        [attr.aria-atomic]="true"
+      >
         <p class="status-text">{{statusMessage}}</p>
       </div>
 
@@ -400,7 +496,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
     }
   `]
 })
-export class SoulConnectionComponent implements OnInit, OnDestroy {
+export class SoulConnectionComponent implements OnInit, OnDestroy, OnChanges {
   @Input() leftSoul: any = {
     type: 'primary',
     state: 'active',
@@ -428,12 +524,18 @@ export class SoulConnectionComponent implements OnInit, OnDestroy {
   @Input() showEnergyPulse: boolean = true;
   @Input() showEnergyParticles: boolean = true;
   @Input() statusMessage: string = '';
+  @Input() connectionId: string = 'connection-' + Math.random().toString(36).substr(2, 9);
+  @Input() announceChanges: boolean = true;
 
   connectionParticles: any[] = [];
   connectionHearts: any[] = [];
   isLeftSelected: boolean = true;
 
   private animationFrame?: number;
+  private previousCompatibilityScore: number = 0;
+  private previousConnectionState: string = '';
+
+  constructor(private screenReader: ScreenReaderService) {}
 
   get connectionPath(): string {
     if (this.layout === 'vertical') {
@@ -497,6 +599,28 @@ export class SoulConnectionComponent implements OnInit, OnDestroy {
     if (score >= 65) return 'Good Match';
     if (score >= 50) return 'Potential Connection';
     return 'Exploring Compatibility';
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Announce compatibility score changes
+    if (changes['compatibilityScore'] && !changes['compatibilityScore'].firstChange) {
+      const currentScore = changes['compatibilityScore'].currentValue;
+      const previousScore = changes['compatibilityScore'].previousValue;
+
+      if (Math.abs(currentScore - previousScore) >= 5) {
+        this.screenReader.announceCompatibilityScore(currentScore, {
+          values: Math.floor(currentScore * 0.3),
+          interests: Math.floor(currentScore * 0.25),
+          communication: Math.floor(currentScore * 0.45)
+        });
+      }
+    }
+
+    // Announce connection state changes
+    if (changes['connectionState'] && !changes['connectionState'].firstChange) {
+      const newState = changes['connectionState'].currentValue;
+      this.announceConnectionStateChange(newState);
+    }
   }
 
   ngOnInit() {
@@ -567,5 +691,171 @@ export class SoulConnectionComponent implements OnInit, OnDestroy {
 
   trackConnectionHeart(index: number, heart: any): any {
     return heart.id;
+  }
+
+  // Screen Reader Accessibility Methods
+
+  getConnectionAriaLabel(): string {
+    return `Soul connection between ${this.leftSoul.label || 'left soul'} and ${this.rightSoul.label || 'right soul'}, ${this.compatibilityScore}% compatibility`;
+  }
+
+  getDetailedConnectionDescription(): string {
+    const stateDescriptions = {
+      'discovering': 'Currently discovering potential connection through soul compatibility analysis',
+      'connecting': 'Establishing soul connection with real-time energy synchronization',
+      'matched': 'Successfully matched souls with confirmed compatibility',
+      'strong-match': 'Exceptional soul match with powerful energy resonance'
+    };
+
+    const energyDescription = this.getEnergyDescription();
+    const compatibilityDescription = this.getCompatibilityDescription();
+    const stateDescription = stateDescriptions[this.connectionState] || 'Processing connection state';
+
+    return `${stateDescription}. ${compatibilityDescription}. ${energyDescription}`;
+  }
+
+  getLeftSoulAriaLabel(): string {
+    return `${this.leftSoul.label || 'Left soul'}, ${this.leftSoul.type} type, ${this.leftSoul.state} state, energy level ${this.leftSoul.energy}`;
+  }
+
+  getLeftSoulDescription(): string {
+    const particleStatus = this.leftSoul.showParticles ? 'displaying energy particles' : 'particles hidden';
+    const sparkleStatus = this.leftSoul.showSparkles ? 'with soul sparkles' : 'sparkles disabled';
+    return `${this.leftSoul.label || 'Left soul'} is in ${this.leftSoul.state} state with energy level ${this.leftSoul.energy}, ${particleStatus} ${sparkleStatus}`;
+  }
+
+  getRightSoulAriaLabel(): string {
+    return `${this.rightSoul.label || 'Right soul'}, ${this.rightSoul.type} type, ${this.rightSoul.state} state, energy level ${this.rightSoul.energy}`;
+  }
+
+  getRightSoulDescription(): string {
+    const particleStatus = this.rightSoul.showParticles ? 'displaying energy particles' : 'particles hidden';
+    const sparkleStatus = this.rightSoul.showSparkles ? 'with soul sparkles' : 'sparkles disabled';
+    return `${this.rightSoul.label || 'Right soul'} is in ${this.rightSoul.state} state with energy level ${this.rightSoul.energy}, ${particleStatus} ${sparkleStatus}`;
+  }
+
+  getConnectionVisualizationLabel(): string {
+    const visualElements = [];
+
+    if (this.showEnergyPulse) visualElements.push('energy pulse');
+    if (this.showEnergyParticles) visualElements.push('floating energy particles');
+    if (this.compatibilityScore >= 80) visualElements.push('heart symbols for strong connection');
+
+    const elementsText = visualElements.length > 0 ?
+      ` showing ${visualElements.join(', ')}` :
+      ' with basic connection line';
+
+    return `Soul connection visualization${elementsText}`;
+  }
+
+  getConnectionVisualizationDescription(): string {
+    const pulseDesc = this.showEnergyPulse ?
+      `Energy pulse flowing at ${this.pulseSpeed} second intervals` :
+      'No energy pulse animation';
+
+    const particleDesc = this.showEnergyParticles ?
+      `${this.connectionParticles.length} energy particles traveling along connection path` :
+      'No particle effects';
+
+    const heartDesc = this.compatibilityScore >= 80 ?
+      `${this.connectionHearts.length} floating heart symbols indicating strong connection` :
+      'No heart symbols displayed';
+
+    return `Connection visualization: ${pulseDesc}. ${particleDesc}. ${heartDesc}`;
+  }
+
+  getCompatibilityDescription(): string {
+    const level = this.compatibilityLevel;
+    const score = this.compatibilityScore;
+
+    const levelDescriptions = {
+      'perfect': `Perfect soul match at ${score}% - exceptional alignment across all dimensions`,
+      'high': `High compatibility at ${score}% - strong potential for deep connection`,
+      'medium': `Medium compatibility at ${score}% - good foundation for relationship growth`,
+      'low': `Exploring compatibility at ${score}% - discovering connection potential`
+    };
+
+    return levelDescriptions[level] || `Compatibility score: ${score}%`;
+  }
+
+  private getEnergyDescription(): string {
+    const leftEnergy = this.leftSoul.energy;
+    const rightEnergy = this.rightSoul.energy;
+    const avgEnergy = (leftEnergy + rightEnergy) / 2;
+
+    if (avgEnergy >= 4) return 'High energy levels creating dynamic soul interaction';
+    if (avgEnergy >= 3) return 'Balanced energy levels supporting steady connection';
+    if (avgEnergy >= 2) return 'Moderate energy levels with gentle soul resonance';
+    return 'Lower energy levels in contemplative connection state';
+  }
+
+  announceConnectionDetails(): void {
+    if (!this.announceChanges) return;
+
+    const announcement = `${this.getConnectionAriaLabel()}. ${this.getCompatibilityDescription()}`;
+    this.screenReader.announce(announcement, 'polite', 'soul-connection-focus');
+  }
+
+  private announceConnectionStateChange(newState: string): void {
+    const stateMessages = {
+      'discovering': 'Soul discovery in progress - analyzing compatibility potential',
+      'connecting': 'Souls are connecting - energy synchronization beginning',
+      'matched': 'Souls successfully matched - connection established',
+      'strong-match': 'Exceptional soul match achieved - powerful connection formed'
+    };
+
+    const message = stateMessages[newState] || `Connection state changed to ${newState}`;
+    this.screenReader.announce(message, 'assertive', 'connection-state-change');
+  }
+
+  handleKeydown(event: KeyboardEvent): void {
+    switch (event.key) {
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        this.announceConnectionDetails();
+        break;
+
+      case 'c':
+        if (event.ctrlKey || event.metaKey) {
+          event.preventDefault();
+          this.announceCompatibilityDetails();
+        }
+        break;
+
+      case 'e':
+        if (event.ctrlKey || event.metaKey) {
+          event.preventDefault();
+          this.announceEnergyLevels();
+        }
+        break;
+
+      case 's':
+        if (event.ctrlKey || event.metaKey) {
+          event.preventDefault();
+          this.announceConnectionState();
+        }
+        break;
+    }
+  }
+
+  private announceCompatibilityDetails(): void {
+    const breakdown = {
+      values: Math.floor(this.compatibilityScore * 0.3),
+      interests: Math.floor(this.compatibilityScore * 0.25),
+      communication: Math.floor(this.compatibilityScore * 0.45)
+    };
+
+    this.screenReader.announceCompatibilityScore(this.compatibilityScore, breakdown);
+  }
+
+  private announceEnergyLevels(): void {
+    const message = `Energy levels: ${this.leftSoul.label || 'Left soul'} at level ${this.leftSoul.energy}, ${this.rightSoul.label || 'Right soul'} at level ${this.rightSoul.energy}`;
+    this.screenReader.announce(message, 'polite', 'energy-levels');
+  }
+
+  private announceConnectionState(): void {
+    const message = `Connection is currently in ${this.connectionState} state with ${this.compatibilityScore}% compatibility`;
+    this.screenReader.announce(message, 'polite', 'connection-state');
   }
 }

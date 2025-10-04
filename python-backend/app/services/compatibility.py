@@ -1,6 +1,5 @@
 # import re
-from datetime import datetime
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 
 class CompatibilityCalculator:
@@ -19,7 +18,7 @@ class CompatibilityCalculator:
             "personality": 0.10,
         }
 
-        # Value keywords for semantic matching
+        # Enhanced value keywords for semantic matching
         self.value_keywords = {
             "relationship_values": {
                 "commitment": [
@@ -29,8 +28,36 @@ class CompatibilityCalculator:
                     "devoted",
                     "committed",
                     "stable",
+                    "monogamous",
+                    "exclusive",
+                    "forever",
+                    "lasting",
+                    "permanent",
+                    "serious",
+                    "long-term",
+                    "partnership",
+                    "fidelity",
+                    "trust",
+                    "dependable",
                 ],
-                "growth": ["learn", "improve", "develop", "evolve", "grow", "better"],
+                "growth": [
+                    "learn",
+                    "improve",
+                    "develop",
+                    "evolve",
+                    "grow",
+                    "better",
+                    "progress",
+                    "expand",
+                    "challenge",
+                    "potential",
+                    "self-improvement",
+                    "education",
+                    "wisdom",
+                    "knowledge",
+                    "enlightenment",
+                    "transform",
+                ],
                 "adventure": [
                     "explore",
                     "travel",
@@ -38,6 +65,17 @@ class CompatibilityCalculator:
                     "experience",
                     "adventure",
                     "exciting",
+                    "spontaneous",
+                    "discovery",
+                    "journey",
+                    "wanderlust",
+                    "curiosity",
+                    "freedom",
+                    "thrill",
+                    "explore",
+                    "unknown",
+                    "risk",
+                    "bold",
                 ],
                 "stability": [
                     "secure",
@@ -46,6 +84,16 @@ class CompatibilityCalculator:
                     "consistent",
                     "stable",
                     "safe",
+                    "predictable",
+                    "routine",
+                    "comfort",
+                    "security",
+                    "grounded",
+                    "balanced",
+                    "foundation",
+                    "solid",
+                    "dependable",
+                    "constant",
                 ],
                 "independence": [
                     "free",
@@ -53,6 +101,17 @@ class CompatibilityCalculator:
                     "space",
                     "individual",
                     "autonomous",
+                    "self-reliant",
+                    "personal",
+                    "freedom",
+                    "solo",
+                    "own",
+                    "myself",
+                    "boundaries",
+                    "separate",
+                    "unique",
+                    "distinct",
+                    "self-sufficient",
                 ],
                 "family": [
                     "family",
@@ -61,6 +120,88 @@ class CompatibilityCalculator:
                     "marriage",
                     "home",
                     "domestic",
+                    "parenthood",
+                    "legacy",
+                    "generations",
+                    "traditions",
+                    "roots",
+                    "togetherness",
+                    "children",
+                    "babies",
+                    "wedding",
+                    "household",
+                ],
+                "spirituality": [
+                    "spiritual",
+                    "faith",
+                    "belief",
+                    "soul",
+                    "divine",
+                    "meaning",
+                    "purpose",
+                    "meditation",
+                    "prayer",
+                    "religion",
+                    "transcendent",
+                    "connection",
+                    "universe",
+                    "higher",
+                    "sacred",
+                    "mindful",
+                ],
+                "creativity": [
+                    "creative",
+                    "artistic",
+                    "imagination",
+                    "innovation",
+                    "inspiration",
+                    "expression",
+                    "beauty",
+                    "art",
+                    "music",
+                    "writing",
+                    "design",
+                    "original",
+                    "unique",
+                    "vision",
+                    "talent",
+                    "passion",
+                ],
+                "success": [
+                    "achievement",
+                    "success",
+                    "goals",
+                    "ambition",
+                    "career",
+                    "excellence",
+                    "accomplishment",
+                    "recognition",
+                    "leadership",
+                    "impact",
+                    "influence",
+                    "prosperity",
+                    "winning",
+                    "mastery",
+                    "expertise",
+                    "professional",
+                ],
+                "authenticity": [
+                    "authentic",
+                    "genuine",
+                    "real",
+                    "honest",
+                    "true",
+                    "sincere",
+                    "transparent",
+                    "vulnerable",
+                    "open",
+                    "truthful",
+                    "integrity",
+                    "raw",
+                    "unfiltered",
+                    "natural",
+                    "myself",
+                    "original",
                 ],
             },
             "connection_style": {
@@ -71,6 +212,17 @@ class CompatibilityCalculator:
                     "soul",
                     "profound",
                     "spiritual",
+                    "intellectual",
+                    "thoughtful",
+                    "wisdom",
+                    "insights",
+                    "consciousness",
+                    "existential",
+                    "purpose",
+                    "values",
+                    "beliefs",
+                    "truth",
+                    "understanding",
                 ],
                 "shared_activities": [
                     "together",
@@ -79,6 +231,18 @@ class CompatibilityCalculator:
                     "fun",
                     "shared",
                     "do",
+                    "adventures",
+                    "experiences",
+                    "explore",
+                    "play",
+                    "games",
+                    "sports",
+                    "outdoor",
+                    "projects",
+                    "cooking",
+                    "create",
+                    "build",
+                    "collaborate",
                 ],
                 "quality_time": [
                     "present",
@@ -87,6 +251,17 @@ class CompatibilityCalculator:
                     "listen",
                     "time",
                     "together",
+                    "undivided",
+                    "mindful",
+                    "connection",
+                    "moment",
+                    "here",
+                    "now",
+                    "exclusive",
+                    "dedicated",
+                    "uninterrupted",
+                    "intimate",
+                    "focused",
                 ],
                 "physical_affection": [
                     "touch",
@@ -95,6 +270,233 @@ class CompatibilityCalculator:
                     "intimate",
                     "physical",
                     "hug",
+                    "cuddle",
+                    "kiss",
+                    "hold",
+                    "embrace",
+                    "caress",
+                    "tender",
+                    "warmth",
+                    "comfort",
+                    "skin",
+                    "contact",
+                    "gentle",
+                    "loving",
+                ],
+                "emotional_support": [
+                    "support",
+                    "comfort",
+                    "encourage",
+                    "understand",
+                    "empathy",
+                    "compassion",
+                    "care",
+                    "nurture",
+                    "help",
+                    "listen",
+                    "validate",
+                    "acceptance",
+                    "patience",
+                    "kindness",
+                    "reassurance",
+                    "healing",
+                ],
+                "playful_connection": [
+                    "playful",
+                    "humor",
+                    "laugh",
+                    "joy",
+                    "fun",
+                    "silly",
+                    "spontaneous",
+                    "lighthearted",
+                    "jokes",
+                    "tease",
+                    "banter",
+                    "witty",
+                    "amusing",
+                    "cheerful",
+                    "entertainment",
+                    "comedy",
+                    "smile",
+                    "giggle",
+                ],
+            },
+            "ideal_evening": {
+                "romantic": [
+                    "romantic",
+                    "candles",
+                    "wine",
+                    "dinner",
+                    "sunset",
+                    "stargazing",
+                    "intimate",
+                    "cozy",
+                    "fireplace",
+                    "music",
+                    "dancing",
+                    "champagne",
+                    "flowers",
+                    "soft",
+                    "gentle",
+                    "magical",
+                    "dreamy",
+                    "enchanting",
+                ],
+                "adventurous": [
+                    "adventure",
+                    "explore",
+                    "new",
+                    "exciting",
+                    "spontaneous",
+                    "travel",
+                    "discover",
+                    "unknown",
+                    "journey",
+                    "quest",
+                    "bold",
+                    "daring",
+                    "thrilling",
+                    "unexpected",
+                    "wild",
+                    "freedom",
+                    "experience",
+                ],
+                "peaceful": [
+                    "peaceful",
+                    "quiet",
+                    "calm",
+                    "serene",
+                    "tranquil",
+                    "relaxing",
+                    "meditation",
+                    "nature",
+                    "stillness",
+                    "harmony",
+                    "balance",
+                    "mindful",
+                    "zen",
+                    "gentle",
+                    "soothing",
+                    "restful",
+                    "comfortable",
+                ],
+                "social": [
+                    "friends",
+                    "social",
+                    "party",
+                    "gathering",
+                    "people",
+                    "community",
+                    "celebration",
+                    "group",
+                    "lively",
+                    "energetic",
+                    "vibrant",
+                    "connection",
+                    "networking",
+                    "mingling",
+                    "festive",
+                    "collective",
+                ],
+                "creative": [
+                    "creative",
+                    "art",
+                    "music",
+                    "writing",
+                    "painting",
+                    "craft",
+                    "imagination",
+                    "expression",
+                    "inspiration",
+                    "beauty",
+                    "design",
+                    "poetry",
+                    "dance",
+                    "theater",
+                    "innovative",
+                    "artistic",
+                    "vision",
+                ],
+            },
+            "feeling_understood": {
+                "verbal_communication": [
+                    "talk",
+                    "conversation",
+                    "words",
+                    "express",
+                    "share",
+                    "communicate",
+                    "discuss",
+                    "dialogue",
+                    "voice",
+                    "speak",
+                    "articulate",
+                    "explain",
+                    "describe",
+                    "tell",
+                    "story",
+                    "language",
+                    "verbal",
+                    "say",
+                ],
+                "non_verbal_understanding": [
+                    "eyes",
+                    "look",
+                    "silence",
+                    "presence",
+                    "energy",
+                    "vibe",
+                    "feeling",
+                    "intuition",
+                    "sense",
+                    "without",
+                    "words",
+                    "unspoken",
+                    "gesture",
+                    "body",
+                    "language",
+                    "subtle",
+                    "implicit",
+                    "knowing",
+                    "connection",
+                ],
+                "emotional_validation": [
+                    "validate",
+                    "accept",
+                    "understand",
+                    "empathy",
+                    "compassion",
+                    "feelings",
+                    "emotions",
+                    "heart",
+                    "soul",
+                    "support",
+                    "comfort",
+                    "acknowledgment",
+                    "recognition",
+                    "respect",
+                    "honor",
+                    "value",
+                ],
+                "shared_experiences": [
+                    "together",
+                    "shared",
+                    "experience",
+                    "memory",
+                    "moment",
+                    "common",
+                    "mutual",
+                    "collective",
+                    "bond",
+                    "connection",
+                    "unity",
+                    "harmony",
+                    "synchronicity",
+                    "parallel",
+                    "similar",
+                    "relate",
+                    "resonate",
                 ],
             },
         }
@@ -258,6 +660,306 @@ class CompatibilityCalculator:
 
         return (age_score * 0.4) + (location_score * 0.6)
 
+    def calculate_communication_compatibility(
+        self, user1_data: Dict, user2_data: Dict
+    ) -> float:
+        """
+        Calculate communication style compatibility based on user preferences.
+        Returns: 0.0 to 1.0 based on communication style alignment
+        """
+        comm1 = user1_data.get("communication_style", {})
+        comm2 = user2_data.get("communication_style", {})
+
+        if not comm1 or not comm2:
+            return 0.6  # Default moderate compatibility if data missing
+
+        compatibility_factors = []
+
+        # Check preferred communication style
+        style1 = comm1.get("preferred_style", "").lower()
+        style2 = comm2.get("preferred_style", "").lower()
+
+        if style1 and style2:
+            if style1 == style2:
+                compatibility_factors.append(1.0)
+            elif self._are_complementary_styles(style1, style2):
+                compatibility_factors.append(0.8)
+            else:
+                compatibility_factors.append(0.5)
+
+        # Check response time preferences
+        response1 = comm1.get("response_preference", "").lower()
+        response2 = comm2.get("response_preference", "").lower()
+
+        if response1 and response2:
+            if response1 == response2:
+                compatibility_factors.append(0.9)
+            elif self._are_compatible_response_styles(response1, response2):
+                compatibility_factors.append(0.7)
+            else:
+                compatibility_factors.append(0.4)
+
+        # Check emotional communication style from onboarding responses
+        if user1_data.get("emotional_responses") and user2_data.get(
+            "emotional_responses"
+        ):
+            emotional_compat = self._analyze_emotional_communication_style(
+                user1_data["emotional_responses"], user2_data["emotional_responses"]
+            )
+            compatibility_factors.append(emotional_compat)
+
+        return (
+            sum(compatibility_factors) / len(compatibility_factors)
+            if compatibility_factors
+            else 0.6
+        )
+
+    def _are_complementary_styles(self, style1: str, style2: str) -> bool:
+        """Check if two communication styles are complementary."""
+        complementary_pairs = {
+            ("deep_conversation", "thoughtful_listening"),
+            ("expressive", "supportive"),
+            ("direct", "understanding"),
+            ("playful", "encouraging"),
+        }
+        return (style1, style2) in complementary_pairs or (
+            style2,
+            style1,
+        ) in complementary_pairs
+
+    def _are_compatible_response_styles(self, response1: str, response2: str) -> bool:
+        """Check if response time preferences are compatible."""
+        compatible_responses = {
+            ("immediate", "quick"),
+            ("thoughtful", "considered"),
+            ("flexible", "adaptable"),
+        }
+        return (response1, response2) in compatible_responses or (
+            response2,
+            response1,
+        ) in compatible_responses
+
+    def _analyze_emotional_communication_style(
+        self, responses1: Dict, responses2: Dict
+    ) -> float:
+        """Analyze emotional communication compatibility from onboarding responses."""
+        # Keywords indicating communication styles
+        communication_indicators = {
+            "expressive": [
+                "express",
+                "share",
+                "open",
+                "communicate",
+                "talk",
+                "discuss",
+            ],
+            "reflective": ["think", "consider", "reflect", "contemplate", "understand"],
+            "supportive": ["support", "listen", "care", "help", "encourage", "comfort"],
+            "direct": ["direct", "honest", "straightforward", "clear", "upfront"],
+            "gentle": ["gentle", "kind", "patient", "calm", "peaceful", "soft"],
+        }
+
+        user1_styles = set()
+        user2_styles = set()
+
+        # Analyze all emotional responses for communication style indicators
+        for response in responses1.values():
+            if isinstance(response, str):
+                response_lower = response.lower()
+                for style, keywords in communication_indicators.items():
+                    if any(keyword in response_lower for keyword in keywords):
+                        user1_styles.add(style)
+
+        for response in responses2.values():
+            if isinstance(response, str):
+                response_lower = response.lower()
+                for style, keywords in communication_indicators.items():
+                    if any(keyword in response_lower for keyword in keywords):
+                        user2_styles.add(style)
+
+        # Calculate overlap and complementarity
+        if not user1_styles or not user2_styles:
+            return 0.6
+
+        overlap = len(user1_styles.intersection(user2_styles))
+        total_styles = len(user1_styles.union(user2_styles))
+
+        # Higher score for some overlap but not identical (diversity is good)
+        if overlap == 0:
+            return 0.4
+        elif overlap == len(user1_styles) == len(user2_styles):
+            return 0.8  # Very similar styles
+        else:
+            return 0.6 + (overlap / total_styles) * 0.3
+
+    def calculate_personality_compatibility(
+        self, user1_data: Dict, user2_data: Dict
+    ) -> float:
+        """
+        Calculate personality trait compatibility based on user data.
+        Returns: 0.0 to 1.0 based on personality alignment and complementarity
+        """
+        traits1 = user1_data.get("personality_traits", {})
+        traits2 = user2_data.get("personality_traits", {})
+
+        if not traits1 or not traits2:
+            # Analyze personality from emotional responses if traits not available
+            if user1_data.get("emotional_responses") and user2_data.get(
+                "emotional_responses"
+            ):
+                return self._analyze_personality_from_responses(
+                    user1_data["emotional_responses"], user2_data["emotional_responses"]
+                )
+            return 0.6  # Default if no personality data
+
+        compatibility_scores = []
+
+        # Big Five personality traits analysis (if available)
+        big_five_traits = [
+            "openness",
+            "conscientiousness",
+            "extraversion",
+            "agreeableness",
+            "neuroticism",
+        ]
+
+        for trait in big_five_traits:
+            score1 = traits1.get(trait, 50)  # Default middle score
+            score2 = traits2.get(trait, 50)
+
+            # Some traits work better with similarity, others with complementarity
+            if trait in ["agreeableness", "conscientiousness"]:
+                # These traits benefit from similarity
+                trait_compat = 1.0 - abs(score1 - score2) / 100.0
+            elif trait == "neuroticism":
+                # Lower neuroticism scores are generally better, balance is key
+                avg_neuroticism = (score1 + score2) / 2
+                trait_compat = max(0.3, 1.0 - avg_neuroticism / 100.0)
+            else:
+                # Openness and extraversion can be complementary
+                # Perfect similarity gets 0.9, moderate difference gets 0.8, extreme difference gets 0.4
+                diff = abs(score1 - score2)
+                if diff <= 20:
+                    trait_compat = 0.9
+                elif diff <= 40:
+                    trait_compat = 0.8
+                elif diff <= 60:
+                    trait_compat = 0.6
+                else:
+                    trait_compat = 0.4
+
+            compatibility_scores.append(trait_compat)
+
+        return (
+            sum(compatibility_scores) / len(compatibility_scores)
+            if compatibility_scores
+            else 0.6
+        )
+
+    def _analyze_personality_from_responses(
+        self, responses1: Dict, responses2: Dict
+    ) -> float:
+        """Extract personality indicators from emotional onboarding responses."""
+        personality_indicators = {
+            "openness": [
+                "new",
+                "experience",
+                "creative",
+                "curious",
+                "explore",
+                "learn",
+                "adventure",
+            ],
+            "conscientiousness": [
+                "organized",
+                "responsible",
+                "plan",
+                "goal",
+                "dedicated",
+                "reliable",
+            ],
+            "extraversion": [
+                "people",
+                "social",
+                "outgoing",
+                "energy",
+                "talk",
+                "connect",
+                "friends",
+            ],
+            "agreeableness": [
+                "help",
+                "kind",
+                "compassionate",
+                "understanding",
+                "empathy",
+                "care",
+            ],
+            "emotional_stability": [
+                "calm",
+                "stable",
+                "confident",
+                "peaceful",
+                "balanced",
+                "strong",
+            ],
+        }
+
+        user1_traits = {}
+        user2_traits = {}
+
+        # Analyze responses for personality indicators
+        for trait, keywords in personality_indicators.items():
+            count1 = 0
+            count2 = 0
+
+            for response in responses1.values():
+                if isinstance(response, str):
+                    response_lower = response.lower()
+                    count1 += sum(
+                        1 for keyword in keywords if keyword in response_lower
+                    )
+
+            for response in responses2.values():
+                if isinstance(response, str):
+                    response_lower = response.lower()
+                    count2 += sum(
+                        1 for keyword in keywords if keyword in response_lower
+                    )
+
+            # Normalize scores (0-100 scale)
+            user1_traits[trait] = min(100, count1 * 20)
+            user2_traits[trait] = min(100, count2 * 20)
+
+        # Calculate compatibility using similar logic as above
+        compatibility_scores = []
+        for trait in personality_indicators.keys():
+            score1 = user1_traits.get(trait, 30)
+            score2 = user2_traits.get(trait, 30)
+
+            if trait in ["agreeableness", "conscientiousness"]:
+                trait_compat = 1.0 - abs(score1 - score2) / 100.0
+            elif trait == "emotional_stability":
+                # Higher emotional stability is generally better
+                avg_stability = (score1 + score2) / 2
+                trait_compat = min(1.0, avg_stability / 80.0)
+            else:
+                diff = abs(score1 - score2)
+                if diff <= 20:
+                    trait_compat = 0.9
+                elif diff <= 40:
+                    trait_compat = 0.7
+                else:
+                    trait_compat = 0.5
+
+            compatibility_scores.append(trait_compat)
+
+        return (
+            sum(compatibility_scores) / len(compatibility_scores)
+            if compatibility_scores
+            else 0.6
+        )
+
     def calculate_overall_compatibility(
         self, user1_data: Dict, user2_data: Dict
     ) -> Dict[str, Any]:
@@ -277,16 +979,21 @@ class CompatibilityCalculator:
         )
 
         values_score = self.calculate_values_compatibility(
-            user1_data.get("core_values", {}), user2_data.get("core_values", {})
+            user1_data.get("core_values", {}),
+            user2_data.get("core_values", {}),
         )
 
         demographic_score = self.calculate_demographic_compatibility(
             user1_data, user2_data
         )
 
-        # For MVP, simplified communication and personality scoring
-        communication_score = 0.7  # Default moderate compatibility
-        personality_score = 0.6  # Default moderate compatibility
+        # Calculate communication and personality compatibility using new methods
+        communication_score = self.calculate_communication_compatibility(
+            user1_data, user2_data
+        )
+        personality_score = self.calculate_personality_compatibility(
+            user1_data, user2_data
+        )
 
         # Calculate weighted total
         total_score = (
@@ -326,7 +1033,11 @@ class CompatibilityCalculator:
             return "Explore Further"
 
     def _generate_compatibility_explanation(
-        self, total: float, interests: float, values: float, demographics: float
+        self,
+        total: float,
+        interests: float,
+        values: float,
+        demographics: float,
     ) -> str:
         """Generate human-readable explanation of compatibility."""
         explanations = []

@@ -5,12 +5,12 @@ Handles WebSocket connections, presence tracking, and live state management
 
 # import asyncio
 import json
-import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Dict, List, Optional, Set
 
+from app.core.logging_config import get_logger
 from app.models.realtime_state import UserPresence, UserPresenceStatus
 from app.models.soul_analytics import AnalyticsEventType, UserEngagementAnalytics
 from app.models.soul_connection import ConnectionEnergyLevel, SoulConnection
@@ -19,7 +19,7 @@ from fastapi import WebSocket
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-logger = logging.getLogger(__name__)
+logger = get_logger("app.services.realtime_connection_manager")
 
 
 class MessageType(str, Enum):
@@ -50,6 +50,17 @@ class MessageType(str, Enum):
     NEW_REVELATION = "new_revelation"
     PHOTO_CONSENT = "photo_consent"
     CELEBRATION = "celebration"
+
+    # Soul-specific features (Frontend compatibility)
+    COMPATIBILITY_CHANGE = "compatibility_change"
+    ENERGY_SYNC = "energy_sync"
+    NEW_MATCH = "new_match"
+    REVELATION_SHARED = "revelation_shared"
+    REVELATION_RECEIVED = "revelation_received"
+    REVELATION_MUTUAL_COMPLETE = "revelation_mutual_complete"
+    CHANNEL_SUBSCRIBE = "subscribe"
+    CHANNEL_UNSUBSCRIBE = "unsubscribe"
+    HEARTBEAT_ACK = "heartbeat_ack"
 
     # System
     HEARTBEAT = "heartbeat"
@@ -95,6 +106,12 @@ class RealtimeConnectionManager:
 
         # Connection subscribers: connection_id -> set of user_ids
         self.connection_subscribers: Dict[int, Set[int]] = {}
+
+        # Channel-based subscriptions: channel -> set of user_ids (for frontend compatibility)
+        self.channel_subscribers: Dict[str, Set[int]] = {}
+
+        # User channel subscriptions: user_id -> set of channels
+        self.user_channels: Dict[int, Set[str]] = {}
 
         # Message queues for offline users
         self.offline_message_queue: Dict[int, List[RealtimeMessage]] = {}
@@ -160,6 +177,9 @@ class RealtimeConnectionManager:
 
             # Stop any typing sessions
             await self.stop_all_typing_sessions(user_id, db)
+
+            # Clean up channel subscriptions
+            await self.cleanup_user_channels(user_id)
 
             # Notify connections about user going offline
             await self.notify_user_connections(user_id, MessageType.USER_OFFLINE, db)
@@ -349,7 +369,10 @@ class RealtimeConnectionManager:
             return False
 
     async def update_connection_energy(
-        self, connection_id: int, new_energy: ConnectionEnergyLevel, db: Session
+        self,
+        connection_id: int,
+        new_energy: ConnectionEnergyLevel,
+        db: Session,
     ):
         """Update connection energy level and notify users"""
         try:
@@ -402,7 +425,11 @@ class RealtimeConnectionManager:
             return False
 
     async def trigger_celebration(
-        self, connection_id: int, celebration_type: str, data: Dict, db: Session
+        self,
+        connection_id: int,
+        celebration_type: str,
+        data: Dict,
+        db: Session,
     ):
         """Trigger celebration animation for both users"""
         try:
@@ -445,7 +472,11 @@ class RealtimeConnectionManager:
             return False
 
     async def notify_new_revelation(
-        self, connection_id: int, sender_id: int, revelation_data: Dict, db: Session
+        self,
+        connection_id: int,
+        sender_id: int,
+        revelation_data: Dict,
+        db: Session,
     ):
         """Notify about new revelation sharing"""
         try:
@@ -498,17 +529,66 @@ class RealtimeConnectionManager:
             message_type = MessageType(message_data.get("type"))
             data = message_data.get("data", {})
             connection_id = message_data.get("connectionId")
+            channel = message_data.get("channel")
 
-            if message_type == MessageType.TYPING_START:
+            # Handle channel subscriptions (Frontend WebSocket Pool compatibility)
+            if message_type == MessageType.CHANNEL_SUBSCRIBE and channel:
+                success = await self.subscribe_to_channel(user_id, channel)
+                if success:
+                    # Send confirmation
+                    await self.send_to_user(
+                        user_id,
+                        RealtimeMessage(
+                            type=MessageType.CHANNEL_SUBSCRIBE,
+                            data={"channel": channel, "status": "subscribed"},
+                        ),
+                    )
+                return success
+
+            elif message_type == MessageType.CHANNEL_UNSUBSCRIBE and channel:
+                success = await self.unsubscribe_from_channel(user_id, channel)
+                if success:
+                    # Send confirmation
+                    await self.send_to_user(
+                        user_id,
+                        RealtimeMessage(
+                            type=MessageType.CHANNEL_UNSUBSCRIBE,
+                            data={
+                                "channel": channel,
+                                "status": "unsubscribed",
+                            },
+                        ),
+                    )
+                return success
+
+            # Handle heartbeat with acknowledgment
+            elif message_type == MessageType.HEARTBEAT:
+                # Update last seen
+                await self.update_user_presence(user_id, UserPresenceStatus.ONLINE, db)
+                # Send heartbeat acknowledgment
+                await self.send_to_user(
+                    user_id,
+                    RealtimeMessage(
+                        type=MessageType.HEARTBEAT_ACK,
+                        data={"timestamp": datetime.utcnow().isoformat()},
+                    ),
+                )
+                return True
+
+            # Handle energy pulse updates
+            elif message_type == MessageType.ENERGY_SYNC:
+                return await self.handle_energy_pulse(user_id, data, db)
+
+            # Handle presence updates
+            elif message_type == MessageType.PRESENCE_UPDATE:
+                return await self.handle_presence_update(user_id, data, db)
+
+            # Existing message handlers
+            elif message_type == MessageType.TYPING_START:
                 return await self.start_typing(user_id, connection_id, data, db)
 
             elif message_type == MessageType.TYPING_STOP:
                 return await self.stop_typing(user_id, connection_id, db)
-
-            elif message_type == MessageType.HEARTBEAT:
-                # Update last seen
-                await self.update_user_presence(user_id, UserPresenceStatus.ONLINE, db)
-                return True
 
             elif message_type == MessageType.CONNECTION_UPDATE:
                 # Subscribe to connection updates
@@ -857,6 +937,281 @@ class RealtimeConnectionManager:
         if user_id in self.user_presence:
             self.user_presence[user_id] = UserPresenceStatus.OFFLINE
 
+    # Channel-based subscription methods (Frontend WebSocket Pool compatibility)
+
+    async def subscribe_to_channel(self, user_id: int, channel: str):
+        """Subscribe user to a specific channel"""
+        try:
+            if channel not in self.channel_subscribers:
+                self.channel_subscribers[channel] = set()
+
+            if user_id not in self.user_channels:
+                self.user_channels[user_id] = set()
+
+            self.channel_subscribers[channel].add(user_id)
+            self.user_channels[user_id].add(channel)
+
+            logger.info(f"User {user_id} subscribed to channel '{channel}'")
+            return True
+
+        except Exception as e:
+            logger.error(
+                f"Error subscribing user {user_id} to channel '{channel}': {str(e)}"
+            )
+            return False
+
+    async def unsubscribe_from_channel(self, user_id: int, channel: str):
+        """Unsubscribe user from a specific channel"""
+        try:
+            if channel in self.channel_subscribers:
+                self.channel_subscribers[channel].discard(user_id)
+
+                # Clean up empty channels
+                if not self.channel_subscribers[channel]:
+                    del self.channel_subscribers[channel]
+
+            if user_id in self.user_channels:
+                self.user_channels[user_id].discard(channel)
+
+                # Clean up empty user subscriptions
+                if not self.user_channels[user_id]:
+                    del self.user_channels[user_id]
+
+            logger.info(f"User {user_id} unsubscribed from channel '{channel}'")
+            return True
+
+        except Exception as e:
+            logger.error(
+                f"Error unsubscribing user {user_id} from channel '{channel}': {str(e)}"
+            )
+            return False
+
+    async def broadcast_to_channel(self, channel: str, message: RealtimeMessage):
+        """Broadcast message to all subscribers of a channel"""
+        try:
+            if channel not in self.channel_subscribers:
+                logger.warning(
+                    f"Attempted to broadcast to non-existent channel '{channel}'"
+                )
+                return 0
+
+            sent_count = 0
+            for user_id in self.channel_subscribers[
+                channel
+            ].copy():  # Copy to avoid modification during iteration
+                success = await self.send_to_user(user_id, message)
+                if success:
+                    sent_count += 1
+
+            logger.debug(
+                f"Broadcast to channel '{channel}': {sent_count} users reached"
+            )
+            return sent_count
+
+        except Exception as e:
+            logger.error(f"Error broadcasting to channel '{channel}': {str(e)}")
+            return 0
+
+    async def get_channel_subscribers(self, channel: str) -> List[int]:
+        """Get list of user IDs subscribed to a channel"""
+        return list(self.channel_subscribers.get(channel, set()))
+
+    async def get_user_channels(self, user_id: int) -> List[str]:
+        """Get list of channels a user is subscribed to"""
+        return list(self.user_channels.get(user_id, set()))
+
+    async def cleanup_user_channels(self, user_id: int):
+        """Clean up all channel subscriptions for a user (called on disconnect)"""
+        try:
+            if user_id not in self.user_channels:
+                return
+
+            channels_to_cleanup = self.user_channels[user_id].copy()
+
+            for channel in channels_to_cleanup:
+                await self.unsubscribe_from_channel(user_id, channel)
+
+            logger.info(
+                f"Cleaned up {len(channels_to_cleanup)} channel subscriptions for user {user_id}"
+            )
+
+        except Exception as e:
+            logger.error(f"Error cleaning up channels for user {user_id}: {str(e)}")
+
+    # Soul-specific message handlers
+
+    async def handle_energy_pulse(self, user_id: int, data: Dict, db: Session):
+        """Handle energy pulse updates for soul connections"""
+        try:
+            connection_id = data.get("connectionId")
+            soul_type = data.get("soulType")  # 'left' or 'right'
+            energy_level = data.get("energyLevel", 3)
+
+            if not connection_id:
+                return False
+
+            # Broadcast energy pulse to connection channel
+            connection_channel = f"connection_{connection_id}"
+            energy_message = RealtimeMessage(
+                type=MessageType.ENERGY_SYNC,
+                data={
+                    "connectionId": connection_id,
+                    "soulType": soul_type,
+                    "energyLevel": energy_level,
+                    "userId": user_id,
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
+                connection_id=connection_id,
+            )
+
+            await self.broadcast_to_channel(connection_channel, energy_message)
+            logger.debug(f"Energy pulse broadcasted for connection {connection_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error handling energy pulse: {str(e)}")
+            return False
+
+    async def handle_presence_update(self, user_id: int, data: Dict, db: Session):
+        """Handle presence status updates"""
+        try:
+            status = data.get("status", "online")
+            activity = data.get("activity", "exploring")
+
+            # Update user presence in database
+            if status == "online":
+                await self.update_user_presence(user_id, UserPresenceStatus.ONLINE, db)
+            elif status == "away":
+                await self.update_user_presence(user_id, UserPresenceStatus.AWAY, db)
+            elif status == "offline":
+                await self.update_user_presence(user_id, UserPresenceStatus.OFFLINE, db)
+
+            # Broadcast presence update to user_presence channel
+            presence_message = RealtimeMessage(
+                type=MessageType.PRESENCE_UPDATE,
+                data={
+                    "userId": user_id,
+                    "status": status,
+                    "activity": activity,
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
+            )
+
+            await self.broadcast_to_channel("user_presence", presence_message)
+            logger.debug(f"Presence update broadcasted for user {user_id}: {status}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error handling presence update: {str(e)}")
+            return False
+
+    async def broadcast_compatibility_update(
+        self, connection_id: int, compatibility_data: Dict, db: Session
+    ):
+        """Broadcast compatibility score updates to subscribers"""
+        try:
+            # Broadcast to specific connection channel
+            connection_channel = f"connection_{connection_id}"
+            compatibility_message = RealtimeMessage(
+                type=MessageType.COMPATIBILITY_CHANGE,
+                data={
+                    "connectionId": connection_id,
+                    "newScore": compatibility_data.get("newScore"),
+                    "previousScore": compatibility_data.get("previousScore"),
+                    "breakdown": compatibility_data.get("breakdown", {}),
+                    "factors": compatibility_data.get("factors", []),
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
+                connection_id=connection_id,
+            )
+
+            sent_count = await self.broadcast_to_channel(
+                connection_channel, compatibility_message
+            )
+
+            # Also broadcast to global compatibility updates channel
+            await self.broadcast_to_channel(
+                "compatibility_updates", compatibility_message
+            )
+
+            logger.info(
+                f"Compatibility update broadcasted for connection {connection_id} to {sent_count} subscribers"
+            )
+            return True
+
+        except Exception as e:
+            logger.error(f"Error broadcasting compatibility update: {str(e)}")
+            return False
+
+    async def broadcast_new_match(self, user_id: int, match_data: Dict, db: Session):
+        """Broadcast new match notification"""
+        try:
+            match_message = RealtimeMessage(
+                type=MessageType.NEW_MATCH,
+                data={
+                    "userId": user_id,
+                    "matchData": match_data,
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
+            )
+
+            # Send to the specific user
+            await self.send_to_user(user_id, match_message)
+
+            # Also broadcast to soul_connections channel for global listeners
+            await self.broadcast_to_channel("soul_connections", match_message)
+
+            logger.info(f"New match notification sent to user {user_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error broadcasting new match: {str(e)}")
+            return False
+
+    async def broadcast_revelation_update(
+        self, connection_id: int, revelation_data: Dict, db: Session
+    ):
+        """Broadcast revelation sharing updates"""
+        try:
+            revelation_type = revelation_data.get("type", "shared")
+
+            if revelation_type == "shared":
+                message_type = MessageType.REVELATION_SHARED
+            elif revelation_type == "received":
+                message_type = MessageType.REVELATION_RECEIVED
+            elif revelation_type == "mutual_complete":
+                message_type = MessageType.REVELATION_MUTUAL_COMPLETE
+            else:
+                message_type = MessageType.NEW_REVELATION
+
+            revelation_message = RealtimeMessage(
+                type=message_type,
+                data={
+                    "connectionId": connection_id,
+                    "senderId": revelation_data.get("senderId"),
+                    "senderName": revelation_data.get("senderName"),
+                    "day": revelation_data.get("day"),
+                    "type": revelation_type,
+                    "preview": revelation_data.get("preview", ""),
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
+                connection_id=connection_id,
+            )
+
+            # Broadcast to connection channel
+            connection_channel = f"connection_{connection_id}"
+            await self.broadcast_to_channel(connection_channel, revelation_message)
+
+            # Also broadcast to revelation updates channel
+            await self.broadcast_to_channel("revelation_updates", revelation_message)
+
+            logger.info(f"Revelation update broadcasted for connection {connection_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error broadcasting revelation update: {str(e)}")
+            return False
+
     def get_connection_stats(self) -> Dict:
         """Get real-time system statistics"""
         return {
@@ -865,11 +1220,47 @@ class RealtimeConnectionManager:
                 len(sessions) for sessions in self.typing_sessions.values()
             ),
             "connection_subscribers": len(self.connection_subscribers),
+            "channel_subscribers": len(self.channel_subscribers),
+            "total_channel_subscriptions": sum(
+                len(subs) for subs in self.channel_subscribers.values()
+            ),
             "queued_messages": sum(
                 len(queue) for queue in self.offline_message_queue.values()
             ),
             "user_presence_tracked": len(self.user_presence),
         }
+
+    async def integrate_with_activity_tracking(self, user_id: int, activity_data: Dict):
+        """Integration point for activity tracking system"""
+        try:
+            pass
+
+            # Extract activity information
+            activity_type = activity_data.get("activityType")
+            context = activity_data.get("context")
+            activity_data.get("connectionId")
+
+            if not activity_type:
+                return False
+
+            # Update activity summary for real-time display
+            if user_id in self.active_connections:
+                # User is online, update their presence with activity
+                presence_data = {
+                    "status": "online",
+                    "activity": activity_type,
+                    "location": context or "unknown",
+                }
+                await self.handle_presence_update(user_id, presence_data, None)
+
+            logger.debug(
+                f"Activity tracking integrated for user {user_id}: {activity_type}"
+            )
+            return True
+
+        except Exception as e:
+            logger.error(f"Error integrating with activity tracking: {str(e)}")
+            return False
 
 
 # Global instance

@@ -68,7 +68,8 @@ def create_match(
 
 @router.get("/sent", response_model=List[MatchSchema])
 def get_sent_matches(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> Any:
     """Get all matches sent by the current user."""
     return db.query(Match).filter(Match.sender_id == current_user.id).all()
@@ -76,7 +77,8 @@ def get_sent_matches(
 
 @router.get("/received", response_model=List[MatchSchema])
 def get_received_matches(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> Any:
     """Get all matches received by the current user."""
     return db.query(Match).filter(Match.receiver_id == current_user.id).all()

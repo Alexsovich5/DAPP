@@ -74,6 +74,8 @@ def discover_soul_connections(
         current_user_data = {
             "interests": current_user.interests or [],
             "core_values": current_user.core_values or {},
+            "emotional_responses": current_user.emotional_responses or {},
+            "communication_style": current_user.communication_style or {},
             "age": 25,  # Default for MVP, calculate from date_of_birth later
             "location": current_user.location or "",
         }
@@ -91,6 +93,8 @@ def discover_soul_connections(
             user_data = {
                 "interests": user.interests or [],
                 "core_values": user.core_values or {},
+                "emotional_responses": user.emotional_responses or {},
+                "communication_style": user.communication_style or {},
                 "age": 25,  # Default for MVP
                 "location": user.location or "",
             }
@@ -219,12 +223,16 @@ def initiate_soul_connection(
         current_user_data = {
             "interests": current_interests,
             "core_values": current_user.core_values or {},
+            "emotional_responses": current_user.emotional_responses or {},
+            "communication_style": current_user.communication_style or {},
             "age": 25,  # Default for MVP
             "location": current_user.location or "",
         }
         target_user_data = {
             "interests": target_interests,
             "core_values": target_user.core_values or {},
+            "emotional_responses": target_user.emotional_responses or {},
+            "communication_style": target_user.communication_style or {},
             "age": 25,  # Default for MVP
             "location": target_user.location or "",
         }
@@ -286,7 +294,8 @@ def initiate_soul_connection(
 
 @router.get("/active", response_model=List[SoulConnectionResponse])
 def get_active_connections(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get all active soul connections for the current user.
@@ -464,7 +473,11 @@ def update_connection_stage(
             # This is the main validation the test is checking for
             if (
                 current_stage
-                in ["soul_discovery", "initial_connection", "active_connection"]
+                in [
+                    "soul_discovery",
+                    "initial_connection",
+                    "active_connection",
+                ]
                 and new_stage == "photo_reveal"
             ):
                 raise HTTPException(

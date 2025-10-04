@@ -3,17 +3,15 @@ Tests for Advanced Soul Matching System
 Comprehensive tests for emotional depth analysis and enhanced match quality
 """
 
-from datetime import date, datetime
+from datetime import datetime
 from unittest.mock import Mock, patch
 
 import pytest
-from app.models.daily_revelation import DailyRevelation
 from app.models.user import User
 from app.services.advanced_soul_matching import AdvancedSoulMatchingService
 from app.services.emotional_depth_service import (
     EmotionalDepthLevel,
     EmotionalDepthService,
-    VulnerabilityIndicator,
 )
 from app.services.enhanced_match_quality_service import (
     ConnectionPrediction,
@@ -67,7 +65,10 @@ class TestEmotionalDepthService:
             "life_philosophy": "Live life to the fullest. Be happy.",
             "ideal_connection": "Someone fun to hang out with.",
         }
-        user.core_values = {"fun": "Having a good time", "happiness": "Being happy"}
+        user.core_values = {
+            "fun": "Having a good time",
+            "happiness": "Being happy",
+        }
         user.interests = ["movies", "music"]
         return user
 
@@ -206,7 +207,12 @@ class TestAdvancedSoulMatchingService:
             "values": "I value deep connection, authenticity, and mutual growth in relationships",
             "communication": "I prefer meaningful conversations and emotional openness",
         }
-        user1.interests = ["psychology", "philosophy", "meditation", "personal growth"]
+        user1.interests = [
+            "psychology",
+            "philosophy",
+            "meditation",
+            "personal growth",
+        ]
         user1.personality_traits = {
             "openness": 85,
             "empathy": 90,
@@ -267,7 +273,11 @@ class TestAdvancedSoulMatchingService:
         user1, user2 = compatible_users
 
         prediction = advanced_matching_service._predict_relationship_dynamic(
-            user1, user2, total_score=85.0, ei_compatibility=80.0, growth_potential=85.0
+            user1,
+            user2,
+            total_score=85.0,
+            ei_compatibility=80.0,
+            growth_potential=85.0,
         )
 
         # Should provide meaningful prediction
@@ -275,7 +285,12 @@ class TestAdvancedSoulMatchingService:
         assert len(prediction) > 20
         assert any(
             keyword in prediction.lower()
-            for keyword in ["partnership", "connection", "growth", "companionship"]
+            for keyword in [
+                "partnership",
+                "connection",
+                "growth",
+                "companionship",
+            ]
         )
 
     def test_first_date_suggestion(self, advanced_matching_service, compatible_users):
@@ -329,7 +344,13 @@ class TestEnhancedMatchQualityService:
         user1.date_of_birth = "1990-01-15"
         user1.gender = "female"
         user1.location = "San Francisco, CA"
-        user1.interests = ["psychology", "meditation", "hiking", "philosophy", "art"]
+        user1.interests = [
+            "psychology",
+            "meditation",
+            "hiking",
+            "philosophy",
+            "art",
+        ]
         user1.core_values = {
             "authenticity": "Being true to myself and others",
             "growth": "Continuous learning and development",
@@ -556,6 +577,13 @@ class TestEnhancedMatchQualityService:
         """Test full comprehensive match quality assessment"""
         user1, user2 = high_quality_match_users
 
+        # Create service with mock services
+        enhanced_match_service = EnhancedMatchQualityService(
+            soul_compatibility_service=mock_soul_service,
+            advanced_matching_service_param=mock_advanced_service,
+            emotional_depth_service_param=mock_depth_service,
+        )
+
         # Mock service responses
         mock_soul_compat = Mock()
         mock_soul_compat.total_score = 85.0
@@ -581,13 +609,11 @@ class TestEnhancedMatchQualityService:
         mock_depth_compat.user2_depth.confidence = 78.0
 
         # Setup mock returns
-        enhanced_match_service.soul_compatibility_service.calculate_compatibility.return_value = (
-            mock_soul_compat
-        )
-        enhanced_match_service.advanced_matching_service.calculate_advanced_compatibility.return_value = (
+        mock_soul_service.calculate_compatibility.return_value = mock_soul_compat
+        mock_advanced_service.calculate_advanced_compatibility.return_value = (
             mock_advanced_compat
         )
-        enhanced_match_service.emotional_depth_service.calculate_depth_compatibility.return_value = (
+        mock_depth_service.calculate_depth_compatibility.return_value = (
             mock_depth_compat
         )
 
@@ -617,14 +643,12 @@ class TestMatchingAccuracyValidation:
         """Test that scores are consistent across different services"""
         # This would be an integration test with real database
         # For now, we test that services don't crash and return reasonable ranges
-        pass
 
     def test_matching_recommendations_quality(self):
         """Test that matching recommendations are actionable and relevant"""
         # Test that conversation starters are appropriate
         # Test that first date suggestions are reasonable
         # Test that relationship timelines are realistic
-        pass
 
     def test_edge_cases_handling(self):
         """Test handling of edge cases"""
@@ -632,14 +656,12 @@ class TestMatchingAccuracyValidation:
         # Incomplete data
         # Extreme compatibility scores
         # Invalid user data
-        pass
 
     def test_performance_requirements(self):
         """Test that matching algorithms meet performance requirements"""
         # Algorithm should complete in < 2 seconds
         # Memory usage should be reasonable
         # Should handle concurrent requests
-        pass
 
 
 # Integration test fixtures and utilities
@@ -648,7 +670,6 @@ def test_users_database():
     """Create test users with various compatibility profiles"""
     # This would create a test database with various user profiles
     # for comprehensive matching accuracy validation
-    pass
 
 
 @pytest.fixture
@@ -659,7 +680,6 @@ def compatibility_test_cases():
     # Medium compatibility couples
     # Low compatibility couples
     # Edge cases
-    pass
 
 
 # Performance benchmarks
@@ -669,17 +689,14 @@ class TestMatchingPerformance:
     def test_single_match_analysis_performance(self):
         """Test performance of single match analysis"""
         # Should complete comprehensive analysis in < 2 seconds
-        pass
 
     def test_batch_matching_performance(self):
         """Test performance of batch matching operations"""
         # Should handle multiple match analyses efficiently
-        pass
 
     def test_memory_usage_optimization(self):
         """Test memory usage during matching operations"""
         # Should not exceed reasonable memory limits
-        pass
 
 
 if __name__ == "__main__":

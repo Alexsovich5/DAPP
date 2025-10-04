@@ -7,9 +7,9 @@ import json
 import logging
 import re
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from textblob import TextBlob
 
@@ -273,7 +273,9 @@ class ContentModerationService:
             decision=decision,
             confidence=overall_confidence,
             violations=violations,
-            filtered_content=filtered_content if filtered_content != content else None,
+            filtered_content=(
+                filtered_content if filtered_content != content else None
+            ),
             reason=reason,
             metadata={
                 "user_trust_score": user_trust,
@@ -464,7 +466,14 @@ class ContentModerationService:
                 indicators.append("Contains scam pattern")
 
         # Money-related keywords in emotional context
-        money_keywords = ["money", "cash", "dollars", "payment", "transfer", "send"]
+        money_keywords = [
+            "money",
+            "cash",
+            "dollars",
+            "payment",
+            "transfer",
+            "send",
+        ]
         emotional_keywords = ["love", "emergency", "help", "please", "urgent"]
 
         has_money = any(keyword in content_lower for keyword in money_keywords)

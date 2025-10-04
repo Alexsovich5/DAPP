@@ -3,15 +3,11 @@ ML Model Registry & Versioning System for Sprint 8 - Advanced Microservices Arch
 Comprehensive model lifecycle management with A/B testing, continuous learning, and performance monitoring
 """
 
-import asyncio
-import json
-import logging
-import time
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 
 import joblib
 import numpy as np
@@ -38,7 +34,9 @@ MODEL_ACCURACY = Gauge(
     "ml_model_accuracy", "Model accuracy score", ["model_name", "version"]
 )
 MODEL_PERFORMANCE_DRIFT = Gauge(
-    "ml_model_performance_drift", "Model performance drift", ["model_name", "version"]
+    "ml_model_performance_drift",
+    "Model performance drift",
+    ["model_name", "version"],
 )
 
 
@@ -176,7 +174,7 @@ class ModelArtifact:
             "feature_schema": self.feature_schema,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
-            "deployed_at": self.deployed_at.isoformat() if self.deployed_at else None,
+            "deployed_at": (self.deployed_at.isoformat() if self.deployed_at else None),
             "deprecated_at": (
                 self.deprecated_at.isoformat() if self.deprecated_at else None
             ),
@@ -283,7 +281,10 @@ class MLModelRegistry:
             if version not in versions:
                 versions.append(version)
                 await self.redis_manager.set_with_ttl(
-                    DatabaseType.SENTIMENT_CACHE, versions_key, versions, ttl=86400
+                    DatabaseType.SENTIMENT_CACHE,
+                    versions_key,
+                    versions,
+                    ttl=86400,
                 )
 
             # Publish model registration event
@@ -580,7 +581,6 @@ model_registry: Optional[MLModelRegistry] = None
 
 def get_model_registry() -> MLModelRegistry:
     """Get global model registry instance"""
-    global model_registry
     if model_registry is None:
         raise Exception(
             "Model registry not initialized. Call init_model_registry first."

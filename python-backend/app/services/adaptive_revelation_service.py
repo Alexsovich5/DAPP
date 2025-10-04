@@ -8,12 +8,10 @@ import logging
 
 # import math
 import random
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 from app.models.daily_revelation import DailyRevelation
 from app.models.personalization_models import (
-    ContentFeedback,
     ContentType,
     ConversationFlowAnalytics,
     PersonalizationStrategy,
@@ -23,7 +21,8 @@ from app.models.personalization_models import (
 from app.models.soul_connection import SoulConnection
 from app.models.user import User
 from app.services.personalization_service import personalization_engine
-from sqlalchemy import and_, func, or_
+from app.services.realtime_integration_service import realtime_integration
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -99,6 +98,36 @@ class AdaptiveRevelationEngine:
                 fallback = self._get_fallback_prompts(revelation_day, 1)[0]
                 prompts.append(fallback)
 
+            # Real-time integration: Broadcast revelation prompts generated
+            try:
+                await realtime_integration.notify_revelation_shared(
+                    connection_id=connection_id,
+                    sender_id=user_id,
+                    sender_name=f"{user.first_name or 'User'}",
+                    day=revelation_day,
+                    revelation_type="prompts_generated",
+                    preview=f"Day {revelation_day} revelation prompts ready",
+                    db=db,
+                )
+
+                # Also broadcast to user activity tracking
+                await realtime_integration.notify_user_activity(
+                    user_id=user_id,
+                    activity="generating_revelation_prompts",
+                    location=f"connection_{connection_id}",
+                    db=db,
+                )
+
+                logger.info(
+                    f"Real-time notification sent for revelation prompts: user {user_id}, day {revelation_day}"
+                )
+
+            except Exception as e:
+                logger.warning(
+                    f"Failed to send real-time revelation notification: {str(e)}"
+                )
+                # Continue execution even if real-time notification fails
+
             return prompts[:count]
 
         except Exception as e:
@@ -106,7 +135,11 @@ class AdaptiveRevelationEngine:
             return self._get_fallback_prompts(revelation_day, count)
 
     async def _build_revelation_context(
-        self, user: User, connection: SoulConnection, revelation_day: int, db: Session
+        self,
+        user: User,
+        connection: SoulConnection,
+        revelation_day: int,
+        db: Session,
     ) -> Dict[str, Any]:
         """
         Build comprehensive context for revelation prompt generation
@@ -131,7 +164,7 @@ class AdaptiveRevelationEngine:
             db.query(DailyRevelation)
             .filter(
                 and_(
-                    DailyRevelation.user_id == user.id,
+                    DailyRevelation.sender_id == user.id,
                     DailyRevelation.connection_id == connection.id,
                     DailyRevelation.day_number < revelation_day,
                 )
@@ -235,13 +268,27 @@ class AdaptiveRevelationEngine:
         }
 
     def _select_optimal_theme(
-        self, context: Dict[str, Any], revelation_day: int, variation_index: int
+        self,
+        context: Dict[str, Any],
+        revelation_day: int,
+        variation_index: int,
     ) -> str:
         """
         Select the most appropriate revelation theme based on context analysis
         """
         available_themes = self.revelation_themes[revelation_day]
-        user_preferences = context["personalization_profile"].topic_preferences or {}
+
+        # Safe handling of user preferences
+        try:
+            profile = context.get("personalization_profile")
+            if profile and hasattr(profile, "topic_preferences"):
+                user_preferences = profile.topic_preferences or {}
+                if not isinstance(user_preferences, dict):
+                    user_preferences = {}
+            else:
+                user_preferences = {}
+        except (AttributeError, TypeError):
+            user_preferences = {}
 
         # Score each theme based on user preferences and context
         theme_scores = {}
@@ -250,10 +297,19 @@ class AdaptiveRevelationEngine:
 
             # User preference alignment
             if theme_name in user_preferences:
-                score += user_preferences[theme_name] * 0.4
+                try:
+                    preference_score = float(user_preferences[theme_name]) * 0.4
+                    score += preference_score
+                except (ValueError, TypeError):
+                    score += 0.2  # Default moderate preference
 
             # Compatibility with partner
-            compatibility_bonus = context["compatibility_score"] * 0.3
+            try:
+                compatibility_score = float(context.get("compatibility_score", 0.7))
+            except (ValueError, TypeError):
+                compatibility_score = 0.7  # Default fallback
+
+            compatibility_bonus = compatibility_score * 0.3
             if (
                 theme_data.get("requires_high_compatibility", False)
                 and compatibility_bonus < 0.6
@@ -263,8 +319,11 @@ class AdaptiveRevelationEngine:
                 score += compatibility_bonus * 0.2
 
             # Previous revelation analysis
+            previous_revelations = context.get("previous_revelations") or []
             previous_themes = [
-                rev.revelation_type for rev in context["previous_revelations"]
+                rev.revelation_type
+                for rev in previous_revelations
+                if hasattr(rev, "revelation_type")
             ]
             if theme_name not in previous_themes:
                 score += 0.2  # Bonus for variety
@@ -272,11 +331,17 @@ class AdaptiveRevelationEngine:
                 score -= 0.1  # Penalty for repetition
 
             # Communication style compatibility
-            comm_style = context[
-                "personalization_profile"
-            ].preferred_communication_style
-            if theme_data.get("communication_style") == comm_style:
-                score += 0.3
+            try:
+                profile = context.get("personalization_profile")
+                comm_style = (
+                    profile.preferred_communication_style
+                    if profile and hasattr(profile, "preferred_communication_style")
+                    else None
+                )
+                if theme_data.get("communication_style") == comm_style:
+                    score += 0.3
+            except (AttributeError, TypeError):
+                pass  # Skip communication style bonus if data is corrupted
 
             theme_scores[theme_name] = score
 
@@ -322,7 +387,10 @@ class AdaptiveRevelationEngine:
         return random.choice(templates)
 
     async def _personalize_revelation_template(
-        self, base_template: Dict[str, Any], context: Dict[str, Any], theme: str
+        self,
+        base_template: Dict[str, Any],
+        context: Dict[str, Any],
+        theme: str,
     ) -> Dict[str, Any]:
         """
         Personalize revelation template based on user context
@@ -348,7 +416,9 @@ class AdaptiveRevelationEngine:
 
         # Adjust tone based on user's communication style
         personalized_text = self._adjust_tone_for_user(
-            personalized_text, context["personalization_profile"], base_template
+            personalized_text,
+            context["personalization_profile"],
+            base_template,
         )
 
         # Add contextual elements based on connection progress
@@ -455,13 +525,16 @@ class AdaptiveRevelationEngine:
         return "something special"
 
     def _adjust_tone_for_user(
-        self, text: str, profile: UserPersonalizationProfile, template: Dict[str, Any]
+        self,
+        text: str,
+        profile: UserPersonalizationProfile,
+        template: Dict[str, Any],
     ) -> str:
         """
         Adjust the tone of the revelation prompt based on user's communication style
         """
         user_style = profile.preferred_communication_style
-        base_tone = template.get("tone", "neutral")
+        template.get("tone", "neutral")
 
         # Style-specific adjustments
         if user_style == "casual":
@@ -504,7 +577,7 @@ class AdaptiveRevelationEngine:
             text = f"For our final revelation before we potentially meet: {text}"
         elif revelation_day >= 5:
             if compatibility > 0.7:
-                text = f"As we've been connecting so well: {text}"
+                text = "As we've been connecting so well: {text}"
 
         # Add connection stage context
         if connection_stage == "deeper_connection" and revelation_day >= 4:
@@ -555,7 +628,7 @@ class AdaptiveRevelationEngine:
         """
         Generate timing recommendation for the revelation
         """
-        timing_analysis = context.get("timing_analysis", {})
+        context.get("timing_analysis", {})
         user_patterns = context["personalization_profile"].engagement_patterns or {}
 
         # Get optimal hours from user patterns
@@ -611,7 +684,7 @@ class AdaptiveRevelationEngine:
         """
         revelations = (
             db.query(DailyRevelation)
-            .filter(DailyRevelation.user_id == user_id)
+            .filter(DailyRevelation.sender_id == user_id)
             .order_by(DailyRevelation.created_at.desc())
             .limit(20)
             .all()
@@ -766,7 +839,7 @@ class AdaptiveRevelationEngine:
                         {
                             "template": "If you could share the essence of who you are in your most authentic moment, what would you want {partner_name} to understand about your soul?",
                             "variables": ["partner_name"],
-                            "focus": "authentic_self",
+                            "focus": "authentic_sel",
                             "tone": "intimate",
                         }
                     ],

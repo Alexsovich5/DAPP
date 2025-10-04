@@ -39,7 +39,8 @@ logger = logging.getLogger(__name__)
 
 @router.get("/profile", response_model=PersonalizationProfileResponse)
 async def get_personalization_profile(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get or create user's personalization profile"""
     try:
@@ -69,7 +70,8 @@ async def generate_conversation_starters(
         target_user = db.query(User).filter(User.id == request.target_user_id).first()
         if not target_user:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Target user not found"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Target user not found",
             )
 
         # Generate personalized conversation starters
@@ -151,7 +153,9 @@ async def generate_ui_personalization(
     """Generate UI/UX personalizations based on user behavior patterns"""
     try:
         personalizations = await personalization_engine.personalize_ui_experience(
-            user_id=current_user.id, current_context=request.current_context, db=db
+            user_id=current_user.id,
+            current_context=request.current_context,
+            db=db,
         )
 
         return UIPersonalizationResponse(**personalizations)
@@ -254,7 +258,8 @@ async def get_content_performance(
 
         if not content:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Content not found"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Content not found",
             )
 
         return {
@@ -331,7 +336,8 @@ async def get_conversation_flow_analytics(
 
 @router.get("/preferences")
 async def get_personalization_preferences(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get user's personalization preferences for settings"""
     try:

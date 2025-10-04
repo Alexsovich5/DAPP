@@ -6,7 +6,7 @@ Soul Before Skin progressive photo revelation with consent and timeline manageme
 import uuid
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from app.core.database import Base
 from sqlalchemy import JSON, Boolean, Column, DateTime
@@ -89,7 +89,10 @@ class UserPhoto(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
     )
 
     def get_reveal_url(
@@ -168,7 +171,10 @@ class PhotoRevealTimeline(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
     )
 
     def calculate_days_until_reveal(self) -> int:
@@ -212,7 +218,8 @@ class PhotoRevealTimeline(Base):
 
         # Factor in both time and revelations
         time_progress = max(
-            0, 1 - (self.calculate_days_until_reveal() / self.revelation_cycle_days)
+            0,
+            1 - (self.calculate_days_until_reveal() / self.revelation_cycle_days),
         )
         revelation_progress = self.revelations_completed / self.min_revelations_required
 
@@ -272,7 +279,10 @@ class PhotoRevealRequest(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
     )
 
     def is_expired(self) -> bool:
@@ -324,7 +334,10 @@ class PhotoRevealPermission(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
     )
 
     def is_valid(self) -> bool:
@@ -444,5 +457,8 @@ class PhotoModerationLog(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
     )

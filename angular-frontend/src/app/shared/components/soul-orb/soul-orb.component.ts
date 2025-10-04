@@ -1,10 +1,11 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-soul-orb',
   standalone: true,
   imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
       class="soul-orb-container"
@@ -423,7 +424,7 @@ import { CommonModule } from '@angular/common';
     }
   `]
 })
-export class SoulOrbComponent implements OnInit, OnDestroy {
+export class SoulOrbComponent implements OnInit, OnDestroy, AfterViewInit {
   @Input() type: 'primary' | 'secondary' | 'neutral' = 'primary';
   @Input() size: 'small' | 'medium' | 'large' | 'xlarge' = 'medium';
   @Input() state: 'active' | 'connecting' | 'matched' | 'dormant' = 'active';
@@ -446,7 +447,24 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
   sparkles: Array<{ id: number; x: number; y: number; size: number; delay: number }> = [];
   energyRings: Array<{ radius: number; color: string; width: number }> = [];
 
+  // Performance optimization properties
   private animationFrame?: number;
+  private intersectionObserver?: IntersectionObserver;
+  private isVisible = true;
+  private isReducedMotion = false;
+  private performanceMode: 'high' | 'balanced' | 'low' = 'balanced';
+  private particlePool: Array<{ id: number; x: number; y: number; size: number; delay: number; duration: number }> = [];
+  private maxParticles = 20;
+  private lastFrameTime = 0;
+  private frameThrottle = 16; // ~60fps
+
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private elementRef: ElementRef
+  ) {
+    this.detectPerformanceCapabilities();
+    this.setupReducedMotionDetection();
+  }
 
   get svgSize(): number {
     const sizes = { small: 60, medium: 120, large: 180, xlarge: 240 };
@@ -792,5 +810,110 @@ export class SoulOrbComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.sparkles = this.sparkles.filter(s => !extraSparkles.find(es => es.id === s.id));
     }, 3000);
+  }
+
+  /**
+   * Performance optimization methods
+   */
+  private detectPerformanceCapabilities(): void {
+    // Detect device performance capabilities
+    const isLowEndDevice = this.checkLowEndDevice();
+    const connectionSpeed = this.getConnectionSpeed();
+
+    if (isLowEndDevice || connectionSpeed === 'slow') {
+      this.performanceMode = 'low';
+      this.maxParticles = 10;
+      this.frameThrottle = 33; // ~30fps
+    } else if (connectionSpeed === 'fast') {
+      this.performanceMode = 'high';
+      this.maxParticles = 30;
+      this.frameThrottle = 8; // ~120fps
+    } else {
+      this.performanceMode = 'balanced';
+      this.maxParticles = 20;
+      this.frameThrottle = 16; // ~60fps
+    }
+  }
+
+  private checkLowEndDevice(): boolean {
+    // Check for low-end device indicators
+    const hardwareConcurrency = (navigator as any).hardwareConcurrency || 2;
+    const deviceMemory = (navigator as any).deviceMemory;
+
+    // Consider device low-end if it has <= 2 cores or <= 2GB RAM
+    return hardwareConcurrency <= 2 || (deviceMemory && deviceMemory <= 2);
+  }
+
+  private getConnectionSpeed(): 'slow' | 'fast' | 'unknown' {
+    const connection = (navigator as any).connection;
+    if (!connection) return 'unknown';
+
+    // Classify connection speed
+    if (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
+      return 'slow';
+    } else if (connection.effectiveType === '4g' || connection.downlink > 10) {
+      return 'fast';
+    }
+    return 'unknown';
+  }
+
+  private setupReducedMotionDetection(): void {
+    // Respect user's motion preferences
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      this.isReducedMotion = mediaQuery.matches;
+
+      // Listen for changes in motion preferences
+      mediaQuery.addEventListener('change', (e) => {
+        this.isReducedMotion = e.matches;
+        if (this.isReducedMotion) {
+          this.cleanupAnimations();
+        } else {
+          this.startOptimizedAnimation();
+        }
+      });
+    }
+  }
+
+  private setupIntersectionObserver(): void {
+    if (typeof window !== 'undefined' && 'IntersectionObserver' in window) {
+      this.intersectionObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(entry => {
+            this.isVisible = entry.isIntersecting;
+
+            // Pause animations when not visible to save resources
+            if (!this.isVisible) {
+              if (this.animationFrame) {
+                cancelAnimationFrame(this.animationFrame);
+                this.animationFrame = undefined;
+              }
+            } else if (!this.animationFrame && !this.isReducedMotion) {
+              this.startOptimizedAnimation();
+            }
+          });
+        },
+        {
+          rootMargin: '50px',
+          threshold: 0.1
+        }
+      );
+
+      this.intersectionObserver.observe(this.elementRef.nativeElement);
+    }
+  }
+
+  private cleanupAnimations(): void {
+    if (this.animationFrame) {
+      cancelAnimationFrame(this.animationFrame);
+      this.animationFrame = undefined;
+    }
+  }
+
+  private cleanupIntersectionObserver(): void {
+    if (this.intersectionObserver) {
+      this.intersectionObserver.disconnect();
+      this.intersectionObserver = undefined;
+    }
   }
 }

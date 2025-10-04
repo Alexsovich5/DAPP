@@ -4,9 +4,9 @@
 # import asyncio
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import joblib
 import numpy as np
@@ -14,10 +14,9 @@ import pandas as pd
 import redis
 from clickhouse_driver import Client
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import StandardScaler
 
 logger = logging.getLogger(__name__)
 
@@ -436,7 +435,7 @@ class PredictiveAnalyticsService:
         """
         try:
             # Query user data from ClickHouse
-            user_query = """
+            _ = """
             SELECT
                 u.id as user_id,
                 dateDiff('day', u.created_at, now()) as days_since_registration,
@@ -594,7 +593,10 @@ class PredictiveAnalyticsService:
         Create a dummy model for development/testing
         """
         # Create simple dummy models that return random predictions
-        if prediction_type in [PredictionType.CHURN_RISK, PredictionType.MATCH_SUCCESS]:
+        if prediction_type in [
+            PredictionType.CHURN_RISK,
+            PredictionType.MATCH_SUCCESS,
+        ]:
             self.models[prediction_type] = type(
                 "DummyClassifier",
                 (),
@@ -744,7 +746,9 @@ class PredictiveAnalyticsService:
         """
         try:
             self.redis.set(
-                "at_risk_users", ",".join(map(str, user_ids)), ex=3600 * 6  # 6 hours
+                "at_risk_users",
+                ",".join(map(str, user_ids)),
+                ex=3600 * 6,  # 6 hours
             )
         except Exception as e:
             logger.error(f"Failed to cache at-risk users: {e}")

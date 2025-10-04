@@ -4,20 +4,16 @@ Advanced machine learning endpoints for soul-based compatibility and personaliza
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from app.api.v1.deps import get_current_user
 from app.core.database import get_db
-from app.models.ai_models import (
-    CompatibilityPrediction,
-    PersonalizedRecommendation,
-    UserProfile,
-)
+from app.models.ai_models import UserProfile
 from app.models.user import User
-from app.services.ai_matching_service import MatchRecommendation, ai_matching_service
+from app.services.ai_matching_service import ai_matching_service
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -71,7 +67,8 @@ class MatchRecommendationResponse(BaseModel):
 
 @router.get("/profile/generate", response_model=AIProfileResponse)
 async def generate_ai_profile(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Generate comprehensive AI profile with personality analysis and embeddings
@@ -245,7 +242,8 @@ async def get_compatibility_analysis(
 
 @router.get("/insights/personality")
 async def get_personality_insights(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get detailed personality insights and recommendations

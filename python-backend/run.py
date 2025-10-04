@@ -27,7 +27,7 @@ def main():
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=8000,  # Backend runs on port 8000 (port 5000 is used by macOS)
+        port=5000,  # Backend runs on port 5000 as per CLAUDE.md requirements
         reload=True,
         log_level="info",
     )

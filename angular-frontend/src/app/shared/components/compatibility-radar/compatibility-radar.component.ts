@@ -1,5 +1,8 @@
-import { Component, Input, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Observable, Subscription } from 'rxjs';
+import { CompatibilityBreakdown, CompatibilityResponse } from '../../../core/interfaces/soul-connection.interfaces';
+import { SoulConnectionService } from '../../../core/services/soul-connection.service';
 
 @Component({
   selector: 'app-compatibility-radar',
@@ -9,9 +12,19 @@ import { CommonModule } from '@angular/common';
     <div class="compatibility-radar-container" [ngClass]="size">
       <div class="radar-header" *ngIf="showHeader">
         <h3 class="radar-title">Soul Compatibility Analysis</h3>
-        <div class="overall-score">
+        <div class="overall-score" *ngIf="isDataAvailable">
           <span class="score-value">{{overallScore}}%</span>
           <span class="score-label">Overall Match</span>
+        </div>
+        <div class="loading-state" *ngIf="!isDataAvailable">
+          <span class="loading-message">{{loadingMessage}}</span>
+          <button
+            *ngIf="hasError"
+            class="retry-button"
+            (click)="refreshData()"
+            aria-label="Retry loading compatibility data">
+            Retry
+          </button>
         </div>
       </div>
 
@@ -214,6 +227,39 @@ import { CommonModule } from '@angular/common';
       font-size: 0.9rem;
       color: var(--text-secondary, #6b7280);
       margin-top: 0.25rem;
+    }
+
+    .loading-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .loading-message {
+      font-size: 1rem;
+      color: var(--text-secondary, #6b7280);
+      text-align: center;
+    }
+
+    .retry-button {
+      padding: 0.5rem 1rem;
+      background: var(--primary-color, #ec4899);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .retry-button:hover {
+      background: var(--primary-color-hover, #db2777);
+    }
+
+    .retry-button:focus {
+      outline: 2px solid var(--focus-ring-primary, #ec4899);
+      outline-offset: 2px;
     }
 
     .radar-chart-wrapper {
@@ -446,17 +492,14 @@ import { CommonModule } from '@angular/common';
     }
   `]
 })
-export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterViewInit {
+export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterViewInit, OnChanges {
   @ViewChild('radarSvg', { static: false }) radarSvg!: ElementRef<SVGElement>;
 
-  @Input() compatibilityData: any = {
-    values: 85,
-    interests: 72,
-    communication: 90,
-    lifestyle: 68,
-    goals: 78,
-    personality: 82
-  };
+  @Input() compatibilityData?: CompatibilityBreakdown | CompatibilityResponse;
+  @Input() userId?: number; // For fetching live compatibility data
+  @Input() connectionId?: number; // For existing connections
+  @Input() autoRefresh: boolean = false; // Enable real-time updates
+  @Input() refreshInterval: number = 30000; // 30 seconds default
 
   @Input() size: 'small' | 'medium' | 'large' = 'medium';
   @Input() showHeader: boolean = true;
@@ -478,18 +521,39 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
   hoveredPoint: any = null;
   tooltip = { x: 0, y: 0 };
 
+  // Real-time data management
+  private subscriptions = new Subscription();
+  private refreshTimer?: number;
+  private currentCompatibility?: CompatibilityBreakdown;
+  private isLoading = false;
+  private hasError = false;
+
   private readonly categories = [
     { key: 'values', label: 'Values', color: '#ffd700', angle: 0 },
-    { key: 'interests', label: 'Interests', color: '#ff6b9d', angle: 60 },
-    { key: 'communication', label: 'Communication', color: '#34d399', angle: 120 },
-    { key: 'lifestyle', label: 'Lifestyle', color: '#60a5fa', angle: 180 },
-    { key: 'goals', label: 'Goals', color: '#c084fc', angle: 240 },
-    { key: 'personality', label: 'Personality', color: '#fbbf24', angle: 300 }
+    { key: 'interests', label: 'Interests', color: '#ff6b9d', angle: 72 },
+    { key: 'communication', label: 'Communication', color: '#34d399', angle: 144 },
+    { key: 'demographics', label: 'Demographics', color: '#60a5fa', angle: 216 },
+    { key: 'personality', label: 'Personality', color: '#c084fc', angle: 288 }
   ];
 
+  constructor(private soulConnectionService: SoulConnectionService) {}
+
   get overallScore(): number {
-    const scores = Object.values(this.compatibilityData) as number[];
+    if (!this.currentCompatibility) return 0;
+
+    const scores = Object.values(this.currentCompatibility) as number[];
     return Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length);
+  }
+
+  get isDataAvailable(): boolean {
+    return !!this.currentCompatibility && !this.isLoading;
+  }
+
+  get loadingMessage(): string {
+    if (this.isLoading) return 'Analyzing soul compatibility...';
+    if (this.hasError) return 'Unable to load compatibility data';
+    if (!this.currentCompatibility) return 'No compatibility data available';
+    return '';
   }
 
   get gridColor(): string {
@@ -580,8 +644,10 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
 
   private calculateDataPoints() {
     this.dataPoints = [];
+    if (!this.currentCompatibility) return;
+
     this.categories.forEach(category => {
-      const score = this.compatibilityData[category.key] || 0;
+      const score = this.currentCompatibility![category.key as keyof CompatibilityBreakdown] || 0;
       const radius = (score / 100) * this.maxRadius;
       const angle = (category.angle - 90) * Math.PI / 180;
 
@@ -623,7 +689,7 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
     this.legendItems = this.categories.map(category => ({
       label: category.label,
       color: category.color,
-      score: this.compatibilityData[category.key] || 0,
+      score: this.currentCompatibility?.[category.key as keyof CompatibilityBreakdown] || 0,
       key: category.key,
       highlighted: false
     }));
@@ -631,9 +697,11 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
 
   private generateInsights() {
     this.insights = [];
+    if (!this.currentCompatibility) return;
+
     const scores = this.categories.map(cat => ({
       ...cat,
-      score: this.compatibilityData[cat.key] || 0
+      score: this.currentCompatibility![cat.key as keyof CompatibilityBreakdown] || 0
     }));
 
     // Find strengths (scores >= 80)
@@ -643,7 +711,7 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
       this.insights.push({
         type: 'strength',
         icon: '✨',
-        text: `Exceptional ${topStrength.label.toLowerCase()} compatibility (${topStrength.score}%) creates a strong foundation for connection.`
+        text: `Exceptional ${topStrength.label.toLowerCase()} compatibility (${topStrength.score}%) creates a strong foundation for soul connection.`
       });
     }
 
@@ -654,7 +722,7 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
       this.insights.push({
         type: 'opportunity',
         icon: '🌱',
-        text: `Growing ${topOpportunity.label.toLowerCase()} alignment (${topOpportunity.score}%) offers potential for deeper connection.`
+        text: `Growing ${topOpportunity.label.toLowerCase()} alignment (${topOpportunity.score}%) offers potential for deeper soul connection.`
       });
     }
 
@@ -665,22 +733,42 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
       this.insights.push({
         type: 'concern',
         icon: '💭',
-        text: `Exploring ${topConcern.label.toLowerCase()} differences (${topConcern.score}%) through open conversation could bridge gaps.`
+        text: `Exploring ${topConcern.label.toLowerCase()} differences (${topConcern.score}%) through meaningful revelations could deepen understanding.`
+      });
+    }
+
+    // Overall compatibility insight
+    const overall = this.overallScore;
+    if (overall >= 85) {
+      this.insights.push({
+        type: 'strength',
+        icon: '💫',
+        text: `Outstanding overall compatibility (${overall}%) suggests a profound soul-level connection.`
+      });
+    } else if (overall >= 70) {
+      this.insights.push({
+        type: 'opportunity',
+        icon: '🔗',
+        text: `Strong overall compatibility (${overall}%) indicates promising potential for lasting connection.`
       });
     }
   }
 
   private getCategoryDescription(key: string, score: number): string {
-    const descriptions: any = {
-      values: 'Shared beliefs and principles that guide life decisions',
-      interests: 'Common hobbies, activities, and passions you enjoy',
-      communication: 'How well you understand and connect through conversation',
-      lifestyle: 'Daily routines, habits, and life structure preferences',
-      goals: 'Future aspirations and life direction alignment',
-      personality: 'Complementary traits and emotional compatibility'
+    const descriptions: Record<string, string> = {
+      values: 'Shared beliefs and principles that guide life decisions and moral choices',
+      interests: 'Common hobbies, activities, and passions that bring joy and fulfillment',
+      communication: 'How naturally you understand and connect through meaningful conversation',
+      demographics: 'Life stage, background, and practical compatibility factors',
+      personality: 'Complementary traits and emotional resonance that create harmony'
     };
 
-    return descriptions[key] || 'Compatibility assessment for meaningful connection';
+    const scoreContext = score >= 80 ? ' - Exceptional alignment' :
+                        score >= 60 ? ' - Good compatibility' :
+                        score >= 40 ? ' - Growing potential' :
+                        ' - Opportunity for growth';
+
+    return (descriptions[key] || 'Compatibility assessment for meaningful soul connection') + scoreContext;
   }
 
   private setupInteractivity() {
@@ -732,5 +820,159 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
 
   trackInsight(index: number, insight: any): any {
     return insight.text;
+  }
+
+  /**
+   * Enhanced lifecycle methods with real-time data support
+   */
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['compatibilityData'] || changes['userId'] || changes['connectionId']) {
+      this.processCompatibilityData();
+    }
+
+    if (changes['autoRefresh'] && this.autoRefresh) {
+      this.setupAutoRefresh();
+    } else if (changes['autoRefresh'] && !this.autoRefresh) {
+      this.clearAutoRefresh();
+    }
+  }
+
+  /**
+   * Real-time data management methods
+   */
+  private processCompatibilityData() {
+    if (this.compatibilityData) {
+      // Direct data input
+      this.currentCompatibility = this.extractCompatibilityBreakdown(this.compatibilityData);
+    } else if (this.connectionId) {
+      // Fetch from existing connection
+      this.fetchConnectionCompatibility();
+    } else if (this.userId) {
+      // Fetch from discovery for specific user
+      this.fetchUserCompatibility();
+    } else {
+      // No data source provided, use fallback
+      this.currentCompatibility = this.getDefaultCompatibility();
+    }
+
+    this.updateVisualization();
+  }
+
+  private extractCompatibilityBreakdown(data: CompatibilityBreakdown | CompatibilityResponse): CompatibilityBreakdown {
+    if ('breakdown' in data) {
+      return data.breakdown;
+    }
+    return data as CompatibilityBreakdown;
+  }
+
+  private fetchConnectionCompatibility() {
+    if (!this.connectionId) return;
+
+    this.isLoading = true;
+    this.hasError = false;
+
+    const subscription = this.soulConnectionService.getSoulConnection(this.connectionId)
+      .subscribe({
+        next: (connection) => {
+          if (connection.compatibility_breakdown) {
+            this.currentCompatibility = connection.compatibility_breakdown;
+            this.updateVisualization();
+          }
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error fetching connection compatibility:', error);
+          this.hasError = true;
+          this.isLoading = false;
+          this.currentCompatibility = this.getDefaultCompatibility();
+          this.updateVisualization();
+        }
+      });
+
+    this.subscriptions.add(subscription);
+  }
+
+  private fetchUserCompatibility() {
+    if (!this.userId) return;
+
+    this.isLoading = true;
+    this.hasError = false;
+
+    const subscription = this.soulConnectionService.discoverSoulConnections({ max_results: 1 })
+      .subscribe({
+        next: (discoveries) => {
+          const userDiscovery = discoveries.find(d => d.user_id === this.userId);
+          if (userDiscovery?.compatibility.breakdown) {
+            this.currentCompatibility = userDiscovery.compatibility.breakdown;
+            this.updateVisualization();
+          }
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error fetching user compatibility:', error);
+          this.hasError = true;
+          this.isLoading = false;
+          this.currentCompatibility = this.getDefaultCompatibility();
+          this.updateVisualization();
+        }
+      });
+
+    this.subscriptions.add(subscription);
+  }
+
+  private getDefaultCompatibility(): CompatibilityBreakdown {
+    return {
+      values: 75,
+      interests: 68,
+      communication: 82,
+      demographics: 70,
+      personality: 79
+    };
+  }
+
+  private updateVisualization() {
+    this.calculateDataPoints();
+    this.generateLegendItems();
+    this.generateInsights();
+  }
+
+  private setupAutoRefresh() {
+    if (!this.autoRefresh || (!this.connectionId && !this.userId)) return;
+
+    this.clearAutoRefresh();
+    this.refreshTimer = window.setInterval(() => {
+      this.processCompatibilityData();
+    }, this.refreshInterval);
+  }
+
+  private clearAutoRefresh() {
+    if (this.refreshTimer) {
+      clearInterval(this.refreshTimer);
+      this.refreshTimer = undefined;
+    }
+  }
+
+  /**
+   * Enhanced lifecycle methods
+   */
+  override ngOnInit() {
+    this.setupSizing();
+    this.generateGridRings();
+    this.generateAxes();
+    this.generateAxisLabels();
+    this.processCompatibilityData();
+    this.setupAutoRefresh();
+  }
+
+  override ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+    this.clearAutoRefresh();
+  }
+
+  /**
+   * Manual refresh method for user-triggered updates
+   */
+  refreshData() {
+    this.processCompatibilityData();
   }
 }

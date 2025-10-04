@@ -13,11 +13,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app.core.database import SQLALCHEMY_DATABASE_URL  # noqa: E402
 
 # Import all models so Alembic can detect schema changes
-from app.models import Profile  # noqa: F401
-from app.models import UserPersonalizationProfile  # noqa: F401
-from app.models import UserUIProfile  # noqa: F401
-from app.models import DailyRevelation, Match, Message, SoulConnection, User
+from app.models import Profile  # noqa: F401, E402
+from app.models import UserPersonalizationProfile  # noqa: F401, E402
+from app.models import UserUIProfile  # noqa: F401, E402
+from app.models import (  # noqa: F401, E402
+    DailyRevelation,
+    Match,
+    Message,
+    SoulConnection,
+    User,
+)
 from app.models.user import Base  # noqa: E402
+from app.models.user_activity_tracking import (  # noqa: F401, E402
+    ActivityInsights,
+    PresenceActivitySummary,
+    UserActivityLog,
+    UserActivitySession,
+)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

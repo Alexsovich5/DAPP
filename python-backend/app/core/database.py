@@ -38,7 +38,6 @@ def create_tables():
     """Function to create all database tables"""
     # Import all models to ensure they're registered with SQLAlchemy
     from app.models import Message  # noqa: F401
-    from app.models import DailyRevelation, Match, Profile, SoulConnection, User
 
     Base.metadata.create_all(bind=engine)
 

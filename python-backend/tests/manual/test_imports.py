@@ -7,7 +7,7 @@ import importlib
 import sys
 
 
-def test_import(module_name):
+def _test_import_module(module_name):
     """Test importing a module and return result"""
     try:
         importlib.import_module(module_name)
@@ -19,6 +19,39 @@ def test_import(module_name):
     except Exception as e:
         print(f"⚠️  {module_name}: {e}")
         return False
+
+
+def test_core_imports():
+    """Test that core modules can be imported"""
+    core_modules = [
+        "app.main",
+        "app.core.database",
+        "app.core.auth",
+    ]
+
+    failed_imports = []
+    for module in core_modules:
+        if not _test_import_module(module):
+            failed_imports.append(module)
+
+    assert len(failed_imports) == 0, f"Failed to import: {failed_imports}"
+
+
+def test_api_router_imports():
+    """Test that API router modules can be imported"""
+    router_modules = [
+        "app.api.v1.routers.auth",
+        "app.api.v1.routers.users",
+        "app.api.v1.routers.profiles",
+        "app.api.v1.routers.matches",
+    ]
+
+    failed_imports = []
+    for module in router_modules:
+        if not _test_import_module(module):
+            failed_imports.append(module)
+
+    assert len(failed_imports) == 0, f"Failed to import: {failed_imports}"
 
 
 def main():

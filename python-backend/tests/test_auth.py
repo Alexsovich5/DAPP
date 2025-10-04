@@ -29,7 +29,10 @@ def test_login_user(client, test_user):
     """Test user login"""
     response = client.post(
         "/api/v1/auth/login",
-        data={"username": test_user["email"], "password": test_user["password"]},
+        data={
+            "username": test_user["email"],
+            "password": test_user["password"],
+        },
     )
     assert response.status_code == status.HTTP_200_OK
     data = response.json()

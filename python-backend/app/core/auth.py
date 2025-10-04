@@ -2,13 +2,12 @@ import logging
 from typing import Optional
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
+from jose import JWTError
 from sqlalchemy.orm import Session
 
 from ..models.user import User
 from .database import get_db
-from .security import ALGORITHM, SECRET_KEY, decode_access_token, oauth2_scheme
+from .security import decode_access_token, oauth2_scheme
 
 logger = logging.getLogger(__name__)
 

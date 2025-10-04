@@ -121,7 +121,10 @@ class S3StorageBackend:
         """Store an artifact in S3"""
         try:
             self.s3_client.put_object(
-                Bucket=self.bucket_name, Key=key, Body=data, Metadata=metadata or {}
+                Bucket=self.bucket_name,
+                Key=key,
+                Body=data,
+                Metadata=metadata or {},
             )
             logger.info(f"Stored artifact: {key}")
             return True
@@ -680,7 +683,11 @@ class ModelStorage:
             await self.redis_client.srem("all_models", model_name)
 
     async def _cache_model(
-        self, model_name: str, version: str, model_data: bytes, compressed: bool
+        self,
+        model_name: str,
+        version: str,
+        model_data: bytes,
+        compressed: bool,
     ):
         """Cache model data in Redis"""
         if len(model_data) > self.config.max_file_size:

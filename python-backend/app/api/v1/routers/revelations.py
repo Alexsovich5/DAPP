@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 
 from app.api.v1.deps import get_current_user
@@ -13,11 +13,15 @@ from app.schemas.daily_revelation import (
     DailyRevelationUpdate,
     RevelationPrompt,
 )
+from app.services.revelation_service import RevelationService
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["revelations"])
+
+# Initialize revelation service for automatic day progression
+revelation_service = RevelationService()
 
 # Revelation prompts for the 7-day cycle
 REVELATION_PROMPTS = {
@@ -164,6 +168,19 @@ def create_revelation(
                 detail="Day number must be between 1 and 7",
             )
 
+        # Check if user can share revelation for this day (automatic progression)
+        can_share = revelation_service.can_user_share_revelation(
+            db,
+            revelation_data.connection_id,
+            current_user.id,
+            revelation_data.day_number,
+        )
+        if not can_share["can_share"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=can_share["reason"],
+            )
+
         # Check if revelation for this day already exists from this user
         existing_revelation = (
             db.query(DailyRevelation)
@@ -263,7 +280,14 @@ def get_revelation_timeline(
 
         # Get partner info
         partner_id = connection.get_partner_id(current_user.id)
-        partner = db.query(User).filter(User.id == partner_id).first()
+
+        # Get current day using automatic progression logic
+        current_day = revelation_service.get_current_revelation_day(connection)
+
+        # Update connection reveal_day to match calculated current day
+        if current_day != connection.reveal_day:
+            connection.reveal_day = current_day
+            db.commit()
 
         # Build timeline data structure matching Phase 3 frontend
         timeline_days = []
@@ -292,10 +316,12 @@ def get_revelation_timeline(
                     "day": day,
                     "prompt": prompt.get("prompt_text", ""),
                     "description": prompt.get("example_response", ""),
-                    "isUnlocked": day <= connection.reveal_day,
+                    "isUnlocked": day <= current_day,
                     "userShared": user_revelation is not None,
                     "partnerShared": partner_revelation is not None,
-                    "userContent": user_revelation.content if user_revelation else None,
+                    "userContent": (
+                        user_revelation.content if user_revelation else None
+                    ),
                     "partnerContent": (
                         partner_revelation.content if partner_revelation else None
                     ),
@@ -328,29 +354,35 @@ def get_revelation_timeline(
             (user_shared_count + partner_shared_count) / 14.0
         ) * 100
 
-        # Determine visualization phase
-        if connection.reveal_day <= 3:
+        # Determine visualization phase based on current day
+        if current_day <= 3:
             phase = "soul_discovery"
-        elif connection.reveal_day <= 6:
+        elif current_day <= 6:
             phase = "deeper_connection"
         else:
             phase = "photo_reveal"
 
         return {
             "connectionId": connection_id,
-            "currentDay": connection.reveal_day,
+            "currentDay": current_day,
             "completionPercentage": completion_percentage,
             "timeline": timeline_days,
             "progress": {
-                "daysUnlocked": connection.reveal_day,
+                "daysUnlocked": current_day,
                 "userSharedCount": user_shared_count,
                 "partnerSharedCount": partner_shared_count,
                 "mutualDays": mutual_days,
-                "nextUnlockDay": (
-                    connection.reveal_day + 1 if connection.reveal_day < 7 else None
+                "nextUnlockDay": (current_day + 1 if current_day < 7 else None),
+                "nextUnlockDate": (
+                    (connection.created_at + timedelta(days=current_day)).isoformat()
+                    if current_day < 7
+                    else None
                 ),
             },
-            "visualization": {"completionRing": completion_percentage, "phase": phase},
+            "visualization": {
+                "completionRing": completion_percentage,
+                "phase": phase,
+            },
         }
 
     except HTTPException:
@@ -382,7 +414,8 @@ def update_revelation(
 
         if not revelation:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Revelation not found"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Revelation not found",
             )
 
         # Verify user has access to this revelation's connection
@@ -548,7 +581,14 @@ def get_today_prompt(
         if not connection:
             raise HTTPException(status_code=404, detail="Connection not found")
 
-        current_day = connection.reveal_day
+        # Get current day using automatic progression logic
+        current_day = revelation_service.get_current_revelation_day(connection)
+
+        # Update connection reveal_day to match calculated current day
+        if current_day != connection.reveal_day:
+            connection.reveal_day = current_day
+            db.commit()
+
         prompt = REVELATION_PROMPTS.get(current_day)
 
         if not prompt:
@@ -661,6 +701,75 @@ def give_photo_consent(
         logger.error(f"Error giving photo consent: {str(e)}")
         db.rollback()
         raise HTTPException(status_code=500, detail="Error giving photo consent")
+
+
+@router.put("/{revelation_id}/react")
+def react_to_revelation(
+    revelation_id: int,
+    reaction_data: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    React to a revelation with an emoji or response.
+    """
+    try:
+        revelation = (
+            db.query(DailyRevelation)
+            .filter(DailyRevelation.id == revelation_id)
+            .first()
+        )
+
+        if not revelation:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Revelation not found"
+            )
+
+        # Verify user has access to this revelation's connection
+        connection = (
+            db.query(SoulConnection)
+            .filter(
+                SoulConnection.id == revelation.connection_id,
+                (
+                    (SoulConnection.user1_id == current_user.id)
+                    | (SoulConnection.user2_id == current_user.id)
+                ),
+            )
+            .first()
+        )
+
+        if not connection:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have access to this revelation",
+            )
+
+        # Store reaction (you may want to create a separate reactions table)
+        if not revelation.reactions:
+            revelation.reactions = {}
+
+        revelation.reactions[str(current_user.id)] = {
+            "emoji": reaction_data.get("emoji", "❤️"),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+
+        db.commit()
+
+        return {
+            "success": True,
+            "message": "Reaction added successfully",
+            "revelation_id": revelation_id,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error reacting to revelation: {str(e)}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error adding reaction",
+        )
 
 
 @router.get("/analytics/{connection_id}")

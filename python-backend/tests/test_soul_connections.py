@@ -4,13 +4,10 @@ Tests the "Soul Before Skin" matching algorithm and connection management
 """
 
 import time
-from datetime import datetime, timedelta
-from unittest.mock import patch
 
 import pytest
-from app.models.soul_connection import ConnectionStage, SoulConnection
+from app.models.soul_connection import ConnectionStage
 from app.models.user import User
-from app.services.compatibility import CompatibilityCalculator
 from app.services.soul_compatibility_service import SoulCompatibilityService
 from fastapi import status
 from tests.factories import UserFactory
@@ -163,7 +160,8 @@ class TestSoulConnectionAPI:
     def test_discover_potential_connections(self, client, authenticated_user):
         """Test discovering potential soul connections"""
         response = client.get(
-            "/api/v1/connections/discover", headers=authenticated_user["headers"]
+            "/api/v1/connections/discover",
+            headers=authenticated_user["headers"],
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -449,7 +447,6 @@ class TestSoulConnectionBusinessLogic:
     def test_concurrent_matching_performance(self, client, performance_config):
         """Test matching algorithm performance under concurrent load"""
         import concurrent.futures
-        import threading
 
         def make_discovery_request():
             # This would require proper authentication in real test

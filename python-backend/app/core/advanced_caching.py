@@ -4,23 +4,17 @@ Intelligent caching with L1 (Redis), L2 (Database), predictive warming, and perf
 """
 
 import asyncio
-import hashlib
-import json
 import time
-import uuid
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional
 
-import numpy as np
 import structlog
 from core.event_publisher import EventPublisher, EventType
 
 # Import our Redis cluster manager and event publisher
 from core.redis_cluster_manager import DatabaseType, RedisClusterManager
 from prometheus_client import Counter, Gauge, Histogram
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger(__name__)
 
@@ -35,7 +29,9 @@ CACHE_RESPONSE_TIME = Histogram(
     "cache_response_time_seconds", "Cache response time", ["cache_level"]
 )
 CACHE_WARMING_OPERATIONS = Counter(
-    "cache_warming_operations_total", "Cache warming operations", ["strategy", "status"]
+    "cache_warming_operations_total",
+    "Cache warming operations",
+    ["strategy", "status"],
 )
 CACHE_MEMORY_USAGE = Gauge(
     "cache_memory_usage_bytes", "Cache memory usage", ["cache_level"]
@@ -242,7 +238,9 @@ class CacheWarmingService:
     """Intelligent cache warming service with predictive capabilities"""
 
     def __init__(
-        self, redis_manager: RedisClusterManager, cache_analytics: CacheAnalytics
+        self,
+        redis_manager: RedisClusterManager,
+        cache_analytics: CacheAnalytics,
     ):
         self.redis_manager = redis_manager
         self.cache_analytics = cache_analytics
@@ -250,7 +248,11 @@ class CacheWarmingService:
         self.warming_config: Dict[str, Dict[str, Any]] = {}
 
     async def warm_cache(
-        self, key: str, fallback_func: Callable, ttl: int = 3600, priority: int = 1
+        self,
+        key: str,
+        fallback_func: Callable,
+        ttl: int = 3600,
+        priority: int = 1,
     ):
         """Warm cache with specific key"""
         try:
@@ -730,7 +732,7 @@ class IntelligentCacheManager:
             return None
 
         try:
-            async with self.db_session_factory() as session:
+            async with self.db_session_factory() as _:
                 # This would query materialized views or cached tables
                 # For now, return None to indicate miss
                 return None
@@ -790,11 +792,14 @@ class IntelligentCacheManager:
         try:
             # Trigger warming for slow queries
             if response_time > self.slow_query_threshold:
-                pattern_key = self.cache_analytics._get_pattern_key(key)
+                self.cache_analytics._get_pattern_key(key)
 
                 # Schedule warming for similar keys
                 await self.cache_warming.warm_cache(
-                    key, lambda: None, ttl=3600, priority=1  # Would be actual fallback
+                    key,
+                    lambda: None,
+                    ttl=3600,
+                    priority=1,  # Would be actual fallback
                 )
 
         except Exception as e:

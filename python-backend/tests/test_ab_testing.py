@@ -89,7 +89,12 @@ class MockABTestingService:
         )
 
     def track_conversion_event(
-        self, user_id, experiment_id, event_name, event_data=None, metadata=None
+        self,
+        user_id,
+        experiment_id,
+        event_name,
+        event_data=None,
+        metadata=None,
     ):
         return {
             "event_tracked": True,
@@ -145,6 +150,22 @@ class MockABTestingService:
             "recommended_action": "adopt_treatment",
         }
 
+    def calculate_statistical_significance_simple(self, control_data, treatment_data):
+        return {
+            "p_value": 0.03,
+            "confidence_level": 0.95,
+            "is_significant": True,
+            "effect_size": 0.15,
+            "recommended_action": "adopt_treatment",
+            "z_statistic": 2.1,
+            "control_conversion_rate": control_data["conversion_rate"],
+            "treatment_conversion_rate": treatment_data["conversion_rate"],
+            "lift": (
+                treatment_data["conversion_rate"] - control_data["conversion_rate"]
+            )
+            / control_data["conversion_rate"],
+        }
+
     def analyze_experiment_by_segments(self, experiment_id):
         return {
             "age_18_25": {
@@ -162,7 +183,10 @@ class MockABTestingService:
         }
 
     def get_user_experiment_events(self, user_id, experiment_id):
-        return [MockEvent("connection_success"), MockEvent("first_message_sent")]
+        return [
+            MockEvent("connection_success"),
+            MockEvent("first_message_sent"),
+        ]
 
     def check_experiment_safety(self, experiment_id, performance_data):
         safety_violations = []
@@ -298,7 +322,7 @@ class TestABTestingFramework:
         )
 
         # Create control variant
-        _control_variant = ab_service.create_variant(
+        control_variant = ab_service.create_variant(
             experiment_id=experiment.id,
             variant_name="control",
             variant_config={
@@ -310,7 +334,7 @@ class TestABTestingFramework:
         )
 
         # Create treatment variant
-        _treatment_variant = ab_service.create_variant(
+        treatment_variant = ab_service.create_variant(
             experiment_id=experiment.id,
             variant_name="enhanced_prompts",
             variant_config={
@@ -386,7 +410,7 @@ class TestABTestingFramework:
     @pytest.mark.ab_testing
     def test_experiment_traffic_allocation(self, ab_service, matching_users):
         """Test that traffic allocation is respected"""
-        _users = [matching_users["user1"], matching_users["user2"]]
+        users = [matching_users["user1"], matching_users["user2"]]
 
         # Create experiment with 0% traffic (should not assign anyone)
         zero_traffic_experiment = ab_service.create_experiment(
@@ -432,7 +456,7 @@ class TestExperimentMetricsTracking:
     @pytest.mark.ab_testing
     def test_conversion_event_tracking(self, ab_service, soul_connection_data):
         """Test tracking conversion events for experiment analysis"""
-        _connection = soul_connection_data["connection"]
+        connection = soul_connection_data["connection"]
         user = soul_connection_data["users"][0]
 
         # Create experiment and assign user
@@ -445,14 +469,17 @@ class TestExperimentMetricsTracking:
         )
 
         ab_service.create_variant(experiment.id, "control", {}, 0.5)
-        _assignment = ab_service.assign_user_to_experiment(user.id, experiment.id)
+        ab_service.assign_user_to_experiment(user.id, experiment.id)
 
         # Track conversion events
         ab_service.track_conversion_event(
             user_id=user.id,
             experiment_id=experiment.id,
             event_name="connection_success",
-            event_data={"connection_id": connection.id, "compatibility_score": 85.5},
+            event_data={
+                "connection_id": connection.id,
+                "compatibility_score": 85.5,
+            },
         )
 
         ab_service.track_conversion_event(
@@ -472,7 +499,6 @@ class TestExperimentMetricsTracking:
     @pytest.mark.ab_testing
     def test_experiment_performance_analysis(self, ab_service, matching_users):
         """Test analyzing experiment performance across variants"""
-        _users = [matching_users["user1"], matching_users["user2"]]
 
         experiment = ab_service.create_experiment(
             {
@@ -482,10 +508,8 @@ class TestExperimentMetricsTracking:
             }
         )
 
-        _control_variant = ab_service.create_variant(experiment.id, "control", {}, 0.5)
-        _treatment_variant = ab_service.create_variant(
-            experiment.id, "treatment", {}, 0.5
-        )
+        ab_service.create_variant(experiment.id, "control", {}, 0.5)
+        ab_service.create_variant(experiment.id, "treatment", {}, 0.5)
 
         # Mock different performance for variants
         with patch.object(ab_service, "get_variant_performance") as mock_perf:
@@ -524,7 +548,7 @@ class TestExperimentMetricsTracking:
             "sample_size": 980,
         }
 
-        significance_result = ab_service.calculate_statistical_significance(
+        significance_result = ab_service.calculate_statistical_significance_simple(
             control_data, treatment_data
         )
 
@@ -595,7 +619,10 @@ class TestExperimentAPIs:
                 },
                 {
                     "name": "enhanced_algorithm",
-                    "config": {"algorithm_version": "v3", "emotional_weighting": 1.2},
+                    "config": {
+                        "algorithm_version": "v3",
+                        "emotional_weighting": 1.2,
+                    },
                     "traffic_percentage": 0.5,
                 },
             ],
@@ -623,10 +650,14 @@ class TestExperimentAPIs:
     def test_get_user_experiments_endpoint(self, client, authenticated_user):
         """Test retrieving user's experiment assignments"""
         response = client.get(
-            "/api/v1/experiments/my-assignments", headers=authenticated_user["headers"]
+            "/api/v1/experiments/my-assignments",
+            headers=authenticated_user["headers"],
         )
 
-        assert response.status_code in [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND]
+        assert response.status_code in [
+            status.HTTP_200_OK,
+            status.HTTP_404_NOT_FOUND,
+        ]
 
         if response.status_code == status.HTTP_200_OK:
             data = response.json()
@@ -710,7 +741,8 @@ class TestExperimentFeatureIntegration:
 
             # Request soul connection discovery
             response = client.get(
-                "/api/v1/connections/discover", headers=authenticated_user["headers"]
+                "/api/v1/connections/discover",
+                headers=authenticated_user["headers"],
             )
 
             # Should succeed or indicate not implemented
@@ -726,12 +758,12 @@ class TestExperimentFeatureIntegration:
         self, client, authenticated_user, soul_connection_data
     ):
         """Test A/B testing integration with revelation system"""
-        _connection = soul_connection_data["connection"]
 
         # Test revelation endpoint without patching - just verify the endpoint works
         # The actual A/B testing integration would be implemented at the service level
         response = client.get(
-            "/api/v1/revelations/prompts/1", headers=authenticated_user["headers"]
+            "/api/v1/revelations/prompts/1",
+            headers=authenticated_user["headers"],
         )
 
         assert response.status_code in [
@@ -743,7 +775,6 @@ class TestExperimentFeatureIntegration:
     @pytest.mark.ab_testing
     def test_photo_reveal_timing_experiment(self, ab_service, soul_connection_data):
         """Test A/B experiment affecting photo reveal timing"""
-        _connection = soul_connection_data["connection"]
         user = soul_connection_data["users"][0]
 
         # Create photo reveal timing experiment
@@ -751,15 +782,18 @@ class TestExperimentFeatureIntegration:
             {
                 "name": "photo_reveal_timing_optimization",
                 "status": ExperimentStatus.ACTIVE.value,
-                "target_metrics": ["photo_reveal_rate", "connection_satisfaction"],
+                "target_metrics": [
+                    "photo_reveal_rate",
+                    "connection_satisfaction",
+                ],
             }
         )
 
-        _control_variant = ab_service.create_variant(
+        ab_service.create_variant(
             experiment.id, "control", {"reveal_day_requirement": 7}, 0.5
         )
 
-        _treatment_variant = ab_service.create_variant(
+        ab_service.create_variant(
             experiment.id,
             "flexible_timing",
             {"reveal_day_requirement": 5, "user_choice": True},
@@ -933,9 +967,7 @@ class TestExperimentReporting:
         for i in range(100):
             # Mock user assignment call
             user_id = i + 1
-            _experiment_assignments = ab_service.get_user_experiment_assignments(
-                user_id
-            )
+            ab_service.get_user_experiment_assignments(user_id)
 
         total_time = time.time() - start_time
 

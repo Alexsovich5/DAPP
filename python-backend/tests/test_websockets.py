@@ -204,8 +204,14 @@ class TestRealtimeMessaging:
         message_types = [
             {"type": "text", "content": "Hello there!"},
             {"type": "emoji", "content": "❤️"},
-            {"type": "revelation_share", "content": "Sharing day 3 revelation"},
-            {"type": "photo_consent", "content": "I'm ready to share my photo"},
+            {
+                "type": "revelation_share",
+                "content": "Sharing day 3 revelation",
+            },
+            {
+                "type": "photo_consent",
+                "content": "I'm ready to share my photo",
+            },
             {"type": "system", "content": "Connection stage updated"},
         ]
 
@@ -324,7 +330,9 @@ class TestTypingIndicators:
         }
 
         response = client.post(
-            "/api/v1/ws/notify/revelation", json=notification_data, headers=headers
+            "/api/v1/ws/notify/revelation",
+            json=notification_data,
+            headers=headers,
         )
 
         # Should successfully process the notification request
@@ -709,7 +717,10 @@ class TestWebSocketPerformance:
         # Test broadcast to all connections
         start_time = time.time()
         connection_manager.broadcast(
-            {"type": "system_announcement", "message": "Testing concurrent connections"}
+            {
+                "type": "system_announcement",
+                "message": "Testing concurrent connections",
+            }
         )
         broadcast_time = time.time() - start_time
 

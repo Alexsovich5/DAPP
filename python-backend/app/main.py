@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 
 from app.api.v1.routers import (  # enhanced_communication,  # Temporarily disabled - file missing; social_proof,  # Temporarily disabled - file missing; advanced_ai_matching,  # Temporarily disabled - file missing
+    activity,
     adaptive_revelations,
     advanced_soul_matching,
     ai_matching,
@@ -11,6 +12,7 @@ from app.api.v1.routers import (  # enhanced_communication,  # Temporarily disab
 )
 from app.api.v1.routers import chat as chat_router
 from app.api.v1.routers import (  # enhanced_communication,  # Temporarily disabled - file missing; social_proof,  # Temporarily disabled - file missing; advanced_ai_matching,  # Temporarily disabled - file missing
+    health,
     matches,
     messages,
     onboarding,
@@ -128,6 +130,20 @@ v1_app.include_router(
     websocket.router,
     prefix="/ws",
     tags=["websocket"],
+)
+
+# Phase 4: Activity Tracking System
+v1_app.include_router(
+    activity.router,
+    prefix="/activity",
+    tags=["activity"],
+)
+
+# Phase 4: Health Monitoring System
+v1_app.include_router(
+    health.router,
+    prefix="/health",
+    tags=["health"],
 )
 
 # Phase 5: AI-Enhanced Matching
