@@ -36,6 +36,7 @@ sqlalchemy-utils>=0.41.1  # Database utilities for testing
 
 # Sprint 8: Microservices Architecture Dependencies
 redis>=5.0.1  # Redis Python client with built-in cluster support
+websockets>=10.0  # WebSocket client and server
 pika>=1.3.2  # RabbitMQ client for event-driven architecture
 celery>=5.3.4  # Distributed task queue
 transformers>=4.35.0  # Hugging Face transformers for sentiment analysis
