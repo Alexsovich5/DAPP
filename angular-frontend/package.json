@@ -7,7 +7,7 @@
     "dev": "nx serve",
     "start": "nx serve",
     "test": "nx test",
-    "test:ci": "nx test --ci --code-coverage --watch=false",
+    "test:ci": "nx test --code-coverage --watch=false",
     "lint": "nx lint dinner-app-angular",
     "e2e": "nx e2e"
   },

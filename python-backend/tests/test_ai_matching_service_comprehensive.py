@@ -398,19 +398,19 @@ class TestAIMatchingServiceProfileEmbeddings:
         result = await service.generate_user_profile_embeddings(user_id=1, db=mock_db)
 
         # The method returns a UserProfile object with vector attributes
-        assert hasattr(result, 'personality_vector')
-        assert hasattr(result, 'interests_vector')
-        assert hasattr(result, 'values_vector')
-        assert hasattr(result, 'communication_vector')
+        assert hasattr(result, "personality_vector")
+        assert hasattr(result, "interests_vector")
+        assert hasattr(result, "values_vector")
+        assert hasattr(result, "communication_vector")
 
         # Verify vectors are lists (if they exist)
-        if hasattr(result, 'personality_vector') and result.personality_vector:
+        if hasattr(result, "personality_vector") and result.personality_vector:
             assert isinstance(result.personality_vector, list)
-        if hasattr(result, 'interests_vector') and result.interests_vector:
+        if hasattr(result, "interests_vector") and result.interests_vector:
             assert isinstance(result.interests_vector, list)
-        if hasattr(result, 'values_vector') and result.values_vector:
+        if hasattr(result, "values_vector") and result.values_vector:
             assert isinstance(result.values_vector, list)
-        if hasattr(result, 'communication_vector') and result.communication_vector:
+        if hasattr(result, "communication_vector") and result.communication_vector:
             assert isinstance(result.communication_vector, list)
 
     @pytest.mark.asyncio
