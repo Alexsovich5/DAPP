@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "dinner-app": {
+    "dinner-app-angular": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -34,6 +34,7 @@
               "src/assets"
             ],
             "styles": [
+              "@angular/material/prebuilt-themes/rose-red.css",
               "src/styles.scss"
             ],
             "scripts": []
@@ -66,10 +67,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "dinner-app:build:production"
+              "buildTarget": "dinner-app-angular:build:production"
             },
             "development": {
-              "buildTarget": "dinner-app:build:development"
+              "buildTarget": "dinner-app-angular:build:development"
             }
           },
           "defaultConfiguration": "development",
@@ -95,9 +96,19 @@
               "src/assets"
             ],
             "styles": [
+              "@angular/material/prebuilt-themes/rose-red.css",
               "src/styles.scss"
             ],
             "scripts": []
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
+            ]
           }
         }
       }
