@@ -1,6 +1,6 @@
 {
   "root": true,
-  "ignorePatterns": ["**/*"],
+  "ignorePatterns": ["node_modules", "dist", ".angular", "coverage"],
   "overrides": [
     {
       "files": ["*.ts"],
