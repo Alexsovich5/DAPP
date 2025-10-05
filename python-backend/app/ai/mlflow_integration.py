@@ -116,8 +116,7 @@ class MLflowExperimentManager:
             await self._cache_experiment_metadata(experiment_id, config)
 
             logger.info(
-                f"Created MLflow experiment: {
-                    config.experiment_name} (ID: {experiment_id})"
+                f"Created MLflow experiment: {config.experiment_name} (ID: {experiment_id})"
             )
             return experiment_id
 

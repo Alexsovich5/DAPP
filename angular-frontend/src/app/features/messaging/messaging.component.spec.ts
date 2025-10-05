@@ -101,7 +101,7 @@ describe('MessagingComponent', () => {
       connection_id: 1,
       sender_id: 1,
       recipient_id: 2,
-      message_text: 'I felt the same connection when reading your thoughts on authenticity. It\\'s beautiful how our souls align.',
+      message_text: "I felt the same connection when reading your thoughts on authenticity. It's beautiful how our souls align.",
       message_type: 'text',
       created_at: '2025-01-20T10:45:00Z',
       is_read: true,

@@ -84,12 +84,12 @@ def main():
 
     print("\nCore modules:")
     for module in core_modules:
-        if not test_import(module):
+        if not _test_import_module(module):
             failed_imports.append(module)
 
     print("\nAPI router modules:")
     for module in router_modules:
-        if not test_import(module):
+        if not _test_import_module(module):
             failed_imports.append(module)
 
     print("\n" + "=" * 50)

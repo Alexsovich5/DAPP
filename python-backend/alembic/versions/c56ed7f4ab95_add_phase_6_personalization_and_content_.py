@@ -36,6 +36,12 @@ def upgrade() -> None:
         if_exists=True,
     )
     op.drop_table("personalized_content", if_exists=True)
+    op.drop_index(
+        op.f("ix_model_predictions_id"),
+        table_name="model_predictions",
+        if_exists=True,
+    )
+    op.drop_table("model_predictions", if_exists=True)
     op.drop_index(op.f("ix_ml_models_id"), table_name="ml_models", if_exists=True)
     op.drop_table("ml_models", if_exists=True)
     op.drop_index(
@@ -73,12 +79,6 @@ def upgrade() -> None:
         if_exists=True,
     )
     op.drop_table("personalized_recommendations", if_exists=True)
-    op.drop_index(
-        op.f("ix_model_predictions_id"),
-        table_name="model_predictions",
-        if_exists=True,
-    )
-    op.drop_table("model_predictions", if_exists=True)
     op.drop_index(
         op.f("ix_photo_reveal_permissions_id"),
         table_name="photo_reveal_permissions",

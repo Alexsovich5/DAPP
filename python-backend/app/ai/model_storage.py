@@ -641,9 +641,7 @@ class ModelStorage:
 
     async def _store_metadata(self, metadata: ModelMetadata):
         """Store model metadata in Redis"""
-        metadata_key = f"model_metadata: {
-            metadata.model_name}: {
-            metadata.version} "
+        metadata_key = f"model_metadata:{metadata.model_name}:{metadata.version}"
         metadata_json = metadata.json()
 
         await self.redis_client.set(metadata_key, metadata_json)

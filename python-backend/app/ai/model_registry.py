@@ -390,9 +390,9 @@ class MLModelRegistry:
         cluster = await self.redis_client.get_cluster(5)  # Feature store
 
         # Store model version
-        version_key = f"model_version: {
-            model_version.model_name}: {
-            model_version.version} "
+        version_key = (
+            f"model_version:{model_version.model_name}:{model_version.version}"
+        )
         prefixed_key = self.redis_client._get_key_with_prefix(version_key, 5)
 
         version_data = {

@@ -136,9 +136,7 @@ class DataCollector:
 
     async def collect_feedback(self, feedback: FeedbackData):
         """Collect user feedback for model improvement"""
-        feedback_key = f"feedback: {
-            feedback.model_name}: {
-            feedback.timestamp.date()} "
+        feedback_key = f"feedback:{feedback.model_name}:{feedback.timestamp.date()}"
 
         # Store individual feedback
         feedback_data = feedback.dict()
