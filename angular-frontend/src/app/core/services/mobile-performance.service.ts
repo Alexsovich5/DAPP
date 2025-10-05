@@ -1,6 +1,5 @@
 import { Injectable, ElementRef, NgZone } from '@angular/core';
-import { BehaviorSubject, Observable, fromEvent, merge, timer } from 'rxjs';
-import { map, debounceTime, throttleTime, distinctUntilChanged, filter } from 'rxjs/operators';
+import { BehaviorSubject, timer } from 'rxjs';
 import { MobileFeaturesService } from './mobile-features.service';
 
 export interface PerformanceMetrics {
@@ -122,7 +121,6 @@ export class MobilePerformanceService {
   private monitorFrameRate(): void {
     let lastTime = performance.now();
     let frameCount = 0;
-    const targetFPS = 60;
     const measureInterval = 1000; // 1 second
 
     const measureFPS = () => {
@@ -147,7 +145,7 @@ export class MobilePerformanceService {
   private monitorMemoryUsage(): void {
     if ('memory' in performance) {
       timer(0, 30000).subscribe(() => { // Check every 30 seconds
-        const memory = (performance as any).memory;
+        const memory = (performance as Performance & { memory?: { usedJSHeapSize: number; totalJSHeapSize: number } }).memory;
         if (memory) {
           const usedMemory = memory.usedJSHeapSize;
           const totalMemory = memory.totalJSHeapSize;
@@ -188,7 +186,7 @@ export class MobilePerformanceService {
 
     // Cleanup on low memory warning
     if ('navigator' in window && 'connection' in navigator) {
-      const connection = (navigator as any).connection;
+      const connection = (navigator as Navigator & { connection?: { saveData: boolean; addEventListener: (type: string, listener: () => void) => void } }).connection;
       if (connection) {
         connection.addEventListener('change', () => {
           if (connection.saveData) {
@@ -486,7 +484,7 @@ export class MobilePerformanceService {
 
     // Force garbage collection if available
     if ('gc' in window) {
-      (window as any).gc();
+      (window as Window & { gc?: () => void }).gc?.();
     }
   }
 
@@ -538,7 +536,7 @@ export class MobilePerformanceService {
 
   private detectNetworkSpeed(): void {
     if ('connection' in navigator) {
-      const connection = (navigator as any).connection;
+      const connection = (navigator as Navigator & { connection?: { effectiveType: string; addEventListener: (type: string, listener: () => void) => void } }).connection;
 
       if (connection) {
         const updateNetworkSpeed = () => {
@@ -568,7 +566,7 @@ export class MobilePerformanceService {
     const isLowEndDevice =
       deviceInfo.screenSize.width < 400 ||
       navigator.hardwareConcurrency <= 2 ||
-      (navigator as any).deviceMemory <= 2;
+      (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 0 <= 2;
 
     this.updateMetrics({ isLowEndDevice });
   }

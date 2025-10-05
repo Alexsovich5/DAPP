@@ -385,7 +385,6 @@ export class HapticFeedbackService {
     if (!this.canProvideHaptics()) return;
 
     // Pattern that builds with each day (1-7)
-    const basePattern = [50, 25];
     const buildingPattern = [];
 
     for (let i = 0; i < dayNumber; i++) {

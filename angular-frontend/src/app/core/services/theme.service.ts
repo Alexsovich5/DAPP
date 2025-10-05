@@ -1,6 +1,6 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { StorageService } from './storage.service';
 
 export type Theme = 'light' | 'dark';
@@ -17,7 +17,7 @@ export class ThemeService {
 
   constructor(
     private readonly storage: StorageService,
-    @Inject(PLATFORM_ID) private platformId: Object
+    @Inject(PLATFORM_ID) private platformId: NonNullable<unknown>
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
 

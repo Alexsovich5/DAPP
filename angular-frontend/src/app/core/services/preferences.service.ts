@@ -19,12 +19,12 @@ export class PreferencesService {
     this.reducedMotionSubject.next(reduce);
   }
 
-  getPreferences(): Observable<any> {
-    return this.http.get(`${environment.apiUrl}/preferences`);
+  getPreferences(): Observable<Record<string, unknown>> {
+    return this.http.get<Record<string, unknown>>(`${environment.apiUrl}/preferences`);
   }
 
-  updatePreferences(preferences: any): Observable<any> {
-    return this.http.put(`${environment.apiUrl}/preferences`, preferences);
+  updatePreferences(preferences: Record<string, unknown>): Observable<Record<string, unknown>> {
+    return this.http.put<Record<string, unknown>>(`${environment.apiUrl}/preferences`, preferences);
   }
 
   setReducedMotion(enabled: boolean): void {

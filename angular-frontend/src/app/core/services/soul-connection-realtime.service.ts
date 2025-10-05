@@ -1,16 +1,16 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { Observable, Subject, BehaviorSubject, merge, fromEvent } from 'rxjs';
-import { filter, map, tap, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { Observable, Subject, BehaviorSubject, fromEvent } from 'rxjs';
+import { filter, tap, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { WebSocketPoolService, WebSocketMessage } from './websocket-pool.service';
 import { ScreenReaderService } from './screen-reader.service';
 
 export interface SoulConnectionUpdate {
   connectionId: string;
   type: 'compatibility_change' | 'energy_sync' | 'revelation_shared' | 'state_change' | 'match_found';
-  data: any;
+  data: Record<string, unknown>;
   timestamp: number;
   userId?: string;
-  soulData?: any;
+  soulData?: Record<string, unknown>;
 }
 
 export interface EnergySync {

@@ -173,7 +173,7 @@ export class ScreenReaderService {
     this.announce(message, 'polite', 'soul-discovery');
   }
 
-  announceCompatibilityScore(score: number, breakdown?: any): void {
+  announceCompatibilityScore(score: number, breakdown?: Record<string, unknown>): void {
     let message = `Soul compatibility: ${score}%`;
 
     if (breakdown && this.config.verbosityLevel !== 'minimal') {

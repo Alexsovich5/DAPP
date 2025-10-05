@@ -9,9 +9,9 @@ export interface OnboardingData {
   relationship_values: string;
   ideal_evening: string;
   feeling_understood: string;
-  core_values: Record<string, any>;
-  personality_traits: Record<string, any>;
-  communication_style: Record<string, any>;
+  core_values: Record<string, unknown>;
+  personality_traits: Record<string, unknown>;
+  communication_style: Record<string, unknown>;
   interests: string[];
 }
 
@@ -34,11 +34,11 @@ export class OnboardingApiService extends BaseService {
   /**
    * Complete emotional onboarding with backend API
    */
-  completeOnboarding(onboardingData: OnboardingData): Observable<any> {
+  completeOnboarding(onboardingData: OnboardingData): Observable<{ success: boolean; message?: string }> {
     const url = `${this.apiUrl}/onboarding/complete`;
     console.log('Completing onboarding API call to:', url, 'with data:', onboardingData);
 
-    return this.http.post<any>(url, onboardingData).pipe(
+    return this.http.post<{ success: boolean; message?: string }>(url, onboardingData).pipe(
       tap(response => {
         console.log('Onboarding API response:', response);
         // Mark onboarding as completed in localStorage for frontend state
@@ -46,7 +46,7 @@ export class OnboardingApiService extends BaseService {
       }),
       catchError(err => {
         console.error('Onboarding API error:', err);
-        return this.handleError<any>('complete onboarding')(err);
+        return this.handleError<{ success: boolean; message?: string }>('complete onboarding')(err);
       })
     );
   }

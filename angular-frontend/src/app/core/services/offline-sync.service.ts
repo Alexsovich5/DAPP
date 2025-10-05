@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, fromEvent, merge } from 'rxjs';
+import { BehaviorSubject, fromEvent, merge } from 'rxjs';
 import { map, distinctUntilChanged } from 'rxjs/operators';
 import { StorageService } from './storage.service';
 

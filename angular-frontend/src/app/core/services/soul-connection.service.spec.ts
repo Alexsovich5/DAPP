@@ -5,7 +5,7 @@
 
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 
 import { SoulConnectionService } from './soul-connection.service';
 import { AuthService } from './auth.service';

@@ -65,7 +65,7 @@ export class PWAService {
 
     // Monitor connection quality if available
     if ('connection' in navigator) {
-      const connection = (navigator as any).connection;
+      const connection = (navigator as Navigator & { connection?: { addEventListener: (event: string, handler: () => void) => void } }).connection;
       connection?.addEventListener('change', () => {
         this.updateConnectionStatus();
       });
@@ -91,7 +91,13 @@ export class PWAService {
   }
 
   private updateConnectionStatus(): void {
-    const connection = (navigator as any).connection;
+    const connection = (navigator as Navigator & {
+      connection?: {
+        effectiveType?: string;
+        downlink?: number;
+        rtt?: number
+      }
+    }).connection;
 
     const status: ConnectionStatus = {
       isOnline: navigator.onLine,
@@ -184,15 +190,15 @@ export class PWAService {
     }
   }
 
-  listenToNotificationClicks(): Observable<any> {
+  listenToNotificationClicks(): Observable<unknown> {
     return this.swPush.notificationClicks;
   }
 
-  listenToNotificationMessages(): Observable<any> {
+  listenToNotificationMessages(): Observable<unknown> {
     return this.swPush.messages;
   }
 
-  handleNotificationClick(notification: any): void {
+  handleNotificationClick(notification: { notification: { data?: Record<string, unknown> } }): void {
     const data = notification.notification.data;
 
     // Handle different notification types
@@ -243,8 +249,8 @@ export class PWAService {
 
   private trackInstallation(): void {
     // Track PWA installation for analytics
-    if (typeof gtag !== 'undefined') {
-      gtag('event', 'pwa_installed', {
+    if (typeof window !== 'undefined' && 'gtag' in window) {
+      (window as Window & { gtag?: (command: string, event: string, params: Record<string, string>) => void }).gtag?.('event', 'pwa_installed', {
         event_category: 'PWA',
         event_label: 'dinner_first_app'
       });
@@ -253,12 +259,17 @@ export class PWAService {
 
   isStandalone(): boolean {
     return window.matchMedia('(display-mode: standalone)').matches ||
-           (window.navigator as any).standalone ||
+           (window.navigator as Navigator & { standalone?: boolean }).standalone ||
            document.referrer.includes('android-app://');
   }
 
   getConnectionQuality(): 'high' | 'medium' | 'low' | 'unknown' {
-    const connection = (navigator as any).connection;
+    const connection = (navigator as Navigator & {
+      connection?: {
+        effectiveType?: string;
+        downlink?: number
+      }
+    }).connection;
 
     if (!connection) {
       return 'unknown';
@@ -283,7 +294,7 @@ export class PWAService {
   }): Promise<boolean> {
     if ('share' in navigator) {
       try {
-        await (navigator as any).share(shareData);
+        await (navigator as Navigator & { share?: (data: { title?: string; text?: string; url?: string; files?: File[] }) => Promise<void> }).share?.(shareData);
         return true;
       } catch (error) {
         console.error('Failed to share:', error);

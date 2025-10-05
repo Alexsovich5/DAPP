@@ -4,7 +4,7 @@
  */
 
 import { TestBed } from '@angular/core/testing';
-import { BehaviorSubject, Subject, throwError, of } from 'rxjs';
+import { Subject, throwError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 import { WebSocketService } from './websocket.service';

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, fromEvent } from 'rxjs';
-import { map, debounceTime } from 'rxjs/operators';
+import { BehaviorSubject, fromEvent } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 
 // Browser API type declarations
 interface BatteryManager {

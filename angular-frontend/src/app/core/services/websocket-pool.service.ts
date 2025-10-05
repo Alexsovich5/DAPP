@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { Observable, BehaviorSubject, Subject, fromEvent, merge, of, timer } from 'rxjs';
+import { Observable, BehaviorSubject, Subject, merge, of, timer } from 'rxjs';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import {
   retryWhen,
@@ -17,7 +17,7 @@ import { environment } from '../../../environments/environment';
 export interface WebSocketMessage {
   type: string;
   channel?: string;
-  data: any;
+  data: Record<string, unknown>;
   timestamp?: number;
   userId?: string;
   connectionId?: string;
@@ -329,7 +329,7 @@ export class WebSocketPoolService implements OnDestroy {
     }
   }
 
-  private handleConnectionError(connectionId: string, error: any): void {
+  private handleConnectionError(connectionId: string, error: unknown): void {
     const connection = this.connections.get(connectionId);
 
     if (connection) {

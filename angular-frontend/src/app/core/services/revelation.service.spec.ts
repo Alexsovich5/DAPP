@@ -32,7 +32,7 @@ interface RevelationTimeline {
   unlock_date: string;
 }
 
-interface RevelationPrompt {
+interface _RevelationPrompt {
   day: number;
   type: string;
   title: string;

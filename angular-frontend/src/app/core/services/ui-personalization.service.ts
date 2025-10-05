@@ -1,16 +1,16 @@
 import { Injectable, NgZone } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, fromEvent, merge, interval } from 'rxjs';
-import { map, filter, debounceTime, distinctUntilChanged, tap, switchMap } from 'rxjs/operators';
+import { Observable, BehaviorSubject, fromEvent, interval } from 'rxjs';
+import { map, filter, debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 export interface UIPersonalization {
-  theme_adaptations: any;
-  layout_optimizations: any;
-  interaction_enhancements: any;
-  accessibility_improvements: any;
-  performance_optimizations: any;
-  component_adaptations: any;
+  theme_adaptations: Record<string, unknown>;
+  layout_optimizations: Record<string, unknown>;
+  interaction_enhancements: Record<string, unknown>;
+  accessibility_improvements: Record<string, unknown>;
+  performance_optimizations: Record<string, unknown>;
+  component_adaptations: Record<string, unknown>;
 }
 
 export interface InteractionData {

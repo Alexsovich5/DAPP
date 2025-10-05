@@ -1,6 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
-import { BehaviorSubject, Observable, timer, fromEvent, merge } from 'rxjs';
-import { throttleTime, debounceTime, map, filter } from 'rxjs/operators';
+import { BehaviorSubject, timer } from 'rxjs';
 import { MobileFeaturesService } from './mobile-features.service';
 import { MobilePerformanceService } from './mobile-performance.service';
 import { GestureEvent } from './gesture.service';
@@ -510,7 +509,7 @@ export class MobileAnalyticsService {
     });
   }
 
-  private updateDatingMetrics(action: string, details: Record<string, unknown>): void {
+  private updateDatingMetrics(_action: string, _details: Record<string, unknown>): void {
     // Update specific dating metrics based on action
     // This is already handled in specific tracking methods
   }
@@ -569,7 +568,7 @@ export class MobileAnalyticsService {
 
   private getConnectionType(): string {
     if ('connection' in navigator) {
-      const connection = (navigator as any).connection;
+      const connection = (navigator as Navigator & { connection?: NetworkInformation }).connection;
       return connection?.effectiveType || 'unknown';
     }
     return 'unknown';

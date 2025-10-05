@@ -354,7 +354,7 @@ export class ResponsiveDesignService {
   }
 
   private getFontScaleFactor(breakpoint: Breakpoint): number {
-    const factors = {
+    const factors: Record<Breakpoint, number> = {
       xs: 0.875,   // 14px base
       sm: 0.9375,  // 15px base
       md: 1,       // 16px base
@@ -386,7 +386,7 @@ export class ResponsiveDesignService {
   /**
    * Get optimal animation duration for current context
    */
-  getAnimationDuration(base: number = 300): number {
+  getAnimationDuration(_base: number = 300): number {
     const config = this.getCurrentConfig();
     const baseDuration = parseInt(config.animationDuration);
 

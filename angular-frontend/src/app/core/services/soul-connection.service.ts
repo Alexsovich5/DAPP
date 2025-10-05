@@ -163,7 +163,7 @@ export class SoulConnectionService extends BaseService {
   /**
    * Check if user needs emotional onboarding
    */
-  needsEmotionalOnboarding(user: any): boolean {
+  needsEmotionalOnboarding(user: { emotional_onboarding_completed?: boolean }): boolean {
     // Check if onboarding is completed according to localStorage
     const isOnboardingComplete = this.storage.getItem('onboarding_completed') === 'true';
 

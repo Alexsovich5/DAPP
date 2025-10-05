@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, switchMap, catchError, tap } from 'rxjs';
+import { Observable, map, catchError, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { User } from '../interfaces/auth.interfaces';
 import { AuthService } from './auth.service';
@@ -26,9 +26,9 @@ export interface UserProfileData {
   // Soul Before Skin specific fields
   emotional_onboarding_completed?: boolean;
   emotional_depth_score?: number;
-  core_values?: Record<string, any>;
-  personality_traits?: Record<string, any>;
-  communication_style?: Record<string, any>;
+  core_values?: Record<string, unknown>;
+  personality_traits?: Record<string, unknown>;
+  communication_style?: Record<string, unknown>;
   emotional_responses?: Record<string, string>;
   soul_profile_visibility?: 'hidden' | 'connections_only' | 'discovery' | 'public';
   photo_sharing_consent?: boolean;
@@ -45,8 +45,8 @@ export interface ProfileUpdateData {
   date_of_birth?: string;
 
   // Soul Before Skin fields
-  core_values?: Record<string, any>;
-  personality_traits?: Record<string, any>;
+  core_values?: Record<string, unknown>;
+  personality_traits?: Record<string, unknown>;
   communication_style?: {
     preferred_style?: string;
     response_preference?: string;
