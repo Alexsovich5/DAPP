@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -30,18 +30,14 @@ import { OfflineStatusComponent } from './shared/components/offline-status/offli
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   title = 'dinner-app';
 
   constructor(
     private themeService: ThemeService,
     private offlineService: OfflineService
-  ) {}
-
-  ngOnInit(): void {
+  ) {
     // Theme service will automatically initialize and apply saved theme
-
-    // Initialize offline service for PWA functionality
-    // The service constructor already handles initialization
+    // Offline service constructor already handles PWA initialization
   }
 }

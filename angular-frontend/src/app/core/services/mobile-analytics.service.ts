@@ -5,10 +5,19 @@ import { MobileFeaturesService } from './mobile-features.service';
 import { MobilePerformanceService } from './mobile-performance.service';
 import { GestureEvent } from './gesture.service';
 
+// Browser API type declarations
+interface NetworkInformation {
+  effectiveType: string;
+  downlink: number;
+  rtt: number;
+  saveData: boolean;
+  addEventListener: (type: string, listener: () => void) => void;
+}
+
 export interface AnalyticsEvent {
   eventName: string;
   category: EventCategory;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   timestamp: number;
   sessionId: string;
   userId?: string;
@@ -222,7 +231,8 @@ export class MobileAnalyticsService {
 
       // Track network changes
       if ('connection' in navigator) {
-        const connection = (navigator as any).connection;
+        const navigatorWithConnection = navigator as Navigator & { connection?: NetworkInformation };
+        const connection = navigatorWithConnection.connection;
         if (connection) {
           connection.addEventListener('change', () => {
             this.trackEvent('network_change', 'performance', {
@@ -239,7 +249,7 @@ export class MobileAnalyticsService {
   /**
    * Track a custom event
    */
-  trackEvent(eventName: string, category: EventCategory, parameters: Record<string, any> = {}): void {
+  trackEvent(eventName: string, category: EventCategory, parameters: Record<string, unknown> = {}): void {
     const event: AnalyticsEvent = {
       eventName,
       category,
@@ -267,7 +277,7 @@ export class MobileAnalyticsService {
   /**
    * Track dating app specific events
    */
-  trackDatingAction(action: string, details: Record<string, any> = {}): void {
+  trackDatingAction(action: string, details: Record<string, unknown> = {}): void {
     this.trackEvent(`dating_${action}`, 'dating_action', details);
     this.updateDatingMetrics(action, details);
   }
@@ -294,7 +304,7 @@ export class MobileAnalyticsService {
   /**
    * Track profile interactions
    */
-  trackProfileInteraction(action: 'view' | 'like' | 'pass' | 'superlike', profileId: string, additionalData: any = {}): void {
+  trackProfileInteraction(action: 'view' | 'like' | 'pass' | 'superlike', profileId: string, additionalData: Record<string, unknown> = {}): void {
     if (action === 'view') {
       this.engagementMetrics.profilesViewed++;
     }
@@ -319,7 +329,7 @@ export class MobileAnalyticsService {
   /**
    * Track message interactions
    */
-  trackMessageInteraction(action: 'send' | 'receive' | 'react' | 'view', messageData: any = {}): void {
+  trackMessageInteraction(action: 'send' | 'receive' | 'react' | 'view', messageData: Record<string, unknown> = {}): void {
     if (action === 'react') {
       this.engagementMetrics.messagesReactions++;
       this.datingMetrics.messageEngagement.reactions++;
@@ -336,7 +346,7 @@ export class MobileAnalyticsService {
   /**
    * Track revelation interactions
    */
-  trackRevelationInteraction(action: 'create' | 'view' | 'respond', revelationData: any = {}): void {
+  trackRevelationInteraction(action: 'create' | 'view' | 'respond', revelationData: Record<string, unknown> = {}): void {
     if (action === 'create') {
       this.engagementMetrics.revelationsCreated++;
       this.datingMetrics.revelationEngagement.created++;
@@ -353,7 +363,7 @@ export class MobileAnalyticsService {
   /**
    * Track connection events
    */
-  trackConnectionEvent(action: 'initiate' | 'accept' | 'photo_reveal' | 'complete_cycle', connectionData: any = {}): void {
+  trackConnectionEvent(action: 'initiate' | 'accept' | 'photo_reveal' | 'complete_cycle', connectionData: Record<string, unknown> = {}): void {
     if (action === 'initiate') {
       this.datingMetrics.connectionEngagement.initiated++;
     } else if (action === 'accept') {
@@ -372,7 +382,7 @@ export class MobileAnalyticsService {
   /**
    * Track navigation events
    */
-  trackNavigation(page: string, additionalData: any = {}): void {
+  trackNavigation(page: string, additionalData: Record<string, unknown> = {}): void {
     this.pageViewCount++;
     this.engagementMetrics.pageViews++;
 
@@ -388,7 +398,7 @@ export class MobileAnalyticsService {
   /**
    * Track performance issues
    */
-  trackPerformanceIssue(issue: string, details: any = {}): void {
+  trackPerformanceIssue(issue: string, details: Record<string, unknown> = {}): void {
     this.trackEvent('performance_issue', 'performance', {
       issue,
       ...details,
@@ -399,7 +409,7 @@ export class MobileAnalyticsService {
   /**
    * Track errors
    */
-  trackError(error: Error | string, context: any = {}): void {
+  trackError(error: Error | string, context: Record<string, unknown> = {}): void {
     const errorDetails = typeof error === 'string' ? { message: error } : {
       message: error.message,
       stack: error.stack,
@@ -417,7 +427,7 @@ export class MobileAnalyticsService {
   /**
    * Track conversion events
    */
-  trackConversion(conversionType: string, value?: number, additionalData: any = {}): void {
+  trackConversion(conversionType: string, value?: number, additionalData: Record<string, unknown> = {}): void {
     this.trackEvent('conversion', 'conversion', {
       conversionType,
       value,
@@ -500,7 +510,7 @@ export class MobileAnalyticsService {
     });
   }
 
-  private updateDatingMetrics(action: string, details: any): void {
+  private updateDatingMetrics(action: string, details: Record<string, unknown>): void {
     // Update specific dating metrics based on action
     // This is already handled in specific tracking methods
   }

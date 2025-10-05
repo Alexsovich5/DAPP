@@ -48,16 +48,28 @@ interface TypingIndicator {
 
 interface WebSocketMessage {
   type: 'message' | 'typing_start' | 'typing_stop' | 'online_users' | 'user_status';
-  data: any;
+  data: Message | TypingUser | string[] | UserStatusData;
   userId?: string;
   timestamp?: number;
+}
+
+interface UserStatusData {
+  type: string;
+  users?: string[];
+}
+
+interface ConversationPreview {
+  partnerId: string;
+  connectionId: number;
+  isOnline?: boolean;
+  unreadCount?: number;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
-  private socket$!: WebSocketSubject<any>;
+  private socket$!: WebSocketSubject<WebSocketMessage>;
   private messageSubject = new Subject<Message>();
   private onlineUsers = new BehaviorSubject<string[]>([]);
   private messageStatusSubject = new Subject<{ clientId: string; status: Message['localStatus'] }>();
@@ -74,7 +86,7 @@ export class ChatService {
   private isCurrentlyTyping = false;
 
   // Connection activity tracking
-  private connectionActivity = new BehaviorSubject<Map<string, any>>(new Map());
+  private connectionActivity = new BehaviorSubject<Map<string, Record<string, unknown>>>(new Map());
   private emotionalStates = new BehaviorSubject<Map<string, TypingUser['emotionalState']>>(new Map());
 
   constructor(private http: HttpClient) {
@@ -119,7 +131,7 @@ export class ChatService {
   private handleWebSocketMessage(message: WebSocketMessage): void {
     switch (message.type) {
       case 'message':
-        this.messageSubject.next(message.data);
+        this.messageSubject.next(message.data as Message);
         // Stop typing indicator for sender when message is received
         if (message.userId) {
           this.handleTypingStop(message.userId);
@@ -128,7 +140,7 @@ export class ChatService {
 
       case 'typing_start':
         if (message.userId && message.data) {
-          this.handleTypingStart(message.userId, message.data);
+          this.handleTypingStart(message.userId, message.data as TypingUser);
         }
         break;
 
@@ -139,13 +151,13 @@ export class ChatService {
         break;
 
       case 'online_users':
-        this.onlineUsers.next(message.data);
+        this.onlineUsers.next(message.data as string[]);
         break;
 
       case 'user_status':
         // Handle user online/offline status changes
         if (message.data) {
-          this.updateUserStatus(message.data);
+          this.updateUserStatus(message.data as UserStatusData);
         }
         break;
     }
@@ -198,10 +210,9 @@ export class ChatService {
     const currentTyping = this.typingUsers.value;
     let hasChanges = false;
 
-    currentTyping.forEach((user, userId) => {
+    currentTyping.forEach((_user, userId) => {
       // Remove indicators older than timeout
       if (this.typingTimer.has(userId)) {
-        const timer = this.typingTimer.get(userId)!;
         // Check if timer is still valid (simplified check)
         if (now - this.lastTypingTime > this.typingTimeout * 2) {
           this.handleTypingStop(userId);
@@ -215,7 +226,7 @@ export class ChatService {
     }
   }
 
-  private updateUserStatus(statusData: any): void {
+  private updateUserStatus(statusData: UserStatusData): void {
     // Handle user status updates (online/offline)
     // This could update online users or typing indicators
     if (statusData.type === 'online' && statusData.users) {
@@ -316,7 +327,7 @@ export class ChatService {
   /**
    * Get typing users for specific chat/conversation
    */
-  getTypingUsersForChat(chatId: string): Observable<TypingUser[]> {
+  getTypingUsersForChat(_chatId: string): Observable<TypingUser[]> {
     return this.getTypingUsers().pipe(
       // In a real implementation, you'd filter by chatId
       // For now, return all typing users
@@ -388,7 +399,7 @@ export class ChatService {
    * Returns a debounced function for input events
    */
   createTypingHandler(chatId: string, userData: TypingUser): (inputValue: string) => void {
-    let typingSubject = new Subject<string>();
+    const typingSubject = new Subject<string>();
 
     // Debounce input to detect typing start/stop
     typingSubject.pipe(
@@ -451,8 +462,8 @@ export class ChatService {
   /**
    * Get conversation previews for messages list
    */
-  getConversationPreviews(): Observable<any[]> {
-    return this.http.get<any[]>(`${environment.apiUrl}/messages/conversations`).pipe(
+  getConversationPreviews(): Observable<ConversationPreview[]> {
+    return this.http.get<ConversationPreview[]>(`${environment.apiUrl}/messages/conversations`).pipe(
       map(conversations => conversations.map(conv => ({
         ...conv,
         isOnline: this.isUserOnline(conv.partnerId),
@@ -464,7 +475,7 @@ export class ChatService {
   /**
    * Get unread message count for a conversation
    */
-  getUnreadCount(connectionId: number): number {
+  getUnreadCount(_connectionId: number): number {
     // In production, this would come from the backend
     // For now, return 0 to eliminate random mock data
     return 0;
@@ -482,7 +493,7 @@ export class ChatService {
    * Get last message for a conversation
    */
   getLastMessage(connectionId: number): Observable<string> {
-    return this.http.get<any>(`${environment.apiUrl}/messages/last/${connectionId}`).pipe(
+    return this.http.get<{ content?: string }>(`${environment.apiUrl}/messages/last/${connectionId}`).pipe(
       map(response => response.content || 'No messages yet'),
       // Fallback to generic message if API fails
       catchError(() => of('Start your conversation...'))
@@ -508,8 +519,9 @@ export class ChatService {
     connectionEnergy?: string;
   }): void {
     const currentActivity = this.connectionActivity.value;
+    const existingActivity = currentActivity.get(userId) as Record<string, unknown> | undefined;
     currentActivity.set(userId, {
-      ...currentActivity.get(userId),
+      ...existingActivity,
       ...activity,
       lastUpdated: new Date()
     });
@@ -528,7 +540,7 @@ export class ChatService {
   /**
    * Get connection activity observable
    */
-  getConnectionActivity(): Observable<Map<string, any>> {
+  getConnectionActivity(): Observable<Map<string, Record<string, unknown>>> {
     return this.connectionActivity.asObservable();
   }
 

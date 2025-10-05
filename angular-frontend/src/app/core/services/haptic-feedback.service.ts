@@ -25,7 +25,8 @@ export class HapticFeedbackService {
     this.isHapticSupported = 'vibrate' in navigator;
 
     // Additional check for iOS Haptic Feedback
-    if ((window as any).DeviceMotionEvent && typeof (window as any).DeviceMotionEvent.requestPermission === 'function') {
+    const windowWithDeviceMotion = window as Window & { DeviceMotionEvent?: { requestPermission?: () => Promise<string> } };
+    if (windowWithDeviceMotion.DeviceMotionEvent && typeof windowWithDeviceMotion.DeviceMotionEvent.requestPermission === 'function') {
       this.isHapticSupported = true;
     }
   }
@@ -183,8 +184,9 @@ export class HapticFeedbackService {
    */
   async requestHapticPermission(): Promise<boolean> {
     try {
-      if ((window as any).DeviceMotionEvent && typeof (window as any).DeviceMotionEvent.requestPermission === 'function') {
-        const permission = await (window as any).DeviceMotionEvent.requestPermission();
+      const win = window as Window & { DeviceMotionEvent?: { requestPermission?: () => Promise<string> } };
+      if (win.DeviceMotionEvent && typeof win.DeviceMotionEvent.requestPermission === 'function') {
+        const permission = await win.DeviceMotionEvent.requestPermission();
         return permission === 'granted';
       }
       return true;

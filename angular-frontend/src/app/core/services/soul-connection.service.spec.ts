@@ -592,7 +592,7 @@ describe('SoulConnectionService', () => {
 
       // First request
       service.getActiveConnections().subscribe();
-      let req = httpMock.expectOne(`${mockApiUrl}/connections/active`);
+      const req = httpMock.expectOne(`${mockApiUrl}/connections/active`);
       req.flush(mockConnections);
 
       // Second request should use cache (no HTTP request)
@@ -605,7 +605,7 @@ describe('SoulConnectionService', () => {
     });
 
     it('should debounce rapid connection discovery requests', (done) => {
-      let requestCount = 0;
+      const requestCount = 0;
 
       // Make multiple rapid requests
       for (let i = 0; i < 5; i++) {

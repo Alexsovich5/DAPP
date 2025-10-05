@@ -119,7 +119,7 @@ export class AccessibilityService {
     };
 
     // Store cleanup for later use
-    (container as any)._focusTrapCleanup = cleanup;
+    (container as HTMLElement & { _focusTrapCleanup?: () => void })._focusTrapCleanup = cleanup;
   }
 
   /**
@@ -127,10 +127,10 @@ export class AccessibilityService {
    * @param container - The container that had focus trapped
    */
   releaseFocusTrap(container: HTMLElement): void {
-    const cleanup = (container as any)._focusTrapCleanup;
+    const cleanup = (container as HTMLElement & { _focusTrapCleanup?: () => void })._focusTrapCleanup;
     if (cleanup) {
       cleanup();
-      delete (container as any)._focusTrapCleanup;
+      delete (container as HTMLElement & { _focusTrapCleanup?: () => void })._focusTrapCleanup;
     }
 
     // Restore original focus
@@ -324,7 +324,6 @@ export class AccessibilityService {
    */
   validateAriaAttributes(element: HTMLElement): string[] {
     const errors: string[] = [];
-    const tagName = element.tagName.toLowerCase();
     const role = element.getAttribute('role');
 
     // Check for invalid role values

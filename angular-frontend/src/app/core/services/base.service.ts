@@ -55,7 +55,7 @@ export abstract class BaseService {
     if (error.status === 422 && error.error.detail) {
       if (Array.isArray(error.error.detail)) {
         return error.error.detail
-          .map((err: any) => `${err.loc?.join(' > ') || 'Field'}: ${err.msg}`)
+          .map((err: { loc?: string[]; msg: string }) => `${err.loc?.join(' > ') || 'Field'}: ${err.msg}`)
           .join(', ');
       }
       return error.error.detail;

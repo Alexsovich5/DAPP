@@ -9,7 +9,7 @@ export interface Notification {
   timestamp: Date;
   isRead: boolean;
   actionUrl?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   autoHide?: boolean;
   duration?: number;
 }

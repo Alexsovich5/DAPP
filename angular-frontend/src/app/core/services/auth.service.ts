@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError, catchError, tap, map } from 'rxjs';
-import { RegisterData, User, LoginResponse, ApiErrorResponse } from '@core/interfaces/auth.interfaces';
+import { RegisterData, User, LoginResponse } from '@core/interfaces/auth.interfaces';
 import { environment } from '@environments/environment';
 import { StorageService } from '@core/services/storage.service';
 
@@ -156,7 +156,7 @@ export class AuthService {
       // Handle validation errors
       const validationErrors = error.error?.detail || [];
       if (Array.isArray(validationErrors) && validationErrors.length) {
-        errorMessage = validationErrors.map((err: any) =>
+        errorMessage = validationErrors.map((err: { loc: string[]; msg: string }) =>
           `${err.loc.slice(1).join('.')}: ${err.msg}`
         ).join(', ');
       } else {

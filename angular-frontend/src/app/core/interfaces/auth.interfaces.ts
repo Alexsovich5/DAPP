@@ -20,10 +20,10 @@ export interface User {
   emotional_onboarding_completed?: boolean;
   soul_profile_visibility?: 'hidden' | 'visible' | 'selective';
   emotional_depth_score?: number;
-  core_values?: Record<string, any>;
-  personality_traits?: Record<string, any>;
-  communication_style?: Record<string, any>;
-  emotional_responses?: Record<string, any>;
+  core_values?: Record<string, unknown>;
+  personality_traits?: Record<string, unknown>;
+  communication_style?: Record<string, unknown>;
+  emotional_responses?: Record<string, unknown>;
 }
 
 export interface RegisterData {

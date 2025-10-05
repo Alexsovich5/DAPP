@@ -11,8 +11,8 @@ export interface AdaptiveRevelationPrompt {
   focus: string;
   emotional_depth: string;
   confidence: number;
-  metadata?: any;
-  timing_recommendation?: any;
+  metadata?: Record<string, unknown>;
+  timing_recommendation?: Record<string, unknown>;
   follow_up_suggestions?: string[];
 }
 
@@ -67,6 +67,13 @@ export interface TimingRecommendation {
   reasoning: string;
   urgency: string;
   next_optimal_time?: string;
+}
+
+export interface RevelationInsight {
+  type: 'positive' | 'improvement' | 'milestone';
+  title: string;
+  message: string;
+  suggestion: string;
 }
 
 @Injectable({
@@ -139,8 +146,8 @@ export class AdaptiveRevelationService {
     emotional_resonance: number;
     timing_appropriateness: number;
     comments?: string;
-  }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/feedback`, feedback).pipe(
+  }): Observable<{ success: boolean; message?: string }> {
+    return this.http.post<{ success: boolean; message?: string }>(`${this.apiUrl}/feedback`, feedback).pipe(
       catchError(this.handleError('submitRevelationFeedback'))
     );
   }
@@ -210,7 +217,7 @@ export class AdaptiveRevelationService {
   /**
    * Get personalized insights for revelation improvement
    */
-  getPersonalizedInsights(connectionId: number): Observable<any> {
+  getPersonalizedInsights(connectionId: number): Observable<RevelationInsight[]> {
     // This would call a more advanced analytics endpoint
     return this.getRevelationAnalytics(connectionId).pipe(
       map(analytics => this.generateInsights(analytics))
@@ -220,7 +227,7 @@ export class AdaptiveRevelationService {
   /**
    * Generate insights from analytics data
    */
-  private generateInsights(analytics: RevelationAnalytics): any {
+  private generateInsights(analytics: RevelationAnalytics): RevelationInsight[] {
     const insights = [];
 
     // Engagement trend insights
@@ -297,7 +304,7 @@ export class AdaptiveRevelationService {
     time_to_start?: number;
     completion_time?: number;
     word_count?: number;
-    engagement_indicators?: any;
+    engagement_indicators?: Record<string, unknown>;
   }): void {
     // This would be sent to analytics service
     console.log('Tracking revelation engagement:', { revelationId, metrics });
@@ -321,7 +328,7 @@ export class AdaptiveRevelationService {
   /**
    * Get real-time revelation updates
    */
-  subscribeToRevelationUpdates(connectionId: number): Observable<any> {
+  subscribeToRevelationUpdates(connectionId: number): Observable<RevelationProgress> {
     // This would connect to WebSocket for real-time updates
     // For now, polling the progress endpoint
     return interval(30000).pipe(
@@ -342,7 +349,7 @@ export class AdaptiveRevelationService {
    * Error handler
    */
   private handleError<T>(operation = 'operation', result?: T) {
-    return (error: any): Observable<T> => {
+    return (error: Error): Observable<T> => {
       console.error(`${operation} failed:`, error);
 
       // You could show user-friendly error messages here

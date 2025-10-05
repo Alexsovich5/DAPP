@@ -7,7 +7,7 @@ import { StorageService } from './storage.service';
 export interface OfflineAction {
   id: string;
   type: string;
-  data: any;
+  data: Record<string, unknown>;
   timestamp: number;
   retryCount: number;
   maxRetries: number;
@@ -25,10 +25,10 @@ export interface SyncStatus {
 }
 
 export interface OfflineData {
-  messages: any[];
-  revelations: any[];
-  profiles: any[];
-  connections: any[];
+  messages: Record<string, unknown>[];
+  revelations: Record<string, unknown>[];
+  profiles: Record<string, unknown>[];
+  connections: Record<string, unknown>[];
   lastUpdated: number;
 }
 
@@ -128,7 +128,7 @@ export class OfflineSyncService {
     });
   }
 
-  async queueCreateRevelation(connectionId: number, revelation: any): Promise<string> {
+  async queueCreateRevelation(connectionId: number, revelation: Record<string, unknown>): Promise<string> {
     return this.queueAction({
       type: 'create_revelation',
       data: { connectionId, ...revelation, clientTimestamp: Date.now() },
@@ -139,7 +139,7 @@ export class OfflineSyncService {
     });
   }
 
-  async queueUpdateProfile(profileData: any): Promise<string> {
+  async queueUpdateProfile(profileData: Record<string, unknown>): Promise<string> {
     return this.queueAction({
       type: 'update_profile',
       data: { ...profileData, clientTimestamp: Date.now() },
@@ -161,7 +161,7 @@ export class OfflineSyncService {
     });
   }
 
-  async queuePhotoUpload(photoData: any, connectionId?: number): Promise<string> {
+  async queuePhotoUpload(photoData: Record<string, unknown>, connectionId?: number): Promise<string> {
     return this.queueAction({
       type: 'upload_photo',
       data: { photoData, connectionId, clientTimestamp: Date.now() },
@@ -241,7 +241,7 @@ export class OfflineSyncService {
     }
   }
 
-  private async executeAction(action: OfflineAction): Promise<any> {
+  private async executeAction(action: OfflineAction): Promise<unknown> {
     const headers = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${this.getAuthToken()}`,
@@ -286,7 +286,7 @@ export class OfflineSyncService {
     };
   }
 
-  async getCachedMessages(connectionId?: number): Promise<any[]> {
+  async getCachedMessages(connectionId?: number): Promise<Record<string, unknown>[]> {
     const data = await this.getOfflineData();
     if (connectionId) {
       return data.messages.filter(msg => msg.connectionId === connectionId);
@@ -294,7 +294,7 @@ export class OfflineSyncService {
     return data.messages;
   }
 
-  async getCachedRevelations(connectionId?: number): Promise<any[]> {
+  async getCachedRevelations(connectionId?: number): Promise<Record<string, unknown>[]> {
     const data = await this.getOfflineData();
     if (connectionId) {
       return data.revelations.filter(rev => rev.connectionId === connectionId);
@@ -302,12 +302,12 @@ export class OfflineSyncService {
     return data.revelations;
   }
 
-  async getCachedProfiles(): Promise<any[]> {
+  async getCachedProfiles(): Promise<Record<string, unknown>[]> {
     const data = await this.getOfflineData();
     return data.profiles;
   }
 
-  async getCachedConnections(): Promise<any[]> {
+  async getCachedConnections(): Promise<Record<string, unknown>[]> {
     const data = await this.getOfflineData();
     return data.connections;
   }
@@ -325,8 +325,8 @@ export class OfflineSyncService {
   }
 
   // Optimistic updates
-  async addOptimisticMessage(connectionId: number, message: string): Promise<any> {
-    const optimisticMessage = {
+  async addOptimisticMessage(connectionId: number, message: string): Promise<Record<string, unknown>> {
+    const optimisticMessage: Record<string, unknown> = {
       id: `temp_${Date.now()}`,
       connectionId,
       message,
@@ -343,8 +343,8 @@ export class OfflineSyncService {
     return optimisticMessage;
   }
 
-  async addOptimisticRevelation(connectionId: number, revelation: any): Promise<any> {
-    const optimisticRevelation = {
+  async addOptimisticRevelation(connectionId: number, revelation: Record<string, unknown>): Promise<Record<string, unknown>> {
+    const optimisticRevelation: Record<string, unknown> = {
       id: `temp_${Date.now()}`,
       connectionId,
       ...revelation,
@@ -412,7 +412,7 @@ export class OfflineSyncService {
   }
 
   // Conflict resolution
-  async resolveConflict(localData: any, serverData: any, type: string): Promise<any> {
+  async resolveConflict(localData: Record<string, unknown>, serverData: Record<string, unknown>, type: string): Promise<Record<string, unknown>> {
     // Dating app specific conflict resolution
     switch (type) {
       case 'message':
