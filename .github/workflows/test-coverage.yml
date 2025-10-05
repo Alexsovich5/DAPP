@@ -224,7 +224,7 @@ jobs:
         bandit -r app/ -f json -o bandit-report.json || true
 
         # Check for known vulnerabilities
-        safety check --json --output safety-report.json || true
+        safety check --json > safety-report.json || true
 
     - name: Run security headers tests
       run: |

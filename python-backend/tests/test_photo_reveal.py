@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 from app.models.photo_reveal import PhotoRevealStage
-from app.models.soulconnection import ConnectionStage
+from app.models.soul_connection import ConnectionStage
 from app.services.photo_reveal_service import PhotoRevealService
 from fastapi import status
 from freezegun import freeze_time

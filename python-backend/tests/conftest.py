@@ -10,14 +10,14 @@ from sqlalchemy_utils import create_database, database_exists, drop_database
 
 # Set test database URL BEFORE importing app modules
 os.environ["DATABASE_URL"] = (
-    "postgresql://postgres:postgres@localhost:5433/test_dinner_app"
+    "postgresql://postgres:postgres@localhost:5432/test_dinner_app"
 )
 
 # === ENGINE-LEVEL DATABASE OVERRIDE ===
 # Create test database engine and session BEFORE importing app modules
 # This ensures both test fixtures and API endpoints use the same session
 
-TEST_DATABASE_URL = "postgresql://postgres:postgres@localhost:5433/test_dinner_app"
+TEST_DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/test_dinner_app"
 
 # Create test engine with same configuration as production
 test_engine = create_engine(
