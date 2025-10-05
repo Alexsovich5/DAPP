@@ -2,6 +2,7 @@ fastapi>=0.68.0
 uvicorn>=0.15.0
 sqlalchemy>=1.4.23
 python-jose>=3.3.0
+PyJWT>=2.8.0  # JWT token encoding/decoding
 passlib>=1.7.4
 pydantic>=1.8.2
 python-multipart>=0.0.5
