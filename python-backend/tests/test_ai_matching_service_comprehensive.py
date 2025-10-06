@@ -801,16 +801,17 @@ class TestAIMatchingServiceUtilities:
 
     def test_determine_recommendation_strength(self, service):
         """Test recommendation strength determination"""
-        compatibility_pred = {
-            "overall_score": 0.85,
-            "confidence": 0.8,
-            "risk_factors": ["limited_interaction_history"],
-        }
+        from unittest.mock import Mock
+
+        # Create mock compatibility prediction object
+        compatibility_pred = Mock()
+        compatibility_pred.overall_compatibility = 0.85
+        compatibility_pred.confidence_level = 0.8
 
         strength = service._determine_recommendation_strength(compatibility_pred)
 
         assert isinstance(strength, str)
-        assert strength in ["weak", "moderate", "strong", "very_strong"]
+        assert strength in ["low", "medium", "high", "very_high"]
 
     def test_analyze_response_times(self, service):
         """Test response time analysis"""

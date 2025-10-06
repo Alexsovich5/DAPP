@@ -5,7 +5,6 @@
 
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { of } from 'rxjs';
 
 import { RevelationService } from './revelation.service';
 import { AuthService } from './auth.service';
