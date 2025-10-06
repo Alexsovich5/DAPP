@@ -2,6 +2,7 @@ import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@
 import { CommonModule } from '@angular/common';
 import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 import { ScreenReaderService } from '../../../core/services/screen-reader.service';
+import { SoulConfig } from '../../models/soul-types';
 
 @Component({
   selector: 'app-soul-connection',
@@ -497,7 +498,7 @@ import { ScreenReaderService } from '../../../core/services/screen-reader.servic
   `]
 })
 export class SoulConnectionComponent implements OnInit, OnDestroy, OnChanges {
-  @Input() leftSoul: any = {
+  @Input() leftSoul: SoulConfig = {
     type: 'primary',
     state: 'active',
     energy: 3,
@@ -506,7 +507,7 @@ export class SoulConnectionComponent implements OnInit, OnDestroy, OnChanges {
     showSparkles: true
   };
 
-  @Input() rightSoul: any = {
+  @Input() rightSoul: SoulConfig = {
     type: 'secondary',
     state: 'active',
     energy: 3,
@@ -527,8 +528,8 @@ export class SoulConnectionComponent implements OnInit, OnDestroy, OnChanges {
   @Input() connectionId: string = 'connection-' + Math.random().toString(36).substr(2, 9);
   @Input() announceChanges: boolean = true;
 
-  connectionParticles: any[] = [];
-  connectionHearts: any[] = [];
+  connectionParticles: Record<string, unknown>[] = [];
+  connectionHearts: Record<string, unknown>[] = [];
   isLeftSelected: boolean = true;
 
   private animationFrame?: number;
@@ -685,12 +686,12 @@ export class SoulConnectionComponent implements OnInit, OnDestroy, OnChanges {
     animate();
   }
 
-  trackConnectionParticle(index: number, particle: any): any {
-    return particle.id;
+  trackConnectionParticle(_index: number, particle: Record<string, unknown>): unknown {
+    return particle['id'];
   }
 
-  trackConnectionHeart(index: number, heart: any): any {
-    return heart.id;
+  trackConnectionHeart(_index: number, heart: Record<string, unknown>): unknown {
+    return heart['id'];
   }
 
   // Screen Reader Accessibility Methods
