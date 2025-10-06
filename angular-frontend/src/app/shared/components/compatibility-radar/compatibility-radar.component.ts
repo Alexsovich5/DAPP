@@ -784,45 +784,45 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
     }
   }
 
-  onPointClick(point: any) {
+  onPointClick(point: {key?: string; highlight?: boolean}) {
     if (!this.interactive) return;
 
     // Toggle highlight for clicked point
     point.highlight = !point.highlight;
 
     // Update legend highlighting
-    const legendItem = this.legendItems.find(item => item.key === point.key);
+    const legendItem = this.legendItems.find(item => item.label === point.key);
     if (legendItem) {
-      legendItem.highlighted = point.highlight;
+      legendItem.value = point.highlight ? 100 : legendItem.value;
     }
   }
 
-  onLegendClick(item: any) {
+  onLegendClick(item: {label: string; value: number; color: string}) {
     if (!this.interactive) return;
 
     // Toggle highlighting
-    item.highlighted = !item.highlighted;
+    const highlighted = item.value > 50;
 
     // Update corresponding data point
-    const dataPoint = this.dataPoints.find(point => point.key === item.key);
+    const dataPoint = this.dataPoints.find(point => point.category === item.label);
     if (dataPoint) {
-      dataPoint.highlight = item.highlighted;
+      dataPoint.value = highlighted ? dataPoint.value : 0;
     }
   }
 
-  trackPoint(index: number, point: any): any {
-    return point.key;
+  trackPoint(index: number, point: {x: number; y: number; value: number; category: string; color: string}): string {
+    return point.category;
   }
 
-  trackLabel(index: number, label: any): any {
-    return label.key;
+  trackLabel(index: number, label: {x: number; y: number; text: string}): string {
+    return label.text;
   }
 
-  trackLegendItem(index: number, item: any): any {
-    return item.key;
+  trackLegendItem(index: number, item: {color: string; label: string; value: number}): string {
+    return item.label;
   }
 
-  trackInsight(index: number, insight: any): any {
+  trackInsight(index: number, insight: {icon: string; text: string; type: string}): string {
     return insight.text;
   }
 
