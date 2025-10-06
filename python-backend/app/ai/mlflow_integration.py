@@ -679,8 +679,7 @@ class MLflowIntegration:
         """Train a model and register it in MLflow"""
 
         run_config = RunConfig(
-            run_name=f"{model_name}_training_{
-                datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
+            run_name=f"{model_name}_training_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
             tags={
                 "model_type": type(model).__name__,
                 "training_date": datetime.utcnow().isoformat(),
