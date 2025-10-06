@@ -634,20 +634,36 @@ class TestAIMatchingServiceCompatibilityCalculations:
 
     def test_calculate_values_compatibility(self, service):
         """Test values compatibility calculation"""
-        values1 = {
-            "honesty": 0.9,
-            "adventure": 0.7,
-            "stability": 0.6,
-            "creativity": 0.8,
-        }
-        values2 = {
-            "honesty": 0.85,
-            "adventure": 0.8,
-            "stability": 0.7,
-            "creativity": 0.75,
-        }
+        from unittest.mock import Mock
 
-        score = service._calculate_values_compatibility(values1, values2)
+        from app.models.ai_models import UserProfile
+
+        # Create mock UserProfile objects with values_vector
+        profile1 = Mock(spec=UserProfile)
+        profile1.values_vector = [
+            0.9,
+            0.7,
+            0.6,
+            0.8,
+            0.5,
+            0.8,
+            0.75,
+            0.65,
+        ] * 4  # 32-dim
+
+        profile2 = Mock(spec=UserProfile)
+        profile2.values_vector = [
+            0.85,
+            0.8,
+            0.7,
+            0.75,
+            0.4,
+            0.85,
+            0.65,
+            0.75,
+        ] * 4  # 32-dim
+
+        score = service._calculate_values_compatibility(profile1, profile2)
 
         assert isinstance(score, float)
         assert 0 <= score <= 1
