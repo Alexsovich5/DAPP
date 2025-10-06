@@ -737,14 +737,34 @@ class TestAIMatchingServiceUtilities:
 
     def test_calculate_ai_confidence(self, service):
         """Test AI confidence calculation"""
-        compatibility_data = {
-            "personality_score": 0.85,
-            "interests_score": 0.7,
-            "values_score": 0.9,
-            "data_completeness": 0.8,
+        from unittest.mock import Mock
+
+        from app.models.user import User
+
+        # Create mock User object
+        user = Mock(spec=User)
+        user.interests = ["music", "travel", "art"]
+        user.date_of_birth = datetime(1990, 1, 1)
+        user.location = "New York"
+
+        # Create personality and communication analysis dicts
+        personality_analysis = {
+            "openness": 0.85,
+            "conscientiousness": 0.7,
+            "extraversion": 0.6,
+            "agreeableness": 0.8,
+            "neuroticism": 0.3,
         }
 
-        confidence = service._calculate_ai_confidence(compatibility_data)
+        communication_analysis = {
+            "style": "direct",
+            "preference": "meaningful",
+            "frequency": "regular",
+        }
+
+        confidence = service._calculate_ai_confidence(
+            user, personality_analysis, communication_analysis
+        )
 
         assert isinstance(confidence, float)
         assert 0 <= confidence <= 1

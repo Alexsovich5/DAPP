@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { OnboardingService, OnboardingState } from '../../core/services/onboarding.service';
-import { AuthService } from '../../core/services/auth.service';
+import { environment } from '@environments/environment';
+import { OnboardingService, OnboardingState } from '@core/services/onboarding.service';
+import { AuthService } from '@core/services/auth.service';
 import { OnboardingTooltipComponent } from '../onboarding-tooltip/onboarding-tooltip.component';
 import { OnboardingWelcomeComponent } from '../onboarding-welcome/onboarding-welcome.component';
 

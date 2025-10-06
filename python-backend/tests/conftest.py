@@ -99,6 +99,27 @@ def test_db():
     # Close any existing connections before dropping database
     if database_exists(TEST_DATABASE_URL):
         test_engine.dispose()  # Close all connections in the pool
+
+        # Forcefully terminate all connections to the test database
+        from sqlalchemy import text
+
+        admin_engine = create_engine(
+            "postgresql://postgres:postgres@localhost:5432/postgres",
+            isolation_level="AUTOCOMMIT",
+        )
+        with admin_engine.connect() as conn:
+            conn.execute(
+                text(
+                    """
+                SELECT pg_terminate_backend(pg_stat_activity.pid)
+                FROM pg_stat_activity
+                WHERE pg_stat_activity.datname = 'test_dinner_app'
+                AND pid <> pg_backend_pid()
+                """
+                )
+            )
+        admin_engine.dispose()
+
         drop_database(TEST_DATABASE_URL)
 
     create_database(TEST_DATABASE_URL)
@@ -107,6 +128,27 @@ def test_db():
 
     # Clean up after tests
     test_engine.dispose()  # Close all connections before dropping
+
+    # Forcefully terminate all connections to the test database
+    from sqlalchemy import text
+
+    admin_engine = create_engine(
+        "postgresql://postgres:postgres@localhost:5432/postgres",
+        isolation_level="AUTOCOMMIT",
+    )
+    with admin_engine.connect() as conn:
+        conn.execute(
+            text(
+                """
+            SELECT pg_terminate_backend(pg_stat_activity.pid)
+            FROM pg_stat_activity
+            WHERE pg_stat_activity.datname = 'test_dinner_app'
+            AND pid <> pg_backend_pid()
+            """
+            )
+        )
+    admin_engine.dispose()
+
     drop_database(TEST_DATABASE_URL)
 
 

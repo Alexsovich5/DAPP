@@ -146,7 +146,7 @@ jobs:
           --code-coverage \
           --watch=false \
           --browsers=ChromeHeadless \
-          --reporters=progress,coverage-istanbul
+          --reporters=progress
 
     - name: Check coverage thresholds
       run: |
