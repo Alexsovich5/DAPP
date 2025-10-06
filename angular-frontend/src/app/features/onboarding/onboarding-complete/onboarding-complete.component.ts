@@ -354,8 +354,8 @@ export class OnboardingCompleteComponent implements OnInit {
     this.hasError = false;
 
     // Collect all onboarding data
-    const emotionalData = this.storage.getJson<any>('onboarding_emotional');
-    const personalityData = this.storage.getJson<any>('onboarding_personality');
+    const emotionalData = this.storage.getJson<Record<string, unknown>>('onboarding_emotional');
+    const personalityData = this.storage.getJson<Record<string, unknown>>('onboarding_personality');
     const interestData = this.storage.getJson<{interests: string[]}>('onboarding_interests');
 
     // Combine into emotional onboarding payload

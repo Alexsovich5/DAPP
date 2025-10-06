@@ -361,13 +361,13 @@ import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skel
   `]
 })
 export class PersonalityAssessmentComponent implements OnInit {
-  @Output() stepCompleted = new EventEmitter<any>();
+  @Output() stepCompleted = new EventEmitter<Record<string, unknown>>();
 
   personalityForm!: FormGroup;
   selectedTraits: string[] = [];
   selectedValues: string[] = [];
   isSaving = false;
-  compatibilityPreview: any | null = null;
+  compatibilityPreview: Record<string, unknown> | null = null;
 
   relationshipValues = [
     { key: 'loyalty', label: 'Loyalty & Trust', description: 'Being faithful and dependable' },
@@ -415,17 +415,18 @@ export class PersonalityAssessmentComponent implements OnInit {
   }
 
   private loadExistingData(): void {
-    const existingData = this.storage.getJson<any>('onboarding_personality');
+    const existingData = this.storage.getJson<Record<string, unknown>>('onboarding_personality');
     if (existingData) {
       this.personalityForm.patchValue(existingData);
-      this.selectedValues = existingData.relationship_values || [];
-      this.selectedTraits = existingData.personality_traits || [];
+      this.selectedValues = (existingData.relationship_values as string[]) || [];
+      this.selectedTraits = (existingData.personality_traits as string[]) || [];
     }
   }
 
-  onValueChange(event: any): void {
-    const value = event.target.value;
-    const isChecked = event.target.checked;
+  onValueChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const value = target.value;
+    const isChecked = target.checked;
 
     if (isChecked) {
       this.selectedValues.push(value);

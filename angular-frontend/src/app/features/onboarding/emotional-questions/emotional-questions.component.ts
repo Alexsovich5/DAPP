@@ -208,12 +208,12 @@ import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skel
   `]
 })
 export class EmotionalQuestionsComponent implements OnInit {
-  @Output() stepCompleted = new EventEmitter<any>();
+  @Output() stepCompleted = new EventEmitter<Record<string, unknown>>();
 
   emotionalForm!: FormGroup;
   isSaving = false;
   error: string | null = null;
-  private autosaveTimer: any;
+  private autosaveTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -251,7 +251,7 @@ export class EmotionalQuestionsComponent implements OnInit {
   }
 
   private loadExistingData(): void {
-    const existingData = this.storage.getJson<any>('onboarding_emotional');
+    const existingData = this.storage.getJson<Record<string, unknown>>('onboarding_emotional');
     if (existingData) {
       this.emotionalForm.patchValue(existingData);
     }

@@ -101,7 +101,7 @@ export class ProfileEditComponent implements OnInit {
   }
 
   private minimumAgeValidator() {
-    return (control: any) => {
+    return (control: { value: unknown }) => {
       if (!control.value) return null;
 
       const birthDate = new Date(control.value);
