@@ -3,6 +3,7 @@
  * Tests soul connection lifecycle, status management, and relationship progression
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { HttpClientTestingModule } from '@angular/common/http/testing';

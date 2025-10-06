@@ -106,7 +106,7 @@ export class SoulConnectionService extends BaseService {
    * Progress a connection to the next stage
    */
   progressConnectionStage(connectionId: number, newStage: string): Observable<SoulConnection> {
-    return this.updateSoulConnection(connectionId, { connection_stage: newStage as any });
+    return this.updateSoulConnection(connectionId, { connection_stage: newStage as unknown as 'soul_discovery' });
   }
 
   /**

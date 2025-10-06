@@ -3,6 +3,7 @@
  * Tests the "Soul Before Skin" matching and connection management
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { of } from 'rxjs';

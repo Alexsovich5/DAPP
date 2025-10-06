@@ -67,7 +67,7 @@ export class SoulConnectionRealtimeService implements OnDestroy {
   // Current state tracking
   private activeConnections$ = new BehaviorSubject<string[]>([]);
   private userPresence$ = new BehaviorSubject<Map<string, PresenceUpdate>>(new Map());
-  private connectionStates$ = new BehaviorSubject<Map<string, any>>(new Map());
+  private connectionStates$ = new BehaviorSubject<Map<string, unknown>>(new Map());
 
   // Connection monitoring
   private isConnected$ = new BehaviorSubject<boolean>(false);
