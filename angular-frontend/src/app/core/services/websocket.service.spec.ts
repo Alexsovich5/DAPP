@@ -4,8 +4,7 @@
  */
 
 import { TestBed } from '@angular/core/testing';
-import { Subject, throwError, of } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { of } from 'rxjs';
 
 import { WebSocketService } from './websocket.service';
 import { AuthService } from './auth.service';
@@ -18,11 +17,6 @@ interface WebSocketMessage {
   connection_id?: number;
   user_id?: number;
 }
-
-interface ConnectionStatus {
-  isConnected: boolean;
-  reconnectAttempts: number;
-  lastConnectedAt?: string;
   lastDisconnectedAt?: string;
   connectionQuality: 'excellent' | 'good' | 'poor' | 'disconnected';
   latency?: number;
