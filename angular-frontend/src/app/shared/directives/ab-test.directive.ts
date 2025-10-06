@@ -35,7 +35,7 @@ import { ABTestingService } from '../../core/services/ab-testing.service';
  * </button>
  */
 @Directive({
-  selector: '[abTest]',
+  selector: '[appAbTest]',
   standalone: true
 })
 export class ABTestDirective implements OnInit, OnDestroy {
@@ -147,7 +147,7 @@ export class ABTestDirective implements OnInit, OnDestroy {
  * </div>
  */
 @Directive({
-  selector: '[abTestClass]',
+  selector: '[appAbTestClass]',
   standalone: true
 })
 export class ABTestClassDirective implements OnInit {

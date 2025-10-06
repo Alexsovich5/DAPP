@@ -48,9 +48,9 @@ export class GesturesDirective implements OnInit, OnDestroy {
   @Output() pinchOut = new EventEmitter<PinchEvent>();
 
   @Output() longPress = new EventEmitter<LongPressEvent>();
-  @Output() drag = new EventEmitter<DragEvent>();
-  @Output() dragStart = new EventEmitter<DragEvent>();
-  @Output() dragEnd = new EventEmitter<DragEvent>();
+  @Output() gestureDrag = new EventEmitter<DragEvent>();
+  @Output() gestureDragStart = new EventEmitter<DragEvent>();
+  @Output() gestureDragEnd = new EventEmitter<DragEvent>();
 
   @Output() tap = new EventEmitter<GestureEvent>();
   @Output() doubleTap = new EventEmitter<GestureEvent>();
@@ -157,15 +157,15 @@ export class GesturesDirective implements OnInit, OnDestroy {
       this.gestureService.enableDragGestures(this.elementRef)
         .pipe(takeUntil(this.destroy$))
         .subscribe(event => {
-          this.drag.emit(event);
+          this.gestureDrag.emit(event);
 
           if (event.isDragging && !this.isDragging) {
             this.isDragging = true;
-            this.dragStart.emit(event);
+            this.gestureDragStart.emit(event);
             this.elementRef.nativeElement.classList.add('dragging');
           } else if (!event.isDragging && this.isDragging) {
             this.isDragging = false;
-            this.dragEnd.emit(event);
+            this.gestureDragEnd.emit(event);
             this.elementRef.nativeElement.classList.remove('dragging');
           }
         });
@@ -229,7 +229,7 @@ export class GesturesDirective implements OnInit, OnDestroy {
               break;
 
             case 'drag':
-              this.drag.emit(event as DragEvent);
+              this.gestureDrag.emit(event as DragEvent);
               break;
 
             case 'tap':

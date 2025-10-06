@@ -17,13 +17,41 @@ depends_on = None
 
 
 def upgrade() -> None:
+    # Create user_presence table if it doesn't exist
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+
+    if "user_presence" not in inspector.get_table_names():
+        op.create_table(
+            "user_presence",
+            sa.Column("id", sa.Integer(), nullable=False),
+            sa.Column("user_id", sa.Integer(), nullable=False),
+            sa.Column("status", sa.String(), nullable=True),
+            sa.Column("last_seen", sa.DateTime(), nullable=True),
+            sa.Column("last_activity_at", sa.DateTime(), nullable=True),
+            sa.Column("connection_metadata", sa.JSON(), nullable=True),
+            sa.Column("created_at", sa.DateTime(), nullable=True),
+            sa.Column("updated_at", sa.DateTime(), nullable=True),
+            sa.ForeignKeyConstraint(["user_id"], ["users.id"]),
+            sa.PrimaryKeyConstraint("id"),
+            sa.UniqueConstraint("user_id"),
+        )
+
     # Add indexes for user presence queries (real-time lookup optimization)
     op.create_index(
-        "ix_user_presence_user_id_status", "user_presence", ["user_id", "status"]
+        "ix_user_presence_user_id_status",
+        "user_presence",
+        ["user_id", "status"],
+        unique=False,
     )
-    op.create_index("ix_user_presence_last_seen", "user_presence", ["last_seen"])
     op.create_index(
-        "ix_user_presence_status_last_seen", "user_presence", ["status", "last_seen"]
+        "ix_user_presence_last_seen", "user_presence", ["last_seen"], unique=False
+    )
+    op.create_index(
+        "ix_user_presence_status_last_seen",
+        "user_presence",
+        ["status", "last_seen"],
+        unique=False,
     )
 
     # Add indexes for soul connections real-time queries
@@ -147,3 +175,9 @@ def downgrade() -> None:
     op.drop_index("ix_user_presence_status_last_seen", "user_presence")
     op.drop_index("ix_user_presence_last_seen", "user_presence")
     op.drop_index("ix_user_presence_user_id_status", "user_presence")
+
+    # Drop user_presence table if it exists
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    if "user_presence" in inspector.get_table_names():
+        op.drop_table("user_presence")

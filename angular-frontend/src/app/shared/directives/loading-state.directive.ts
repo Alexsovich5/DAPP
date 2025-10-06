@@ -17,12 +17,12 @@ import { SkeletonLoaderComponent } from '../components/skeleton-loader/skeleton-
   standalone: true
 })
 export class LoadingStateDirective implements OnInit, OnDestroy {
-  @Input('appLoadingState') loadingKey!: string;
-  @Input('appLoadingStateSkeleton') skeletonType: 'card' | 'text' | 'button' | 'avatar' | 'list-item' | 'soul-orb' | 'compatibility-radar' | 'profile-card' | 'message' = 'card';
-  @Input('appLoadingStateSkeletonCount') skeletonCount: number = 1;
-  @Input('appLoadingStateSkeletonSize') skeletonSize: 'xs' | 'sm' | 'md' | 'lg' | 'xl' = 'md';
-  @Input('appLoadingStateCustomMessage') customMessage?: string;
-  @Input('appLoadingStateShowMessage') showMessage: boolean = true;
+  @Input() appLoadingState!: string;
+  @Input() appLoadingStateSkeleton: 'card' | 'text' | 'button' | 'avatar' | 'list-item' | 'soul-orb' | 'compatibility-radar' | 'profile-card' | 'message' = 'card';
+  @Input() appLoadingStateSkeletonCount: number = 1;
+  @Input() appLoadingStateSkeletonSize: 'xs' | 'sm' | 'md' | 'lg' | 'xl' = 'md';
+  @Input() appLoadingStateCustomMessage?: string;
+  @Input() appLoadingStateShowMessage: boolean = true;
 
   private subscription?: Subscription;
   private contentViewRef?: EmbeddedViewRef<unknown>;
@@ -36,12 +36,12 @@ export class LoadingStateDirective implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    if (!this.loadingKey) {
-      console.warn('LoadingStateDirective: loadingKey is required');
+    if (!this.appLoadingState) {
+      console.warn('LoadingStateDirective: appLoadingState is required');
       return;
     }
 
-    this.subscription = this.loadingStateService.getLoadingState$(this.loadingKey)
+    this.subscription = this.loadingStateService.getLoadingState$(this.appLoadingState)
       .subscribe(loadingState => {
         this.updateView(loadingState?.isLoading ?? false, loadingState?.message);
       });
@@ -66,23 +66,23 @@ export class LoadingStateDirective implements OnInit, OnDestroy {
     this.clearView();
 
     // Create skeleton loaders
-    for (let i = 0; i < this.skeletonCount; i++) {
+    for (let i = 0; i < this.appLoadingStateSkeletonCount; i++) {
       const skeletonComponentRef = this.viewContainer.createComponent(SkeletonLoaderComponent);
-      skeletonComponentRef.instance.type = this.skeletonType;
-      skeletonComponentRef.instance.size = this.skeletonSize;
-      skeletonComponentRef.instance.ariaLabel = `Loading ${this.skeletonType} ${i + 1}`;
+      skeletonComponentRef.instance.type = this.appLoadingStateSkeleton;
+      skeletonComponentRef.instance.size = this.appLoadingStateSkeletonSize;
+      skeletonComponentRef.instance.ariaLabel = `Loading ${this.appLoadingStateSkeleton} ${i + 1}`;
 
       this.skeletonComponents.push(skeletonComponentRef);
 
       // Add spacing between multiple skeletons
-      if (i < this.skeletonCount - 1) {
+      if (i < this.appLoadingStateSkeletonCount - 1) {
         this.addSpacingElement();
       }
     }
 
     // Show loading message if enabled
-    if (this.showMessage && (message || this.customMessage)) {
-      this.showLoadingMessage(message || this.customMessage!);
+    if (this.appLoadingStateShowMessage && (message || this.appLoadingStateCustomMessage)) {
+      this.showLoadingMessage(message || this.appLoadingStateCustomMessage!);
     }
   }
 
