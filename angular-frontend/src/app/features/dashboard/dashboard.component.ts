@@ -83,6 +83,11 @@ export class DashboardComponent implements OnInit {
   };
 
   ngOnInit(): void {
-    // TODO: Load dashboard stats
+    // Dashboard stats loading is handled by the service
+    this.loadDashboardStats();
+  }
+
+  private loadDashboardStats(): void {
+    // Future implementation: Load dashboard statistics
   }
 }

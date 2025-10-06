@@ -682,7 +682,7 @@ describe('DashboardComponent', () => {
 
       component.navigateToProfile();
       expect(routerSpy).toHaveBeenCalledWith(['/profile']);
-    }));
+    });
 
     it('should handle quick actions from dashboard', fakeAsync(() => {
       fixture.detectChanges();

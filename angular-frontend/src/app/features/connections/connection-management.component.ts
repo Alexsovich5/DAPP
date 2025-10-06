@@ -47,6 +47,10 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class ConnectionManagementComponent implements OnInit {
   ngOnInit(): void {
-    // TODO: Load connections
+    this.loadConnections();
+  }
+
+  private loadConnections(): void {
+    // Future implementation: Load user connections
   }
 }
