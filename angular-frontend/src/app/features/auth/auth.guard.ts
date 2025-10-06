@@ -16,7 +16,7 @@ export class AuthGuard implements CanActivate {
     private readonly authService: AuthService,
     private readonly router: Router,
     private readonly storage: StorageService,
-    @Inject(PLATFORM_ID) private platformId: Object
+    @Inject(PLATFORM_ID) private platformId: object
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
