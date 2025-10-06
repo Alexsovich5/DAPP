@@ -169,21 +169,21 @@ def downgrade() -> None:
         op.execute("DROP INDEX IF EXISTS ix_user_engagement_session_time")
         op.execute("DROP INDEX IF EXISTS ix_user_engagement_user_event")
 
-    op.drop_index("ix_messages_type_created", "messages")
-    op.drop_index("ix_messages_sender_created", "messages")
-    op.drop_index("ix_messages_connection_created", "messages")
+    op.execute("DROP INDEX IF EXISTS ix_messages_type_created")
+    op.execute("DROP INDEX IF EXISTS ix_messages_sender_created")
+    op.execute("DROP INDEX IF EXISTS ix_messages_connection_created")
 
-    op.drop_index("ix_daily_revelations_read_status", "daily_revelations")
-    op.drop_index("ix_daily_revelations_sender_created", "daily_revelations")
-    op.drop_index("ix_daily_revelations_connection_day", "daily_revelations")
+    op.execute("DROP INDEX IF EXISTS ix_daily_revelations_read_status")
+    op.execute("DROP INDEX IF EXISTS ix_daily_revelations_sender_created")
+    op.execute("DROP INDEX IF EXISTS ix_daily_revelations_connection_day")
 
-    op.drop_index("ix_soul_connections_energy_updated", "soul_connections")
-    op.drop_index("ix_soul_connections_stage_activity", "soul_connections")
-    op.drop_index("ix_soul_connections_user_status", "soul_connections")
+    op.execute("DROP INDEX IF EXISTS ix_soul_connections_energy_updated")
+    op.execute("DROP INDEX IF EXISTS ix_soul_connections_stage_activity")
+    op.execute("DROP INDEX IF EXISTS ix_soul_connections_user_status")
 
-    op.drop_index("ix_user_presence_status_last_seen", "user_presence")
-    op.drop_index("ix_user_presence_last_seen", "user_presence")
-    op.drop_index("ix_user_presence_user_id_status", "user_presence")
+    op.execute("DROP INDEX IF EXISTS ix_user_presence_status_last_seen")
+    op.execute("DROP INDEX IF EXISTS ix_user_presence_last_seen")
+    op.execute("DROP INDEX IF EXISTS ix_user_presence_user_id_status")
 
     # Drop user_presence table if it exists
     bind = op.get_bind()
