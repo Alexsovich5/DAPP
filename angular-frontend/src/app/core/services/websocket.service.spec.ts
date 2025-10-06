@@ -17,10 +17,6 @@ interface WebSocketMessage {
   connection_id?: number;
   user_id?: number;
 }
-  lastDisconnectedAt?: string;
-  connectionQuality: 'excellent' | 'good' | 'poor' | 'disconnected';
-  latency?: number;
-}
 
 interface TypingIndicator {
   connection_id: number;

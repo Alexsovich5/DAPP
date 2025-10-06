@@ -140,7 +140,9 @@ export class ChatComponent implements OnInit, OnDestroy {
       try {
         this.messageContainer.nativeElement.scrollTop =
           this.messageContainer.nativeElement.scrollHeight;
-      } catch (err) {}
+      } catch (err) {
+        // Silently fail if message container is not available
+      }
     });
   }
 
