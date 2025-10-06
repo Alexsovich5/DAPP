@@ -12,7 +12,7 @@ import { NotificationService } from './notification.service';
 
 interface WebSocketMessage {
   type: string;
-  data: any;
+  data: unknown;
   timestamp: string;
   connection_id?: number;
   user_id?: number;
@@ -77,7 +77,7 @@ class MockWebSocket {
   }
 
   // Test helper methods
-  simulateMessage(data: any) {
+  simulateMessage(data: unknown) {
     if (this.onmessage) {
       this.onmessage(new MessageEvent('message', {
         data: JSON.stringify(data)
