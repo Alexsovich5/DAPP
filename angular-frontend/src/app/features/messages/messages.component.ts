@@ -127,7 +127,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
             </div>
           </div>
 
-          <div class="message-actions" (click)="$event.stopPropagation()">
+          <div class="message-actions" role="group" aria-label="Message actions">
             <button type="button" class="action-btn" (click)="quickReply(message, $event)" title="Quick Reply">
               💬
             </button>
