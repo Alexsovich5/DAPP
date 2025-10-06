@@ -96,12 +96,17 @@ from tests.factories import (  # noqa: E402
 @pytest.fixture(scope="session")
 def test_db():
     """Create test database and tables using our test engine"""
+    # Close any existing connections before dropping database
     if database_exists(TEST_DATABASE_URL):
+        test_engine.dispose()  # Close all connections in the pool
         drop_database(TEST_DATABASE_URL)
 
     create_database(TEST_DATABASE_URL)
     Base.metadata.create_all(bind=test_engine)
     yield test_engine
+
+    # Clean up after tests
+    test_engine.dispose()  # Close all connections before dropping
     drop_database(TEST_DATABASE_URL)
 
 
