@@ -252,6 +252,7 @@ export class LoadingStateService {
     [LoadingStateService.LOADING_KEYS.EMOTIONAL_ASSESSMENT]: 'Assessing emotional depth...',
     [LoadingStateService.LOADING_KEYS.SENDING_MESSAGE]: 'Sending soul message...',
     [LoadingStateService.LOADING_KEYS.LOADING_MESSAGES]: 'Loading conversation history...',
+    [LoadingStateService.LOADING_KEYS.TYPING_INDICATOR]: 'User is typing...',
     [LoadingStateService.LOADING_KEYS.LOADING_REVELATIONS]: 'Loading daily revelations...',
     [LoadingStateService.LOADING_KEYS.SENDING_REVELATION]: 'Sharing your revelation...',
     [LoadingStateService.LOADING_KEYS.PHOTO_REVEAL]: 'Preparing photo revelation...',

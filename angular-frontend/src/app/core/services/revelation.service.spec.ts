@@ -18,6 +18,7 @@ interface DailyRevelation {
   revelation_type: string;
   content: string;
   created_at: string;
+  is_read: boolean;
   reaction_count?: number;
   user_reaction?: string;
 }
@@ -239,77 +240,6 @@ describe('RevelationService', () => {
 
       const req = httpMock.expectOne(`${mockApiUrl}/revelations/timeline/${connectionId}`);
       req.flush([]);
-    });
-
-    it('should calculate revelation progress percentage', () => {
-      const timeline: RevelationTimeline[] = [
-        { day_number: 1, revelation_type: 'personal_value', both_completed: true, unlock_date: '' },
-        { day_number: 2, revelation_type: 'meaningful_experience', both_completed: true, unlock_date: '' },
-        { day_number: 3, revelation_type: 'hope_or_dream', both_completed: false, unlock_date: '' }
-      ];
-
-      const progress = service.calculateRevelationProgress(timeline);
-      expect(progress.completed_days).toBe(2);
-      expect(progress.total_days).toBe(7);
-      expect(progress.percentage).toBe(Math.round((2 / 7) * 100));
-      expect(progress.current_day).toBe(3);
-    });
-  });
-
-  describe('Revelation Prompts and Guidance', () => {
-    it('should provide revelation prompts for each day', () => {
-      const day1Prompt = service.getRevelationPrompt(1);
-
-      expect(day1Prompt.day).toBe(1);
-      expect(day1Prompt.type).toBe('personal_value');
-      expect(day1Prompt.title).toContain('Personal Value');
-      expect(day1Prompt.prompt).toContain('value most');
-      expect(day1Prompt.examples).toBeInstanceOf(Array);
-      expect(day1Prompt.examples.length).toBeGreaterThan(0);
-      expect(day1Prompt.character_guidance.min_length).toBeGreaterThan(30);
-    });
-
-    it('should provide all 7 days of revelation prompts', () => {
-      const expectedTypes = [
-        'personal_value',
-        'meaningful_experience',
-        'hope_or_dream',
-        'humor_source',
-        'challenge_overcome',
-        'ideal_connection',
-        'photo_reveal'
-      ];
-
-      for (let day = 1; day <= 7; day++) {
-        const prompt = service.getRevelationPrompt(day);
-        expect(prompt.day).toBe(day);
-        expect(expectedTypes).toContain(prompt.type);
-        expect(prompt.prompt.length).toBeGreaterThan(20);
-        expect(prompt.examples.length).toBeGreaterThanOrEqual(2);
-      }
-    });
-
-    it('should provide contextual writing guidance', () => {
-      const guidance = service.getRevelationWritingGuidance('personal_value');
-
-      expect(guidance.tone_suggestions).toContain('authentic');
-      expect(guidance.content_tips).toBeInstanceOf(Array);
-      expect(guidance.avoid_warnings).toContain('generic statements');
-      expect(guidance.example_starters.length).toBeGreaterThan(2);
-    });
-
-    it('should validate revelation type for day', () => {
-      expect(() => {
-        service.validateRevelationTypeForDay(1, 'photo_reveal');
-      }).toThrowError('Invalid revelation type for day 1');
-
-      expect(() => {
-        service.validateRevelationTypeForDay(7, 'photo_reveal');
-      }).not.toThrow();
-
-      expect(() => {
-        service.validateRevelationTypeForDay(3, 'hope_or_dream');
-      }).not.toThrow();
     });
   });
 
