@@ -25,8 +25,8 @@ import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skel
           <h3>Communication Preferences</h3>
 
           <div class="question-group">
-            <label class="question-label">How do you prefer to connect with someone?</label>
-            <div class="radio-group">
+            <label class="question-label" id="connection-style-label">How do you prefer to connect with someone?</label>
+            <div class="radio-group" role="radiogroup" aria-labelledby="connection-style-label">
               <label class="radio-option">
                 <input type="radio" formControlName="connection_style" value="deep_talks">
                 <span class="radio-content">
@@ -54,13 +54,14 @@ import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skel
           </div>
 
           <div class="question-group">
-            <label class="question-label">Your social energy style</label>
+            <label class="question-label" for="social_energy">Your social energy style</label>
             <div class="slider-group">
               <div class="slider-labels">
                 <span>Introvert</span>
                 <span>Extrovert</span>
               </div>
               <input
+                id="social_energy"
                 type="range"
                 min="1"
                 max="10"
@@ -75,8 +76,8 @@ import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skel
           <h3>Relationship Values</h3>
 
             <div class="question-group">
-            <label class="question-label">What's most important in a partnership?</label>
-            <div class="checkbox-group">
+            <label class="question-label" id="relationship-values-label">What's most important in a partnership?</label>
+            <div class="checkbox-group" role="group" aria-labelledby="relationship-values-label">
               <button type="button"
                       class="checkbox-option"
                       role="checkbox"
@@ -110,8 +111,8 @@ import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skel
           <h3>Personal Traits</h3>
 
           <div class="question-group">
-            <label class="question-label">How would close friends describe you?</label>
-            <div class="trait-selector">
+            <label class="question-label" id="personality-traits-label">How would close friends describe you?</label>
+            <div class="trait-selector" role="group" aria-labelledby="personality-traits-label">
               <div class="trait-grid">
                 <button
                   type="button"

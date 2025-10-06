@@ -21,11 +21,12 @@ import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skel
       <form [formGroup]="emotionalForm" (ngSubmit)="onSubmit()">
         <app-skeleton-loader type="text" width="70%" *ngIf="isSaving"></app-skeleton-loader>
         <div class="question-group">
-          <label class="question-label">
+          <label class="question-label" for="relationship_values">
             <span class="question-number">1</span>
             What do you value most in a relationship?
           </label>
           <textarea
+            id="relationship_values"
             formControlName="relationship_values"
             placeholder="Share what's most important to you when connecting with someone special..."
             rows="4"
@@ -35,11 +36,12 @@ import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skel
         </div>
 
         <div class="question-group">
-          <label class="question-label">
+          <label class="question-label" for="ideal_evening">
             <span class="question-number">2</span>
             Describe your ideal evening with someone special
           </label>
           <textarea
+            id="ideal_evening"
             formControlName="ideal_evening"
             placeholder="Paint a picture of your perfect evening together..."
             rows="4"
@@ -49,11 +51,12 @@ import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skel
         </div>
 
         <div class="question-group">
-          <label class="question-label">
+          <label class="question-label" for="feeling_understood">
             <span class="question-number">3</span>
             What makes you feel truly understood?
           </label>
           <textarea
+            id="feeling_understood"
             formControlName="feeling_understood"
             placeholder="Describe moments when you feel most seen and appreciated..."
             rows="4"
