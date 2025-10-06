@@ -28,10 +28,10 @@ export interface InteractionData {
   coordinates?: { x: number; y: number };
   scroll_distance?: number;
   swipe_direction?: string;
-  gesture_data?: any;
+  gesture_data?: Record<string, unknown>;
   emotional_state?: string;
-  connection_context?: any;
-  feature_flags?: any;
+  connection_context?: Record<string, unknown>;
+  feature_flags?: Record<string, boolean>;
   render_time?: number;
   response_time?: number;
   error?: boolean;
@@ -50,7 +50,7 @@ export interface UIProfile {
   navigation_pattern: string;
   personalization_score: number;
   accessibility_settings: { [key: string]: boolean };
-  current_preferences: { [key: string]: any };
+  current_preferences: Record<string, unknown>;
   last_updated: string;
 }
 
@@ -133,7 +133,7 @@ export class UIPersonalizationService {
   /**
    * Generate UI personalizations
    */
-  generatePersonalizations(context: any = {}): Observable<UIPersonalization> {
+  generatePersonalizations(context: Record<string, unknown> = {}): Observable<UIPersonalization> {
     const request = {
       current_context: {
         ...context,
@@ -146,7 +146,7 @@ export class UIPersonalizationService {
       }
     };
 
-    return this.http.post<any>(`${this.apiUrl}/generate-adaptations`, request).pipe(
+    return this.http.post<{ personalizations: UIPersonalization }>(`${this.apiUrl}/generate-adaptations`, request).pipe(
       map(response => response.personalizations),
       tap(personalizations => this.personalizations.next(personalizations))
     );
@@ -205,8 +205,8 @@ export class UIPersonalizationService {
   /**
    * Update UI preferences
    */
-  updatePreferences(preferences: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/preferences`, preferences);
+  updatePreferences(preferences: Record<string, unknown>): Observable<Record<string, unknown>> {
+    return this.http.put<Record<string, unknown>>(`${this.apiUrl}/preferences`, preferences);
   }
 
   /**
@@ -216,29 +216,29 @@ export class UIPersonalizationService {
     satisfaction_score: number;
     feature?: string;
     comments?: string;
-  }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/feedback`, feedback);
+  }): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/feedback`, feedback);
   }
 
   /**
    * Get personalization insights
    */
-  getInsights(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/insights`);
+  getInsights(): Observable<Record<string, unknown>[]> {
+    return this.http.get<Record<string, unknown>[]>(`${this.apiUrl}/insights`);
   }
 
   /**
    * Get UI analytics
    */
-  getAnalytics(days: number = 30): Observable<any> {
-    return this.http.get(`${this.apiUrl}/analytics?days=${days}`);
+  getAnalytics(days: number = 30): Observable<Record<string, unknown>> {
+    return this.http.get<Record<string, unknown>>(`${this.apiUrl}/analytics?days=${days}`);
   }
 
   /**
    * Trigger real-time adaptation
    */
-  triggerRealTimeAdaptation(context: any = {}): Observable<any> {
-    return this.http.post(`${this.apiUrl}/real-time-adaptation`, {
+  triggerRealTimeAdaptation(context: Record<string, unknown> = {}): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/real-time-adaptation`, {
       ...context,
       current_route: this.currentRoute,
       timestamp: new Date().toISOString()
@@ -482,7 +482,7 @@ export class UIPersonalizationService {
     });
   }
 
-  private applyThemeAdaptations(adaptations: any): void {
+  private applyThemeAdaptations(adaptations: Record<string, unknown>): void {
     if (!adaptations) return;
 
     const root = document.documentElement;
@@ -500,7 +500,7 @@ export class UIPersonalizationService {
     }
   }
 
-  private applyLayoutOptimizations(optimizations: any): void {
+  private applyLayoutOptimizations(optimizations: Record<string, unknown>): void {
     if (!optimizations) return;
 
     const body = document.body;
@@ -518,20 +518,20 @@ export class UIPersonalizationService {
     }
   }
 
-  private applyInteractionEnhancements(enhancements: any): void {
+  private applyInteractionEnhancements(enhancements: Record<string, unknown>): void {
     if (!enhancements) return;
 
-    if (enhancements.fast_user_optimizations?.enable_keyboard_shortcuts) {
+    if ((enhancements.fast_user_optimizations as Record<string, unknown>)?.enable_keyboard_shortcuts) {
       // Enable keyboard shortcuts
       document.addEventListener('keydown', this.handleKeyboardShortcuts.bind(this));
     }
 
-    if (enhancements.engagement_boosters?.add_micro_interactions) {
+    if ((enhancements.engagement_boosters as Record<string, unknown>)?.add_micro_interactions) {
       document.body.classList.add('micro-interactions-enabled');
     }
   }
 
-  private applyAccessibilityImprovements(improvements: any): void {
+  private applyAccessibilityImprovements(improvements: Record<string, unknown>): void {
     if (!improvements) return;
 
     if (improvements.keyboard_navigation?.visible_focus_indicators) {
@@ -543,20 +543,20 @@ export class UIPersonalizationService {
     }
   }
 
-  private applyPerformanceOptimizations(optimizations: any): void {
+  private applyPerformanceOptimizations(optimizations: Record<string, unknown>): void {
     if (!optimizations) return;
 
-    if (optimizations.loading_optimizations?.lazy_loading) {
+    if ((optimizations.loading_optimizations as Record<string, unknown>)?.lazy_loading) {
       // Enable lazy loading for images
       document.body.setAttribute('data-lazy-loading', 'true');
     }
 
-    if (optimizations.mobile_performance?.reduced_animations) {
+    if ((optimizations.mobile_performance as Record<string, unknown>)?.reduced_animations) {
       document.body.classList.add('reduced-animations');
     }
   }
 
-  private applyComponentAdaptations(adaptations: any): void {
+  private applyComponentAdaptations(adaptations: Record<string, unknown>): void {
     if (!adaptations) return;
 
     // Apply component-specific adaptations
