@@ -78,9 +78,9 @@ def upgrade() -> None:
         ["connection_id", "day_number"],
     )
     op.create_index(
-        "ix_daily_revelations_user_created",
+        "ix_daily_revelations_sender_created",
         "daily_revelations",
-        ["user_id", "created_at"],
+        ["sender_id", "created_at"],
     )
     op.create_index(
         "ix_daily_revelations_shared_status",
@@ -165,7 +165,7 @@ def downgrade() -> None:
     op.drop_index("ix_messages_connection_created", "messages")
 
     op.drop_index("ix_daily_revelations_shared_status", "daily_revelations")
-    op.drop_index("ix_daily_revelations_user_created", "daily_revelations")
+    op.drop_index("ix_daily_revelations_sender_created", "daily_revelations")
     op.drop_index("ix_daily_revelations_connection_day", "daily_revelations")
 
     op.drop_index("ix_soul_connections_energy_updated", "soul_connections")
