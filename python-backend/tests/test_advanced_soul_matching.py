@@ -562,9 +562,9 @@ class TestEnhancedMatchQualityService:
         # Should calculate weighted confidence
         assert 30.0 <= confidence <= 100.0
 
-    @patch("app.services.enhanced_match_quality_service.SoulCompatibilityService")
-    @patch("app.services.enhanced_match_quality_service.AdvancedSoulMatchingService")
-    @patch("app.services.enhanced_match_quality_service.EmotionalDepthService")
+    @patch("app.services.enhanced_match_quality_service.compatibility_service")
+    @patch("app.services.enhanced_match_quality_service.advanced_matching_service")
+    @patch("app.services.enhanced_match_quality_service.emotional_depth_service")
     def test_comprehensive_assessment_integration(
         self,
         mock_depth_service,
