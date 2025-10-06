@@ -100,21 +100,23 @@ def upgrade() -> None:
     )
 
     # Add indexes for user engagement analytics (real-time activity tracking)
-    op.create_index(
-        "ix_user_engagement_user_event",
-        "user_engagement_analytics",
-        ["user_id", "event_type"],
-    )
-    op.create_index(
-        "ix_user_engagement_session_time",
-        "user_engagement_analytics",
-        ["session_id", "event_time"],
-    )
-    op.create_index(
-        "ix_user_engagement_event_time",
-        "user_engagement_analytics",
-        ["event_type", "event_time"],
-    )
+    # Only if table exists
+    if "user_engagement_analytics" in inspector.get_table_names():
+        op.create_index(
+            "ix_user_engagement_user_event",
+            "user_engagement_analytics",
+            ["user_id", "event_type"],
+        )
+        op.create_index(
+            "ix_user_engagement_session_time",
+            "user_engagement_analytics",
+            ["session_id", "event_time"],
+        )
+        op.create_index(
+            "ix_user_engagement_event_time",
+            "user_engagement_analytics",
+            ["event_type", "event_time"],
+        )
 
     # Add partial indexes for active connections (WebSocket connection tracking)
     op.execute(
@@ -134,31 +136,41 @@ def upgrade() -> None:
     )
 
     # Add composite indexes for real-time compatibility calculations
-    op.create_index(
-        "ix_personalized_content_user_type_created",
-        "personalized_content",
-        ["user_profile_id", "content_type", "created_at"],
-    )
-    op.create_index(
-        "ix_content_feedback_content_sentiment",
-        "content_feedback",
-        ["content_id", "sentiment_score", "created_at"],
-    )
+    # Only if tables exist
+    if "personalized_content" in inspector.get_table_names():
+        op.create_index(
+            "ix_personalized_content_user_type_created",
+            "personalized_content",
+            ["user_profile_id", "content_type", "created_at"],
+        )
+    if "content_feedback" in inspector.get_table_names():
+        op.create_index(
+            "ix_content_feedback_content_sentiment",
+            "content_feedback",
+            ["content_id", "sentiment_score", "created_at"],
+        )
 
 
 def downgrade() -> None:
-    # Drop indexes in reverse order
-    op.drop_index("ix_content_feedback_content_sentiment", "content_feedback")
-    op.drop_index("ix_personalized_content_user_type_created", "personalized_content")
+    # Drop indexes in reverse order - use IF EXISTS to make idempotent
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+
+    # Drop indexes only if tables exist
+    if "content_feedback" in inspector.get_table_names():
+        op.execute("DROP INDEX IF EXISTS ix_content_feedback_content_sentiment")
+    if "personalized_content" in inspector.get_table_names():
+        op.execute("DROP INDEX IF EXISTS ix_personalized_content_user_type_created")
 
     # Drop partial indexes
     op.execute("DROP INDEX IF EXISTS ix_soul_connections_active_recent")
     op.execute("DROP INDEX IF EXISTS ix_user_presence_online_users")
 
-    # Drop regular indexes
-    op.drop_index("ix_user_engagement_event_time", "user_engagement_analytics")
-    op.drop_index("ix_user_engagement_session_time", "user_engagement_analytics")
-    op.drop_index("ix_user_engagement_user_event", "user_engagement_analytics")
+    # Drop regular indexes - only if tables exist
+    if "user_engagement_analytics" in inspector.get_table_names():
+        op.execute("DROP INDEX IF EXISTS ix_user_engagement_event_time")
+        op.execute("DROP INDEX IF EXISTS ix_user_engagement_session_time")
+        op.execute("DROP INDEX IF EXISTS ix_user_engagement_user_event")
 
     op.drop_index("ix_messages_type_created", "messages")
     op.drop_index("ix_messages_sender_created", "messages")
