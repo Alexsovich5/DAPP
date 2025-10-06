@@ -1,5 +1,5 @@
 import { Injectable, ElementRef } from '@angular/core';
-import { fromEvent, Subject, merge } from 'rxjs';
+import { fromEvent, Subject } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 
 export interface NavigableElement {
