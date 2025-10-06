@@ -200,6 +200,21 @@ jobs:
     name: Security & Vulnerability Tests
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_dinner_app
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     defaults:
       run:
         working-directory: python-backend
@@ -227,6 +242,11 @@ jobs:
         safety check --json > safety-report.json || true
 
     - name: Run security headers tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_dinner_app
+        SECRET_KEY: test-secret-key-for-ci
+        CORS_ORIGINS: http://localhost:4200,http://localhost:5001
+        ENVIRONMENT: testing
       run: |
         pip install -r requirements.txt
         python -m pytest tests/test_security_headers.py -v --tb=short
