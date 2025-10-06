@@ -11,7 +11,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { ChatService, TypingUser } from '../../core/services/chat.service';
+import { ChatService } from '../../core/services/chat.service';
 import { AuthService } from '../../core/services/auth.service';
 import { TypingIndicatorComponent } from '../../shared/components/typing-indicator/typing-indicator.component';
 import { Subscription } from 'rxjs';
@@ -274,7 +274,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.chatForm.reset();
         this.scrollToBottom();
       },
-      error: (err) => {
+      error: (_err) => {
         this.error = 'Failed to send message. Please try again.';
       },
       complete: () => {
