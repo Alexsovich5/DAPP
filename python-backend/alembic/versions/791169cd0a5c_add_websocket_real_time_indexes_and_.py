@@ -119,9 +119,10 @@ def upgrade() -> None:
         )
 
     # Add partial indexes for active connections (WebSocket connection tracking)
+    # Remove CONCURRENTLY as it can't run inside transaction
     op.execute(
         """
-        CREATE INDEX CONCURRENTLY IF NOT EXISTS ix_user_presence_online_users
+        CREATE INDEX IF NOT EXISTS ix_user_presence_online_users
         ON user_presence (user_id, last_seen DESC)
         WHERE status IN ('online', 'typing')
     """
@@ -129,7 +130,7 @@ def upgrade() -> None:
 
     op.execute(
         """
-        CREATE INDEX CONCURRENTLY IF NOT EXISTS ix_soul_connections_active_recent
+        CREATE INDEX IF NOT EXISTS ix_soul_connections_active_recent
         ON soul_connections (id, last_activity_at DESC)
         WHERE status = 'active' AND last_activity_at > NOW() - INTERVAL '7 days'
     """
