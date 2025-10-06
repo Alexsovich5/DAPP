@@ -11,7 +11,6 @@ import { NotificationService } from './notification.service';
 describe('WebSocketService', () => {
   let service: WebSocketService;
   let authService: jasmine.SpyObj<AuthService>;
-  let notificationService: jasmine.SpyObj<NotificationService>;
 
   beforeEach(() => {
     const authSpy = jasmine.createSpyObj('AuthService', ['getToken']);
@@ -27,7 +26,6 @@ describe('WebSocketService', () => {
 
     service = TestBed.inject(WebSocketService);
     authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
-    notificationService = TestBed.inject(NotificationService) as jasmine.SpyObj<NotificationService>;
 
     authService.getToken.and.returnValue('mock-jwt-token');
   });
