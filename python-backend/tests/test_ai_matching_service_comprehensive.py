@@ -783,14 +783,18 @@ class TestAIMatchingServiceUtilities:
 
     def test_calculate_prediction_confidence(self, service):
         """Test prediction confidence calculation"""
-        factors = {
-            "data_quality": 0.8,
-            "interaction_history": 0.6,
-            "profile_completeness": 0.9,
-            "behavioral_consistency": 0.7,
-        }
+        from unittest.mock import Mock
 
-        confidence = service._calculate_prediction_confidence(factors)
+        from app.models.ai_models import UserProfile
+
+        # Create mock UserProfile objects with ai_confidence_level
+        profile1 = Mock(spec=UserProfile)
+        profile1.ai_confidence_level = 0.8
+
+        profile2 = Mock(spec=UserProfile)
+        profile2.ai_confidence_level = 0.9
+
+        confidence = service._calculate_prediction_confidence(profile1, profile2)
 
         assert isinstance(confidence, float)
         assert 0 <= confidence <= 1

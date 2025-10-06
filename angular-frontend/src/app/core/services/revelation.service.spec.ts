@@ -68,7 +68,7 @@ describe('RevelationService', () => {
     authServiceSpy = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
 
     authServiceSpy.getToken.and.returnValue('mock-jwt-token');
-    authServiceSpy.getCurrentUser.and.returnValue(of({ id: 1, email: 'test@example.com' }));
+    // AuthService uses currentUser$ observable, not getCurrentUser method
   });
 
   afterEach(() => {
@@ -91,15 +91,11 @@ describe('RevelationService', () => {
         day_number: 1,
         revelation_type: 'personal_value',
         content: revelationData.content,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        is_read: false
       };
 
-      service.createRevelation(
-        revelationData.connection_id,
-        revelationData.day_number,
-        revelationData.revelation_type,
-        revelationData.content
-      ).subscribe(revelation => {
+      service.createRevelation(revelationData).subscribe(revelation => {
         expect(revelation).toEqual(mockResponse);
         expect(revelation.day_number).toBe(1);
         expect(revelation.revelation_type).toBe('personal_value');
@@ -134,12 +130,7 @@ describe('RevelationService', () => {
         content: 'Attempting duplicate revelation for the same day'
       };
 
-      service.createRevelation(
-        duplicateRevelation.connection_id,
-        duplicateRevelation.day_number,
-        duplicateRevelation.revelation_type,
-        duplicateRevelation.content
-      ).subscribe({
+      service.createRevelation(duplicateRevelation).subscribe({
         next: () => fail('Should have failed with duplicate error'),
         error: (error) => {
           expect(error.status).toBe(400);
@@ -162,12 +153,7 @@ describe('RevelationService', () => {
         content: 'Trying to skip ahead to day 5 without completing previous days'
       };
 
-      service.createRevelation(
-        skipAheadRevelation.connection_id,
-        skipAheadRevelation.day_number,
-        skipAheadRevelation.revelation_type,
-        skipAheadRevelation.content
-      ).subscribe({
+      service.createRevelation(skipAheadRevelation).subscribe({
         next: () => fail('Should enforce progression rules'),
         error: (error) => {
           expect(error.status).toBe(400);
@@ -232,10 +218,11 @@ describe('RevelationService', () => {
       ];
 
       service.getRevelationTimeline(connectionId).subscribe(timeline => {
-        expect(timeline).toEqual(mockTimeline);
-        expect(timeline.length).toBe(2);
-        expect(timeline[0].both_completed).toBe(true);
-        expect(timeline[1].both_completed).toBe(false);
+        const timelineData = timeline as unknown as RevelationTimeline[];
+        expect(timelineData).toEqual(mockTimeline);
+        expect(timelineData.length).toBe(2);
+        expect(timelineData[0].both_completed).toBe(true);
+        expect(timelineData[1].both_completed).toBe(false);
       });
 
       const req = httpMock.expectOne(`${mockApiUrl}/revelations/timeline/${connectionId}`);
@@ -247,7 +234,8 @@ describe('RevelationService', () => {
       const connectionId = 999;
 
       service.getRevelationTimeline(connectionId).subscribe(timeline => {
-        expect(timeline).toEqual([]);
+        const timelineData = timeline as unknown as RevelationTimeline[];
+        expect(timelineData).toEqual([]);
       });
 
       const req = httpMock.expectOne(`${mockApiUrl}/revelations/timeline/${connectionId}`);

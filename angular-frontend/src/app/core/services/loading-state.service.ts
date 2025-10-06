@@ -257,6 +257,7 @@ export class LoadingStateService {
     [LoadingStateService.LOADING_KEYS.PHOTO_REVEAL]: 'Preparing photo revelation...',
     [LoadingStateService.LOADING_KEYS.SAVING_PREFERENCES]: 'Saving soul preferences...',
     [LoadingStateService.LOADING_KEYS.UPDATING_PROFILE]: 'Updating soul profile...',
+    [LoadingStateService.LOADING_KEYS.FETCHING_DATA]: 'Fetching soul data...',
     [LoadingStateService.LOADING_KEYS.WEBSOCKET_CONNECTING]: 'Connecting to soul network...',
     [LoadingStateService.LOADING_KEYS.SYNCING_DATA]: 'Syncing soul data...'
   } as const;

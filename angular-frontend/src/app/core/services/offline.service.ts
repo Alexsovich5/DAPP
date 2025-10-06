@@ -352,7 +352,7 @@ export class OfflineService {
       if (stored) {
         this.offlineQueue = JSON.parse(stored).map((action: Record<string, unknown>) => ({
           ...action,
-          timestamp: new Date(action.timestamp as string)
+          timestamp: new Date(action['timestamp'] as string)
         })) as OfflineAction[];
         this.updateSyncStatus({ pendingActions: this.offlineQueue.length });
       }
@@ -379,7 +379,7 @@ export class OfflineService {
   }
 
   private handleServiceWorkerMessage(message: Record<string, unknown>): void {
-    switch (message.type) {
+    switch (message['type']) {
       case 'CACHE_UPDATED':
         console.log('Cache updated by service worker');
         break;
@@ -415,13 +415,13 @@ export class OfflineService {
   }
 
   private async processMessageSend(data: Record<string, unknown>): Promise<void> {
-    const response = await fetch(`/api/v1/messages/${data.connectionId}`, {
+    const response = await fetch(`/api/v1/messages/${data['connectionId']}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.getAuthToken()}`
       },
-      body: JSON.stringify({ message: data.message })
+      body: JSON.stringify({ message: data['message'] })
     });
 
     if (!response.ok) {
