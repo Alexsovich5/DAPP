@@ -386,9 +386,9 @@ class ABTestingFramework:
 
     async def create_ab_test(self, config: ABTestConfig) -> str:
         """Create a new A/B test configuration"""
-        test_id = f"ab_test_{
-            config.test_name}_{
-            datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        test_id = (
+            f"ab_test_{config.test_name}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        )
 
         test_config = {
             "test_id": test_id,

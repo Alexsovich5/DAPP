@@ -500,8 +500,7 @@ class ModelRetrainer:
 
             if len(training_data) < config.minimum_samples_for_retraining:
                 raise ValueError(
-                    f"Insufficient training data: {
-                        len(training_data)} samples"
+                    f"Insufficient training data: {len(training_data)} samples"
                 )
 
             # Prepare training data
