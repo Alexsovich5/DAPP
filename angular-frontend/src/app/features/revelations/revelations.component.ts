@@ -1217,11 +1217,13 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
     switch (key) {
       case 'Enter':
       case ' ':
-        event.preventDefault();
-        // Focus on the first action button if available
-        const actionButtons = (event.target as HTMLElement).querySelectorAll('.action-btn');
-        if (actionButtons.length > 0) {
-          (actionButtons[0] as HTMLElement).focus();
+        {
+          event.preventDefault();
+          // Focus on the first action button if available
+          const actionButtons = (event.target as HTMLElement).querySelectorAll('.action-btn');
+          if (actionButtons.length > 0) {
+            (actionButtons[0] as HTMLElement).focus();
+          }
         }
         break;
       case 'r':
@@ -1268,8 +1270,8 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
   /**
    * Handle keyboard navigation events
    */
-  private handleKeyboardNavigationEvent(event: any): void {
-    const { action, element, index } = event;
+  private handleKeyboardNavigationEvent(event: {action: string; element?: HTMLElement; index?: number}): void {
+    const { action, element } = event;
 
     switch (action) {
       case 'navigate':

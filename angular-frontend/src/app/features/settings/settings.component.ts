@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
 
 interface PrivacySettings {
@@ -674,7 +674,7 @@ export class SettingsComponent implements OnInit {
   };
 
   hasChanges = false;
-  originalSettings: any = {};
+  originalSettings: Record<string, unknown> = {};
 
   constructor(
     private router: Router,

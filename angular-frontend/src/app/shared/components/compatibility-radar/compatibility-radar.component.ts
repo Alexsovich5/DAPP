@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { CompatibilityBreakdown, CompatibilityResponse } from '../../../core/interfaces/soul-connection.interfaces';
 import { SoulConnectionService } from '../../../core/services/soul-connection.service';
 
@@ -511,14 +511,14 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
   svgSize: number = 300;
   center = { x: 150, y: 150 };
   maxRadius: number = 120;
-  gridRings: any[] = [];
-  axes: any[] = [];
-  dataPoints: any[] = [];
-  axisLabels: any[] = [];
-  legendItems: any[] = [];
-  insights: any[] = [];
+  gridRings: Array<{radius: number; value: number}> = [];
+  axes: Array<{x1: number; y1: number; x2: number; y2: number; category: string}> = [];
+  dataPoints: Array<{x: number; y: number; value: number; category: string; color: string}> = [];
+  axisLabels: Array<{x: number; y: number; text: string}> = [];
+  legendItems: Array<{color: string; label: string; value: number}> = [];
+  insights: Array<{icon: string; text: string; type: string}> = [];
 
-  hoveredPoint: any = null;
+  hoveredPoint: {x: number; y: number; value: number; category: string; color: string} | null = null;
   tooltip = { x: 0, y: 0 };
 
   // Real-time data management

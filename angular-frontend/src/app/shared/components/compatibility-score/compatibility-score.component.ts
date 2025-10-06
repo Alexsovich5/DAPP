@@ -497,7 +497,7 @@ export class CompatibilityScoreComponent implements OnInit, OnDestroy, AfterView
   isAnimating: boolean = false;
   componentId: string = Math.random().toString(36).substr(2, 9);
   descriptionId: string = `compatibility-desc-${this.componentId}`;
-  sparkles: any[] = [];
+  sparkles: Array<{id: string; x: number; y: number; delay: number}> = [];
 
   private animationFrame?: number;
   private startTime?: number;
@@ -693,7 +693,7 @@ export class CompatibilityScoreComponent implements OnInit, OnDestroy, AfterView
     return `Compatibility score: ${this.displayScore}% - ${level} match`;
   }
 
-  trackSparkle(index: number, sparkle: any): any {
+  trackSparkle(index: number, sparkle: {id: string; x: number; y: number; delay: number}): string {
     return sparkle.id;
   }
 

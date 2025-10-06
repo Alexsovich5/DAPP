@@ -682,18 +682,22 @@ export class EmptyStateComponent {
 
       case 'ArrowLeft':
       case 'ArrowUp':
-        event.preventDefault();
-        const prevButton = actionButtons[currentButtonIndex - 1] || actionButtons[actionButtons.length - 1];
-        prevButton?.focus();
-        this.announceAction('Previous action button');
+        {
+          event.preventDefault();
+          const prevButton = actionButtons[currentButtonIndex - 1] || actionButtons[actionButtons.length - 1];
+          prevButton?.focus();
+          this.announceAction('Previous action button');
+        }
         break;
 
       case 'ArrowRight':
       case 'ArrowDown':
-        event.preventDefault();
-        const nextButton = actionButtons[currentButtonIndex + 1] || actionButtons[0];
-        nextButton?.focus();
-        this.announceAction('Next action button');
+        {
+          event.preventDefault();
+          const nextButton = actionButtons[currentButtonIndex + 1] || actionButtons[0];
+          nextButton?.focus();
+          this.announceAction('Next action button');
+        }
         break;
 
       case 'Home':

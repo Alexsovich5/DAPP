@@ -139,7 +139,7 @@ export interface RevelationDayData {
 
             <!-- Revelation previews -->
             <div class="revelation-previews" *ngIf="dayData.userShared || dayData.partnerShared">
-              <div class="user-revelation" *ngIf="dayData.userShared" (click)="viewRevelation(dayData, 'user')">
+              <button type="button" class="user-revelation" *ngIf="dayData.userShared" (click)="viewRevelation(dayData, 'user')">
                 <div class="revelation-snippet">
                   "{{ getSnippet(dayData.userContent) }}"
                 </div>
@@ -147,9 +147,9 @@ export interface RevelationDayData {
                   <span class="author">You</span>
                   <span class="timestamp">{{ formatTime(dayData.userSharedAt) }}</span>
                 </div>
-              </div>
+              </button>
 
-              <div class="partner-revelation" *ngIf="dayData.partnerShared" (click)="viewRevelation(dayData, 'partner')">
+              <button type="button" class="partner-revelation" *ngIf="dayData.partnerShared" (click)="viewRevelation(dayData, 'partner')">
                 <div class="revelation-snippet">
                   "{{ getSnippet(dayData.partnerContent) }}"
                 </div>
@@ -157,7 +157,7 @@ export interface RevelationDayData {
                   <span class="author">{{ partnerName || 'Partner' }}</span>
                   <span class="timestamp">{{ formatTime(dayData.partnerSharedAt) }}</span>
                 </div>
-              </div>
+              </button>
             </div>
           </div>
 
@@ -216,7 +216,7 @@ export interface RevelationDayData {
               (click)="givePhotoConsent()"
               [disabled]="hasGivenConsent()"
             >
-              {{ hasGivenConsent() ? 'Consent Given ✓' : 'I\'m Ready to Reveal' }}
+              {{ hasGivenConsent() ? 'Consent Given ✓' : "I'm Ready to Reveal" }}
             </button>
           </div>
 
@@ -699,7 +699,7 @@ export class RevelationTimelineComponent implements OnInit, OnDestroy {
   @Input() partnerName: string | null = null;
   @Input() canShareToday = true;
   @Input() isPhotoRevealReady = false;
-  @Input() connectionData: any = null; // Soul connection data with consent status
+  @Input() connectionData: Record<string, unknown> | null = null; // Soul connection data with consent status
   @Input() currentUserId: number | null = null;
 
   @Output() dayClicked = new EventEmitter<RevelationDayData>();

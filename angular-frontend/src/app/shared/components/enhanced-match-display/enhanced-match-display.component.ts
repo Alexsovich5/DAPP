@@ -379,7 +379,9 @@ export class EnhancedMatchDisplayComponent implements OnInit, OnDestroy {
 
   constructor() {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Initialization logic handled by component inputs
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -458,7 +460,7 @@ export class EnhancedMatchDisplayComponent implements OnInit, OnDestroy {
   }
 
   // Event handlers
-  onTabChange(event: any): void {
+  onTabChange(event: {index: number}): void {
     this.selectedTabIndex = event.index;
   }
 

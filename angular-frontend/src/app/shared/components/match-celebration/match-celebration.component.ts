@@ -589,9 +589,9 @@ import { SoulConnectionComponent } from '../soul-connection/soul-connection.comp
 export class MatchCelebrationComponent implements OnInit, OnDestroy {
   @Input() isActive: boolean = false;
   @Input() compatibilityScore: number = 85;
-  @Input() leftSoul: any = { type: 'primary', state: 'matched', energy: 5, label: 'You' };
-  @Input() rightSoul: any = { type: 'secondary', state: 'matched', energy: 5, label: 'Match' };
-  @Input() matchData: any = {};
+  @Input() leftSoul: {type: string; state: string; energy: number; label: string} = { type: 'primary', state: 'matched', energy: 5, label: 'You' };
+  @Input() rightSoul: {type: string; state: string; energy: number; label: string} = { type: 'secondary', state: 'matched', energy: 5, label: 'Match' };
+  @Input() matchData: Record<string, unknown> = {};
   @Input() showConfetti: boolean = true;
   @Input() showSparkles: boolean = true;
   @Input() showHearts: boolean = true;
