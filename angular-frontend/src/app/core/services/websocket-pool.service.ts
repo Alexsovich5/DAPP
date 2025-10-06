@@ -1,16 +1,12 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { Observable, BehaviorSubject, Subject, merge, of, timer } from 'rxjs';
+import { Observable, BehaviorSubject, Subject, of, timer } from 'rxjs';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import {
   retryWhen,
   delay,
   tap,
   filter,
-  map,
-  catchError,
-  takeUntil,
-  switchMap,
-  distinctUntilChanged
+  takeUntil
 } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
