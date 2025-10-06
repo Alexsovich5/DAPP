@@ -401,7 +401,6 @@ describe('DashboardComponent', () => {
       fixture.detectChanges();
       tick();
 
-      const messageIndicators = fixture.debugElement.queryAll(By.css('.message-indicator'));
       const emmaCard = fixture.debugElement.query(By.css('[data-connection-id="1"]'));
 
       const emmaBadge = emmaCard.query(By.css('.unread-badge'));

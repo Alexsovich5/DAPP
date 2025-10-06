@@ -4,7 +4,7 @@
  */
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectionStrategy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subject, takeUntil, animationFrameScheduler } from 'rxjs';
+import { Subject } from 'rxjs';
 import { HapticFeedbackService } from '../../core/services/haptic-feedback.service';
 
 export interface RevelationTimelineData {

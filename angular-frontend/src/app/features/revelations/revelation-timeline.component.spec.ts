@@ -19,7 +19,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { of, throwError, BehaviorSubject } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { RevelationTimelineComponent } from './revelation-timeline.component';
 import { RevelationService } from '../../core/services/revelation.service';
@@ -93,7 +93,6 @@ describe('RevelationTimelineComponent', () => {
   let component: RevelationTimelineComponent;
   let fixture: ComponentFixture<RevelationTimelineComponent>;
   let revelationService: jasmine.SpyObj<RevelationService>;
-  let soulConnectionService: jasmine.SpyObj<SoulConnectionService>;
   let authService: jasmine.SpyObj<AuthService>;
   let notificationService: jasmine.SpyObj<NotificationService>;
   let webSocketService: jasmine.SpyObj<WebSocketService>;

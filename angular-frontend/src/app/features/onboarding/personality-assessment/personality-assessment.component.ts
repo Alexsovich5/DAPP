@@ -409,7 +409,7 @@ export class PersonalityAssessmentComponent implements OnInit {
     });
 
     // Update live compatibility preview when inputs change
-    this.personalityForm.valueChanges.subscribe(val => {
+    this.personalityForm.valueChanges.subscribe(() => {
       this.updateCompatibilityPreview();
     });
   }

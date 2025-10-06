@@ -1773,7 +1773,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   /**
    * Handle new match notifications
    */
-  private handleNewMatchNotification(update: any): void {
+  private handleNewMatchNotification(_update: any): void {
     this.announceAction('New soul match found! Check your connections to see your latest match.');
 
     // Optionally trigger haptic feedback

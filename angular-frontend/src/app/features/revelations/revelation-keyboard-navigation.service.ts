@@ -216,7 +216,6 @@ export class RevelationKeyboardNavigationService {
     if (!this.container) return;
 
     const keydown$ = fromEvent<KeyboardEvent>(this.container, 'keydown');
-    const keyup$ = fromEvent<KeyboardEvent>(this.container, 'keyup');
 
     // Handle keydown events
     keydown$.pipe(
