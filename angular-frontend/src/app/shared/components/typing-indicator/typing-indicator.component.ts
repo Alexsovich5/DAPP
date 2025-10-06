@@ -1,7 +1,7 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, state, style, animate, transition, keyframes } from '@angular/animations';
-import { Observable, Subscription, timer } from 'rxjs';
+import { Subscription, timer } from 'rxjs';
 import { takeWhile } from 'rxjs/operators';
 
 export interface TypingUser {
@@ -467,7 +467,7 @@ export interface TypingUser {
     ])
   ]
 })
-export class TypingIndicatorComponent implements OnInit, OnDestroy {
+export class TypingIndicatorComponent implements OnInit, OnDestroy, OnChanges {
   @Input() typingUsers: TypingUser[] = [];
   @Input() showEnergyFlow = true;
   @Input() autoHideDelay = 0; // Auto-hide after X seconds (0 = no auto-hide)

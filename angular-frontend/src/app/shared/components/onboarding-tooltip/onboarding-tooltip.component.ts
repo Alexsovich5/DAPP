@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, Cha
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { trigger, state, style, animate, transition } from '@angular/animations';
+import { trigger, style, animate, transition } from '@angular/animations';
 import { Subscription } from 'rxjs';
 import { OnboardingService, OnboardingStep } from '../../../core/services/onboarding.service';
 import { HapticFeedbackService } from '../../../core/services/haptic-feedback.service';
@@ -708,10 +708,12 @@ export class OnboardingTooltipComponent implements OnInit, OnDestroy, AfterViewI
           break;
         case 'Enter':
         case ' ':
-          event.preventDefault();
-          const primaryAction = this.currentStep.actions.find(a => a.primary);
-          if (primaryAction) {
-            this.onAction(primaryAction);
+          {
+            event.preventDefault();
+            const primaryAction = this.currentStep.actions.find(a => a.primary);
+            if (primaryAction) {
+              this.onAction(primaryAction);
+            }
           }
           break;
         case 'ArrowRight':
@@ -741,7 +743,7 @@ export class OnboardingTooltipComponent implements OnInit, OnDestroy, AfterViewI
   /**
    * Handle action button clicks
    */
-  onAction(action: any): void {
+  onAction(action: {type?: string; action?: () => void; label?: string; primary?: boolean}): void {
     if (this.isProcessingAction) return;
 
     this.isProcessingAction = true;
@@ -857,7 +859,7 @@ export class OnboardingTooltipComponent implements OnInit, OnDestroy, AfterViewI
   /**
    * Get ARIA label for action button
    */
-  getActionAriaLabel(action: any): string {
+  getActionAriaLabel(action: {label?: string; type?: string}): string {
     const stepInfo = `Step ${this.currentStepIndex + 1} of ${this.totalSteps}`;
     return `${action.label}. ${stepInfo}`;
   }
@@ -865,7 +867,7 @@ export class OnboardingTooltipComponent implements OnInit, OnDestroy, AfterViewI
   /**
    * Track function for actions
    */
-  trackAction(index: number, action: any): string {
+  trackAction(index: number, action: {label?: string; type?: string}): string {
     return action.type + action.label;
   }
 }

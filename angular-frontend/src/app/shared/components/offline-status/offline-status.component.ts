@@ -23,11 +23,15 @@ import { takeUntil } from 'rxjs/operators';
   template: `
     <div class="offline-status-container" [class.expanded]="showDetails">
       <!-- Connection Status Indicator -->
-      <div class="connection-indicator"
+      <button
+           type="button"
+           class="connection-indicator"
            [class.online]="syncStatus.isOnline"
            [class.offline]="!syncStatus.isOnline"
            [class.syncing]="syncStatus.isSyncing"
-           (click)="toggleDetails()">
+           (click)="toggleDetails()"
+           [attr.aria-label]="syncStatus.isOnline ? 'Online - Click for details' : 'Offline - Click for details'"
+           [attr.aria-expanded]="showDetails">
 
         <!-- Online Status -->
         <div *ngIf="syncStatus.isOnline && !syncStatus.isSyncing" class="status-content">
@@ -58,7 +62,7 @@ import { takeUntil } from 'rxjs/operators';
         <mat-icon class="expand-icon" [class.expanded]="showDetails">
           {{ showDetails ? 'expand_less' : 'expand_more' }}
         </mat-icon>
-      </div>
+      </button>
 
       <!-- Detailed Status (expandable) -->
       <div class="status-details" *ngIf="showDetails">

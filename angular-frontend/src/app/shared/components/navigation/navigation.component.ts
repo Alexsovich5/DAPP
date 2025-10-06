@@ -101,14 +101,15 @@ import { Observable } from 'rxjs';
             (keydown.escape)="closeUserMenu()"
             (keydown.arrowdown)="openUserMenuAndFocus()"
             (blur)="onUserMenuBlur($event)">
-            <div class="user-avatar" [attr.aria-label]="'User avatar for ' + getUserInitial()">
+            <span class="user-avatar" [attr.aria-label]="'User avatar for ' + getUserInitial()">
               <span aria-hidden="true">{{getUserInitial()}}</span>
-            </div>
+            </span>
             <div
               class="user-dropdown"
               *ngIf="userMenuOpen"
               role="menu"
               aria-label="User menu options"
+              tabindex="-1"
               (keydown)="handleDropdownKeydown($event)">
               <a
                 routerLink="/profile"

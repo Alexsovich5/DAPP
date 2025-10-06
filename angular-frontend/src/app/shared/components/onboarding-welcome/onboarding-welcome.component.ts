@@ -4,7 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
-import { trigger, state, style, animate, transition } from '@angular/animations';
+import { trigger, style, animate, transition } from '@angular/animations';
 import { OnboardingService } from '../../../core/services/onboarding.service';
 import { HapticFeedbackService } from '../../../core/services/haptic-feedback.service';
 import { SoulOrbComponent } from '../soul-orb/soul-orb.component';

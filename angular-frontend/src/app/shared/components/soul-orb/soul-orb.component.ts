@@ -610,11 +610,11 @@ export class SoulOrbComponent implements OnInit, OnDestroy, AfterViewInit {
     animate();
   }
 
-  trackParticle(index: number, particle: any): any {
+  trackParticle(index: number, particle: {id: number; x: number; y: number; vx: number; vy: number; life: number}): number {
     return particle.id;
   }
 
-  trackSparkle(index: number, sparkle: any): any {
+  trackSparkle(index: number, sparkle: {id: number; x: number; y: number; delay: number}): number {
     return sparkle.id;
   }
 
@@ -837,15 +837,17 @@ export class SoulOrbComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private checkLowEndDevice(): boolean {
     // Check for low-end device indicators
-    const hardwareConcurrency = (navigator as any).hardwareConcurrency || 2;
-    const deviceMemory = (navigator as any).deviceMemory;
+    const nav = navigator as {hardwareConcurrency?: number; deviceMemory?: number};
+    const hardwareConcurrency = nav.hardwareConcurrency || 2;
+    const deviceMemory = nav.deviceMemory;
 
     // Consider device low-end if it has <= 2 cores or <= 2GB RAM
-    return hardwareConcurrency <= 2 || (deviceMemory && deviceMemory <= 2);
+    return hardwareConcurrency <= 2 || (deviceMemory !== undefined && deviceMemory <= 2);
   }
 
   private getConnectionSpeed(): 'slow' | 'fast' | 'unknown' {
-    const connection = (navigator as any).connection;
+    const nav = navigator as {connection?: {effectiveType?: string; downlink?: number}};
+    const connection = nav.connection;
     if (!connection) return 'unknown';
 
     // Classify connection speed

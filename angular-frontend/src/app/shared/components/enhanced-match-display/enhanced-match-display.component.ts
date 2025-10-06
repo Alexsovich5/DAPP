@@ -380,7 +380,10 @@ export class EnhancedMatchDisplayComponent implements OnInit, OnDestroy {
   constructor() {}
 
   ngOnInit(): void {
-    // Initialization logic handled by component inputs
+    // Component uses input properties for initialization
+    if (this.matchData) {
+      this.selectedTabIndex = 0;
+    }
   }
 
   ngOnDestroy(): void {

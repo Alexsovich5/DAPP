@@ -8,7 +8,7 @@ import { SoulConnectionComponent } from '../soul-connection/soul-connection.comp
   standalone: true,
   imports: [CommonModule, SoulOrbComponent, SoulConnectionComponent],
   template: `
-    <div class="celebration-overlay" [class.active]="isActive" (click)="onOverlayClick()">
+    <button type="button" class="celebration-overlay" [class.active]="isActive" (click)="onOverlayClick()">
       <div class="celebration-container" [ngClass]="celebrationType">
 
         <!-- Celebration background effects -->
@@ -139,12 +139,12 @@ import { SoulConnectionComponent } from '../soul-connection/soul-connection.comp
         </div>
 
         <!-- Close button -->
-        <button class="close-btn" (click)="onDismiss()" aria-label="Close celebration">
+        <button class="close-btn" (click)="onDismiss(); $event.stopPropagation()" aria-label="Close celebration">
           <span>×</span>
         </button>
 
       </div>
-    </div>
+    </button>
   `,
   styles: [`
     .celebration-overlay {
@@ -770,23 +770,23 @@ export class MatchCelebrationComponent implements OnInit, OnDestroy {
     this.onDismiss();
   }
 
-  trackConfetti(index: number, item: any): any {
+  trackConfetti(index: number, item: {id: number; x: number; delay: number; duration: number; color: string}): number {
     return item.id;
   }
 
-  trackSparkle(index: number, item: any): any {
+  trackSparkle(index: number, item: {id: number; x: number; y: number; delay: number}): number {
     return item.id;
   }
 
-  trackHeart(index: number, item: any): any {
+  trackHeart(index: number, item: {id: number; x: number; delay: number; duration: number; emoji: string}): number {
     return item.id;
   }
 
-  trackHighlight(index: number, item: any): any {
+  trackHighlight(index: number, item: {label: string; value: number; color: string}): string {
     return item.label;
   }
 
-  trackInsight(index: number, item: any): any {
+  trackInsight(index: number, item: {text: string; icon: string}): string {
     return item.text;
   }
 }

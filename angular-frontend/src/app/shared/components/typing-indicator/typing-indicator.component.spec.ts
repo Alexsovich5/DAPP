@@ -9,7 +9,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
-import { of, BehaviorSubject, Subject } from 'rxjs';
+import { of, BehaviorSubject } from 'rxjs';
 
 import { TypingIndicatorComponent } from './typing-indicator.component';
 import { WebSocketService } from '../../../core/services/websocket.service';
@@ -348,7 +348,7 @@ describe('TypingIndicatorComponent', () => {
         [mockTypingUsers[2]]
       ];
 
-      rapidChanges.forEach((users, index) => {
+      rapidChanges.forEach((users) => {
         typingSubject.next(users);
         tick(50); // Short delay between changes
       });
@@ -706,7 +706,7 @@ describe('TypingIndicatorComponent', () => {
         { user_id: null, user_name: 'Invalid', connection_id: 1 },
         { user_id: 2, user_name: '', connection_id: 1 },
         { user_id: 3, user_name: 'Valid', connection_id: null }
-      ] as any[];
+      ] as Array<{user_id: number | null; user_name: string; connection_id: number | null}>;
 
       spyOn(console, 'warn');
       typingSubject.next(malformedData);
@@ -726,7 +726,7 @@ describe('TypingIndicatorComponent', () => {
         [mockTypingUsers[0], mockTypingUsers[2]]
       ];
 
-      userSequences.forEach((users, index) => {
+      userSequences.forEach((users) => {
         typingSubject.next(users);
         tick(50);
       });
@@ -741,7 +741,7 @@ describe('TypingIndicatorComponent', () => {
       const usersWithMissingInfo = [
         { ...mockTypingUsers[0], user_name: undefined },
         { ...mockTypingUsers[1], avatar_url: undefined }
-      ] as any[];
+      ] as Array<Record<string, unknown>>;
 
       typingSubject.next(usersWithMissingInfo);
       tick();

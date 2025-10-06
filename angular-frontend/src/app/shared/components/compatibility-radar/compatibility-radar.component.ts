@@ -145,7 +145,8 @@ import { SoulConnectionService } from '../../../core/services/soul-connection.se
 
       <!-- Legend -->
       <div class="compatibility-legend" *ngIf="showLegend">
-        <div
+        <button
+          type="button"
           *ngFor="let item of legendItems; trackBy: trackLegendItem"
           class="legend-item"
           [class.highlighted]="item.highlighted"
@@ -163,7 +164,7 @@ import { SoulConnectionService } from '../../../core/services/soul-connection.se
               [style.background-color]="item.color">
             </div>
           </div>
-        </div>
+        </button>
       </div>
 
       <!-- Insights -->
