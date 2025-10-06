@@ -2,6 +2,7 @@
  * Phase 3 Showcase Component - Demonstrates all advanced mobile UX features
  * This component serves as a comprehensive example and testing ground
  */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';

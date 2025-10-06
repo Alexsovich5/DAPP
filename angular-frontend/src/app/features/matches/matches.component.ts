@@ -32,7 +32,8 @@ import { SoulConnection } from '../../core/interfaces/soul-connection.interfaces
       </div>
 
       <div class="connections-grid" *ngIf="connections.length > 0; else noConnections">
-        <div
+        <button
+          type="button"
           *ngFor="let connection of connections"
           class="connection-card"
           [class.highlight]="shouldHighlight(connection)"
@@ -87,10 +88,11 @@ import { SoulConnection } from '../../core/interfaces/soul-connection.interfaces
           </div>
 
           <div class="connection-actions">
-            <button class="action-btn primary" (click)="startConversation(connection, $event)">
+            <button type="button" class="action-btn primary" (click)="startConversation(connection, $event)">
               <span>💬</span> Continue Chat
             </button>
             <button
+              type="button"
               class="action-btn secondary"
               (click)="viewRevelations(connection, $event)"
               *ngIf="connection.reveal_day > 1"
@@ -98,7 +100,7 @@ import { SoulConnection } from '../../core/interfaces/soul-connection.interfaces
               <span>✨</span> View Revelations
             </button>
           </div>
-        </div>
+        </button>
       </div>
 
       <ng-template #noConnections>
@@ -106,7 +108,7 @@ import { SoulConnection } from '../../core/interfaces/soul-connection.interfaces
           <div class="empty-icon">💫</div>
           <h2>No Soul Connections Yet</h2>
           <p>Start discovering meaningful connections based on emotional compatibility</p>
-          <button class="cta-button" (click)="goToDiscover()">
+          <button type="button" class="cta-button" (click)="goToDiscover()">
             <span>🔍</span> Discover Connections
           </button>
         </div>

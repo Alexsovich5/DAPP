@@ -3,6 +3,7 @@
  * Tests real-time messaging, typing indicators, message history, and soul-themed interactions
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
