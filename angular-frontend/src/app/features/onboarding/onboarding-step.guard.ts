@@ -12,7 +12,7 @@ export class OnboardingStepGuard implements CanActivate {
   constructor(
     private router: Router,
     private storage: StorageService,
-    @Inject(PLATFORM_ID) private platformId: Object
+    @Inject(PLATFORM_ID) private platformId: object
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
