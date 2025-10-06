@@ -1,0 +1,95 @@
+<div class="notifications-container" [class.mobile]="isMobile" [class.bottom-positioned]="isMobile">
+  <!-- Live Region for Screen Readers -->
+  <div aria-live="polite" class="sr-only">
+    <span *ngFor="let notification of activeNotifications">
+      New message from {{ notification.from_user?.user_name || 'System' }}: {{ notification.message }}
+    </span>
+  </div>
+
+  <!-- Active Notifications -->
+  <div class="active-notifications">
+    <button type="button"
+         *ngFor="let notification of activeNotifications"
+         class="notification-container"
+         [class.mobile]="isMobile"
+         [class.high-contrast]="highContrastMode"
+         [class.reduced-motion]="false"
+         [class.notification-urgent]="notification.priority === 'urgent'"
+         [class.priority-urgent]="notification.priority === 'urgent'"
+         [class.priority-high]="notification.priority === 'high'"
+         [class.priority-medium]="notification.priority === 'medium'"
+         [class.priority-low]="notification.priority === 'low'"
+         [attr.role]="'alert'"
+         [attr.aria-label]="notification.title + ': ' + notification.message"
+         [attr.tabindex]="0"
+         (click)="navigateToAction(notification)"
+         (mouseenter)="cancelAutoDismiss(notification)"
+         (mouseleave)="resumeAutoDismiss(notification)"
+         (swipeleft)="isMobile && dismissNotification(notification)">
+
+      <!-- Notification Content -->
+      <div class="notification-content">
+        <!-- Avatar -->
+        <img *ngIf="notification.from_user?.avatar_url"
+             class="notification-avatar"
+             [src]="notification.from_user.avatar_url"
+             [alt]="notification.from_user.user_name + ' avatar'">
+        <div *ngIf="!notification.from_user?.avatar_url" class="default-avatar">
+          <mat-icon>{{ getNotificationIcon(notification.type) }}</mat-icon>
+        </div>
+
+        <!-- Text Content -->
+        <div class="notification-text">
+          <div class="notification-title">{{ notification.title }}</div>
+          <div class="notification-message">{{ notification.message }}</div>
+          <div class="notification-timestamp">
+            {{ getRelativeTime(notification.timestamp) }}
+          </div>
+        </div>
+
+        <!-- Dismiss Button -->
+        <button type="button"
+                class="dismiss-button"
+                [attr.aria-label]="'Dismiss notification'"
+                (click)="dismissNotification(notification); $event.stopPropagation()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <!-- Action Buttons -->
+      <div *ngIf="notification.action_data?.requires_response" class="notification-actions">
+        <button type="button"
+                class="notification-action action-view"
+                [attr.tabindex]="0"
+                (click)="handleActionClick(notification, 'view'); $event.stopPropagation()"
+                (keydown.enter)="handleActionClick(notification, 'view'); $event.stopPropagation()">
+          View
+        </button>
+        <button type="button"
+                class="notification-action action-dismiss"
+                (click)="dismissNotification(notification); $event.stopPropagation()">
+          Dismiss
+        </button>
+      </div>
+
+      <!-- Auto-dismiss Progress Bar -->
+      <div *ngIf="notification.auto_dismiss && notification.dismiss_timeout" class="auto-dismiss-progress">
+        <div class="dismiss-countdown">{{ (notification.dismiss_timeout / 1000) }}s</div>
+        <div class="progress-bar"></div>
+      </div>
+    </button>
+  </div>
+
+  <!-- Notification History (Virtual Scroll) -->
+  <div *ngIf="showNotificationHistory" class="notification-history">
+    <cdk-virtual-scroll-viewport itemSize="100" class="history-viewport">
+      <div *cdkVirtualFor="let notification of notificationHistory"
+           class="history-notification"
+           [attr.tabindex]="0">
+        <div class="notification-title">{{ notification.title }}</div>
+        <div class="notification-message">{{ notification.message }}</div>
+        <div class="notification-timestamp">{{ notification.timestamp | date:'short' }}</div>
+      </div>
+    </cdk-virtual-scroll-viewport>
+  </div>
+</div>
