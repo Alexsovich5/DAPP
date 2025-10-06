@@ -367,7 +367,7 @@ export class WebSocketPoolService implements OnDestroy {
     }
   }
 
-  private routeMessageToConnectionSubscribers(connectionId: string, message: WebSocketMessage): void {
+  private routeMessageToConnectionSubscribers(_connectionId: string, _message: WebSocketMessage): void {
     // This could be extended to support connection-level subscribers
     // For now, we rely on channel-based routing
   }

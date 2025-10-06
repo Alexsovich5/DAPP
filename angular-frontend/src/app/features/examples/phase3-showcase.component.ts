@@ -21,7 +21,6 @@ import { RevelationTimelineComponent, RevelationTimelineData } from '../revelati
 import { AdvancedSwipeDirective } from '../../shared/directives/advanced-swipe.directive';
 
 // Mock data interfaces
-import { TypingUser } from '../../core/services/chat.service';
 
 @Component({
   selector: 'app-phase3-showcase',

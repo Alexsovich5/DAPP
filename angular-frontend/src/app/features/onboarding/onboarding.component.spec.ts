@@ -4,7 +4,7 @@
  */
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -22,12 +22,11 @@ import { of, throwError } from 'rxjs';
 import { OnboardingComponent } from './onboarding.component';
 import { OnboardingService } from '../../core/services/onboarding.service';
 import { AuthService } from '../../core/services/auth.service';
-import { ProfileService } from '../../core/services/profile.service';
 import { NotificationService } from '../../core/services/notification.service';
 
-interface OnboardingStep {
-  stepNumber: number;
-  title: string;
+interface SoulMappingQuestion {
+  id: string;
+  question: string;
   description: string;
   isCompleted: boolean;
   isActive: boolean;
@@ -50,7 +49,6 @@ describe('OnboardingComponent', () => {
   let fixture: ComponentFixture<OnboardingComponent>;
   let onboardingService: jasmine.SpyObj<OnboardingService>;
   let authService: jasmine.SpyObj<AuthService>;
-  let profileService: jasmine.SpyObj<ProfileService>;
   let notificationService: jasmine.SpyObj<NotificationService>;
 
   const mockSoulMappingQuestions: SoulMappingQuestion[] = [
