@@ -25,12 +25,12 @@ export class LoadingStateDirective implements OnInit, OnDestroy {
   @Input('appLoadingStateShowMessage') showMessage: boolean = true;
 
   private subscription?: Subscription;
-  private contentViewRef?: EmbeddedViewRef<any>;
+  private contentViewRef?: EmbeddedViewRef<unknown>;
   private skeletonComponents: ComponentRef<SkeletonLoaderComponent>[] = [];
   private messageElement?: HTMLElement;
 
   constructor(
-    private templateRef: TemplateRef<any>,
+    private templateRef: TemplateRef<unknown>,
     private viewContainer: ViewContainerRef,
     private loadingStateService: LoadingStateService
   ) {}

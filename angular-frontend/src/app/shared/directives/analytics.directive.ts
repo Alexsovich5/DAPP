@@ -20,7 +20,7 @@ import { GestureService, GestureEvent } from '../services/gesture.service';
 export class AnalyticsDirective implements OnInit, OnDestroy {
   @Input() trackingName!: string;
   @Input() trackingCategory: EventCategory = 'user_interaction';
-  @Input() trackingData: Record<string, any> = {};
+  @Input() trackingData: Record<string, unknown> = {};
   @Input() trackClicks: boolean = true;
   @Input() trackHovers: boolean = false;
   @Input() trackScrollIntoView: boolean = false;
@@ -105,7 +105,7 @@ export class AnalyticsDirective implements OnInit, OnDestroy {
         this.analytics.trackGesture(gestureEvent);
         this.trackEvent('gesture', {
           gestureType: gestureEvent.type,
-          gestureDirection: (gestureEvent as any).swipeDirection || 'none'
+          gestureDirection: (gestureEvent as {swipeDirection?: string}).swipeDirection || 'none'
         });
       });
   }
@@ -136,7 +136,7 @@ export class AnalyticsDirective implements OnInit, OnDestroy {
     this.trackEvent('focus');
   }
 
-  private trackEvent(action: string, additionalData: Record<string, any> = {}): void {
+  private trackEvent(action: string, additionalData: Record<string, unknown> = {}): void {
     const eventName = `${this.trackingName}_${action}`;
     const eventData = {
       ...this.trackingData,
@@ -166,7 +166,7 @@ export class AnalyticsDirective implements OnInit, OnDestroy {
 })
 export class ProfileAnalyticsDirective implements OnInit, OnDestroy {
   @Input() profileId!: string;
-  @Input() profileData: any;
+  @Input() profileData: Record<string, unknown>;
 
   private destroy$ = new Subject<void>();
   private viewStartTime?: number;

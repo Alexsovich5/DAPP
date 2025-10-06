@@ -9,7 +9,7 @@ import {
   AfterViewInit
 } from '@angular/core';
 import { Subject } from 'rxjs';
-import { takeUntil, throttleTime, debounceTime } from 'rxjs/operators';
+import { takeUntil, throttleTime } from 'rxjs/operators';
 import { MobilePerformanceService, LazyLoadConfig, ImageOptimizationConfig } from '../services/mobile-performance.service';
 import { MobileFeaturesService } from '../services/mobile-features.service';
 
@@ -296,7 +296,7 @@ export class MobilePerformanceDirective implements OnInit, OnDestroy, AfterViewI
   standalone: true
 })
 export class ProfileCardPerformanceDirective implements OnInit, OnDestroy, AfterViewInit {
-  @Input() profileData: any;
+  @Input() profileData: Record<string, unknown>;
   @Input() isVisible: boolean = true;
 
   private destroy$ = new Subject<void>();
@@ -520,7 +520,7 @@ export class MessageListPerformanceDirective implements OnInit, OnDestroy {
     });
   }
 
-  private optimizeMessageRendering(config: any): void {
+  private optimizeMessageRendering(config: {virtualScroll?: boolean; messageCount?: number}): void {
     const element = this.elementRef.nativeElement;
 
     // Apply batching for message updates

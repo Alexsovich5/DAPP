@@ -196,28 +196,32 @@ export class GesturesDirective implements OnInit, OnDestroy {
           // Emit specific events based on gesture type
           switch (event.type) {
             case 'swipe':
-              const swipeEvent = event as SwipeEvent;
-              this.swipe.emit(swipeEvent);
+              {
+                const swipeEvent = event as SwipeEvent;
+                this.swipe.emit(swipeEvent);
 
-              switch (swipeEvent.swipeDirection) {
-                case 'left':
-                  this.swipeLeft.emit(swipeEvent);
-                  break;
-                case 'right':
-                  this.swipeRight.emit(swipeEvent);
-                  break;
-                case 'up':
-                  this.swipeUp.emit(swipeEvent);
-                  break;
-                case 'down':
-                  this.swipeDown.emit(swipeEvent);
-                  break;
+                switch (swipeEvent.swipeDirection) {
+                  case 'left':
+                    this.swipeLeft.emit(swipeEvent);
+                    break;
+                  case 'right':
+                    this.swipeRight.emit(swipeEvent);
+                    break;
+                  case 'up':
+                    this.swipeUp.emit(swipeEvent);
+                    break;
+                  case 'down':
+                    this.swipeDown.emit(swipeEvent);
+                    break;
+                }
               }
               break;
 
             case 'pinch':
-              const pinchEvent = event as PinchEvent;
-              this.pinch.emit(pinchEvent);
+              {
+                const pinchEvent = event as PinchEvent;
+                this.pinch.emit(pinchEvent);
+              }
               break;
 
             case 'longpress':
@@ -257,7 +261,7 @@ export class GesturesDirective implements OnInit, OnDestroy {
 
   // Host listeners for additional touch feedback
   @HostListener('touchstart', ['$event'])
-  onTouchStart(event: TouchEvent): void {
+  onTouchStart(_event: TouchEvent): void {
     if (this.mobileFeatures.isTouchDevice()) {
       this.elementRef.nativeElement.classList.add('touch-active');
     }
@@ -265,7 +269,7 @@ export class GesturesDirective implements OnInit, OnDestroy {
 
   @HostListener('touchend', ['$event'])
   @HostListener('touchcancel', ['$event'])
-  onTouchEnd(event: TouchEvent): void {
+  onTouchEnd(_event: TouchEvent): void {
     if (this.mobileFeatures.isTouchDevice()) {
       this.elementRef.nativeElement.classList.remove('touch-active');
     }
