@@ -326,22 +326,22 @@ export class SoulConnectionRealtimeService implements OnDestroy {
         break;
 
       case 'compatibility_update':
-        this.compatibilityUpdates$.next(message.data as CompatibilityUpdate);
+        this.compatibilityUpdates$.next(message.data as unknown as CompatibilityUpdate);
         break;
 
       case 'energy_sync':
-        this.energySyncs$.next(message.data as EnergySync);
+        this.energySyncs$.next(message.data as unknown as EnergySync);
         break;
 
       case 'connection_state_change':
-        this.connectionStateChanges$.next(message.data as SoulConnectionUpdate);
+        this.connectionStateChanges$.next(message.data as unknown as SoulConnectionUpdate);
         break;
     }
   }
 
   private handleCompatibilityMessage(message: WebSocketMessage): void {
     if (message.type === 'compatibility_change') {
-      this.compatibilityUpdates$.next(message.data as CompatibilityUpdate);
+      this.compatibilityUpdates$.next(message.data as unknown as CompatibilityUpdate);
     }
   }
 
@@ -350,7 +350,7 @@ export class SoulConnectionRealtimeService implements OnDestroy {
       case 'revelation_shared':
       case 'revelation_received':
       case 'revelation_mutual_complete':
-        this.revelationNotifications$.next(message.data as RevelationNotification);
+        this.revelationNotifications$.next(message.data as unknown as RevelationNotification);
         break;
     }
   }
@@ -358,7 +358,7 @@ export class SoulConnectionRealtimeService implements OnDestroy {
   private handleConnectionMessage(message: WebSocketMessage): void {
     switch (message.type) {
       case 'energy_pulse':
-        this.energySyncs$.next(message.data as EnergySync);
+        this.energySyncs$.next(message.data as unknown as EnergySync);
         break;
 
       case 'typing_indicator':
@@ -370,7 +370,7 @@ export class SoulConnectionRealtimeService implements OnDestroy {
         break;
 
       case 'revelation_progress':
-        this.revelationNotifications$.next(message.data as RevelationNotification);
+        this.revelationNotifications$.next(message.data as unknown as RevelationNotification);
         break;
     }
   }

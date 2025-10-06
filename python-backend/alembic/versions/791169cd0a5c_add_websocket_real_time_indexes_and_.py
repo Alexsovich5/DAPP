@@ -128,13 +128,9 @@ def upgrade() -> None:
     """
     )
 
-    op.execute(
-        """
-        CREATE INDEX IF NOT EXISTS ix_soul_connections_active_recent
-        ON soul_connections (id, last_activity_at DESC)
-        WHERE status = 'active' AND last_activity_at > NOW() - INTERVAL '7 days'
-    """
-    )
+    # Note: Removed partial index with NOW() as it requires IMMUTABLE function
+    # This index would need CURRENT_TIMESTAMP instead, but for simplicity
+    # we skip this partial index in migrations
 
     # Add composite indexes for real-time compatibility calculations
     # Only if tables exist
