@@ -59,7 +59,7 @@ class MockWebSocket {
     }, 10);
   }
 
-  send(data: string) {
+  send(_data: string) {
     if (this.readyState !== MockWebSocket.OPEN) {
       throw new Error('WebSocket is not open');
     }
@@ -103,7 +103,6 @@ describe('WebSocketService', () => {
   let service: WebSocketService;
   let authService: jasmine.SpyObj<AuthService>;
   let notificationService: jasmine.SpyObj<NotificationService>;
-  let mockWebSocket: MockWebSocket;
 
   beforeEach(() => {
     const authSpy = jasmine.createSpyObj('AuthService', ['getCurrentUser', 'getToken']);
@@ -521,7 +520,7 @@ describe('WebSocketService', () => {
       ];
 
       let receivedCount = 0;
-      service.onTypingIndicator().subscribe(indicator => {
+      service.onTypingIndicator().subscribe(_indicator => {
         receivedCount++;
         if (receivedCount === 2) {
           expect(service.getActiveTypingUsers(1).length).toBe(2);
