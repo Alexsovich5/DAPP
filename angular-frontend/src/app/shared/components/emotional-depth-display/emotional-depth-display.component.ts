@@ -11,8 +11,7 @@ import { takeUntil } from 'rxjs/operators';
 
 import {
   EmotionalDepthService,
-  EmotionalDepthSummary,
-  EmotionalDepthMetrics
+  EmotionalDepthSummary
 } from '../../../core/services/emotional-depth.service';
 
 @Component({

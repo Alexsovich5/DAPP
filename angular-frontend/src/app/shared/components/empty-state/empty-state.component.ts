@@ -628,7 +628,7 @@ export class EmptyStateComponent {
     return this.illustration ? labels[this.illustration] : 'Decorative illustration';
   }
 
-  getTipAriaLabel(tip: any, index: number): string {
+  getTipAriaLabel(tip: {icon?: string, text: string}, index: number): string {
     return `Tip ${index + 1}: ${tip.text}`;
   }
 
@@ -652,7 +652,7 @@ export class EmptyStateComponent {
     this.secondaryActionClick.emit();
   }
 
-  trackTip(index: number, tip: any): string {
+  trackTip(index: number, tip: {icon?: string, text: string}): string {
     return tip.text;
   }
 
