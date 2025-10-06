@@ -279,8 +279,9 @@ class MLflowModelRegistry:
     ) -> Optional[str]:
         """Get the latest version of a model, optionally filtered by stage"""
         try:
-            cache_key = f"mlflow:latest_version: {name}: {
-                stage.value if stage else 'any'} "
+            cache_key = (
+                f"mlflow:latest_version:{name}:{stage.value if stage else 'any'}"
+            )
             cached_version = await self.redis_client.get(cache_key)
 
             if cached_version:

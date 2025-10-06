@@ -630,8 +630,7 @@ _cache_service: Optional[CacheService] = None
 
 def get_cache_service() -> CacheService:
     """Get global cache service instance"""
-    global _cache_service
-    if _cache_service is None:
+    if "_cache_service" not in globals() or _cache_service is None:
         raise RuntimeError("Cache service not initialized")
     return _cache_service
 

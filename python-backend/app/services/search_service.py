@@ -1062,7 +1062,7 @@ _search_service: Optional[ElasticsearchService] = None
 
 def get_search_service() -> ElasticsearchService:
     """Get global search service instance"""
-    global _search_service
+    # global _search_service  # Not needed for read-only
     if _search_service is None:
         raise RuntimeError("Search service not initialized")
     return _search_service

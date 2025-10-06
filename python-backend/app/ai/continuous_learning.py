@@ -480,8 +480,7 @@ class ModelRetrainer:
     ) -> RetrainingJob:
         """Execute model retraining process"""
 
-        job_id = f"retrain_{model_name}_{
-            datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        job_id = f"retrain_{model_name}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
 
         job = RetrainingJob(
             job_id=job_id,

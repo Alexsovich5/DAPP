@@ -966,8 +966,7 @@ db_optimizer: Optional[DatabaseOptimizer] = None
 
 def get_database_optimizer() -> DatabaseOptimizer:
     """Get global database optimizer instance"""
-    global db_optimizer
-    if db_optimizer is None:
+    if "db_optimizer" not in globals() or db_optimizer is None:
         raise RuntimeError("Database optimizer not initialized")
     return db_optimizer
 

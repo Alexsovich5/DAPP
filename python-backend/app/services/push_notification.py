@@ -716,7 +716,7 @@ _push_service: Optional[PushNotificationService] = None
 
 def get_push_service() -> PushNotificationService:
     """Get global push notification service instance"""
-    global _push_service
+    # global _push_service  # Not needed for read-only
     if _push_service is None:
         raise RuntimeError("Push notification service not initialized")
     return _push_service

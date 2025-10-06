@@ -905,8 +905,10 @@ intelligent_cache_manager: Optional[IntelligentCacheManager] = None
 
 def get_intelligent_cache_manager() -> IntelligentCacheManager:
     """Get global intelligent cache manager instance"""
-    global intelligent_cache_manager
-    if intelligent_cache_manager is None:
+    if (
+        "intelligent_cache_manager" not in globals()
+        or intelligent_cache_manager is None
+    ):
         raise Exception(
             "Intelligent cache manager not initialized. Call init_intelligent_cache_manager first."
         )

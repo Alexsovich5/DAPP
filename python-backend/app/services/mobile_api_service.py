@@ -641,7 +641,7 @@ _mobile_api_service: Optional[MobileAPIService] = None
 
 def get_mobile_api_service() -> MobileAPIService:
     """Get global mobile API service instance"""
-    global _mobile_api_service
+    # global _mobile_api_service  # Not needed for read-only
     if _mobile_api_service is None:
         raise RuntimeError("Mobile API service not initialized")
     return _mobile_api_service
