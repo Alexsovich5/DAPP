@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, ValidatorFn, AbstractControl } from '@angular/forms';
+import { FormBuilder, FormGroup, FormControl, Validators, ReactiveFormsModule, ValidatorFn, AbstractControl } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { RegisterData } from '../../../core/interfaces/auth.interfaces';
@@ -105,7 +105,7 @@ export class RegisterComponent implements OnInit {
   }
 
   private passwordMatchValidator(): ValidatorFn {
-    return (control: AbstractControl): {[key: string]: any} | null => {
+    return (control: AbstractControl): {[key: string]: boolean} | null => {
       const form = control as FormGroup;
       const password = form.get('password');
       const confirmPassword = form.get('confirmPassword');
@@ -125,10 +125,10 @@ export class RegisterComponent implements OnInit {
 
     // Use type-safe form initialization
     this.accountForm = this.fb.group<{
-      email: any;
-      username: any;
-      password: any;
-      confirmPassword: any;
+      email: FormControl<string | null>;
+      username: FormControl<string | null>;
+      password: FormControl<string | null>;
+      confirmPassword: FormControl<string | null>;
     }>({
       email: ['', [Validators.required, Validators.email]],
       username: ['', [
@@ -141,10 +141,10 @@ export class RegisterComponent implements OnInit {
     }, { validators: this.passwordMatchValidator() });
 
     this.personalForm = this.fb.group<{
-      firstName: any;
-      lastName: any;
-      birthdate: any;
-      gender: any;
+      firstName: FormControl<string | null>;
+      lastName: FormControl<string | null>;
+      birthdate: FormControl<string | null>;
+      gender: FormControl<string | null>;
     }>({
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
@@ -153,11 +153,11 @@ export class RegisterComponent implements OnInit {
     });
 
     this.preferencesForm = this.fb.group<{
-      dietaryPreferences: any;
-      cuisinePreferences: any;
-      location: any;
-      lookingFor: any;
-      agreeTerms: any;
+      dietaryPreferences: FormControl<string[] | null>;
+      cuisinePreferences: FormControl<string | null>;
+      location: FormControl<string | null>;
+      lookingFor: FormControl<string | null>;
+      agreeTerms: FormControl<boolean | null>;
     }>({
       dietaryPreferences: [[], [Validators.required]],
       cuisinePreferences: ['', [Validators.required]],
