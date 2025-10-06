@@ -670,14 +670,36 @@ class TestAIMatchingServiceCompatibilityCalculations:
 
     def test_calculate_communication_compatibility(self, service):
         """Test communication compatibility calculation"""
-        comm1 = {
-            "style": "deep_thinker",
-            "preference": "meaningful",
-            "frequency": "regular",
-        }
-        comm2 = {"style": "thoughtful", "preference": "profound", "frequency": "daily"}
+        from unittest.mock import Mock
 
-        score = service._calculate_communication_compatibility(comm1, comm2)
+        from app.models.ai_models import UserProfile
+
+        # Create mock UserProfile objects with communication_vector
+        profile1 = Mock(spec=UserProfile)
+        profile1.communication_vector = [
+            0.8,
+            0.7,
+            0.6,
+            0.75,
+            0.65,
+            0.9,
+            0.7,
+            0.85,
+        ] * 4  # 32-dim
+
+        profile2 = Mock(spec=UserProfile)
+        profile2.communication_vector = [
+            0.75,
+            0.8,
+            0.65,
+            0.7,
+            0.7,
+            0.85,
+            0.75,
+            0.8,
+        ] * 4  # 32-dim
+
+        score = service._calculate_communication_compatibility(profile1, profile2)
 
         assert isinstance(score, float)
         assert 0 <= score <= 1
