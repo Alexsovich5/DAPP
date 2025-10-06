@@ -19,7 +19,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { of, throwError, BehaviorSubject } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { ConnectionManagementComponent } from './connection-management.component';
 import { SoulConnectionService } from '../../core/services/soul-connection.service';
@@ -92,7 +92,6 @@ describe('ConnectionManagementComponent', () => {
   let component: ConnectionManagementComponent;
   let fixture: ComponentFixture<ConnectionManagementComponent>;
   let soulConnectionService: jasmine.SpyObj<SoulConnectionService>;
-  let revelationService: jasmine.SpyObj<RevelationService>;
   let authService: jasmine.SpyObj<AuthService>;
   let notificationService: jasmine.SpyObj<NotificationService>;
   let webSocketService: jasmine.SpyObj<WebSocketService>;
