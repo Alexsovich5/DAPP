@@ -189,10 +189,14 @@ def upgrade() -> None:
     op.create_index(
         op.f("ix_experiment_events_id"), "experiment_events", ["id"], unique=False
     )
-    op.drop_index("ix_notification_logs_user_id", table_name="notification_logs")
-    op.drop_table("notification_logs")
-    op.drop_index("ix_push_subscriptions_user_id", table_name="push_subscriptions")
-    op.drop_table("push_subscriptions")
+    op.drop_index(
+        "ix_notification_logs_user_id", table_name="notification_logs", if_exists=True
+    )
+    op.drop_table("notification_logs", if_exists=True)
+    op.drop_index(
+        "ix_push_subscriptions_user_id", table_name="push_subscriptions", if_exists=True
+    )
+    op.drop_table("push_subscriptions", if_exists=True)
     op.add_column(
         "users", sa.Column("notification_preferences", sa.JSON(), nullable=True)
     )
