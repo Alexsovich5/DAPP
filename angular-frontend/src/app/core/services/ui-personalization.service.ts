@@ -580,12 +580,13 @@ export class UIPersonalizationService {
     // Implement keyboard shortcuts based on user behavior
     if (event.ctrlKey || event.metaKey) {
       switch (event.key) {
-        case '/':
+        case '/': {
           event.preventDefault();
           // Focus search
           const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement;
           if (searchInput) searchInput.focus();
           break;
+        }
 
         case 'k':
           event.preventDefault();
