@@ -603,11 +603,11 @@ export class MatchCelebrationComponent implements OnInit, OnDestroy {
   @Output() dismiss = new EventEmitter<void>();
 
   isProcessing: boolean = false;
-  confettiParticles: any[] = [];
-  sparkleParticles: any[] = [];
-  heartParticles: any[] = [];
-  compatibilityHighlights: any[] = [];
-  connectionInsights: any[] = [];
+  confettiParticles: Array<{x: number; y: number; color: string; delay: number}> = [];
+  sparkleParticles: Array<{x: number; y: number; delay: number}> = [];
+  heartParticles: Array<{x: number; y: number; delay: number}> = [];
+  compatibilityHighlights: Array<{category: string; score: number; color: string}> = [];
+  connectionInsights: Array<{icon: string; text: string}> = [];
 
   private animationFrame?: number;
 

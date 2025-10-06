@@ -612,7 +612,11 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
   }
 
   ngOnDestroy() {
-    // Cleanup any event listeners if needed
+    // Cleanup subscriptions
+    this.subscriptions.unsubscribe();
+    if (this.refreshTimer) {
+      clearInterval(this.refreshTimer);
+    }
   }
 
   private setupSizing() {

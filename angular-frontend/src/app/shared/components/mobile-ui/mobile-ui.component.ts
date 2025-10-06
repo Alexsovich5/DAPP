@@ -475,7 +475,7 @@ export class MobileUIComponent implements OnInit, OnDestroy {
   }
 
   // Performance optimization
-  trackByFn(index: number, item: any): any {
+  trackByFn(index: number, item: {id?: string | number}): string | number {
     return item.id || index;
   }
 }

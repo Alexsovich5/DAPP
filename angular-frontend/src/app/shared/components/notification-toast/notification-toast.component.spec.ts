@@ -11,7 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatBadgeModule } from '@angular/material/badge';
 import { OverlayModule } from '@angular/cdk/overlay';
-import { of, Subject, BehaviorSubject } from 'rxjs';
+import { of, Subject } from 'rxjs';
 
 import { NotificationToastComponent } from './notification-toast.component';
 import { NotificationService } from '../../../core/services/notification.service';

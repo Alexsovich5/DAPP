@@ -647,7 +647,7 @@ export class NavigationComponent implements OnInit {
     this.userMenuOpen = false;
   }
 
-  onUserMenuBlur(event: FocusEvent) {
+  onUserMenuBlur(_event: FocusEvent) {
     // Close menu if focus moves outside the user menu area
     setTimeout(() => {
       const activeElement = document.activeElement;
@@ -665,15 +665,19 @@ export class NavigationComponent implements OnInit {
 
     switch (event.key) {
       case 'ArrowDown':
-        event.preventDefault();
-        const nextIndex = (currentIndex + 1) % menuItems.length;
-        menuItems[nextIndex]?.focus();
+        {
+          event.preventDefault();
+          const nextIndex = (currentIndex + 1) % menuItems.length;
+          menuItems[nextIndex]?.focus();
+        }
         break;
 
       case 'ArrowUp':
-        event.preventDefault();
-        const prevIndex = currentIndex <= 0 ? menuItems.length - 1 : currentIndex - 1;
-        menuItems[prevIndex]?.focus();
+        {
+          event.preventDefault();
+          const prevIndex = currentIndex <= 0 ? menuItems.length - 1 : currentIndex - 1;
+          menuItems[prevIndex]?.focus();
+        }
         break;
 
       case 'Escape':
