@@ -13,6 +13,7 @@ import {
   DiscoveryResponse,
   CompatibilityResponse
 } from '../interfaces/soul-connection.interfaces';
+import { User } from '../interfaces/auth.interfaces';
 
 @Injectable({
   providedIn: 'root'
@@ -163,7 +164,7 @@ export class SoulConnectionService extends BaseService {
   /**
    * Check if user needs emotional onboarding
    */
-  needsEmotionalOnboarding(user: { emotional_onboarding_completed?: boolean }): boolean {
+  needsEmotionalOnboarding(user: User): boolean {
     // Check if onboarding is completed according to localStorage
     const isOnboardingComplete = this.storage.getItem('onboarding_completed') === 'true';
 

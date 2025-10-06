@@ -10,36 +10,7 @@ import { of } from 'rxjs';
 import { SoulConnectionService } from './soul-connection.service';
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
-
-interface SoulConnection {
-  id: number;
-  user1_id: number;
-  user2_id: number;
-  connection_stage: string;
-  compatibility_score: number;
-  compatibility_breakdown: {
-    interests: number;
-    values: number;
-    demographics: number;
-    communication: number;
-    personality: number;
-  };
-  reveal_day: number;
-  mutual_reveal_consent: boolean | null;
-  first_dinner_completed: boolean;
-  created_at: string;
-}
-
-interface DiscoveryResponse {
-  user_id: number;
-  compatibility_score: number;
-  preview_profile: {
-    life_philosophy: string;
-    core_values: string[];
-    interests: string[];
-    emotional_depth_score: number;
-  };
-}
+import { DiscoveryResponse, SoulConnection, SoulConnectionCreate } from '../interfaces/soul-connection.interfaces';
 
 describe('SoulConnectionService', () => {
   let service: SoulConnectionService;
@@ -74,19 +45,31 @@ describe('SoulConnectionService', () => {
       const mockMatches: DiscoveryResponse[] = [
         {
           user_id: 2,
-          compatibility_score: 85.5,
-          preview_profile: {
-            life_philosophy: 'Connection before appearance',
-            core_values: ['authenticity', 'growth'],
+          compatibility: {
+            total_compatibility: 85.5,
+            breakdown: {
+              interests: 80,
+              values: 90,
+              demographics: 85,
+              communication: 85,
+              personality: 88
+            },
+            match_quality: 'high',
+            explanation: 'High compatibility match'
+          },
+          profile_preview: {
+            first_name: 'Jane',
+            age: 28,
             interests: ['reading', 'hiking'],
             emotional_depth_score: 8.5
-          }
+          },
+          is_photo_hidden: true
         }
       ];
 
       service.discoverSoulConnections().subscribe(matches => {
         expect(matches.length).toBe(1);
-        expect(matches[0].compatibility_score).toBe(85.5);
+        expect(matches[0].compatibility.total_compatibility).toBe(85.5);
       });
 
       const req = httpMock.expectOne(`${mockApiUrl}/connections/discover`);
@@ -97,15 +80,17 @@ describe('SoulConnectionService', () => {
 
   describe('Soul Connection Initiation', () => {
     it('should initiate a new soul connection', () => {
-      const connectionData = {
-        target_user_id: 2,
-        message: 'I felt a deep connection reading your profile'
+      const connectionData: SoulConnectionCreate = {
+        user2_id: 2,
+        connection_stage: 'soul_discovery',
+        status: 'pending'
       };
 
       const mockResponse: SoulConnection = {
         id: 1,
         user1_id: 1,
         user2_id: 2,
+        initiated_by: 1,
         connection_stage: 'soul_discovery',
         compatibility_score: 85.5,
         compatibility_breakdown: {
@@ -116,9 +101,11 @@ describe('SoulConnectionService', () => {
           personality: 88
         },
         reveal_day: 1,
-        mutual_reveal_consent: null,
+        mutual_reveal_consent: false,
         first_dinner_completed: false,
-        created_at: new Date().toISOString()
+        status: 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
       service.initiateSoulConnection(connectionData).subscribe(connection => {
@@ -140,7 +127,8 @@ describe('SoulConnectionService', () => {
           id: 1,
           user1_id: 1,
           user2_id: 2,
-          connection_stage: 'revelation_sharing',
+          initiated_by: 1,
+          connection_stage: 'revelation_phase',
           compatibility_score: 85.5,
           compatibility_breakdown: {
             interests: 75,
@@ -152,13 +140,15 @@ describe('SoulConnectionService', () => {
           reveal_day: 3,
           mutual_reveal_consent: false,
           first_dinner_completed: false,
-          created_at: '2025-01-15T10:00:00Z'
+          status: 'active',
+          created_at: '2025-01-15T10:00:00Z',
+          updated_at: '2025-01-15T10:00:00Z'
         }
       ];
 
       service.getActiveConnections().subscribe(connections => {
         expect(connections.length).toBe(1);
-        expect(connections[0].connection_stage).toBe('revelation_sharing');
+        expect(connections[0].connection_stage).toBe('revelation_phase');
       });
 
       const req = httpMock.expectOne(`${mockApiUrl}/connections/active`);
@@ -172,7 +162,8 @@ describe('SoulConnectionService', () => {
         id: 1,
         user1_id: 1,
         user2_id: 2,
-        connection_stage: 'revelation_sharing',
+        initiated_by: 1,
+        connection_stage: 'revelation_phase',
         compatibility_score: 85.5,
         compatibility_breakdown: {
           interests: 75,
@@ -184,12 +175,14 @@ describe('SoulConnectionService', () => {
         reveal_day: 3,
         mutual_reveal_consent: false,
         first_dinner_completed: false,
-        created_at: '2025-01-15T10:00:00Z'
+        status: 'active',
+        created_at: '2025-01-15T10:00:00Z',
+        updated_at: '2025-01-15T10:00:00Z'
       };
 
       service.getSoulConnection(connectionId).subscribe(connection => {
         expect(connection.id).toBe(connectionId);
-        expect(connection.connection_stage).toBe('revelation_sharing');
+        expect(connection.connection_stage).toBe('revelation_phase');
       });
 
       const req = httpMock.expectOne(`${mockApiUrl}/connections/${connectionId}`);
@@ -207,6 +200,7 @@ describe('SoulConnectionService', () => {
         id: 1,
         user1_id: 1,
         user2_id: 2,
+        initiated_by: 1,
         connection_stage: 'photo_reveal',
         compatibility_score: 85.5,
         compatibility_breakdown: {
@@ -219,7 +213,9 @@ describe('SoulConnectionService', () => {
         reveal_day: 7,
         mutual_reveal_consent: true,
         first_dinner_completed: false,
-        created_at: '2025-01-15T10:00:00Z'
+        status: 'active',
+        created_at: '2025-01-15T10:00:00Z',
+        updated_at: '2025-01-15T10:00:00Z'
       };
 
       service.progressConnectionStage(connectionId, newStage).subscribe(connection => {
@@ -240,6 +236,7 @@ describe('SoulConnectionService', () => {
         id: 1,
         user1_id: 1,
         user2_id: 2,
+        initiated_by: 1,
         connection_stage: 'photo_reveal',
         compatibility_score: 85.5,
         compatibility_breakdown: {
@@ -252,7 +249,9 @@ describe('SoulConnectionService', () => {
         reveal_day: 7,
         mutual_reveal_consent: true,
         first_dinner_completed: false,
-        created_at: '2025-01-15T10:00:00Z'
+        status: 'active',
+        created_at: '2025-01-15T10:00:00Z',
+        updated_at: '2025-01-15T10:00:00Z'
       };
 
       service.giveRevealConsent(connectionId).subscribe(connection => {

@@ -114,7 +114,8 @@ export class WebSocketPoolService implements OnDestroy {
       this.sendMessage(connection.id, {
         type: 'subscribe',
         channel: channel,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        data: { channel }
       });
     });
 
@@ -301,7 +302,8 @@ export class WebSocketPoolService implements OnDestroy {
         this.sendMessage(connectionId, {
           type: 'subscribe',
           channel: channel,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          data: { channel }
         });
       }
 
@@ -346,7 +348,7 @@ export class WebSocketPoolService implements OnDestroy {
 
     // Handle system messages
     if (message.type === 'heartbeat') {
-      this.sendMessage(connectionId, { type: 'heartbeat_ack', data: null });
+      this.sendMessage(connectionId, { type: 'heartbeat_ack', data: {} });
       return;
     }
 
@@ -400,7 +402,8 @@ export class WebSocketPoolService implements OnDestroy {
           this.sendMessage(connection.id, {
             type: 'subscribe',
             channel: channel,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            data: { channel }
           });
         }
       }
