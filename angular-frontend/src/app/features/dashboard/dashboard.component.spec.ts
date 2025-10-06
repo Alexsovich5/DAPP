@@ -863,7 +863,7 @@ describe('DashboardComponent', () => {
 
       expect(component.isOffline).toBe(true);
       expect(component.showOfflineMessage()).toBe(true);
-    }));
+    });
 
     it('should implement retry logic for failed requests', fakeAsync(() => {
       let callCount = 0;
