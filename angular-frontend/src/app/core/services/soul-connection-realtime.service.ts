@@ -326,22 +326,22 @@ export class SoulConnectionRealtimeService implements OnDestroy {
         break;
 
       case 'compatibility_update':
-        this.compatibilityUpdates$.next(message.data);
+        this.compatibilityUpdates$.next(message.data as CompatibilityUpdate);
         break;
 
       case 'energy_sync':
-        this.energySyncs$.next(message.data);
+        this.energySyncs$.next(message.data as EnergySync);
         break;
 
       case 'connection_state_change':
-        this.connectionStateChanges$.next(message.data);
+        this.connectionStateChanges$.next(message.data as SoulConnectionUpdate);
         break;
     }
   }
 
   private handleCompatibilityMessage(message: WebSocketMessage): void {
     if (message.type === 'compatibility_change') {
-      this.compatibilityUpdates$.next(message.data);
+      this.compatibilityUpdates$.next(message.data as CompatibilityUpdate);
     }
   }
 
@@ -350,7 +350,7 @@ export class SoulConnectionRealtimeService implements OnDestroy {
       case 'revelation_shared':
       case 'revelation_received':
       case 'revelation_mutual_complete':
-        this.revelationNotifications$.next(message.data);
+        this.revelationNotifications$.next(message.data as RevelationNotification);
         break;
     }
   }
@@ -358,19 +358,19 @@ export class SoulConnectionRealtimeService implements OnDestroy {
   private handleConnectionMessage(message: WebSocketMessage): void {
     switch (message.type) {
       case 'energy_pulse':
-        this.energySyncs$.next(message.data);
+        this.energySyncs$.next(message.data as EnergySync);
         break;
 
       case 'typing_indicator':
         this.presenceUpdates$.next({
-          userId: message.data.userId,
-          status: message.data.isTyping ? 'typing' : 'online',
+          userId: message.data['userId'] as string,
+          status: message.data['isTyping'] ? 'typing' : 'online',
           lastSeen: Date.now()
         });
         break;
 
       case 'revelation_progress':
-        this.revelationNotifications$.next(message.data);
+        this.revelationNotifications$.next(message.data as RevelationNotification);
         break;
     }
   }

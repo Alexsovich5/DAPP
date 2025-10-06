@@ -178,9 +178,9 @@ export class ScreenReaderService {
 
     if (breakdown && this.config.verbosityLevel !== 'minimal') {
       const details = [];
-      if (breakdown.values) details.push(`Values: ${breakdown.values}%`);
-      if (breakdown.interests) details.push(`Interests: ${breakdown.interests}%`);
-      if (breakdown.communication) details.push(`Communication: ${breakdown.communication}%`);
+      if (breakdown['values']) details.push(`Values: ${breakdown['values']}%`);
+      if (breakdown['interests']) details.push(`Interests: ${breakdown['interests']}%`);
+      if (breakdown['communication']) details.push(`Communication: ${breakdown['communication']}%`);
 
       if (details.length > 0) {
         message += `. Breakdown: ${details.join(', ')}`;
