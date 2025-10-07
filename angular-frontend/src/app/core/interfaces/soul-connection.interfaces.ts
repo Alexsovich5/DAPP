@@ -60,6 +60,11 @@ export interface ProfilePreview {
   bio?: string;
   interests: string[];
   emotional_depth_score?: number;
+  presence?: {
+    status?: string;
+    lastSeen?: string;
+    activity?: string;
+  };
 }
 
 export interface UserProfile {
