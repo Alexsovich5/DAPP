@@ -124,12 +124,7 @@ export class RegisterComponent implements OnInit {
     eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
 
     // Use type-safe form initialization
-    this.accountForm = this.fb.group<{
-      email: FormControl<string | null>;
-      username: FormControl<string | null>;
-      password: FormControl<string | null>;
-      confirmPassword: FormControl<string | null>;
-    }>({
+    this.accountForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       username: ['', [
         Validators.required,
@@ -140,25 +135,14 @@ export class RegisterComponent implements OnInit {
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator() });
 
-    this.personalForm = this.fb.group<{
-      firstName: FormControl<string | null>;
-      lastName: FormControl<string | null>;
-      birthdate: FormControl<string | null>;
-      gender: FormControl<string | null>;
-    }>({
+    this.personalForm = this.fb.group({
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
       birthdate: ['', [Validators.required, this.minimumAgeValidator(eighteenYearsAgo)]],
       gender: ['', [Validators.required]]
     });
 
-    this.preferencesForm = this.fb.group<{
-      dietaryPreferences: FormControl<string[] | null>;
-      cuisinePreferences: FormControl<string | null>;
-      location: FormControl<string | null>;
-      lookingFor: FormControl<string | null>;
-      agreeTerms: FormControl<boolean | null>;
-    }>({
+    this.preferencesForm = this.fb.group({
       dietaryPreferences: [[], [Validators.required]],
       cuisinePreferences: ['', [Validators.required]],
       location: ['', [Validators.required]],
