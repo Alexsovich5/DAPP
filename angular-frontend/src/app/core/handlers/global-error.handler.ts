@@ -30,7 +30,7 @@ export class GlobalErrorHandler implements ErrorHandler {
 
     // Handle promise rejections
     if (this.isPromiseRejection(error)) {
-      this.handlePromiseRejection(error);
+      this.handlePromiseRejection(error as Record<string, unknown>);
       return;
     }
 
@@ -60,7 +60,7 @@ export class GlobalErrorHandler implements ErrorHandler {
   }
 
   private handlePromiseRejection(error: Record<string, unknown>): void {
-    const rejection = error.rejection;
+    const rejection = error['rejection'];
 
     if (rejection instanceof Error) {
       this.handleJavaScriptError(rejection);
