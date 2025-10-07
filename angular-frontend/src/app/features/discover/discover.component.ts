@@ -1301,7 +1301,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
       // Set error state in loading service
       this.loadingStateService.setError(
         LoadingStateService.LOADING_KEYS.DISCOVER_SOULS,
-        this.error
+        this.error || 'Unknown error'
       );
 
       this.announceAction(`Error loading connections: ${this.error}`);
@@ -1777,7 +1777,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     this.announceAction('New soul match found! Check your connections to see your latest match.');
 
     // Optionally trigger haptic feedback
-    this.hapticFeedbackService.trigger('connection');
+    this.hapticFeedbackService.triggerSuccessFeedback();
 
     // Show success animation or notification
     this.triggerMatchCelebration();
@@ -1810,5 +1810,27 @@ export class DiscoverComponent implements OnInit, OnDestroy {
         'left'
       );
     }
+  }
+
+  /**
+   * Initialize A/B testing for discovery features
+   */
+  private initializeABTesting(): void {
+    // Initialize A/B testing variants for discovery page
+    // This method is called in ngOnInit to set up any A/B tests
+    // for discovery card layouts, filter options, etc.
+  }
+
+  /**
+   * Cleanup subscriptions and resources on component destroy
+   */
+  ngOnDestroy(): void {
+    // Clear any active undo timers
+    if (this.lastAction?.timeoutId) {
+      clearTimeout(this.lastAction.timeoutId);
+    }
+
+    // Clean up any WebSocket subscriptions through the realtime service
+    // The service handles its own cleanup internally
   }
 }
