@@ -318,7 +318,7 @@ export class MobilePerformanceService {
   }
 
   private async loadLazyImage(img: HTMLImageElement, config: LazyLoadConfig): Promise<void> {
-    const src = img.dataset.src;
+    const src = img.dataset['src'];
     if (!src) return;
 
     try {
@@ -383,7 +383,7 @@ export class MobilePerformanceService {
    * Preload critical images for dating app
    */
   async preloadCriticalImages(imageUrls: string[]): Promise<void> {
-    const deviceInfo = this.mobileFeatures.getDeviceInfo();
+    const deviceInfo = this.mobileFeatures.getDeviceInfo() as ReturnType<typeof this.mobileFeatures.getDeviceInfo> & { isLowEndDevice?: boolean };
 
     // Reduce preload count for low-end devices
     const maxPreload = deviceInfo.isLowEndDevice ? 3 : 8;
@@ -427,7 +427,7 @@ export class MobilePerformanceService {
     debounceTime: number;
   } {
     const metrics = this.performanceMetrics$.value;
-    const deviceInfo = this.mobileFeatures.getDeviceInfo();
+    const deviceInfo = this.mobileFeatures.getDeviceInfo() as ReturnType<typeof this.mobileFeatures.getDeviceInfo> & { isLowEndDevice?: boolean };
 
     return {
       shouldVirtualize: deviceInfo.isLowEndDevice || metrics.memoryUsage > 0.7,
@@ -446,7 +446,7 @@ export class MobilePerformanceService {
     enableAdvancedFeatures: boolean;
   } {
     const metrics = this.performanceMetrics$.value;
-    const deviceInfo = this.mobileFeatures.getDeviceInfo();
+    const deviceInfo = this.mobileFeatures.getDeviceInfo() as ReturnType<typeof this.mobileFeatures.getDeviceInfo> & { isLowEndDevice?: boolean };
 
     if (deviceInfo.isLowEndDevice || metrics.memoryUsage > 0.8) {
       return {
@@ -563,12 +563,13 @@ export class MobilePerformanceService {
     const deviceInfo = this.mobileFeatures.getDeviceInfo();
 
     // Detect low-end device based on various factors
+    const deviceMemory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 0;
     const isLowEndDevice =
       deviceInfo.screenSize.width < 400 ||
       navigator.hardwareConcurrency <= 2 ||
-      (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 0 <= 2;
+      deviceMemory <= 2;
 
-    this.updateMetrics({ isLowEndDevice });
+    this.updateMetrics({ isLowEndDevice: Boolean(isLowEndDevice) });
   }
 
   private processPerformanceEntries(entries: PerformanceEntry[]): void {
