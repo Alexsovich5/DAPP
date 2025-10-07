@@ -28,7 +28,10 @@ describe('DiscoverComponent', () => {
   const mockUser = {
     id: 1,
     email: 'test@example.com',
+    username: 'testuser',
     first_name: 'Test',
+    is_profile_complete: true,
+    is_active: true,
     emotional_onboarding_completed: true
   };
 
@@ -241,7 +244,19 @@ describe('DiscoverComponent', () => {
   });
 
   it('should handle connect action', () => {
-    soulConnectionService.initiateSoulConnection.and.returnValue(of({ id: 1 }));
+    soulConnectionService.initiateSoulConnection.and.returnValue(of({
+      id: 1,
+      user1_id: 1,
+      user2_id: 2,
+      initiated_by: 1,
+      connection_stage: 'soul_discovery',
+      reveal_day: 1,
+      mutual_reveal_consent: false,
+      first_dinner_completed: false,
+      status: 'active',
+      created_at: '2025-01-01T00:00:00Z',
+      updated_at: '2025-01-01T00:00:00Z'
+    }));
     component.discoveries = [...mockDiscoveries];
 
     component.onConnect(mockDiscoveries[0]);
