@@ -697,14 +697,14 @@ export interface RevelationDayData {
 export class RevelationTimelineComponent implements OnInit, OnDestroy {
   @Input() timelineData: RevelationTimelineData | null = null;
   @Input() partnerName: string | null = null;
-  @Input() canShareToday = true;
+  @Input() canShareTodayInput = true;
   @Input() isPhotoRevealReady = false;
   @Input() connectionData: Record<string, unknown> | null = null; // Soul connection data with consent status
   @Input() currentUserId: number | null = null;
 
   @Output() dayClicked = new EventEmitter<RevelationDayData>();
-  @Output() shareRevelation = new EventEmitter<number>();
-  @Output() viewRevelation = new EventEmitter<{ dayData: RevelationDayData; type: 'user' | 'partner' }>();
+  @Output() shareRevelationEmit = new EventEmitter<number>();
+  @Output() viewRevelationEmit = new EventEmitter<{ dayData: RevelationDayData; type: 'user' | 'partner' }>();
   @Output() photoConsentGiven = new EventEmitter<void>();
 
   @ViewChild('completionRing', { static: false }) completionRingRef?: ElementRef;
@@ -846,12 +846,12 @@ export class RevelationTimelineComponent implements OnInit, OnDestroy {
     if (!this.canShareToday() || this.hasSharedToday()) return;
 
     this.hapticService.triggerRevelationFeedback();
-    this.shareRevelation.emit(this.timelineData?.currentDay || 1);
+    this.shareRevelationEmit.emit(this.timelineData?.currentDay || 1);
   }
 
   viewRevelation(dayData: RevelationDayData, type: 'user' | 'partner'): void {
     this.hapticService.triggerSelectionFeedback();
-    this.viewRevelation.emit({ dayData, type });
+    this.viewRevelationEmit.emit({ dayData, type });
   }
 
   givePhotoConsent(): void {
@@ -862,7 +862,7 @@ export class RevelationTimelineComponent implements OnInit, OnDestroy {
   }
 
   canShareToday(): boolean {
-    return this.canShareToday && (this.timelineData?.currentDay || 1) <= 7;
+    return this.canShareTodayInput && (this.timelineData?.currentDay || 1) <= 7;
   }
 
   hasSharedToday(): boolean {
@@ -898,7 +898,7 @@ export class RevelationTimelineComponent implements OnInit, OnDestroy {
     if (!this.connectionData) return false;
 
     // Check if both users have given photo consent
-    return this.connectionData.user1_photo_consent && this.connectionData.user2_photo_consent;
+    return !!(this.connectionData['user1_photo_consent'] && this.connectionData['user2_photo_consent']);
   }
 
   hasGivenConsent(): boolean {
@@ -908,10 +908,10 @@ export class RevelationTimelineComponent implements OnInit, OnDestroy {
     // Assuming we have a way to identify the current user
     const currentUserId = this.getCurrentUserId(); // We'll need to inject this
 
-    if (this.connectionData.user1_id === currentUserId) {
-      return this.connectionData.user1_photo_consent;
+    if (this.connectionData['user1_id'] === currentUserId) {
+      return !!this.connectionData['user1_photo_consent'];
     } else {
-      return this.connectionData.user2_photo_consent;
+      return !!this.connectionData['user2_photo_consent'];
     }
   }
 
