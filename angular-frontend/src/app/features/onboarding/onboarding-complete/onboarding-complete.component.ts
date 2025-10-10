@@ -360,23 +360,23 @@ export class OnboardingCompleteComponent implements OnInit {
 
     // Combine into emotional onboarding payload
     const onboardingPayload: EmotionalOnboarding = {
-      relationship_values: emotionalData?.relationship_values || '',
-      ideal_evening: emotionalData?.ideal_evening || '',
-      feeling_understood: emotionalData?.feeling_understood || '',
+      relationship_values: (emotionalData?.['relationship_values'] as string) || '',
+      ideal_evening: (emotionalData?.['ideal_evening'] as string) || '',
+      feeling_understood: (emotionalData?.['feeling_understood'] as string) || '',
       core_values: {
-        relationship_values: emotionalData?.relationship_values,
-        ideal_evening: emotionalData?.ideal_evening,
-        feeling_understood: emotionalData?.feeling_understood,
-        selected_values: personalityData?.relationship_values || []
+        relationship_values: emotionalData?.['relationship_values'],
+        ideal_evening: emotionalData?.['ideal_evening'],
+        feeling_understood: emotionalData?.['feeling_understood'],
+        selected_values: (personalityData?.['relationship_values'] as string[]) || []
       },
       personality_traits: {
-        connection_style: personalityData?.connection_style,
-        social_energy: personalityData?.social_energy,
-        traits: personalityData?.personality_traits || []
+        connection_style: personalityData?.['connection_style'],
+        social_energy: personalityData?.['social_energy'],
+        traits: (personalityData?.['personality_traits'] as string[]) || []
       },
       communication_style: {
-        connection_style: personalityData?.connection_style,
-        social_energy: personalityData?.social_energy
+        connection_style: personalityData?.['connection_style'],
+        social_energy: personalityData?.['social_energy']
       },
       interests: interestData?.interests || []
     };

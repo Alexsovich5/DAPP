@@ -419,8 +419,8 @@ export class PersonalityAssessmentComponent implements OnInit {
     const existingData = this.storage.getJson<Record<string, unknown>>('onboarding_personality');
     if (existingData) {
       this.personalityForm.patchValue(existingData);
-      this.selectedValues = (existingData.relationship_values as string[]) || [];
-      this.selectedTraits = (existingData.personality_traits as string[]) || [];
+      this.selectedValues = (existingData['relationship_values'] as string[]) || [];
+      this.selectedTraits = (existingData['personality_traits'] as string[]) || [];
     }
   }
 

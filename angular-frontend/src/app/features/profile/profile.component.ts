@@ -115,13 +115,13 @@ export class ProfileComponent implements OnInit {
           soulProfileVisibility: profile.soul_profile_visibility || 'discovery',
           photoSharingConsent: profile.photo_sharing_consent || false,
           coreValues: {
-            relationshipValues: profile.emotional_responses?.relationship_values || '',
-            idealEvening: profile.emotional_responses?.ideal_evening || '',
-            feelingUnderstood: profile.emotional_responses?.feeling_understood || ''
+            relationshipValues: profile.emotional_responses?.['relationship_values'] as string || '',
+            idealEvening: profile.emotional_responses?.['ideal_evening'] as string || '',
+            feelingUnderstood: profile.emotional_responses?.['feeling_understood'] as string || ''
           },
           communicationStyle: {
-            preferredStyle: profile.communication_style?.preferred_style || 'deep_conversation',
-            responsePreference: profile.communication_style?.response_preference || 'flexible'
+            preferredStyle: profile.communication_style?.['preferred_style'] as string || 'deep_conversation',
+            responsePreference: profile.communication_style?.['response_preference'] as string || 'flexible'
           }
         };
 

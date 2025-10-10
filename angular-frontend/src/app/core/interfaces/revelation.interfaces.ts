@@ -8,6 +8,10 @@ export interface DailyRevelation {
   is_read: boolean;
   created_at: string;
   sender_name?: string;
+  reactions?: Record<string, {
+    emoji: string;
+    timestamp: string;
+  }>;
 }
 
 export type RevelationType =

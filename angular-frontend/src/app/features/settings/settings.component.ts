@@ -722,9 +722,9 @@ export class SettingsComponent implements OnInit {
   }
 
   detectChanges(): boolean {
-    return JSON.stringify(this.privacySettings) !== JSON.stringify(this.originalSettings.privacy) ||
-           JSON.stringify(this.notificationSettings) !== JSON.stringify(this.originalSettings.notifications) ||
-           JSON.stringify(this.appSettings) !== JSON.stringify(this.originalSettings.app);
+    return JSON.stringify(this.privacySettings) !== JSON.stringify(this.originalSettings['privacy']) ||
+           JSON.stringify(this.notificationSettings) !== JSON.stringify(this.originalSettings['notifications']) ||
+           JSON.stringify(this.appSettings) !== JSON.stringify(this.originalSettings['app']);
   }
 
   saveSettings() {

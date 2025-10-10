@@ -11,7 +11,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { ChatService } from '../../core/services/chat.service';
+import { ChatService, TypingUser } from '../../core/services/chat.service';
 import { AuthService } from '../../core/services/auth.service';
 import { TypingIndicatorComponent } from '../../shared/components/typing-indicator/typing-indicator.component';
 import { Subscription } from 'rxjs';
