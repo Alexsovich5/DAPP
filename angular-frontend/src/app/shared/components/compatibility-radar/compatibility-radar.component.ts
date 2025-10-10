@@ -596,27 +596,9 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
     return pathData + ' Z';
   }
 
-  ngOnInit() {
-    this.setupSizing();
-    this.generateGridRings();
-    this.generateAxes();
-    this.calculateDataPoints();
-    this.generateAxisLabels();
-    this.generateLegendItems();
-    this.generateInsights();
-  }
-
   ngAfterViewInit() {
     if (this.interactive) {
       this.setupInteractivity();
-    }
-  }
-
-  ngOnDestroy() {
-    // Cleanup subscriptions
-    this.subscriptions.unsubscribe();
-    if (this.refreshTimer) {
-      clearInterval(this.refreshTimer);
     }
   }
 
@@ -960,7 +942,7 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
   /**
    * Enhanced lifecycle methods
    */
-  override ngOnInit() {
+  ngOnInit() {
     this.setupSizing();
     this.generateGridRings();
     this.generateAxes();
@@ -969,7 +951,7 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
     this.setupAutoRefresh();
   }
 
-  override ngOnDestroy() {
+  ngOnDestroy() {
     this.subscriptions.unsubscribe();
     this.clearAutoRefresh();
   }

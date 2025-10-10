@@ -1148,10 +1148,10 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.connectionId || this.userConsent) return;
 
     try {
-      const response = await this.revelationService.givePhotoConsent(this.connectionId).toPromise();
+      const response = await this.revelationService.givePhotoConsent(this.connectionId).toPromise() as Record<string, unknown> | undefined;
 
       this.userConsent = true;
-      this.photoRevealed = response?.mutualConsent || false;
+      this.photoRevealed = (response?.['mutualConsent'] as boolean) || false;
 
       if (this.photoRevealed) {
         this.showCelebrate = true;
