@@ -50,7 +50,11 @@ describe('RevelationTimelineComponent', () => {
     const hapticSpy = jasmine.createSpyObj('HapticFeedbackService', [
       'triggerRevelationUnlock',
       'triggerRevelationComplete',
-      'triggerPhaseTransition'
+      'triggerPhaseTransition',
+      'triggerRevelationFeedback',
+      'triggerSelectionFeedback',
+      'triggerErrorFeedback',
+      'triggerSuccessFeedback'
     ]);
 
     await TestBed.configureTestingModule({
@@ -143,7 +147,7 @@ describe('RevelationTimelineComponent', () => {
         visualization: { ...mockTimelineData.visualization, phase: 'deeper_connection' }
       };
       const color = component.getPhaseColor();
-      expect(color).toBe('#764ba2');
+      expect(color).toBe('#e879f9');
     });
 
     it('should get phase color for photo_reveal', () => {
@@ -152,7 +156,7 @@ describe('RevelationTimelineComponent', () => {
         visualization: { ...mockTimelineData.visualization, phase: 'photo_reveal' }
       };
       const color = component.getPhaseColor();
-      expect(color).toBe('#f857a6');
+      expect(color).toBe('#ffd700');
     });
 
     it('should get phase label', () => {

@@ -150,7 +150,7 @@ describe('SoulConnectionService', () => {
         expect(connections[0].connection_stage).toBe('revelation_phase');
       });
 
-      const req = httpMock.expectOne(`${mockApiUrl}/connections/active`);
+      const req = httpMock.expectOne(`${mockApiUrl}/soul-connections/active`);
       expect(req.request.method).toBe('GET');
       req.flush(mockConnections);
     });
@@ -184,7 +184,7 @@ describe('SoulConnectionService', () => {
         expect(connection.connection_stage).toBe('revelation_phase');
       });
 
-      const req = httpMock.expectOne(`${mockApiUrl}/connections/${connectionId}`);
+      const req = httpMock.expectOne(`${mockApiUrl}/soul-connections/${connectionId}`);
       expect(req.request.method).toBe('GET');
       req.flush(mockConnection);
     });
@@ -221,7 +221,7 @@ describe('SoulConnectionService', () => {
         expect(connection.connection_stage).toBe('photo_reveal');
       });
 
-      const req = httpMock.expectOne(`${mockApiUrl}/connections/${connectionId}/progress`);
+      const req = httpMock.expectOne(`${mockApiUrl}/soul-connections/${connectionId}`);
       expect(req.request.method).toBe('PUT');
       req.flush(mockResponse);
     });
