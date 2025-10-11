@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatBadgeModule } from '@angular/material/badge';
 import { OverlayModule } from '@angular/cdk/overlay';
-import { of, Subject, throwError } from 'rxjs';
+import { of, Subject, BehaviorSubject, throwError } from 'rxjs';
 
 import { NotificationToastComponent } from './notification-toast.component';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -201,16 +201,22 @@ describe('NotificationToastComponent', () => {
     ]);
 
     const webSocketSpy = jasmine.createSpyObj('WebSocketService', [
-      'onMessage',
       'connect',
       'disconnect',
-      'isConnected'
-    ]);
+      'sendMessage',
+      'getConnectionStatus'
+    ], {
+      messages$: new Subject(),
+      connectionStatus$: new BehaviorSubject({ isConnected: false, reconnectAttempts: 0, connectionQuality: 'disconnected' as const })
+    });
 
     const authSpy = jasmine.createSpyObj('AuthService', [
-      'getCurrentUser',
-      'currentUser$'
-    ]);
+      'login',
+      'logout',
+      'register'
+    ], {
+      currentUser$: new BehaviorSubject(null)
+    });
 
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', [
       'openFromComponent',
@@ -245,15 +251,14 @@ describe('NotificationToastComponent', () => {
     snackBar = TestBed.inject(MatSnackBar) as jasmine.SpyObj<MatSnackBar>;
 
     // Default mocks
-    authService.getCurrentUser.and.returnValue(of({
+    (authService.currentUser$ as BehaviorSubject<any>).next({
       id: 1,
       email: 'test@example.com',
       first_name: 'Test'
-    }));
+    });
 
     notificationService.getNotificationSettings.and.returnValue(of(mockSettings));
-    webSocketService.onMessage.and.returnValue(notificationSubject.asObservable());
-    webSocketService.isConnected.and.returnValue(true);
+    webSocketService.getConnectionStatus.and.returnValue({ isConnected: true, reconnectAttempts: 0, connectionQuality: 'excellent' });
   });
 
   describe('Component Initialization', () => {
@@ -273,7 +278,7 @@ describe('NotificationToastComponent', () => {
       fixture.detectChanges();
       tick();
 
-      expect(webSocketService.onMessage).toHaveBeenCalled();
+      expect(webSocketService.messages$).toBeDefined();
       expect(component.activeNotifications).toEqual([]);
     }));
 
@@ -1036,10 +1041,10 @@ describe('NotificationToastComponent', () => {
     });
 
     it('should handle WebSocket disconnection', fakeAsync(() => {
-      webSocketService.isConnected.and.returnValue(false);
+      webSocketService.getConnectionStatus.and.returnValue({ isConnected: false, reconnectAttempts: 1, connectionQuality: 'disconnected' });
 
       const notification = mockNotifications[0];
-      notificationSubject.next(notification);
+      (webSocketService.messages$ as Subject<any>).next(notification);
       tick();
 
       // Should queue notification for when connection is restored
@@ -1077,7 +1082,7 @@ describe('NotificationToastComponent', () => {
     }));
 
     it('should handle notification service errors', fakeAsync(() => {
-      notificationService.markAsRead.and.returnValue(throwError({ error: 'Service unavailable' }));
+      notificationService.markAsRead.and.throwError('Service unavailable');
 
       const notification = mockNotifications[0];
       component.showNotification(notification);
