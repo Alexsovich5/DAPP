@@ -81,6 +81,7 @@ export class ProfileService extends BaseService {
   // Get current user's profile data from the user endpoint
   getProfile(): Observable<UserProfileData> {
     return this.http.get<User>(`${this.apiUrl}/users/me`).pipe(
+      map(user => user as unknown as UserProfileData),
       catchError(this.handleError<UserProfileData>('get profile'))
     );
   }
@@ -91,7 +92,7 @@ export class ProfileService extends BaseService {
       map(updatedUser => {
         // Update the auth service's current user
         this.authService.updateCurrentUser(updatedUser);
-        return updatedUser;
+        return updatedUser as unknown as UserProfileData;
       }),
       tap(this.handleSuccess('Profile updated', true)),
       catchError(this.handleError<UserProfileData>('update profile'))

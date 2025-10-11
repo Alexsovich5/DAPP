@@ -397,7 +397,7 @@ export class OnboardingManagerComponent implements OnInit, OnDestroy {
   isDevelopment = false;
 
   currentState: OnboardingState | null = null;
-  availableTours: Array<{id: string; name: string; status: string}> = [];
+  availableTours: Array<{id: string; name: string; category?: string; status?: string}> = [];
 
   private subscription = new Subscription();
 

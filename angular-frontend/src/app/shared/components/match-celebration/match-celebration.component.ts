@@ -2,6 +2,7 @@ import { Component, Input, OnInit, OnDestroy, Output, EventEmitter } from '@angu
 import { CommonModule } from '@angular/common';
 import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 import { SoulConnectionComponent } from '../soul-connection/soul-connection.component';
+import { SoulConfig } from '../../models/soul-types';
 
 @Component({
   selector: 'app-match-celebration',
@@ -589,8 +590,8 @@ import { SoulConnectionComponent } from '../soul-connection/soul-connection.comp
 export class MatchCelebrationComponent implements OnInit, OnDestroy {
   @Input() isActive: boolean = false;
   @Input() compatibilityScore: number = 85;
-  @Input() leftSoul: {type: string; state: string; energy: number; label: string} = { type: 'primary', state: 'matched', energy: 5, label: 'You' };
-  @Input() rightSoul: {type: string; state: string; energy: number; label: string} = { type: 'secondary', state: 'matched', energy: 5, label: 'Match' };
+  @Input() leftSoul: SoulConfig = { type: 'primary', state: 'matched', energy: 5, label: 'You' };
+  @Input() rightSoul: SoulConfig = { type: 'secondary', state: 'matched', energy: 5, label: 'Match' };
   @Input() matchData: Record<string, unknown> = {};
   @Input() showConfetti: boolean = true;
   @Input() showSparkles: boolean = true;
@@ -603,10 +604,10 @@ export class MatchCelebrationComponent implements OnInit, OnDestroy {
   @Output() dismiss = new EventEmitter<void>();
 
   isProcessing: boolean = false;
-  confettiParticles: Array<{x: number; y: number; color: string; delay: number}> = [];
-  sparkleParticles: Array<{x: number; y: number; delay: number}> = [];
-  heartParticles: Array<{x: number; y: number; delay: number}> = [];
-  compatibilityHighlights: Array<{category: string; score: number; color: string}> = [];
+  confettiParticles: Array<{id: number; x: number; delay: number; duration: number; color: string}> = [];
+  sparkleParticles: Array<{id: number; x: number; y: number; delay: number}> = [];
+  heartParticles: Array<{id: number; x: number; delay: number; duration: number; emoji: string}> = [];
+  compatibilityHighlights: Array<{label: string; score: number; icon: string; color: string; level: string}> = [];
   connectionInsights: Array<{icon: string; text: string}> = [];
 
   private animationFrame?: number;
@@ -782,7 +783,7 @@ export class MatchCelebrationComponent implements OnInit, OnDestroy {
     return item.id;
   }
 
-  trackHighlight(index: number, item: {label: string; value: number; color: string}): string {
+  trackHighlight(index: number, item: {label: string; score: number; icon: string; color: string; level: string}): string {
     return item.label;
   }
 

@@ -47,10 +47,11 @@ interface TypingIndicator {
 }
 
 interface WebSocketMessage {
-  type: 'message' | 'typing_start' | 'typing_stop' | 'online_users' | 'user_status';
-  data: Message | TypingUser | string[] | UserStatusData;
+  type: 'message' | 'typing_start' | 'typing_stop' | 'online_users' | 'user_status' | 'emotional_state_update';
+  data: Message | TypingUser | string[] | UserStatusData | Record<string, unknown>;
   userId?: string;
-  timestamp?: number;
+  chatId?: string;
+  timestamp?: number | string;
 }
 
 interface UserStatusData {
@@ -367,6 +368,7 @@ export class ChatService {
         this.socket$.next({
           type: 'typing_stop',
           chatId,
+          data: {},
           timestamp: Date.now()
         });
       }
@@ -562,10 +564,10 @@ export class ChatService {
 
         return Array.from(typingMap.values()).map(user => ({
           ...user,
-          connectionStage: activity.get(user.id)?.connectionStage,
-          compatibilityScore: activity.get(user.id)?.compatibilityScore,
-          lastActivity: activity.get(user.id)?.lastActivity,
-          connectionEnergy: activity.get(user.id)?.connectionEnergy,
+          connectionStage: activity.get(user.id)?.[' connectionStage'] as TypingUser['connectionStage'],
+          compatibilityScore: activity.get(user.id)?.[' compatibilityScore'] as number | undefined,
+          lastActivity: activity.get(user.id)?.[' lastActivity'] as Date | undefined,
+          connectionEnergy: activity.get(user.id)?.[' connectionEnergy'] as TypingUser['connectionEnergy'],
           emotionalState: emotions.get(user.id) as 'contemplative' | 'romantic' | 'energetic' | 'peaceful' | 'sophisticated' | undefined
         }));
       }),

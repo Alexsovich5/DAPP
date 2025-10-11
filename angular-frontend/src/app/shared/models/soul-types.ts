@@ -3,8 +3,8 @@
  */
 
 export interface SoulConfig {
-  type: 'primary' | 'secondary' | 'potential';
-  state: 'active' | 'inactive' | 'connecting' | 'connected';
+  type: 'primary' | 'secondary' | 'neutral';
+  state: 'active' | 'dormant' | 'connecting' | 'matched';
   energy: number;
   label: string;
   showParticles?: boolean;

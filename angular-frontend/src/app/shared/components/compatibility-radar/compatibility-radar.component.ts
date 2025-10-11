@@ -512,14 +512,14 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
   svgSize: number = 300;
   center = { x: 150, y: 150 };
   maxRadius: number = 120;
-  gridRings: Array<{radius: number; value: number}> = [];
-  axes: Array<{x1: number; y1: number; x2: number; y2: number; category: string}> = [];
-  dataPoints: Array<{x: number; y: number; value: number; category: string; color: string}> = [];
-  axisLabels: Array<{x: number; y: number; text: string}> = [];
-  legendItems: Array<{color: string; label: string; value: number}> = [];
+  gridRings: Array<{radius: number; value?: number; width?: number}> = [];
+  axes: Array<{x: number; y: number}> = [];
+  dataPoints: Array<{x: number; y: number; score: number; category: string; color: string; key?: string; strokeColor?: string; highlight?: boolean; description?: string}> = [];
+  axisLabels: Array<{x: number; y: number; text: string; key?: string}> = [];
+  legendItems: Array<{color: string; label: string; score: number; key?: string; highlighted?: boolean}> = [];
   insights: Array<{icon: string; text: string; type: string}> = [];
 
-  hoveredPoint: {x: number; y: number; value: number; category: string; color: string} | null = null;
+  hoveredPoint: {x: number; y: number; score: number; category: string; color: string; description?: string} | null = null;
   tooltip = { x: 0, y: 0 };
 
   // Real-time data management
@@ -527,7 +527,7 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
   private refreshTimer?: number;
   private currentCompatibility?: CompatibilityBreakdown;
   private isLoading = false;
-  private hasError = false;
+  hasError = false;
 
   private readonly categories = [
     { key: 'values', label: 'Values', color: '#ffd700', angle: 0 },
@@ -596,27 +596,9 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
     return pathData + ' Z';
   }
 
-  ngOnInit() {
-    this.setupSizing();
-    this.generateGridRings();
-    this.generateAxes();
-    this.calculateDataPoints();
-    this.generateAxisLabels();
-    this.generateLegendItems();
-    this.generateInsights();
-  }
-
   ngAfterViewInit() {
     if (this.interactive) {
       this.setupInteractivity();
-    }
-  }
-
-  ngOnDestroy() {
-    // Cleanup subscriptions
-    this.subscriptions.unsubscribe();
-    if (this.refreshTimer) {
-      clearInterval(this.refreshTimer);
     }
   }
 
@@ -794,32 +776,32 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
     // Update legend highlighting
     const legendItem = this.legendItems.find(item => item.label === point.key);
     if (legendItem) {
-      legendItem.value = point.highlight ? 100 : legendItem.value;
+      legendItem.score = point.highlight ? 100 : legendItem.score;
     }
   }
 
-  onLegendClick(item: {label: string; value: number; color: string}) {
+  onLegendClick(item: {label: string; score: number; color: string; key?: string; highlighted?: boolean}) {
     if (!this.interactive) return;
 
     // Toggle highlighting
-    const highlighted = item.value > 50;
+    const highlighted = item.score > 50;
 
     // Update corresponding data point
     const dataPoint = this.dataPoints.find(point => point.category === item.label);
     if (dataPoint) {
-      dataPoint.value = highlighted ? dataPoint.value : 0;
+      dataPoint.score = highlighted ? dataPoint.score : 0;
     }
   }
 
-  trackPoint(index: number, point: {x: number; y: number; value: number; category: string; color: string}): string {
+  trackPoint(index: number, point: {x: number; y: number; score: number; category: string; color: string; key?: string; strokeColor?: string; highlight?: boolean; description?: string}): string {
     return point.category;
   }
 
-  trackLabel(index: number, label: {x: number; y: number; text: string}): string {
+  trackLabel(index: number, label: {x: number; y: number; text: string; key?: string}): string {
     return label.text;
   }
 
-  trackLegendItem(index: number, item: {color: string; label: string; value: number}): string {
+  trackLegendItem(index: number, item: {color: string; label: string; score: number; key?: string; highlighted?: boolean}): string {
     return item.label;
   }
 
@@ -960,7 +942,7 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
   /**
    * Enhanced lifecycle methods
    */
-  override ngOnInit() {
+  ngOnInit() {
     this.setupSizing();
     this.generateGridRings();
     this.generateAxes();
@@ -969,7 +951,7 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
     this.setupAutoRefresh();
   }
 
-  override ngOnDestroy() {
+  ngOnDestroy() {
     this.subscriptions.unsubscribe();
     this.clearAutoRefresh();
   }

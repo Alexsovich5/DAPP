@@ -868,6 +868,6 @@ export class OnboardingTooltipComponent implements OnInit, OnDestroy, AfterViewI
    * Track function for actions
    */
   trackAction(index: number, action: {label?: string; type?: string}): string {
-    return action.type + action.label;
+    return (action.type ?? '') + (action.label ?? '');
   }
 }

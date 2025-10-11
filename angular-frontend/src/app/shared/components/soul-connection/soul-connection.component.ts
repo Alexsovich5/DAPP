@@ -43,8 +43,8 @@ import { SoulConfig } from '../../models/soul-types';
           [energyLevel]="leftSoul.energy"
           [compatibilityScore]="compatibilityScore"
           [showCompatibility]="showCompatibility && isLeftSelected"
-          [showParticles]="leftSoul.showParticles"
-          [showSparkles]="leftSoul.showSparkles"
+          [showParticles]="leftSoul.showParticles ?? true"
+          [showSparkles]="leftSoul.showSparkles ?? true"
           [ariaLabel]="getLeftSoulAriaLabel()"
         >
         </app-soul-orb>
@@ -208,8 +208,8 @@ import { SoulConfig } from '../../models/soul-types';
           [energyLevel]="rightSoul.energy"
           [compatibilityScore]="compatibilityScore"
           [showCompatibility]="showCompatibility && !isLeftSelected"
-          [showParticles]="rightSoul.showParticles"
-          [showSparkles]="rightSoul.showSparkles"
+          [showParticles]="rightSoul.showParticles ?? true"
+          [showSparkles]="rightSoul.showSparkles ?? true"
           [ariaLabel]="getRightSoulAriaLabel()"
         >
         </app-soul-orb>
@@ -528,8 +528,8 @@ export class SoulConnectionComponent implements OnInit, OnDestroy, OnChanges {
   @Input() connectionId: string = 'connection-' + Math.random().toString(36).substr(2, 9);
   @Input() announceChanges: boolean = true;
 
-  connectionParticles: Record<string, unknown>[] = [];
-  connectionHearts: Record<string, unknown>[] = [];
+  connectionParticles: Array<{x: number; y: number; size: number; color: string; delay: number; duration: number}> = [];
+  connectionHearts: Array<{x: number; y: number; delay: number}> = [];
   isLeftSelected: boolean = true;
 
   private animationFrame?: number;
@@ -649,7 +649,6 @@ export class SoulConnectionComponent implements OnInit, OnDestroy, OnChanges {
 
     for (let i = 0; i < particleCount; i++) {
       this.connectionParticles.push({
-        id: i,
         x: 20 + Math.random() * 160,
         y: 45 + Math.random() * 10,
         size: 1 + Math.random() * 2,
@@ -668,7 +667,6 @@ export class SoulConnectionComponent implements OnInit, OnDestroy, OnChanges {
 
     for (let i = 0; i < heartCount; i++) {
       this.connectionHearts.push({
-        id: i,
         x: 40 + Math.random() * 120,
         y: 45 + Math.random() * 10,
         delay: Math.random() * 3
@@ -776,7 +774,7 @@ export class SoulConnectionComponent implements OnInit, OnDestroy, OnChanges {
       'low': `Exploring compatibility at ${score}% - discovering connection potential`
     };
 
-    return levelDescriptions[level] || `Compatibility score: ${score}%`;
+    return levelDescriptions[level as keyof typeof levelDescriptions] || `Compatibility score: ${score}%`;
   }
 
   private getEnergyDescription(): string {
@@ -805,7 +803,7 @@ export class SoulConnectionComponent implements OnInit, OnDestroy, OnChanges {
       'strong-match': 'Exceptional soul match achieved - powerful connection formed'
     };
 
-    const message = stateMessages[newState] || `Connection state changed to ${newState}`;
+    const message = stateMessages[newState as keyof typeof stateMessages] || `Connection state changed to ${newState}`;
     this.screenReader.announce(message, 'assertive', 'connection-state-change');
   }
 

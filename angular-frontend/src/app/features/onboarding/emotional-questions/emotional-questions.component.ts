@@ -246,7 +246,9 @@ export class EmotionalQuestionsComponent implements OnInit {
 
     // Autosave form changes
     this.emotionalForm.valueChanges.subscribe(val => {
-      clearTimeout(this.autosaveTimer);
+      if (this.autosaveTimer) {
+        clearTimeout(this.autosaveTimer);
+      }
       this.autosaveTimer = setTimeout(() => {
         this.storage.setJson('onboarding_emotional', val);
       }, 300);
@@ -287,8 +289,8 @@ export class EmotionalQuestionsComponent implements OnInit {
         relationship_values: formData.relationship_values,
         ideal_evening: formData.ideal_evening,
         feeling_understood: formData.feeling_understood,
-        core_values: personalityData,
-        personality_traits: personalityData,
+        core_values: personalityData as Record<string, unknown>,
+        personality_traits: personalityData as Record<string, unknown>,
         communication_style: { preferred_style: 'deep_conversation' },
         interests: Array.isArray(interestsData) ? interestsData : []
       };

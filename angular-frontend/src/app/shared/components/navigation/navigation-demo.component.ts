@@ -125,7 +125,7 @@ import { MatchCelebrationComponent } from '../match-celebration/match-celebratio
 
           <div class="compatibility-demo">
             <app-compatibility-radar
-              [compatibilityData]="{values: 92, interests: 76, communication: 88, lifestyle: 73, goals: 85, personality: 91}"
+              [compatibilityData]="{values: 92, interests: 76, communication: 88, demographics: 85, personality: 91}"
               size="medium"
               [showHeader]="true"
               [showLegend]="true"

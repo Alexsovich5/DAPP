@@ -550,6 +550,10 @@ export class SoulOrbComponent implements OnInit, OnDestroy, AfterViewInit {
     this.startAnimation();
   }
 
+  ngAfterViewInit() {
+    // Lifecycle hook for AfterViewInit interface
+  }
+
   ngOnDestroy() {
     if (this.animationFrame) {
       cancelAnimationFrame(this.animationFrame);
@@ -610,7 +614,7 @@ export class SoulOrbComponent implements OnInit, OnDestroy, AfterViewInit {
     animate();
   }
 
-  trackParticle(index: number, particle: {id: number; x: number; y: number; vx: number; vy: number; life: number}): number {
+  trackParticle(index: number, particle: {id: number; x: number; y: number; size: number; delay: number; duration: number}): number {
     return particle.id;
   }
 
@@ -853,7 +857,7 @@ export class SoulOrbComponent implements OnInit, OnDestroy, AfterViewInit {
     // Classify connection speed
     if (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
       return 'slow';
-    } else if (connection.effectiveType === '4g' || connection.downlink > 10) {
+    } else if (connection.effectiveType === '4g' || (connection.downlink ?? 0) > 10) {
       return 'fast';
     }
     return 'unknown';
@@ -871,7 +875,7 @@ export class SoulOrbComponent implements OnInit, OnDestroy, AfterViewInit {
         if (this.isReducedMotion) {
           this.cleanupAnimations();
         } else {
-          this.startOptimizedAnimation();
+          this.startAnimation();
         }
       });
     }
@@ -891,7 +895,7 @@ export class SoulOrbComponent implements OnInit, OnDestroy, AfterViewInit {
                 this.animationFrame = undefined;
               }
             } else if (!this.animationFrame && !this.isReducedMotion) {
-              this.startOptimizedAnimation();
+              this.startAnimation();
             }
           });
         },

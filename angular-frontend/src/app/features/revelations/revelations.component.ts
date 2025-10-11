@@ -1148,10 +1148,10 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.connectionId || this.userConsent) return;
 
     try {
-      const response = await this.revelationService.givePhotoConsent(this.connectionId).toPromise();
+      const response = await this.revelationService.givePhotoConsent(this.connectionId).toPromise() as Record<string, unknown> | undefined;
 
       this.userConsent = true;
-      this.photoRevealed = response?.mutualConsent || false;
+      this.photoRevealed = (response?.['mutualConsent'] as boolean) || false;
 
       if (this.photoRevealed) {
         this.showCelebrate = true;
@@ -1257,7 +1257,7 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
     // Listen to navigation events
     this.keyboardNavSubscription = this.keyboardNavigationService.navigationEvents$.subscribe(
       event => {
-        this.handleKeyboardNavigationEvent(event);
+        this.handleKeyboardNavigationEvent(event as any);
       }
     );
 
@@ -1276,13 +1276,13 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
     switch (action) {
       case 'navigate':
         // Trigger haptic feedback for navigation
-        this.hapticFeedbackService.triggerRevelationStepCelebration();
+        // Removed call to non-existent method: this.hapticFeedbackService.triggerRevelationStepCelebration();
 
         // Update UI state based on navigation
-        if (element.type === 'step') {
-          this.highlightCurrentDay(element.element);
-        } else if (element.type === 'timeline-item') {
-          this.highlightTimelineItem(element.element);
+        if (element && (element as any).type === 'step') {
+          this.highlightCurrentDay((element as any).element);
+        } else if (element && (element as any).type === 'timeline-item') {
+          this.highlightTimelineItem((element as any).element);
         }
         break;
     }
@@ -1294,7 +1294,7 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
   private highlightCurrentDay(dayElement: HTMLElement): void {
     // Remove previous highlights
     const allDayCircles = this.revelationContainer.nativeElement.querySelectorAll('.day-circle');
-    allDayCircles.forEach(circle => circle.classList.remove('keyboard-highlighted'));
+    allDayCircles.forEach((circle: Element) => circle.classList.remove('keyboard-highlighted'));
 
     // Add highlight to current day
     dayElement.classList.add('keyboard-highlighted');
@@ -1313,7 +1313,7 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
   private highlightTimelineItem(itemElement: HTMLElement): void {
     // Remove previous highlights
     const allTimelineItems = this.revelationContainer.nativeElement.querySelectorAll('.revelation-item');
-    allTimelineItems.forEach(item => item.classList.remove('keyboard-highlighted'));
+    allTimelineItems.forEach((item: Element) => item.classList.remove('keyboard-highlighted'));
 
     // Add highlight to current item
     itemElement.classList.add('keyboard-highlighted');

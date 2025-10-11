@@ -296,7 +296,7 @@ export class MobilePerformanceDirective implements OnInit, OnDestroy, AfterViewI
   standalone: true
 })
 export class ProfileCardPerformanceDirective implements OnInit, OnDestroy, AfterViewInit {
-  @Input() profileData: Record<string, unknown>;
+  @Input() profileData: Record<string, unknown> = {};
   @Input() isVisible: boolean = true;
 
   private destroy$ = new Subject<void>();
@@ -328,7 +328,7 @@ export class ProfileCardPerformanceDirective implements OnInit, OnDestroy, After
     element.classList.add('profile-card-optimized');
 
     // Preload only essential images
-    if (this.profileData?.photos && config.enableAdvancedFeatures) {
+    if (this.profileData?.['photos'] && config.enableAdvancedFeatures) {
       this.preloadCriticalPhotos();
     }
 
@@ -351,9 +351,10 @@ export class ProfileCardPerformanceDirective implements OnInit, OnDestroy, After
   }
 
   private async preloadCriticalPhotos(): Promise<void> {
-    if (!this.profileData?.photos) return;
+    if (!this.profileData?.['photos']) return;
 
-    const primaryPhoto = this.profileData.photos[0];
+    const photos = this.profileData['photos'] as Array<{url: string}>;
+    const primaryPhoto = photos[0];
     if (primaryPhoto) {
       try {
         await this.performanceService.optimizeImage(primaryPhoto.url, {
@@ -520,11 +521,11 @@ export class MessageListPerformanceDirective implements OnInit, OnDestroy {
     });
   }
 
-  private optimizeMessageRendering(config: {virtualScroll?: boolean; messageCount?: number}): void {
+  private optimizeMessageRendering(config: {virtualScroll?: boolean; messageCount?: number; batchSize?: number; debounceTime?: number}): void {
     const element = this.elementRef.nativeElement;
 
     // Apply batching for message updates
-    element.style.setProperty('--batch-size', config.batchSize.toString());
+    element.style.setProperty('--batch-size', (config.batchSize || 10).toString());
 
     // Use transform for message animations instead of layout changes
     element.classList.add('optimized-animations');
@@ -535,7 +536,7 @@ export class MessageListPerformanceDirective implements OnInit, OnDestroy {
       clearTimeout(scrollTimeout);
       scrollTimeout = window.setTimeout(() => {
         // Process scroll end
-      }, config.debounceTime);
+      }, config.debounceTime || 150);
     };
 
     element.addEventListener('scroll', handleScroll, { passive: true });

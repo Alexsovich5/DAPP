@@ -49,7 +49,7 @@ export class OnboardingTargetDirective implements OnInit, OnDestroy {
   /**
    * Handle active step changes
    */
-  private handleStepChange(step: {targetId?: string; position?: string} | null): void {
+  private handleStepChange(step: {targetId?: string; position?: string; targetSelector?: string} | null): void {
     if (!step || !this.targetId) return;
 
     // Check if this element is the target for the current step

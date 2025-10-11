@@ -536,21 +536,27 @@ export class MobileAnalyticsService {
   }
 
   private getDeviceInfo(): DeviceInfo {
-    const deviceInfo = this.mobileFeatures.getDeviceInfo();
+    const deviceInfo = this.mobileFeatures.getDeviceInfo() as ReturnType<typeof this.mobileFeatures.getDeviceInfo> & {
+      isTouchDevice?: boolean;
+      isAndroid?: boolean;
+      isIOS?: boolean;
+      batteryLevel?: number;
+      isLowEndDevice?: boolean;
+    };
 
     return {
       userAgent: navigator.userAgent,
       screenSize: deviceInfo.screenSize,
       devicePixelRatio: window.devicePixelRatio,
-      isTouch: deviceInfo.isTouchDevice,
+      isTouch: deviceInfo.isTouchDevice ?? false,
       isMobile: deviceInfo.isMobile,
       isTablet: deviceInfo.isTablet,
-      isAndroid: deviceInfo.isAndroid,
-      isIOS: deviceInfo.isIOS,
+      isAndroid: deviceInfo.isAndroid ?? false,
+      isIOS: deviceInfo.isIOS ?? false,
       browserName: this.getBrowserName(),
       connectionType: this.getConnectionType(),
-      batteryLevel: deviceInfo.batteryLevel,
-      isLowEndDevice: deviceInfo.isLowEndDevice
+      batteryLevel: deviceInfo.batteryLevel ?? 0,
+      isLowEndDevice: deviceInfo.isLowEndDevice ?? false
     };
   }
 
@@ -576,7 +582,7 @@ export class MobileAnalyticsService {
 
   private getCurrentPerformanceSnapshot(): PerformanceSnapshot | undefined {
     try {
-      const metrics = this.performanceService.performance$.value;
+      const metrics = (this.performanceService.performance$ as unknown as BehaviorSubject<PerformanceSnapshot>).value;
       return {
         memoryUsage: metrics.memoryUsage,
         frameRate: metrics.frameRate,

@@ -272,11 +272,11 @@ export class OfflineSyncService {
       lastUpdated: Date.now()
     };
 
-    await this.storage.setItem(this.OFFLINE_DATA_KEY, updatedData);
+    this.storage.setJson(this.OFFLINE_DATA_KEY, updatedData);
   }
 
   async getOfflineData(): Promise<OfflineData> {
-    const data = await this.storage.getItem(this.OFFLINE_DATA_KEY);
+    const data = this.storage.getJson<OfflineData>(this.OFFLINE_DATA_KEY);
     return data || {
       messages: [],
       revelations: [],
@@ -289,7 +289,7 @@ export class OfflineSyncService {
   async getCachedMessages(connectionId?: number): Promise<Record<string, unknown>[]> {
     const data = await this.getOfflineData();
     if (connectionId) {
-      return data.messages.filter(msg => msg.connectionId === connectionId);
+      return data.messages.filter(msg => msg['connectionId'] === connectionId);
     }
     return data.messages;
   }
@@ -297,7 +297,7 @@ export class OfflineSyncService {
   async getCachedRevelations(connectionId?: number): Promise<Record<string, unknown>[]> {
     const data = await this.getOfflineData();
     if (connectionId) {
-      return data.revelations.filter(rev => rev.connectionId === connectionId);
+      return data.revelations.filter(rev => rev['connectionId'] === connectionId);
     }
     return data.revelations;
   }
@@ -317,7 +317,8 @@ export class OfflineSyncService {
     if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
       try {
         const registration = await navigator.serviceWorker.ready;
-        await registration.sync.register(tag);
+        // Use type assertion for sync API (not in standard TypeScript types)
+        await (registration as ServiceWorkerRegistration & { sync: { register: (tag: string) => Promise<void> } }).sync.register(tag);
       } catch (error) {
         console.error('Failed to register background sync:', error);
       }
@@ -364,9 +365,9 @@ export class OfflineSyncService {
     const data = await this.getOfflineData();
 
     if (type === 'message') {
-      data.messages = data.messages.filter(msg => msg.id !== id);
+      data.messages = data.messages.filter(msg => msg['id'] !== id);
     } else if (type === 'revelation') {
-      data.revelations = data.revelations.filter(rev => rev.id !== id);
+      data.revelations = data.revelations.filter(rev => rev['id'] !== id);
     }
 
     await this.cacheDataForOfflineUse(data);
@@ -385,7 +386,7 @@ export class OfflineSyncService {
   async getCacheSize(): Promise<number> {
     try {
       const data = await this.getOfflineData();
-      const actions = await this.storage.getItem(this.OFFLINE_ACTIONS_KEY) || [];
+      const actions = this.storage.getJson<OfflineAction[]>(this.OFFLINE_ACTIONS_KEY) || [];
 
       const dataSize = JSON.stringify(data).length;
       const actionsSize = JSON.stringify(actions).length;
@@ -419,17 +420,21 @@ export class OfflineSyncService {
         // Server data wins for messages (they have definitive timestamp)
         return serverData;
 
-      case 'profile':
+      case 'profile': {
         // Merge profile data, preferring most recent updates
+        const localTimestamp = localData['clientTimestamp'] as number | undefined;
+        const serverTimestamp = serverData['updatedAt'] as number | undefined;
+
         return {
           ...localData,
           ...serverData,
           // Keep local changes that are newer
-          ...(localData.clientTimestamp > serverData.updatedAt ? {
-            bio: localData.bio,
-            interests: localData.interests
+          ...((localTimestamp && serverTimestamp && localTimestamp > serverTimestamp) ? {
+            bio: localData['bio'],
+            interests: localData['interests']
           } : {})
         };
+      }
 
       case 'revelation':
         // Server data wins for revelations
@@ -447,11 +452,11 @@ export class OfflineSyncService {
   }
 
   private async savePendingActions(): Promise<void> {
-    await this.storage.setItem(this.OFFLINE_ACTIONS_KEY, this.syncQueue);
+    this.storage.setJson(this.OFFLINE_ACTIONS_KEY, this.syncQueue);
   }
 
   private async loadPendingActions(): Promise<void> {
-    const actions = await this.storage.getItem(this.OFFLINE_ACTIONS_KEY) || [];
+    const actions = this.storage.getJson<OfflineAction[]>(this.OFFLINE_ACTIONS_KEY) || [];
     this.syncQueue = actions;
 
     this.updateSyncStatus({
@@ -468,11 +473,11 @@ export class OfflineSyncService {
   }
 
   private async saveSyncStatus(status: SyncStatus): Promise<void> {
-    await this.storage.setItem(this.SYNC_STATUS_KEY, status);
+    this.storage.setJson(this.SYNC_STATUS_KEY, status);
   }
 
   private async loadSyncStatus(): Promise<void> {
-    const status = await this.storage.getItem(this.SYNC_STATUS_KEY);
+    const status = this.storage.getJson<SyncStatus>(this.SYNC_STATUS_KEY);
     if (status) {
       this.syncStatusSubject.next({
         ...status,

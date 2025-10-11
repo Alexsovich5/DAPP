@@ -184,10 +184,7 @@ import { User } from '../../core/interfaces/auth.interfaces';
         <!-- Skeleton Loading State (Alternative) -->
         <div
           class="discovery-skeletons"
-          *appLoadingState="'discover-souls'"
-          [appLoadingStateSkeleton]="'profile-card'"
-          [appLoadingStateSkeletonCount]="3"
-          [appLoadingStateShowMessage]="true"
+          *appLoadingState="'discover-souls'; skeleton: 'profile-card'; skeletonCount: 3; showMessage: true"
           role="status"
           aria-label="Loading soul connections">
           <!-- Skeleton loaders will be injected here -->
