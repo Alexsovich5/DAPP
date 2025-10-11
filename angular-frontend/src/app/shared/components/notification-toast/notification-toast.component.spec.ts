@@ -258,6 +258,8 @@ describe('NotificationToastComponent', () => {
     });
 
     notificationService.getNotificationSettings.and.returnValue(of(mockSettings));
+    notificationService.dismissNotification.and.returnValue(of(undefined));
+    notificationService.updateNotificationSettings.and.returnValue(of(mockSettings));
     webSocketService.getConnectionStatus.and.returnValue({ isConnected: true, reconnectAttempts: 0, connectionQuality: 'excellent' });
   });
 
