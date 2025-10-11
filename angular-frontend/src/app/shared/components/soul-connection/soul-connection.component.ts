@@ -776,7 +776,7 @@ export class SoulConnectionComponent implements OnInit, OnDestroy, OnChanges {
       'low': `Exploring compatibility at ${score}% - discovering connection potential`
     };
 
-    return levelDescriptions[level] || `Compatibility score: ${score}%`;
+    return levelDescriptions[level as keyof typeof levelDescriptions] || `Compatibility score: ${score}%`;
   }
 
   private getEnergyDescription(): string {
@@ -805,7 +805,7 @@ export class SoulConnectionComponent implements OnInit, OnDestroy, OnChanges {
       'strong-match': 'Exceptional soul match achieved - powerful connection formed'
     };
 
-    const message = stateMessages[newState] || `Connection state changed to ${newState}`;
+    const message = stateMessages[newState as keyof typeof stateMessages] || `Connection state changed to ${newState}`;
     this.screenReader.announce(message, 'assertive', 'connection-state-change');
   }
 
