@@ -132,7 +132,7 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
   loadSettings(): void {
     this.subscriptions.add(
       this.notificationService.getNotificationSettings().subscribe({
-        next: (settings) => {
+        next: (settings: any) => {
           this.settings = settings;
           this.maxVisibleNotifications = settings.maxVisibleNotifications;
         },
