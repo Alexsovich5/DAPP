@@ -686,8 +686,10 @@ describe('NotificationToastComponent', () => {
 
       expect(notificationService.showDesktopNotification).toHaveBeenCalledWith(
         notification.title,
-        notification.message,
-        notification.from_user?.avatar_url
+        {
+          body: notification.message,
+          icon: notification.from_user?.avatar_url
+        }
       );
     }));
 

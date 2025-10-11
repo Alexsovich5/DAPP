@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 
 export interface Notification {
   id: string;
@@ -226,7 +226,7 @@ export class NotificationService {
 
   getNotificationSettings(): Observable<any> {
     // Return mock settings for now
-    return new BehaviorSubject<any>({
+    return of({
       enableSounds: true,
       enableDesktopNotifications: false,
       enableInAppNotifications: true,
@@ -234,18 +234,18 @@ export class NotificationService {
       categorySettings: {},
       maxVisibleNotifications: 5,
       autoCloseDelay: 8000
-    }).asObservable();
+    });
   }
 
   updateNotificationSettings(settings: any): Observable<any> {
     // Stub implementation
-    return new BehaviorSubject<any>(settings).asObservable();
+    return of(settings);
   }
 
   dismissNotification(notificationId: string): Observable<void> {
     // Call existing removeNotification method
     this.removeNotification(notificationId);
-    return new BehaviorSubject<void>(undefined).asObservable();
+    return of(undefined);
   }
 
   playNotificationSound(category: string): void {

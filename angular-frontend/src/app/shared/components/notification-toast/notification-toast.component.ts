@@ -228,8 +228,10 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
     if (this.settings.enableDesktopNotifications && document.hidden) {
       this.notificationService.showDesktopNotification(
         notification.title,
-        notification.message,
-        notification.from_user?.avatar_url
+        {
+          body: notification.message,
+          icon: notification.from_user?.avatar_url
+        }
       );
     }
 
