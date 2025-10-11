@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatBadgeModule } from '@angular/material/badge';
 import { OverlayModule } from '@angular/cdk/overlay';
-import { of, Subject } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 
 import { NotificationToastComponent } from './notification-toast.component';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -189,6 +189,7 @@ describe('NotificationToastComponent', () => {
     notificationSubject = new Subject<RealtimeNotification>();
 
     const notificationSpy = jasmine.createSpyObj('NotificationService', [
+      'getNotifications',
       'getNotificationSettings',
       'updateNotificationSettings',
       'markAsRead',
@@ -202,11 +203,13 @@ describe('NotificationToastComponent', () => {
     const webSocketSpy = jasmine.createSpyObj('WebSocketService', [
       'onMessage',
       'connect',
+      'disconnect',
       'isConnected'
     ]);
 
     const authSpy = jasmine.createSpyObj('AuthService', [
-      'getCurrentUser'
+      'getCurrentUser',
+      'currentUser$'
     ]);
 
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', [
@@ -325,7 +328,7 @@ describe('NotificationToastComponent', () => {
 
     it('should filter notifications based on settings', fakeAsync(() => {
       // Disable messaging notifications
-      mockSettings.categorySettings.messaging.enabled = false;
+      mockSettings.categorySettings['messaging'].enabled = false;
       component.settings = mockSettings;
 
       const messagingNotification = mockNotifications[2];
@@ -695,7 +698,7 @@ describe('NotificationToastComponent', () => {
     }));
 
     it('should respect category sound settings', fakeAsync(() => {
-      component.settings.categorySettings.messaging.sound = false;
+      component.settings.categorySettings['messaging'].sound = false;
       const messagingNotification = mockNotifications[2];
 
       component.showNotification(messagingNotification);
@@ -797,7 +800,7 @@ describe('NotificationToastComponent', () => {
     }));
 
     it('should apply category-specific settings', fakeAsync(() => {
-      component.settings.categorySettings.messaging.enabled = false;
+      component.settings.categorySettings['messaging'].enabled = false;
 
       const messagingNotification = mockNotifications[2];
       const result = component.shouldShowNotification(messagingNotification);
@@ -949,9 +952,15 @@ describe('NotificationToastComponent', () => {
     }));
 
     it('should respect reduced motion preferences', fakeAsync(() => {
-      spyOnProperty(window, 'matchMedia').and.returnValue({
+      spyOn(window, 'matchMedia').and.returnValue({
         matches: true,
-        media: '(prefers-reduced-motion: reduce)'
+        media: '(prefers-reduced-motion: reduce)',
+        addEventListener: jasmine.createSpy('addEventListener'),
+        removeEventListener: jasmine.createSpy('removeEventListener'),
+        addListener: jasmine.createSpy('addListener'),
+        removeListener: jasmine.createSpy('removeListener'),
+        dispatchEvent: jasmine.createSpy('dispatchEvent'),
+        onchange: null
       } as MediaQueryList);
 
       component.ngOnInit();
