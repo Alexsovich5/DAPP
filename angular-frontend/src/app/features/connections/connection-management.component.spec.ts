@@ -48,11 +48,16 @@ describe('ConnectionManagementComponent', () => {
     expect(compiled.querySelector('h2')?.textContent).toContain('Soul Connections');
   });
 
-  it('should have mat-tab-group with two tabs', () => {
+  it('should have mat-tab-group with two tabs', async () => {
     fixture.detectChanges();
+    await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    const tabs = compiled.querySelectorAll('mat-tab');
-    expect(tabs.length).toBe(2);
+    const tabGroup = compiled.querySelector('mat-tab-group');
+    expect(tabGroup).toBeTruthy();
+
+    // Check for tab labels instead of mat-tab elements directly
+    const tabLabels = compiled.querySelectorAll('.mat-mdc-tab');
+    expect(tabLabels.length).toBe(2);
   });
 });
 
