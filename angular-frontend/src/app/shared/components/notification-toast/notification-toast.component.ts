@@ -126,8 +126,9 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
 
   private subscribeToNotifications(): void {
     this.subscriptions.add(
-      this.webSocketService.onMessage().subscribe(data => {
-        if (data.type && data.title && data.message) {
+      this.webSocketService.messages$.subscribe((data: unknown) => {
+        const message = data as { type?: string; title?: string; message?: string };
+        if (message.type && message.title && message.message) {
           const notification = data as RealtimeNotification;
           this.handleIncomingNotification(notification);
         }
@@ -136,7 +137,8 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
   }
 
   private handleIncomingNotification(notification: RealtimeNotification): void {
-    if (this.webSocketService.isConnected()) {
+    const connectionStatus = this.webSocketService.getConnectionStatus();
+    if (connectionStatus.isConnected) {
       if (this.shouldShowNotification(notification)) {
         this.showNotification(notification);
       }
@@ -272,7 +274,7 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
 
   markAsRead(notification: RealtimeNotification): void {
     notification.is_read = true;
-    this.notificationService.markAsRead(notification.id).subscribe();
+    this.notificationService.markAsRead(notification.id);
   }
 
   navigateToAction(notification: RealtimeNotification): void {
