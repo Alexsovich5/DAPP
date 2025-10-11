@@ -108,8 +108,8 @@ import { MatchCelebrationComponent } from '../match-celebration/match-celebratio
           <h3>Soul Connection Animation</h3>
           <div class="soul-connection-demo">
             <app-soul-connection
-              [leftSoul]="{type: 'primary', state: 'connected', energy: 4, label: 'You', showParticles: true, showSparkles: true}"
-              [rightSoul]="{type: 'secondary', state: 'connected', energy: 5, label: 'Sarah', showParticles: true, showSparkles: true}"
+              [leftSoul]="{type: 'primary', state: 'matched', energy: 4, label: 'You', showParticles: true, showSparkles: true}"
+              [rightSoul]="{type: 'secondary', state: 'matched', energy: 5, label: 'Sarah', showParticles: true, showSparkles: true}"
               [compatibilityScore]="88"
               [connectionState]="'strong-match'"
               [orbSize]="'medium'"

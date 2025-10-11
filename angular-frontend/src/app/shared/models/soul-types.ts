@@ -4,7 +4,7 @@
 
 export interface SoulConfig {
   type: 'primary' | 'secondary' | 'neutral';
-  state: 'active' | 'inactive' | 'connecting' | 'connected';
+  state: 'active' | 'dormant' | 'connecting' | 'matched';
   energy: number;
   label: string;
   showParticles?: boolean;
