@@ -43,8 +43,8 @@ import { SoulConfig } from '../../models/soul-types';
           [energyLevel]="leftSoul.energy"
           [compatibilityScore]="compatibilityScore"
           [showCompatibility]="showCompatibility && isLeftSelected"
-          [showParticles]="leftSoul.showParticles"
-          [showSparkles]="leftSoul.showSparkles"
+          [showParticles]="leftSoul.showParticles ?? true"
+          [showSparkles]="leftSoul.showSparkles ?? true"
           [ariaLabel]="getLeftSoulAriaLabel()"
         >
         </app-soul-orb>
@@ -208,8 +208,8 @@ import { SoulConfig } from '../../models/soul-types';
           [energyLevel]="rightSoul.energy"
           [compatibilityScore]="compatibilityScore"
           [showCompatibility]="showCompatibility && !isLeftSelected"
-          [showParticles]="rightSoul.showParticles"
-          [showSparkles]="rightSoul.showSparkles"
+          [showParticles]="rightSoul.showParticles ?? true"
+          [showSparkles]="rightSoul.showSparkles ?? true"
           [ariaLabel]="getRightSoulAriaLabel()"
         >
         </app-soul-orb>
@@ -528,8 +528,8 @@ export class SoulConnectionComponent implements OnInit, OnDestroy, OnChanges {
   @Input() connectionId: string = 'connection-' + Math.random().toString(36).substr(2, 9);
   @Input() announceChanges: boolean = true;
 
-  connectionParticles: Record<string, unknown>[] = [];
-  connectionHearts: Record<string, unknown>[] = [];
+  connectionParticles: Array<{x: number; y: number; size: number; color: string; delay: number; duration: number}> = [];
+  connectionHearts: Array<{x: number; y: number; delay: number}> = [];
   isLeftSelected: boolean = true;
 
   private animationFrame?: number;
