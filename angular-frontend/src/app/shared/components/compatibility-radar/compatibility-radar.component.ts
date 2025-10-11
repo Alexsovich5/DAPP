@@ -527,7 +527,7 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
   private refreshTimer?: number;
   private currentCompatibility?: CompatibilityBreakdown;
   private isLoading = false;
-  private hasError = false;
+  hasError = false;
 
   private readonly categories = [
     { key: 'values', label: 'Values', color: '#ffd700', angle: 0 },

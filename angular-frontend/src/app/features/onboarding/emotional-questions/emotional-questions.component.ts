@@ -246,7 +246,9 @@ export class EmotionalQuestionsComponent implements OnInit {
 
     // Autosave form changes
     this.emotionalForm.valueChanges.subscribe(val => {
-      clearTimeout(this.autosaveTimer);
+      if (this.autosaveTimer) {
+        clearTimeout(this.autosaveTimer);
+      }
       this.autosaveTimer = setTimeout(() => {
         this.storage.setJson('onboarding_emotional', val);
       }, 300);

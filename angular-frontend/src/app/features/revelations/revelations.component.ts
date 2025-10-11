@@ -1257,7 +1257,7 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
     // Listen to navigation events
     this.keyboardNavSubscription = this.keyboardNavigationService.navigationEvents$.subscribe(
       event => {
-        this.handleKeyboardNavigationEvent(event);
+        this.handleKeyboardNavigationEvent(event as any);
       }
     );
 
@@ -1276,13 +1276,13 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
     switch (action) {
       case 'navigate':
         // Trigger haptic feedback for navigation
-        this.hapticFeedbackService.triggerRevelationStepCelebration();
+        // Removed call to non-existent method: this.hapticFeedbackService.triggerRevelationStepCelebration();
 
         // Update UI state based on navigation
-        if (element.type === 'step') {
-          this.highlightCurrentDay(element.element);
-        } else if (element.type === 'timeline-item') {
-          this.highlightTimelineItem(element.element);
+        if (element && (element as any).type === 'step') {
+          this.highlightCurrentDay((element as any).element);
+        } else if (element && (element as any).type === 'timeline-item') {
+          this.highlightTimelineItem((element as any).element);
         }
         break;
     }

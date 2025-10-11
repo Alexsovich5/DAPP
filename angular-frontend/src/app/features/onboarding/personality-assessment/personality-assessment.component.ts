@@ -98,7 +98,7 @@ import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skel
         <div class="assessment-section" *ngIf="compatibilityPreview">
           <h3>Live Compatibility Preview</h3>
           <app-compatibility-radar
-            [compatibilityData]="compatibilityPreview"
+            [compatibilityData]="$any(compatibilityPreview)"
             size="small"
             [showHeader]="false"
             [showInsights]="false"

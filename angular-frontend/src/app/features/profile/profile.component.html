@@ -46,16 +46,16 @@
           <div class="score-content">
             <h3>Emotional Depth Score</h3>
             <div class="score-display">
-              <span class="score-number">{{currentUser.emotional_depth_score}}</span>
+              <span class="score-number">{{currentUser!.emotional_depth_score ?? 0}}</span>
               <span class="score-max">/100</span>
             </div>
             <div class="score-description">
-              {{getDepthScoreDescription(currentUser.emotional_depth_score)}}
+              {{getDepthScoreDescription(currentUser!.emotional_depth_score ?? 0)}}
             </div>
           </div>
           <mat-progress-bar
             mode="determinate"
-            [value]="currentUser.emotional_depth_score"
+            [value]="currentUser!.emotional_depth_score ?? 0"
             class="depth-progress">
           </mat-progress-bar>
         </div>

@@ -395,7 +395,7 @@ export class OnboardingCompleteComponent implements OnInit {
           this.storage.setItem('onboarding_completed', 'true');
 
           // Update current user with backend response
-          this.authService.updateCurrentUser(updatedUser);
+          this.authService.updateCurrentUser(updatedUser as any);
 
           // Navigate to discovery after a short delay
           setTimeout(() => {

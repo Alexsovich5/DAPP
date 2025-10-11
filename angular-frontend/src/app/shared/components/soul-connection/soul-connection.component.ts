@@ -649,7 +649,6 @@ export class SoulConnectionComponent implements OnInit, OnDestroy, OnChanges {
 
     for (let i = 0; i < particleCount; i++) {
       this.connectionParticles.push({
-        id: i,
         x: 20 + Math.random() * 160,
         y: 45 + Math.random() * 10,
         size: 1 + Math.random() * 2,
@@ -668,7 +667,6 @@ export class SoulConnectionComponent implements OnInit, OnDestroy, OnChanges {
 
     for (let i = 0; i < heartCount; i++) {
       this.connectionHearts.push({
-        id: i,
         x: 40 + Math.random() * 120,
         y: 45 + Math.random() * 10,
         delay: Math.random() * 3

@@ -497,7 +497,7 @@ export class CompatibilityScoreComponent implements OnInit, OnDestroy, AfterView
   isAnimating: boolean = false;
   componentId: string = Math.random().toString(36).substr(2, 9);
   descriptionId: string = `compatibility-desc-${this.componentId}`;
-  sparkles: Array<{id: string; x: number; y: number; delay: number}> = [];
+  sparkles: Array<{id: string; x: number; y: number; delay: number; size: number; color: string}> = [];
 
   private animationFrame?: number;
   private startTime?: number;
@@ -579,7 +579,7 @@ export class CompatibilityScoreComponent implements OnInit, OnDestroy, AfterView
         const distance = this.radius * 0.6;
 
         this.sparkles.push({
-          id: i,
+          id: `sparkle-${i}`,
           x: centerX + Math.cos(angle) * distance,
           y: centerY + Math.sin(angle) * distance,
           size: 1 + Math.random() * 1.5,
