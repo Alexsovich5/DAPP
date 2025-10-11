@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription, Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
-import { NotificationService } from '../../../core/services/notification.service';
+import { NotificationService, NotificationSettings } from '../../../core/services/notification.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -30,26 +30,6 @@ export interface RealtimeNotification {
   is_read: boolean;
   auto_dismiss?: boolean;
   dismiss_timeout?: number;
-}
-
-export interface NotificationSettings {
-  enableSounds: boolean;
-  enableDesktopNotifications: boolean;
-  enableInAppNotifications: boolean;
-  quietHours: {
-    enabled: boolean;
-    start: string;
-    end: string;
-  };
-  categorySettings: {
-    [key: string]: {
-      enabled: boolean;
-      priority: 'low' | 'medium' | 'high';
-      sound: boolean;
-    };
-  };
-  maxVisibleNotifications: number;
-  autoCloseDelay: number;
 }
 
 @Component({
@@ -132,7 +112,7 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
   loadSettings(): void {
     this.subscriptions.add(
       this.notificationService.getNotificationSettings().subscribe({
-        next: (settings: any) => {
+        next: (settings: NotificationSettings) => {
           this.settings = settings;
           this.maxVisibleNotifications = settings.maxVisibleNotifications;
         },

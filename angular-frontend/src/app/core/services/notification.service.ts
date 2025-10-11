@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 
 export interface Notification {
   id: string;
@@ -12,6 +12,26 @@ export interface Notification {
   metadata?: Record<string, unknown>;
   autoHide?: boolean;
   duration?: number;
+}
+
+export interface NotificationSettings {
+  enableSounds: boolean;
+  enableDesktopNotifications: boolean;
+  enableInAppNotifications: boolean;
+  quietHours: {
+    enabled: boolean;
+    start: string;
+    end: string;
+  };
+  categorySettings: {
+    [key: string]: {
+      enabled: boolean;
+      priority: 'low' | 'medium' | 'high';
+      sound: boolean;
+    };
+  };
+  maxVisibleNotifications: number;
+  autoCloseDelay: number;
 }
 
 @Injectable({
@@ -224,9 +244,9 @@ export class NotificationService {
   // Stub methods for notification-toast component compatibility
   // TODO: Implement these methods properly when real-time notification system is built
 
-  getNotificationSettings(): Observable<any> {
+  getNotificationSettings(): Observable<NotificationSettings> {
     // Return mock settings for now
-    return new BehaviorSubject<any>({
+    return of({
       enableSounds: true,
       enableDesktopNotifications: false,
       enableInAppNotifications: true,
@@ -234,35 +254,42 @@ export class NotificationService {
       categorySettings: {},
       maxVisibleNotifications: 5,
       autoCloseDelay: 8000
-    }).asObservable();
+    });
   }
 
-  updateNotificationSettings(settings: any): Observable<any> {
-    // Stub implementation
-    return new BehaviorSubject<any>(settings).asObservable();
+  updateNotificationSettings(settings: NotificationSettings): Observable<NotificationSettings> {
+    // Stub implementation - would persist settings to backend
+    return of(settings);
   }
 
   dismissNotification(notificationId: string): Observable<void> {
     // Call existing removeNotification method
     this.removeNotification(notificationId);
-    return new BehaviorSubject<void>(undefined).asObservable();
+    return of(undefined);
   }
 
   playNotificationSound(category: string): void {
     // Stub implementation - would play sound based on category
-    console.log(`Playing notification sound for category: ${category}`);
+    // TODO: Implement actual sound playback when audio assets are available
   }
 
   requestDesktopPermission(): void {
-    // Stub implementation - would request browser notification permission
+    // Request browser notification permission
     if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
+      Notification.requestPermission().catch(error => {
+        console.error('Failed to request notification permission:', error);
+      });
     }
   }
 
-  showDesktopNotification(title: string, options: any): void {
-    // Stub implementation - would show desktop notification
+  showDesktopNotification(title: string, message: string, iconUrl?: string): void {
+    // Show desktop notification if permission granted
     if ('Notification' in window && Notification.permission === 'granted') {
+      const options: NotificationOptions = {
+        body: message,
+        icon: iconUrl,
+        badge: iconUrl
+      };
       new Notification(title, options);
     }
   }
