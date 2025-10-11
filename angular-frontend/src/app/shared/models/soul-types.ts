@@ -3,7 +3,7 @@
  */
 
 export interface SoulConfig {
-  type: 'primary' | 'secondary' | 'potential';
+  type: 'primary' | 'secondary' | 'neutral';
   state: 'active' | 'inactive' | 'connecting' | 'connected';
   energy: number;
   label: string;

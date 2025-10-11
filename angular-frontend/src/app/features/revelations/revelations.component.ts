@@ -1294,7 +1294,7 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
   private highlightCurrentDay(dayElement: HTMLElement): void {
     // Remove previous highlights
     const allDayCircles = this.revelationContainer.nativeElement.querySelectorAll('.day-circle');
-    allDayCircles.forEach(circle => circle.classList.remove('keyboard-highlighted'));
+    allDayCircles.forEach((circle: Element) => circle.classList.remove('keyboard-highlighted'));
 
     // Add highlight to current day
     dayElement.classList.add('keyboard-highlighted');
@@ -1313,7 +1313,7 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
   private highlightTimelineItem(itemElement: HTMLElement): void {
     // Remove previous highlights
     const allTimelineItems = this.revelationContainer.nativeElement.querySelectorAll('.revelation-item');
-    allTimelineItems.forEach(item => item.classList.remove('keyboard-highlighted'));
+    allTimelineItems.forEach((item: Element) => item.classList.remove('keyboard-highlighted'));
 
     // Add highlight to current item
     itemElement.classList.add('keyboard-highlighted');
