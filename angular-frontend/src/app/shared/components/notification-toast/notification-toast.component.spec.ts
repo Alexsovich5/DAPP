@@ -4,7 +4,7 @@
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick, flush, discardPeriodicTasks } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
@@ -258,7 +258,16 @@ describe('NotificationToastComponent', () => {
     });
 
     notificationService.getNotificationSettings.and.returnValue(of(mockSettings));
+    notificationService.dismissNotification.and.returnValue(of(undefined));
+    notificationService.updateNotificationSettings.and.returnValue(of(mockSettings));
     webSocketService.getConnectionStatus.and.returnValue({ isConnected: true, reconnectAttempts: 0, connectionQuality: 'excellent' });
+  });
+
+  afterEach(() => {
+    // Clean up component to clear timers
+    if (fixture) {
+      fixture.destroy();
+    }
   });
 
   describe('Component Initialization', () => {
@@ -272,6 +281,7 @@ describe('NotificationToastComponent', () => {
 
       expect(notificationService.getNotificationSettings).toHaveBeenCalled();
       expect(component.settings).toEqual(mockSettings);
+      discardPeriodicTasks();
     }));
 
     it('should subscribe to real-time notifications', fakeAsync(() => {
@@ -280,6 +290,7 @@ describe('NotificationToastComponent', () => {
 
       expect(webSocketService.messages$).toBeDefined();
       expect(component.activeNotifications).toEqual([]);
+      discardPeriodicTasks();
     }));
 
     it('should request desktop notification permission if enabled', fakeAsync(() => {
@@ -288,6 +299,7 @@ describe('NotificationToastComponent', () => {
       tick();
 
       expect(notificationService.requestDesktopPermission).toHaveBeenCalled();
+      discardPeriodicTasks();
     }));
 
     it('should initialize notification queue', fakeAsync(() => {
@@ -296,6 +308,7 @@ describe('NotificationToastComponent', () => {
 
       expect(component.notificationQueue).toEqual([]);
       expect(component.maxVisibleNotifications).toBe(mockSettings.maxVisibleNotifications);
+      discardPeriodicTasks();
     }));
   });
 
@@ -311,6 +324,7 @@ describe('NotificationToastComponent', () => {
 
       expect(component.activeNotifications).toContain(revelationNotification);
       expect(snackBar.openFromComponent).toHaveBeenCalled();
+      discardPeriodicTasks();
     }));
 
     it('should receive connection request notifications', fakeAsync(() => {
@@ -320,6 +334,7 @@ describe('NotificationToastComponent', () => {
 
       expect(component.activeNotifications).toContain(connectionRequest);
       expect(component.getNotificationIcon(connectionRequest.type)).toBe('connect_without_contact');
+      discardPeriodicTasks();
     }));
 
     it('should receive photo reveal notifications', fakeAsync(() => {
@@ -329,6 +344,7 @@ describe('NotificationToastComponent', () => {
 
       expect(component.activeNotifications).toContain(photoRevealNotification);
       expect(component.getNotificationPriority(photoRevealNotification)).toBe('urgent');
+      discardPeriodicTasks();
     }));
 
     it('should filter notifications based on settings', fakeAsync(() => {
@@ -341,6 +357,7 @@ describe('NotificationToastComponent', () => {
       tick();
 
       expect(component.activeNotifications).not.toContain(messagingNotification);
+      discardPeriodicTasks();
     }));
 
     it('should respect quiet hours', fakeAsync(() => {
@@ -358,6 +375,7 @@ describe('NotificationToastComponent', () => {
 
       expect(component.isInQuietHours()).toBe(true);
       expect(component.activeNotifications).not.toContain(notification);
+      discardPeriodicTasks();
     }));
 
     it('should handle high priority notifications during quiet hours', fakeAsync(() => {
@@ -371,6 +389,7 @@ describe('NotificationToastComponent', () => {
 
       // Urgent notifications should bypass quiet hours
       expect(component.activeNotifications).toContain(urgentNotification);
+      discardPeriodicTasks();
     }));
 
     it('should queue notifications when max visible limit is reached', fakeAsync(() => {
@@ -384,6 +403,7 @@ describe('NotificationToastComponent', () => {
 
       expect(component.activeNotifications.length).toBe(2);
       expect(component.notificationQueue.length).toBe(1);
+      discardPeriodicTasks();
     }));
   });
 
@@ -400,6 +420,7 @@ describe('NotificationToastComponent', () => {
       const notificationElement = fixture.debugElement.query(By.css('.notification-urgent'));
       expect(notificationElement).toBeTruthy();
       expect(notificationElement.nativeElement.classList).toContain('priority-urgent');
+      discardPeriodicTasks();
     }));
 
     it('should show user avatar in notifications', fakeAsync(() => {
@@ -411,6 +432,7 @@ describe('NotificationToastComponent', () => {
       const avatar = fixture.debugElement.query(By.css('.notification-avatar'));
       expect(avatar).toBeTruthy();
       expect(avatar.nativeElement.src).toBe(notificationWithAvatar.from_user!.avatar_url);
+      discardPeriodicTasks();
     }));
 
     it('should display notification title and message', fakeAsync(() => {
@@ -424,6 +446,7 @@ describe('NotificationToastComponent', () => {
 
       expect(title.nativeElement.textContent).toContain(notification.title);
       expect(message.nativeElement.textContent).toContain(notification.message);
+      discardPeriodicTasks();
     }));
 
     it('should show timestamp with relative formatting', fakeAsync(() => {
@@ -438,6 +461,7 @@ describe('NotificationToastComponent', () => {
 
       const timestamp = fixture.debugElement.query(By.css('.notification-timestamp'));
       expect(timestamp.nativeElement.textContent).toContain('2 minutes ago');
+      discardPeriodicTasks();
     }));
 
     it('should display appropriate icons for different notification types', fakeAsync(() => {
@@ -451,6 +475,7 @@ describe('NotificationToastComponent', () => {
       typeIconTests.forEach(test => {
         expect(component.getNotificationIcon(test.type as any)).toBe(test.expectedIcon);
       });
+      discardPeriodicTasks();
     }));
 
     it('should show action buttons for notifications that require response', fakeAsync(() => {
@@ -464,6 +489,7 @@ describe('NotificationToastComponent', () => {
 
       const viewButton = fixture.debugElement.query(By.css('.action-view'));
       expect(viewButton).toBeTruthy();
+      discardPeriodicTasks();
     }));
 
     it('should show dismiss button for all notifications', fakeAsync(() => {
@@ -474,6 +500,7 @@ describe('NotificationToastComponent', () => {
 
       const dismissButton = fixture.debugElement.query(By.css('.dismiss-button'));
       expect(dismissButton).toBeTruthy();
+      discardPeriodicTasks();
     }));
 
     it('should display progress bar for auto-dismiss notifications', fakeAsync(() => {
@@ -484,6 +511,7 @@ describe('NotificationToastComponent', () => {
 
       const progressBar = fixture.debugElement.query(By.css('.auto-dismiss-progress'));
       expect(progressBar).toBeTruthy();
+      discardPeriodicTasks();
     }));
   });
 
@@ -504,6 +532,7 @@ describe('NotificationToastComponent', () => {
       notificationElement.triggerEventHandler('click', {});
 
       expect(component.navigateToAction).toHaveBeenCalledWith(notification);
+      discardPeriodicTasks();
     }));
 
     it('should dismiss notification on dismiss button click', fakeAsync(() => {
@@ -517,6 +546,7 @@ describe('NotificationToastComponent', () => {
 
       expect(component.activeNotifications).not.toContain(notification);
       expect(notificationService.dismissNotification).toHaveBeenCalledWith(notification.id);
+      discardPeriodicTasks();
     }));
 
     it('should mark notification as read on view', fakeAsync(() => {
@@ -528,6 +558,7 @@ describe('NotificationToastComponent', () => {
 
       expect(notificationService.markAsRead).toHaveBeenCalledWith(notification.id);
       expect(notification.is_read).toBe(true);
+      discardPeriodicTasks();
     }));
 
     it('should handle swipe gestures for dismissal on mobile', fakeAsync(() => {
@@ -543,6 +574,7 @@ describe('NotificationToastComponent', () => {
       notificationElement.triggerEventHandler('swipeleft', {});
 
       expect(component.dismissNotification).toHaveBeenCalledWith(notification);
+      discardPeriodicTasks();
     }));
 
     it('should handle notification action button clicks', fakeAsync(() => {
@@ -557,6 +589,7 @@ describe('NotificationToastComponent', () => {
       actionButton.triggerEventHandler('click', { stopPropagation: () => {} });
 
       expect(component.handleActionClick).toHaveBeenCalledWith(actionableNotification, 'view');
+      discardPeriodicTasks();
     }));
 
     it('should prevent notification click when action button is clicked', fakeAsync(() => {
@@ -573,6 +606,7 @@ describe('NotificationToastComponent', () => {
 
       expect(clickEvent.stopPropagation).toHaveBeenCalled();
       expect(component.navigateToAction).not.toHaveBeenCalled();
+      discardPeriodicTasks();
     }));
   });
 
@@ -590,6 +624,7 @@ describe('NotificationToastComponent', () => {
       tick(autoDismissNotification.dismiss_timeout!);
 
       expect(component.activeNotifications).not.toContain(autoDismissNotification);
+      discardPeriodicTasks();
     }));
 
     it('should show countdown for auto-dismiss notifications', fakeAsync(() => {
@@ -601,6 +636,7 @@ describe('NotificationToastComponent', () => {
       const countdown = fixture.debugElement.query(By.css('.dismiss-countdown'));
       expect(countdown).toBeTruthy();
       expect(countdown.nativeElement.textContent).toContain('5');
+      discardPeriodicTasks();
     }));
 
     it('should cancel auto-dismiss on hover', fakeAsync(() => {
@@ -617,6 +653,7 @@ describe('NotificationToastComponent', () => {
 
       // Should still be visible due to hover
       expect(component.activeNotifications).toContain(autoDismissNotification);
+      discardPeriodicTasks();
     }));
 
     it('should resume auto-dismiss after hover ends', fakeAsync(() => {
@@ -636,6 +673,7 @@ describe('NotificationToastComponent', () => {
       tick(autoDismissNotification.dismiss_timeout!);
 
       expect(component.activeNotifications).not.toContain(autoDismissNotification);
+      discardPeriodicTasks();
     }));
 
     it('should handle expired notifications', fakeAsync(() => {
@@ -648,6 +686,7 @@ describe('NotificationToastComponent', () => {
       tick();
 
       expect(component.activeNotifications).not.toContain(expiredNotification);
+      discardPeriodicTasks();
     }));
   });
 
@@ -664,6 +703,7 @@ describe('NotificationToastComponent', () => {
       tick();
 
       expect(notificationService.playNotificationSound).toHaveBeenCalledWith(notification.category);
+      discardPeriodicTasks();
     }));
 
     it('should not play sound when disabled', fakeAsync(() => {
@@ -674,6 +714,7 @@ describe('NotificationToastComponent', () => {
       tick();
 
       expect(notificationService.playNotificationSound).not.toHaveBeenCalled();
+      discardPeriodicTasks();
     }));
 
     it('should show desktop notification when enabled and page not focused', fakeAsync(() => {
@@ -691,6 +732,7 @@ describe('NotificationToastComponent', () => {
           icon: notification.from_user?.avatar_url
         }
       );
+      discardPeriodicTasks();
     }));
 
     it('should not show desktop notification when page is focused', fakeAsync(() => {
@@ -702,6 +744,7 @@ describe('NotificationToastComponent', () => {
       tick();
 
       expect(notificationService.showDesktopNotification).not.toHaveBeenCalled();
+      discardPeriodicTasks();
     }));
 
     it('should respect category sound settings', fakeAsync(() => {
@@ -712,6 +755,7 @@ describe('NotificationToastComponent', () => {
       tick();
 
       expect(notificationService.playNotificationSound).not.toHaveBeenCalled();
+      discardPeriodicTasks();
     }));
   });
 
@@ -742,6 +786,7 @@ describe('NotificationToastComponent', () => {
       // Next queued notification should become visible
       expect(component.activeNotifications.length).toBe(1);
       expect(component.notificationQueue.length).toBe(1);
+      discardPeriodicTasks();
     }));
 
     it('should prioritize higher priority notifications in queue', fakeAsync(() => {
@@ -761,6 +806,7 @@ describe('NotificationToastComponent', () => {
 
       // High priority should be shown next
       expect(component.activeNotifications[0].priority).toBe('urgent');
+      discardPeriodicTasks();
     }));
 
     it('should limit queue size to prevent memory issues', () => {
@@ -804,6 +850,7 @@ describe('NotificationToastComponent', () => {
 
       expect(notificationService.updateNotificationSettings).toHaveBeenCalledWith(newSettings);
       expect(component.settings).toEqual(newSettings);
+      discardPeriodicTasks();
     }));
 
     it('should apply category-specific settings', fakeAsync(() => {
@@ -813,6 +860,7 @@ describe('NotificationToastComponent', () => {
       const result = component.shouldShowNotification(messagingNotification);
 
       expect(result).toBe(false);
+      discardPeriodicTasks();
     }));
 
     it('should handle settings loading errors', fakeAsync(() => {
@@ -826,6 +874,7 @@ describe('NotificationToastComponent', () => {
       // Should use default settings
       expect(component.settings).toBeDefined();
       expect(component.settings.enableInAppNotifications).toBe(true);
+      discardPeriodicTasks();
     }));
 
     it('should save settings changes persistently', fakeAsync(() => {
@@ -835,6 +884,7 @@ describe('NotificationToastComponent', () => {
       tick();
 
       expect(notificationService.updateNotificationSettings).toHaveBeenCalledWith(updatedSettings);
+      discardPeriodicTasks();
     }));
   });
 
@@ -871,6 +921,7 @@ describe('NotificationToastComponent', () => {
       tick();
 
       expect(component.activeNotifications).not.toContain(expiredNotification);
+      discardPeriodicTasks();
     }));
 
     it('should debounce rapid notification updates', fakeAsync(() => {
@@ -887,6 +938,7 @@ describe('NotificationToastComponent', () => {
       tick(300); // Debounce delay
 
       expect(component.processNotificationQueue).toHaveBeenCalledTimes(1);
+      discardPeriodicTasks();
     }));
 
     it('should implement virtual scrolling for notification history', () => {
@@ -920,6 +972,7 @@ describe('NotificationToastComponent', () => {
       const notificationElement = fixture.debugElement.query(By.css('.notification-container'));
       expect(notificationElement.nativeElement.getAttribute('role')).toBe('alert');
       expect(notificationElement.nativeElement.getAttribute('aria-label')).toContain(notification.title);
+      discardPeriodicTasks();
     }));
 
     it('should support keyboard navigation', fakeAsync(() => {
@@ -933,6 +986,7 @@ describe('NotificationToastComponent', () => {
 
       actionButton.triggerEventHandler('keydown.enter', {});
       expect(component.handleActionClick).toHaveBeenCalled();
+      discardPeriodicTasks();
     }));
 
     it('should announce notifications to screen readers', fakeAsync(() => {
@@ -945,6 +999,7 @@ describe('NotificationToastComponent', () => {
       fixture.detectChanges();
 
       expect(liveRegion.nativeElement.textContent).toContain(notification.message);
+      discardPeriodicTasks();
     }));
 
     it('should support high contrast mode', fakeAsync(() => {
@@ -956,6 +1011,7 @@ describe('NotificationToastComponent', () => {
 
       const notificationElement = fixture.debugElement.query(By.css('.notification-container'));
       expect(notificationElement.nativeElement.classList).toContain('high-contrast');
+      discardPeriodicTasks();
     }));
 
     it('should respect reduced motion preferences', fakeAsync(() => {
@@ -978,6 +1034,7 @@ describe('NotificationToastComponent', () => {
 
       const notificationElement = fixture.debugElement.query(By.css('.notification-container'));
       expect(notificationElement.nativeElement.classList).toContain('reduced-motion');
+      discardPeriodicTasks();
     }));
   });
 
@@ -997,6 +1054,7 @@ describe('NotificationToastComponent', () => {
 
       const notificationElement = fixture.debugElement.query(By.css('.notification-container'));
       expect(notificationElement.nativeElement.classList).toContain('mobile');
+      discardPeriodicTasks();
     }));
 
     it('should use bottom positioning on mobile', fakeAsync(() => {
@@ -1008,6 +1066,7 @@ describe('NotificationToastComponent', () => {
 
       const container = fixture.debugElement.query(By.css('.notifications-container'));
       expect(container.nativeElement.classList).toContain('bottom-positioned');
+      discardPeriodicTasks();
     }));
 
     it('should support pull-to-refresh gesture', fakeAsync(() => {
@@ -1019,6 +1078,7 @@ describe('NotificationToastComponent', () => {
       container.triggerEventHandler('refresh', {});
 
       expect(component.refreshNotifications).toHaveBeenCalled();
+      discardPeriodicTasks();
     }));
 
     it('should optimize touch targets for mobile', fakeAsync(() => {
@@ -1034,6 +1094,7 @@ describe('NotificationToastComponent', () => {
         const minHeight = parseInt(styles.minHeight);
         expect(minHeight).toBeGreaterThanOrEqual(44); // 44px minimum touch target
       });
+      discardPeriodicTasks();
     }));
   });
 
@@ -1051,6 +1112,7 @@ describe('NotificationToastComponent', () => {
 
       // Should queue notification for when connection is restored
       expect(component.offlineNotificationQueue).toContain(notification);
+      discardPeriodicTasks();
     }));
 
     it('should handle malformed notification data', fakeAsync(() => {
@@ -1067,6 +1129,7 @@ describe('NotificationToastComponent', () => {
 
       expect(console.error).toHaveBeenCalled();
       expect(component.activeNotifications).not.toContain(malformedNotification);
+      discardPeriodicTasks();
     }));
 
     it('should provide fallback for missing user information', fakeAsync(() => {
@@ -1081,6 +1144,7 @@ describe('NotificationToastComponent', () => {
 
       const avatar = fixture.debugElement.query(By.css('.notification-avatar, .default-avatar'));
       expect(avatar).toBeTruthy();
+      discardPeriodicTasks();
     }));
 
     it('should handle notification service errors', fakeAsync(() => {
@@ -1092,6 +1156,7 @@ describe('NotificationToastComponent', () => {
 
       // Should continue working despite service errors
       expect(component.activeNotifications).toContain(notification);
+      discardPeriodicTasks();
     }));
 
     it('should implement retry logic for failed operations', fakeAsync(() => {
@@ -1109,6 +1174,7 @@ describe('NotificationToastComponent', () => {
       tick(2000); // Wait for retry
 
       expect(callCount).toBe(2);
+      discardPeriodicTasks();
     }));
   });
 });

@@ -92,6 +92,7 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
   private notificationSubject = new Subject<RealtimeNotification>();
   private autoDismissTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private cleanupIntervalId?: ReturnType<typeof setInterval>;
 
   constructor(
     private readonly notificationService: NotificationService,
@@ -118,7 +119,7 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
       })
     );
 
-    setInterval(() => {
+    this.cleanupIntervalId = setInterval(() => {
       this.cleanupExpiredNotifications();
     }, 60000);
   }
@@ -127,6 +128,9 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
     this.autoDismissTimers.forEach(timer => clearTimeout(timer));
     this.autoDismissTimers.clear();
+    if (this.cleanupIntervalId) {
+      clearInterval(this.cleanupIntervalId);
+    }
   }
 
   loadSettings(): void {
