@@ -85,6 +85,7 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
+            "karmaConfig": "karma.conf.js",
             "polyfills": [
               "zone.js",
               "zone.js/testing"
@@ -99,7 +100,9 @@
               "@angular/material/prebuilt-themes/rose-red.css",
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "codeCoverage": true,
+            "browsers": "ChromeHeadlessCI"
           }
         },
         "lint": {

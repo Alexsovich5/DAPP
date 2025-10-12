@@ -159,54 +159,147 @@ def upgrade() -> None:
     op.create_index(
         op.f("ix_user_activity_log_id"), "user_activity_log", ["id"], unique=False
     )
-    op.drop_index(op.f("ix_notification_logs_user_id"), table_name="notification_logs")
-    op.drop_table("notification_logs")
-    op.drop_index(
-        op.f("ix_push_subscriptions_user_id"), table_name="push_subscriptions"
-    )
-    op.drop_table("push_subscriptions")
-    op.drop_index(
-        op.f("ix_moderation_actions_action_type"), table_name="moderation_actions"
-    )
-    op.drop_index(
-        op.f("ix_moderation_actions_created_at"), table_name="moderation_actions"
-    )
-    op.drop_index(op.f("ix_moderation_actions_id"), table_name="moderation_actions")
-    op.drop_index(
-        op.f("ix_moderation_actions_is_active"), table_name="moderation_actions"
-    )
-    op.drop_index(
-        op.f("ix_moderation_actions_moderator_id"), table_name="moderation_actions"
-    )
-    op.drop_index(
-        op.f("ix_moderation_actions_target_user_id"), table_name="moderation_actions"
-    )
-    op.drop_table("moderation_actions")
-    op.drop_index(op.f("ix_user_reports_category"), table_name="user_reports")
-    op.drop_index(op.f("ix_user_reports_created_at"), table_name="user_reports")
-    op.drop_index(op.f("ix_user_reports_id"), table_name="user_reports")
-    op.drop_index(op.f("ix_user_reports_reported_user_id"), table_name="user_reports")
-    op.drop_index(op.f("ix_user_reports_reporter_id"), table_name="user_reports")
-    op.drop_index(op.f("ix_user_reports_status"), table_name="user_reports")
-    op.drop_table("user_reports")
-    op.drop_index(op.f("ix_simple_photo_reveals_id"), table_name="simple_photo_reveals")
-    op.drop_table("simple_photo_reveals")
-    op.drop_index(op.f("ix_user_safety_profiles_id"), table_name="user_safety_profiles")
-    op.drop_index(
-        op.f("ix_user_safety_profiles_safety_status"), table_name="user_safety_profiles"
-    )
-    op.drop_index(
-        op.f("ix_user_safety_profiles_total_reports"), table_name="user_safety_profiles"
-    )
-    op.drop_index(
-        op.f("ix_user_safety_profiles_user_id"), table_name="user_safety_profiles"
-    )
-    op.drop_table("user_safety_profiles")
-    op.drop_index(op.f("ix_blocked_users_blocked_user_id"), table_name="blocked_users")
-    op.drop_index(op.f("ix_blocked_users_blocker_id"), table_name="blocked_users")
-    op.drop_index(op.f("ix_blocked_users_created_at"), table_name="blocked_users")
-    op.drop_index(op.f("ix_blocked_users_id"), table_name="blocked_users")
-    op.drop_table("blocked_users")
+
+    # Drop tables and indexes only if they exist (conditional drops)
+    # Use raw SQL to check existence before dropping
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    existing_tables = inspector.get_table_names()
+
+    # Drop notification_logs table and index if exists
+    if "notification_logs" in existing_tables:
+        op.drop_index(
+            op.f("ix_notification_logs_user_id"),
+            table_name="notification_logs",
+            if_exists=True,
+        )
+        op.drop_table("notification_logs")
+
+    # Drop push_subscriptions table and index if exists
+    if "push_subscriptions" in existing_tables:
+        op.drop_index(
+            op.f("ix_push_subscriptions_user_id"),
+            table_name="push_subscriptions",
+            if_exists=True,
+        )
+        op.drop_table("push_subscriptions")
+
+    # Drop moderation_actions table and indexes if exists
+    if "moderation_actions" in existing_tables:
+        op.drop_index(
+            op.f("ix_moderation_actions_action_type"),
+            table_name="moderation_actions",
+            if_exists=True,
+        )
+        op.drop_index(
+            op.f("ix_moderation_actions_created_at"),
+            table_name="moderation_actions",
+            if_exists=True,
+        )
+        op.drop_index(
+            op.f("ix_moderation_actions_id"),
+            table_name="moderation_actions",
+            if_exists=True,
+        )
+        op.drop_index(
+            op.f("ix_moderation_actions_is_active"),
+            table_name="moderation_actions",
+            if_exists=True,
+        )
+        op.drop_index(
+            op.f("ix_moderation_actions_moderator_id"),
+            table_name="moderation_actions",
+            if_exists=True,
+        )
+        op.drop_index(
+            op.f("ix_moderation_actions_target_user_id"),
+            table_name="moderation_actions",
+            if_exists=True,
+        )
+        op.drop_table("moderation_actions")
+
+    # Drop user_reports table and indexes if exists
+    if "user_reports" in existing_tables:
+        op.drop_index(
+            op.f("ix_user_reports_category"), table_name="user_reports", if_exists=True
+        )
+        op.drop_index(
+            op.f("ix_user_reports_created_at"),
+            table_name="user_reports",
+            if_exists=True,
+        )
+        op.drop_index(
+            op.f("ix_user_reports_id"), table_name="user_reports", if_exists=True
+        )
+        op.drop_index(
+            op.f("ix_user_reports_reported_user_id"),
+            table_name="user_reports",
+            if_exists=True,
+        )
+        op.drop_index(
+            op.f("ix_user_reports_reporter_id"),
+            table_name="user_reports",
+            if_exists=True,
+        )
+        op.drop_index(
+            op.f("ix_user_reports_status"), table_name="user_reports", if_exists=True
+        )
+        op.drop_table("user_reports")
+
+    # Drop simple_photo_reveals table and index if exists
+    if "simple_photo_reveals" in existing_tables:
+        op.drop_index(
+            op.f("ix_simple_photo_reveals_id"),
+            table_name="simple_photo_reveals",
+            if_exists=True,
+        )
+        op.drop_table("simple_photo_reveals")
+
+    # Drop user_safety_profiles table and indexes if exists
+    if "user_safety_profiles" in existing_tables:
+        op.drop_index(
+            op.f("ix_user_safety_profiles_id"),
+            table_name="user_safety_profiles",
+            if_exists=True,
+        )
+        op.drop_index(
+            op.f("ix_user_safety_profiles_safety_status"),
+            table_name="user_safety_profiles",
+            if_exists=True,
+        )
+        op.drop_index(
+            op.f("ix_user_safety_profiles_total_reports"),
+            table_name="user_safety_profiles",
+            if_exists=True,
+        )
+        op.drop_index(
+            op.f("ix_user_safety_profiles_user_id"),
+            table_name="user_safety_profiles",
+            if_exists=True,
+        )
+        op.drop_table("user_safety_profiles")
+
+    # Drop blocked_users table and indexes if exists
+    if "blocked_users" in existing_tables:
+        op.drop_index(
+            op.f("ix_blocked_users_blocked_user_id"),
+            table_name="blocked_users",
+            if_exists=True,
+        )
+        op.drop_index(
+            op.f("ix_blocked_users_blocker_id"),
+            table_name="blocked_users",
+            if_exists=True,
+        )
+        op.drop_index(
+            op.f("ix_blocked_users_created_at"),
+            table_name="blocked_users",
+            if_exists=True,
+        )
+        op.drop_index(
+            op.f("ix_blocked_users_id"), table_name="blocked_users", if_exists=True
+        )
+        op.drop_table("blocked_users")
     op.add_column(
         "behavioral_patterns", sa.Column("pattern_name", sa.String(), nullable=False)
     )
