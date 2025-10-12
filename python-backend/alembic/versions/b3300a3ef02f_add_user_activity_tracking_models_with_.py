@@ -300,495 +300,564 @@ def upgrade() -> None:
             op.f("ix_blocked_users_id"), table_name="blocked_users", if_exists=True
         )
         op.drop_table("blocked_users")
-    op.add_column(
-        "behavioral_patterns", sa.Column("pattern_name", sa.String(), nullable=False)
-    )
-    op.add_column(
-        "behavioral_patterns",
-        sa.Column("pattern_description", sa.Text(), nullable=True),
-    )
-    op.add_column(
-        "behavioral_patterns", sa.Column("pattern_strength", sa.Float(), nullable=False)
-    )
-    op.add_column(
-        "behavioral_patterns",
-        sa.Column("pattern_consistency", sa.Float(), nullable=False),
-    )
-    op.add_column(
-        "behavioral_patterns",
-        sa.Column("first_observed", sa.DateTime(), nullable=False),
-    )
-    op.add_column(
-        "behavioral_patterns",
-        sa.Column("last_confirmed", sa.DateTime(), nullable=False),
-    )
-    op.add_column(
-        "behavioral_patterns",
-        sa.Column("observation_count", sa.Integer(), nullable=True),
-    )
-    op.add_column(
-        "behavioral_patterns", sa.Column("seasonal_component", sa.JSON(), nullable=True)
-    )
-    op.add_column(
-        "behavioral_patterns",
-        sa.Column("detection_model_id", sa.Integer(), nullable=True),
-    )
-    op.add_column(
-        "behavioral_patterns",
-        sa.Column("detection_confidence", sa.Float(), nullable=False),
-    )
-    op.add_column(
-        "behavioral_patterns",
-        sa.Column("detection_method", sa.String(), nullable=False),
-    )
-    op.add_column(
-        "behavioral_patterns", sa.Column("business_impact", sa.String(), nullable=True)
-    )
-    op.add_column(
-        "behavioral_patterns",
-        sa.Column("actionable_insights", sa.JSON(), nullable=True),
-    )
-    op.alter_column(
-        "behavioral_patterns",
-        "created_at",
-        existing_type=postgresql.TIMESTAMP(),
-        nullable=False,
-    )
-    op.alter_column(
-        "behavioral_patterns",
-        "updated_at",
-        existing_type=postgresql.TIMESTAMP(),
-        nullable=False,
-    )
-    op.create_foreign_key(
-        None, "behavioral_patterns", "ml_models", ["detection_model_id"], ["id"]
-    )
-    op.drop_column("behavioral_patterns", "prediction_value")
-    op.drop_column("behavioral_patterns", "frequency")
-    op.drop_column("behavioral_patterns", "strength")
-    op.drop_column("behavioral_patterns", "last_observed")
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("user1_profile_id", sa.Integer(), nullable=False),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("user2_profile_id", sa.Integer(), nullable=False),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("overall_compatibility", sa.Float(), nullable=False),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("personality_compatibility", sa.Float(), nullable=True),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("values_compatibility", sa.Float(), nullable=True),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("interests_compatibility", sa.Float(), nullable=True),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("communication_compatibility", sa.Float(), nullable=True),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("lifestyle_compatibility", sa.Float(), nullable=True),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("conversation_quality_prediction", sa.Float(), nullable=True),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("long_term_potential", sa.Float(), nullable=True),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("conflict_likelihood", sa.Float(), nullable=True),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("growth_potential", sa.Float(), nullable=True),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("compatibility_reasons", sa.JSON(), nullable=True),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("potential_challenges", sa.JSON(), nullable=True),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("conversation_starters", sa.JSON(), nullable=True),
-    )
-    op.add_column(
-        "compatibility_predictions", sa.Column("model_id", sa.Integer(), nullable=False)
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("prediction_version", sa.String(), nullable=False),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("user_feedback_score", sa.Float(), nullable=True),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("prediction_accuracy", sa.Float(), nullable=True),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("expires_at", sa.DateTime(), nullable=True),
-    )
-    op.add_column(
-        "compatibility_predictions",
-        sa.Column("last_validated_at", sa.DateTime(), nullable=True),
-    )
-    op.alter_column(
-        "compatibility_predictions",
-        "prediction_date",
-        existing_type=postgresql.TIMESTAMP(),
-        nullable=False,
-    )
-    op.alter_column(
-        "compatibility_predictions",
-        "created_at",
-        existing_type=postgresql.TIMESTAMP(),
-        nullable=False,
-    )
-    op.alter_column(
-        "compatibility_predictions",
-        "updated_at",
-        existing_type=postgresql.TIMESTAMP(),
-        nullable=False,
-    )
-    op.drop_constraint(
-        op.f("compatibility_predictions_user1_id_fkey"),
-        "compatibility_predictions",
-        type_="foreignkey",
-    )
-    op.drop_constraint(
-        op.f("compatibility_predictions_user2_id_fkey"),
-        "compatibility_predictions",
-        type_="foreignkey",
-    )
-    op.create_foreign_key(
-        None, "compatibility_predictions", "ml_models", ["model_id"], ["id"]
-    )
-    op.create_foreign_key(
-        None, "compatibility_predictions", "user_profiles", ["user1_profile_id"], ["id"]
-    )
-    op.create_foreign_key(
-        None, "compatibility_predictions", "user_profiles", ["user2_profile_id"], ["id"]
-    )
-    op.drop_column("compatibility_predictions", "user2_id")
-    op.drop_column("compatibility_predictions", "prediction_reasoning")
-    op.drop_column("compatibility_predictions", "accuracy_score")
-    op.drop_column("compatibility_predictions", "compatibility_breakdown")
-    op.drop_column("compatibility_predictions", "user1_id")
-    op.drop_column("compatibility_predictions", "compatibility_score")
-    op.drop_column("compatibility_predictions", "model_version")
-    op.add_column("ml_models", sa.Column("description", sa.Text(), nullable=True))
-    op.add_column("ml_models", sa.Column("architecture", sa.String(), nullable=True))
-    op.add_column("ml_models", sa.Column("input_features", sa.JSON(), nullable=True))
-    op.add_column("ml_models", sa.Column("output_schema", sa.JSON(), nullable=True))
-    op.add_column("ml_models", sa.Column("hyperparameters", sa.JSON(), nullable=True))
-    op.add_column("ml_models", sa.Column("training_status", sa.String(), nullable=True))
-    op.add_column(
-        "ml_models", sa.Column("training_data_size", sa.Integer(), nullable=True)
-    )
-    op.add_column(
-        "ml_models", sa.Column("validation_accuracy", sa.Float(), nullable=True)
-    )
-    op.add_column("ml_models", sa.Column("test_accuracy", sa.Float(), nullable=True))
-    op.add_column(
-        "ml_models", sa.Column("training_duration_minutes", sa.Integer(), nullable=True)
-    )
-    op.add_column(
-        "ml_models", sa.Column("inference_time_ms", sa.Float(), nullable=True)
-    )
-    op.add_column("ml_models", sa.Column("memory_usage_mb", sa.Float(), nullable=True))
-    op.add_column(
-        "ml_models", sa.Column("cpu_usage_percent", sa.Float(), nullable=True)
-    )
-    op.add_column(
-        "ml_models", sa.Column("deployment_date", sa.DateTime(), nullable=True)
-    )
-    op.add_column("ml_models", sa.Column("model_file_path", sa.String(), nullable=True))
-    op.add_column("ml_models", sa.Column("model_checksum", sa.String(), nullable=True))
-    op.add_column(
-        "ml_models", sa.Column("parent_model_id", sa.Integer(), nullable=True)
-    )
-    op.add_column("ml_models", sa.Column("training_config", sa.JSON(), nullable=True))
-    op.add_column(
-        "ml_models", sa.Column("feature_importance", sa.JSON(), nullable=True)
-    )
-    op.add_column(
-        "ml_models", sa.Column("prediction_count", sa.Integer(), nullable=True)
-    )
-    op.add_column("ml_models", sa.Column("error_count", sa.Integer(), nullable=True))
-    op.add_column(
-        "ml_models", sa.Column("last_prediction_at", sa.DateTime(), nullable=True)
-    )
-    op.add_column(
-        "ml_models", sa.Column("drift_detection_score", sa.Float(), nullable=True)
-    )
-    op.alter_column(
-        "ml_models", "created_at", existing_type=postgresql.TIMESTAMP(), nullable=False
-    )
-    op.alter_column(
-        "ml_models", "updated_at", existing_type=postgresql.TIMESTAMP(), nullable=False
-    )
-    op.create_foreign_key(None, "ml_models", "ml_models", ["parent_model_id"], ["id"])
-    op.drop_column("ml_models", "training_date")
-    op.drop_column("ml_models", "parameters")
-    op.drop_column("ml_models", "performance_metrics")
-    op.add_column(
-        "model_predictions", sa.Column("input_data_hash", sa.String(), nullable=False)
-    )
-    op.add_column(
-        "model_predictions", sa.Column("input_features", sa.JSON(), nullable=False)
-    )
-    op.add_column(
-        "model_predictions", sa.Column("prediction_quality", sa.String(), nullable=True)
-    )
-    op.add_column(
-        "model_predictions",
-        sa.Column("uncertainty_estimate", sa.Float(), nullable=True),
-    )
-    op.add_column(
-        "model_predictions", sa.Column("feature_importance", sa.JSON(), nullable=True)
-    )
-    op.add_column(
-        "model_predictions", sa.Column("ground_truth_value", sa.JSON(), nullable=True)
-    )
-    op.add_column(
-        "model_predictions", sa.Column("prediction_error", sa.Float(), nullable=True)
-    )
-    op.add_column(
-        "model_predictions", sa.Column("user_feedback_score", sa.Float(), nullable=True)
-    )
-    op.add_column(
-        "model_predictions", sa.Column("session_id", sa.String(), nullable=True)
-    )
-    op.add_column(
-        "model_predictions", sa.Column("request_source", sa.String(), nullable=True)
-    )
-    op.alter_column(
-        "model_predictions",
-        "prediction_type",
-        existing_type=sa.VARCHAR(),
-        nullable=False,
-    )
-    op.alter_column(
-        "model_predictions",
-        "confidence_score",
-        existing_type=sa.DOUBLE_PRECISION(precision=53),
-        nullable=True,
-    )
-    op.alter_column(
-        "model_predictions",
-        "processing_time_ms",
-        existing_type=sa.INTEGER(),
-        type_=sa.Float(),
-        nullable=False,
-    )
-    op.alter_column(
-        "model_predictions",
-        "created_at",
-        existing_type=postgresql.TIMESTAMP(),
-        nullable=False,
-    )
-    op.drop_column("model_predictions", "input_data")
-    op.add_column(
-        "personalized_recommendations",
-        sa.Column("user_profile_id", sa.Integer(), nullable=False),
-    )
-    op.add_column(
-        "personalized_recommendations",
-        sa.Column("recommendation_content", sa.JSON(), nullable=False),
-    )
-    op.add_column(
-        "personalized_recommendations",
-        sa.Column("priority_score", sa.Float(), nullable=True),
-    )
-    op.add_column(
-        "personalized_recommendations",
-        sa.Column("context_data", sa.JSON(), nullable=True),
-    )
-    op.add_column(
-        "personalized_recommendations",
-        sa.Column("user_segment", sa.String(), nullable=True),
-    )
-    op.add_column(
-        "personalized_recommendations",
-        sa.Column("timing_relevance", sa.Float(), nullable=True),
-    )
-    op.add_column(
-        "personalized_recommendations",
-        sa.Column("model_id", sa.Integer(), nullable=False),
-    )
-    op.add_column(
-        "personalized_recommendations",
-        sa.Column("generation_algorithm", sa.String(), nullable=True),
-    )
-    op.add_column(
-        "personalized_recommendations",
-        sa.Column("confidence_score", sa.Float(), nullable=False),
-    )
-    op.add_column(
-        "personalized_recommendations",
-        sa.Column("shown_to_user", sa.Boolean(), nullable=True),
-    )
-    op.add_column(
-        "personalized_recommendations",
-        sa.Column("shown_at", sa.DateTime(), nullable=True),
-    )
-    op.add_column(
-        "personalized_recommendations",
-        sa.Column("user_action", sa.String(), nullable=True),
-    )
-    op.add_column(
-        "personalized_recommendations",
-        sa.Column("user_feedback", sa.String(), nullable=True),
-    )
-    op.add_column(
-        "personalized_recommendations",
-        sa.Column("effectiveness_score", sa.Float(), nullable=True),
-    )
-    op.add_column(
-        "personalized_recommendations",
-        sa.Column("is_active", sa.Boolean(), nullable=True),
-    )
-    op.add_column(
-        "personalized_recommendations",
-        sa.Column("invalidation_reason", sa.String(), nullable=True),
-    )
-    op.add_column(
-        "personalized_recommendations",
-        sa.Column("experiment_id", sa.String(), nullable=True),
-    )
-    op.add_column(
-        "personalized_recommendations", sa.Column("variant", sa.String(), nullable=True)
-    )
-    op.alter_column(
-        "personalized_recommendations",
-        "recommendation_type",
-        existing_type=sa.VARCHAR(),
-        nullable=False,
-    )
-    op.alter_column(
-        "personalized_recommendations",
-        "created_at",
-        existing_type=postgresql.TIMESTAMP(),
-        nullable=False,
-    )
-    op.alter_column(
-        "personalized_recommendations",
-        "updated_at",
-        existing_type=postgresql.TIMESTAMP(),
-        nullable=False,
-    )
-    op.drop_constraint(
-        op.f("personalized_recommendations_recommended_user_id_fkey"),
-        "personalized_recommendations",
-        type_="foreignkey",
-    )
-    op.drop_constraint(
-        op.f("personalized_recommendations_user_id_fkey"),
-        "personalized_recommendations",
-        type_="foreignkey",
-    )
-    op.create_foreign_key(
-        None,
-        "personalized_recommendations",
-        "user_profiles",
-        ["user_profile_id"],
-        ["id"],
-    )
-    op.create_foreign_key(
-        None, "personalized_recommendations", "ml_models", ["model_id"], ["id"]
-    )
-    op.drop_column("personalized_recommendations", "recommendation_reasons")
-    op.drop_column("personalized_recommendations", "predicted_success_rate")
-    op.drop_column("personalized_recommendations", "recommended_user_id")
-    op.drop_column("personalized_recommendations", "user_id")
-    op.drop_column("personalized_recommendations", "generated_at")
-    op.drop_column("personalized_recommendations", "user_feedback_score")
-    op.drop_column("personalized_recommendations", "recommendation_score")
-    op.drop_column("personalized_recommendations", "actual_compatibility")
-    op.drop_column("personalized_recommendations", "was_acted_upon")
-    op.add_column(
-        "user_profiles", sa.Column("emotional_intelligence", sa.Float(), nullable=True)
-    )
-    op.add_column(
-        "user_profiles", sa.Column("attachment_style", sa.String(), nullable=True)
-    )
-    op.add_column(
-        "user_profiles", sa.Column("love_language_primary", sa.String(), nullable=True)
-    )
-    op.add_column(
-        "user_profiles",
-        sa.Column("love_language_secondary", sa.String(), nullable=True),
-    )
-    op.add_column(
-        "user_profiles", sa.Column("communication_style", sa.String(), nullable=True)
-    )
-    op.add_column(
-        "user_profiles",
-        sa.Column("conversation_depth_preference", sa.Float(), nullable=True),
-    )
-    op.add_column(
-        "user_profiles", sa.Column("response_time_pattern", sa.JSON(), nullable=True)
-    )
-    op.add_column(
-        "user_profiles", sa.Column("emoji_usage_pattern", sa.JSON(), nullable=True)
-    )
-    op.add_column(
-        "user_profiles", sa.Column("activity_patterns", sa.JSON(), nullable=True)
-    )
-    op.add_column(
-        "user_profiles", sa.Column("engagement_patterns", sa.JSON(), nullable=True)
-    )
-    op.add_column(
-        "user_profiles", sa.Column("decision_patterns", sa.JSON(), nullable=True)
-    )
-    op.add_column(
-        "user_profiles", sa.Column("data_quality_score", sa.Float(), nullable=True)
-    )
-    op.add_column(
-        "user_profiles", sa.Column("learning_rate", sa.Float(), nullable=True)
-    )
-    op.add_column(
-        "user_profiles", sa.Column("ai_update_frequency", sa.Integer(), nullable=True)
-    )
-    op.add_column(
-        "user_profiles", sa.Column("manual_overrides", sa.JSON(), nullable=True)
-    )
-    op.add_column(
-        "user_profiles", sa.Column("ai_profiling_consent", sa.Boolean(), nullable=True)
-    )
-    op.add_column(
-        "user_profiles", sa.Column("data_sharing_level", sa.String(), nullable=True)
-    )
-    op.alter_column(
-        "user_profiles",
-        "created_at",
-        existing_type=postgresql.TIMESTAMP(),
-        nullable=False,
-    )
-    op.alter_column(
-        "user_profiles",
-        "updated_at",
-        existing_type=postgresql.TIMESTAMP(),
-        nullable=False,
-    )
+
+    # Check if tables exist before attempting to alter them
+    # These tables may have been dropped by earlier migrations
+    if "behavioral_patterns" in existing_tables:
+        op.add_column(
+            "behavioral_patterns",
+            sa.Column("pattern_name", sa.String(), nullable=False),
+        )
+        op.add_column(
+            "behavioral_patterns",
+            sa.Column("pattern_description", sa.Text(), nullable=True),
+        )
+        op.add_column(
+            "behavioral_patterns",
+            sa.Column("pattern_strength", sa.Float(), nullable=False),
+        )
+        op.add_column(
+            "behavioral_patterns",
+            sa.Column("pattern_consistency", sa.Float(), nullable=False),
+        )
+        op.add_column(
+            "behavioral_patterns",
+            sa.Column("first_observed", sa.DateTime(), nullable=False),
+        )
+        op.add_column(
+            "behavioral_patterns",
+            sa.Column("last_confirmed", sa.DateTime(), nullable=False),
+        )
+        op.add_column(
+            "behavioral_patterns",
+            sa.Column("observation_count", sa.Integer(), nullable=True),
+        )
+        op.add_column(
+            "behavioral_patterns",
+            sa.Column("seasonal_component", sa.JSON(), nullable=True),
+        )
+        op.add_column(
+            "behavioral_patterns",
+            sa.Column("detection_model_id", sa.Integer(), nullable=True),
+        )
+        op.add_column(
+            "behavioral_patterns",
+            sa.Column("detection_confidence", sa.Float(), nullable=False),
+        )
+        op.add_column(
+            "behavioral_patterns",
+            sa.Column("detection_method", sa.String(), nullable=False),
+        )
+        op.add_column(
+            "behavioral_patterns",
+            sa.Column("business_impact", sa.String(), nullable=True),
+        )
+        op.add_column(
+            "behavioral_patterns",
+            sa.Column("actionable_insights", sa.JSON(), nullable=True),
+        )
+        op.alter_column(
+            "behavioral_patterns",
+            "created_at",
+            existing_type=postgresql.TIMESTAMP(),
+            nullable=False,
+        )
+        op.alter_column(
+            "behavioral_patterns",
+            "updated_at",
+            existing_type=postgresql.TIMESTAMP(),
+            nullable=False,
+        )
+        op.create_foreign_key(
+            None, "behavioral_patterns", "ml_models", ["detection_model_id"], ["id"]
+        )
+        op.drop_column("behavioral_patterns", "prediction_value")
+        op.drop_column("behavioral_patterns", "frequency")
+        op.drop_column("behavioral_patterns", "strength")
+        op.drop_column("behavioral_patterns", "last_observed")
+
+    if "compatibility_predictions" in existing_tables:
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("user1_profile_id", sa.Integer(), nullable=False),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("user2_profile_id", sa.Integer(), nullable=False),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("overall_compatibility", sa.Float(), nullable=False),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("personality_compatibility", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("values_compatibility", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("interests_compatibility", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("communication_compatibility", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("lifestyle_compatibility", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("conversation_quality_prediction", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("long_term_potential", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("conflict_likelihood", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("growth_potential", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("compatibility_reasons", sa.JSON(), nullable=True),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("potential_challenges", sa.JSON(), nullable=True),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("conversation_starters", sa.JSON(), nullable=True),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("model_id", sa.Integer(), nullable=False),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("prediction_version", sa.String(), nullable=False),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("user_feedback_score", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("prediction_accuracy", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("expires_at", sa.DateTime(), nullable=True),
+        )
+        op.add_column(
+            "compatibility_predictions",
+            sa.Column("last_validated_at", sa.DateTime(), nullable=True),
+        )
+        op.alter_column(
+            "compatibility_predictions",
+            "prediction_date",
+            existing_type=postgresql.TIMESTAMP(),
+            nullable=False,
+        )
+        op.alter_column(
+            "compatibility_predictions",
+            "created_at",
+            existing_type=postgresql.TIMESTAMP(),
+            nullable=False,
+        )
+        op.alter_column(
+            "compatibility_predictions",
+            "updated_at",
+            existing_type=postgresql.TIMESTAMP(),
+            nullable=False,
+        )
+        op.drop_constraint(
+            op.f("compatibility_predictions_user1_id_fkey"),
+            "compatibility_predictions",
+            type_="foreignkey",
+        )
+        op.drop_constraint(
+            op.f("compatibility_predictions_user2_id_fkey"),
+            "compatibility_predictions",
+            type_="foreignkey",
+        )
+        op.create_foreign_key(
+            None, "compatibility_predictions", "ml_models", ["model_id"], ["id"]
+        )
+        op.create_foreign_key(
+            None,
+            "compatibility_predictions",
+            "user_profiles",
+            ["user1_profile_id"],
+            ["id"],
+        )
+        op.create_foreign_key(
+            None,
+            "compatibility_predictions",
+            "user_profiles",
+            ["user2_profile_id"],
+            ["id"],
+        )
+        op.drop_column("compatibility_predictions", "user2_id")
+        op.drop_column("compatibility_predictions", "prediction_reasoning")
+        op.drop_column("compatibility_predictions", "accuracy_score")
+        op.drop_column("compatibility_predictions", "compatibility_breakdown")
+        op.drop_column("compatibility_predictions", "user1_id")
+        op.drop_column("compatibility_predictions", "compatibility_score")
+        op.drop_column("compatibility_predictions", "model_version")
+
+    if "ml_models" in existing_tables:
+        op.add_column("ml_models", sa.Column("description", sa.Text(), nullable=True))
+        op.add_column(
+            "ml_models", sa.Column("architecture", sa.String(), nullable=True)
+        )
+        op.add_column(
+            "ml_models", sa.Column("input_features", sa.JSON(), nullable=True)
+        )
+        op.add_column("ml_models", sa.Column("output_schema", sa.JSON(), nullable=True))
+        op.add_column(
+            "ml_models", sa.Column("hyperparameters", sa.JSON(), nullable=True)
+        )
+        op.add_column(
+            "ml_models", sa.Column("training_status", sa.String(), nullable=True)
+        )
+        op.add_column(
+            "ml_models", sa.Column("training_data_size", sa.Integer(), nullable=True)
+        )
+        op.add_column(
+            "ml_models", sa.Column("validation_accuracy", sa.Float(), nullable=True)
+        )
+        op.add_column(
+            "ml_models", sa.Column("test_accuracy", sa.Float(), nullable=True)
+        )
+        op.add_column(
+            "ml_models",
+            sa.Column("training_duration_minutes", sa.Integer(), nullable=True),
+        )
+        op.add_column(
+            "ml_models", sa.Column("inference_time_ms", sa.Float(), nullable=True)
+        )
+        op.add_column(
+            "ml_models", sa.Column("memory_usage_mb", sa.Float(), nullable=True)
+        )
+        op.add_column(
+            "ml_models", sa.Column("cpu_usage_percent", sa.Float(), nullable=True)
+        )
+        op.add_column(
+            "ml_models", sa.Column("deployment_date", sa.DateTime(), nullable=True)
+        )
+        op.add_column(
+            "ml_models", sa.Column("model_file_path", sa.String(), nullable=True)
+        )
+        op.add_column(
+            "ml_models", sa.Column("model_checksum", sa.String(), nullable=True)
+        )
+        op.add_column(
+            "ml_models", sa.Column("parent_model_id", sa.Integer(), nullable=True)
+        )
+        op.add_column(
+            "ml_models", sa.Column("training_config", sa.JSON(), nullable=True)
+        )
+        op.add_column(
+            "ml_models", sa.Column("feature_importance", sa.JSON(), nullable=True)
+        )
+        op.add_column(
+            "ml_models", sa.Column("prediction_count", sa.Integer(), nullable=True)
+        )
+        op.add_column(
+            "ml_models", sa.Column("error_count", sa.Integer(), nullable=True)
+        )
+        op.add_column(
+            "ml_models", sa.Column("last_prediction_at", sa.DateTime(), nullable=True)
+        )
+        op.add_column(
+            "ml_models", sa.Column("drift_detection_score", sa.Float(), nullable=True)
+        )
+        op.alter_column(
+            "ml_models",
+            "created_at",
+            existing_type=postgresql.TIMESTAMP(),
+            nullable=False,
+        )
+        op.alter_column(
+            "ml_models",
+            "updated_at",
+            existing_type=postgresql.TIMESTAMP(),
+            nullable=False,
+        )
+        op.create_foreign_key(
+            None, "ml_models", "ml_models", ["parent_model_id"], ["id"]
+        )
+        op.drop_column("ml_models", "training_date")
+        op.drop_column("ml_models", "parameters")
+        op.drop_column("ml_models", "performance_metrics")
+
+    if "model_predictions" in existing_tables:
+        op.add_column(
+            "model_predictions",
+            sa.Column("input_data_hash", sa.String(), nullable=False),
+        )
+        op.add_column(
+            "model_predictions", sa.Column("input_features", sa.JSON(), nullable=False)
+        )
+        op.add_column(
+            "model_predictions",
+            sa.Column("prediction_quality", sa.String(), nullable=True),
+        )
+        op.add_column(
+            "model_predictions",
+            sa.Column("uncertainty_estimate", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "model_predictions",
+            sa.Column("feature_importance", sa.JSON(), nullable=True),
+        )
+        op.add_column(
+            "model_predictions",
+            sa.Column("ground_truth_value", sa.JSON(), nullable=True),
+        )
+        op.add_column(
+            "model_predictions",
+            sa.Column("prediction_error", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "model_predictions",
+            sa.Column("user_feedback_score", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "model_predictions", sa.Column("session_id", sa.String(), nullable=True)
+        )
+        op.add_column(
+            "model_predictions", sa.Column("request_source", sa.String(), nullable=True)
+        )
+        op.alter_column(
+            "model_predictions",
+            "prediction_type",
+            existing_type=sa.VARCHAR(),
+            nullable=False,
+        )
+        op.alter_column(
+            "model_predictions",
+            "confidence_score",
+            existing_type=sa.DOUBLE_PRECISION(precision=53),
+            nullable=True,
+        )
+        op.alter_column(
+            "model_predictions",
+            "processing_time_ms",
+            existing_type=sa.INTEGER(),
+            type_=sa.Float(),
+            nullable=False,
+        )
+        op.alter_column(
+            "model_predictions",
+            "created_at",
+            existing_type=postgresql.TIMESTAMP(),
+            nullable=False,
+        )
+        op.drop_column("model_predictions", "input_data")
+
+    if "personalized_recommendations" in existing_tables:
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("user_profile_id", sa.Integer(), nullable=False),
+        )
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("recommendation_content", sa.JSON(), nullable=False),
+        )
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("priority_score", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("context_data", sa.JSON(), nullable=True),
+        )
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("user_segment", sa.String(), nullable=True),
+        )
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("timing_relevance", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("model_id", sa.Integer(), nullable=False),
+        )
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("generation_algorithm", sa.String(), nullable=True),
+        )
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("confidence_score", sa.Float(), nullable=False),
+        )
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("shown_to_user", sa.Boolean(), nullable=True),
+        )
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("shown_at", sa.DateTime(), nullable=True),
+        )
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("user_action", sa.String(), nullable=True),
+        )
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("user_feedback", sa.String(), nullable=True),
+        )
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("effectiveness_score", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("is_active", sa.Boolean(), nullable=True),
+        )
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("invalidation_reason", sa.String(), nullable=True),
+        )
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("experiment_id", sa.String(), nullable=True),
+        )
+        op.add_column(
+            "personalized_recommendations",
+            sa.Column("variant", sa.String(), nullable=True),
+        )
+        op.alter_column(
+            "personalized_recommendations",
+            "recommendation_type",
+            existing_type=sa.VARCHAR(),
+            nullable=False,
+        )
+        op.alter_column(
+            "personalized_recommendations",
+            "created_at",
+            existing_type=postgresql.TIMESTAMP(),
+            nullable=False,
+        )
+        op.alter_column(
+            "personalized_recommendations",
+            "updated_at",
+            existing_type=postgresql.TIMESTAMP(),
+            nullable=False,
+        )
+        op.drop_constraint(
+            op.f("personalized_recommendations_recommended_user_id_fkey"),
+            "personalized_recommendations",
+            type_="foreignkey",
+        )
+        op.drop_constraint(
+            op.f("personalized_recommendations_user_id_fkey"),
+            "personalized_recommendations",
+            type_="foreignkey",
+        )
+        op.create_foreign_key(
+            None,
+            "personalized_recommendations",
+            "user_profiles",
+            ["user_profile_id"],
+            ["id"],
+        )
+        op.create_foreign_key(
+            None, "personalized_recommendations", "ml_models", ["model_id"], ["id"]
+        )
+        op.drop_column("personalized_recommendations", "recommendation_reasons")
+        op.drop_column("personalized_recommendations", "predicted_success_rate")
+        op.drop_column("personalized_recommendations", "recommended_user_id")
+        op.drop_column("personalized_recommendations", "user_id")
+        op.drop_column("personalized_recommendations", "generated_at")
+        op.drop_column("personalized_recommendations", "user_feedback_score")
+        op.drop_column("personalized_recommendations", "recommendation_score")
+        op.drop_column("personalized_recommendations", "actual_compatibility")
+        op.drop_column("personalized_recommendations", "was_acted_upon")
+
+    if "user_profiles" in existing_tables:
+        op.add_column(
+            "user_profiles",
+            sa.Column("emotional_intelligence", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "user_profiles", sa.Column("attachment_style", sa.String(), nullable=True)
+        )
+        op.add_column(
+            "user_profiles",
+            sa.Column("love_language_primary", sa.String(), nullable=True),
+        )
+        op.add_column(
+            "user_profiles",
+            sa.Column("love_language_secondary", sa.String(), nullable=True),
+        )
+        op.add_column(
+            "user_profiles",
+            sa.Column("communication_style", sa.String(), nullable=True),
+        )
+        op.add_column(
+            "user_profiles",
+            sa.Column("conversation_depth_preference", sa.Float(), nullable=True),
+        )
+        op.add_column(
+            "user_profiles",
+            sa.Column("response_time_pattern", sa.JSON(), nullable=True),
+        )
+        op.add_column(
+            "user_profiles", sa.Column("emoji_usage_pattern", sa.JSON(), nullable=True)
+        )
+        op.add_column(
+            "user_profiles", sa.Column("activity_patterns", sa.JSON(), nullable=True)
+        )
+        op.add_column(
+            "user_profiles", sa.Column("engagement_patterns", sa.JSON(), nullable=True)
+        )
+        op.add_column(
+            "user_profiles", sa.Column("decision_patterns", sa.JSON(), nullable=True)
+        )
+        op.add_column(
+            "user_profiles", sa.Column("data_quality_score", sa.Float(), nullable=True)
+        )
+        op.add_column(
+            "user_profiles", sa.Column("learning_rate", sa.Float(), nullable=True)
+        )
+        op.add_column(
+            "user_profiles",
+            sa.Column("ai_update_frequency", sa.Integer(), nullable=True),
+        )
+        op.add_column(
+            "user_profiles", sa.Column("manual_overrides", sa.JSON(), nullable=True)
+        )
+        op.add_column(
+            "user_profiles",
+            sa.Column("ai_profiling_consent", sa.Boolean(), nullable=True),
+        )
+        op.add_column(
+            "user_profiles", sa.Column("data_sharing_level", sa.String(), nullable=True)
+        )
+        op.alter_column(
+            "user_profiles",
+            "created_at",
+            existing_type=postgresql.TIMESTAMP(),
+            nullable=False,
+        )
+        op.alter_column(
+            "user_profiles",
+            "updated_at",
+            existing_type=postgresql.TIMESTAMP(),
+            nullable=False,
+        )
     op.add_column(
         "users", sa.Column("notification_preferences", sa.JSON(), nullable=True)
     )
