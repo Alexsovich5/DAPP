@@ -36,8 +36,6 @@ describe('OnboardingComponent', () => {
       currentUser$: of(mockUser)
     });
 
-    const revelationSpy = jasmine.createSpyObj('RevelationService', []);
-
     await TestBed.configureTestingModule({
       imports: [
         OnboardingComponent,
@@ -45,7 +43,7 @@ describe('OnboardingComponent', () => {
       ],
       providers: [
         { provide: AuthService, useValue: authSpy },
-        { provide: RevelationService, useValue: revelationSpy }
+        { provide: RevelationService, useValue: {} }
       ]
     }).compileComponents();
 

@@ -358,7 +358,7 @@ export interface TypingUser {
     trigger('dotBounce', [
       state('bounce', style({ transform: 'scale(1)' })),
       transition('* => bounce', [
-        animate('1.4s ease-in-out infinite', keyframes([
+        animate('1.4s ease-in-out', keyframes([
           style({ transform: 'scale(1) translateY(0)', opacity: 0.7, offset: 0 }),
           style({ transform: 'scale(1.2) translateY(-4px)', opacity: 1, offset: 0.4 }),
           style({ transform: 'scale(1) translateY(0)', opacity: 0.7, offset: 0.8 }),
@@ -369,7 +369,7 @@ export interface TypingUser {
     trigger('avatarPulse', [
       state('pulse', style({ transform: 'scale(1)' })),
       transition('* => pulse', [
-        animate('2s ease-in-out infinite', keyframes([
+        animate('2s ease-in-out', keyframes([
           style({ transform: 'scale(1)', offset: 0 }),
           style({ transform: 'scale(1.05)', offset: 0.5 }),
           style({ transform: 'scale(1)', offset: 1 })
@@ -379,7 +379,7 @@ export interface TypingUser {
     trigger('onlinePulse', [
       state('active', style({ opacity: 1 })),
       transition('* => active', [
-        animate('2s ease-in-out infinite', keyframes([
+        animate('2s ease-in-out', keyframes([
           style({ opacity: 1, transform: 'scale(1)', offset: 0 }),
           style({ opacity: 0.7, transform: 'scale(1.2)', offset: 0.5 }),
           style({ opacity: 1, transform: 'scale(1)', offset: 1 })
@@ -397,7 +397,7 @@ export interface TypingUser {
     trigger('ellipsisAnimation', [
       state('animate', style({ opacity: 1 })),
       transition('* => animate', [
-        animate('1.5s ease-in-out infinite', keyframes([
+        animate('1.5s ease-in-out', keyframes([
           style({ opacity: 1, offset: 0 }),
           style({ opacity: 0.3, offset: 0.33 }),
           style({ opacity: 0.6, offset: 0.66 }),
@@ -408,7 +408,7 @@ export interface TypingUser {
     trigger('energyFlow', [
       state('flow', style({ opacity: 0 })),
       transition('* => flow', [
-        animate('3s linear infinite', keyframes([
+        animate('3s linear', keyframes([
           style({
             transform: 'translateX(-100%) translateY(50%)',
             opacity: 0,
@@ -433,7 +433,7 @@ export interface TypingUser {
     trigger('energyPulse', [
       state('pulse', style({ opacity: 1 })),
       transition('* => pulse', [
-        animate('2s ease-in-out infinite', keyframes([
+        animate('2s ease-in-out', keyframes([
           style({ opacity: 0.6, transform: 'scale(1)', offset: 0 }),
           style({ opacity: 1, transform: 'scale(1.2)', offset: 0.5 }),
           style({ opacity: 0.6, transform: 'scale(1)', offset: 1 })
@@ -443,7 +443,7 @@ export interface TypingUser {
     trigger('emotionalGlow', [
       state('glow', style({ opacity: 1 })),
       transition('* => glow', [
-        animate('3s ease-in-out infinite', keyframes([
+        animate('3s ease-in-out', keyframes([
           style({
             opacity: 0.7,
             transform: 'scale(1)',

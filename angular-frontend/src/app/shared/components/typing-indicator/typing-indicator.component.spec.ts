@@ -189,7 +189,7 @@ describe('TypingIndicatorComponent', () => {
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    const indicator = compiled.querySelector('.typing-indicator-container');
+    const indicator = compiled.querySelector('.typing-indicator');
     expect(indicator).toBeTruthy();
   });
 });

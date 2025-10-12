@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 
 export interface Notification {
   id: string;
@@ -219,5 +219,51 @@ export class NotificationService {
 
     const randomNotification = notificationTypes[Math.floor(Math.random() * notificationTypes.length)];
     this.addNotification(randomNotification);
+  }
+
+  // Stub methods for notification-toast component compatibility
+  // TODO: Implement these methods properly when real-time notification system is built
+
+  getNotificationSettings(): Observable<any> {
+    // Return mock settings for now
+    return of({
+      enableSounds: true,
+      enableDesktopNotifications: false,
+      enableInAppNotifications: true,
+      quietHours: { enabled: false, start: '22:00', end: '08:00' },
+      categorySettings: {},
+      maxVisibleNotifications: 5,
+      autoCloseDelay: 8000
+    });
+  }
+
+  updateNotificationSettings(settings: any): Observable<any> {
+    // Stub implementation
+    return of(settings);
+  }
+
+  dismissNotification(notificationId: string): Observable<void> {
+    // Call existing removeNotification method
+    this.removeNotification(notificationId);
+    return of(undefined);
+  }
+
+  playNotificationSound(category: string): void {
+    // Stub implementation - would play sound based on category
+    console.log(`Playing notification sound for category: ${category}`);
+  }
+
+  requestDesktopPermission(): void {
+    // Stub implementation - would request browser notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }
+
+  showDesktopNotification(title: string, options: any): void {
+    // Stub implementation - would show desktop notification
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, options);
+    }
   }
 }

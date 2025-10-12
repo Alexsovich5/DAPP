@@ -92,6 +92,7 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
   private notificationSubject = new Subject<RealtimeNotification>();
   private autoDismissTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private cleanupIntervalId?: ReturnType<typeof setInterval>;
 
   constructor(
     private readonly notificationService: NotificationService,
@@ -118,7 +119,7 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
       })
     );
 
-    setInterval(() => {
+    this.cleanupIntervalId = setInterval(() => {
       this.cleanupExpiredNotifications();
     }, 60000);
   }
@@ -127,12 +128,15 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
     this.autoDismissTimers.forEach(timer => clearTimeout(timer));
     this.autoDismissTimers.clear();
+    if (this.cleanupIntervalId) {
+      clearInterval(this.cleanupIntervalId);
+    }
   }
 
   loadSettings(): void {
     this.subscriptions.add(
       this.notificationService.getNotificationSettings().subscribe({
-        next: (settings) => {
+        next: (settings: any) => {
           this.settings = settings;
           this.maxVisibleNotifications = settings.maxVisibleNotifications;
         },
@@ -146,8 +150,9 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
 
   private subscribeToNotifications(): void {
     this.subscriptions.add(
-      this.webSocketService.onMessage().subscribe(data => {
-        if (data.type && data.title && data.message) {
+      this.webSocketService.messages$.subscribe((data: unknown) => {
+        const message = data as { type?: string; title?: string; message?: string };
+        if (message.type && message.title && message.message) {
           const notification = data as RealtimeNotification;
           this.handleIncomingNotification(notification);
         }
@@ -156,13 +161,17 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
   }
 
   private handleIncomingNotification(notification: RealtimeNotification): void {
-    if (this.webSocketService.isConnected()) {
+    const connectionStatus = this.webSocketService.getConnectionStatus();
+    if (connectionStatus.isConnected) {
       if (this.shouldShowNotification(notification)) {
         this.showNotification(notification);
       }
     } else {
       this.offlineNotificationQueue.push(notification);
     }
+
+    // Trigger debounced queue processing for rapid notifications
+    this.notificationSubject.next(notification);
   }
 
   shouldShowNotification(notification: RealtimeNotification): boolean {
@@ -208,6 +217,14 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Check if notification is expired
+    if (notification.expires_at) {
+      const expiresAt = new Date(notification.expires_at);
+      if (expiresAt < new Date()) {
+        return; // Don't show expired notifications
+      }
+    }
+
     if (this.activeNotifications.length >= this.maxVisibleNotifications) {
       this.queueNotification(notification);
       return;
@@ -226,8 +243,10 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
     if (this.settings.enableDesktopNotifications && document.hidden) {
       this.notificationService.showDesktopNotification(
         notification.title,
-        notification.message,
-        notification.from_user?.avatar_url
+        {
+          body: notification.message,
+          icon: notification.from_user?.avatar_url
+        }
       );
     }
 
@@ -250,6 +269,9 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
     } else {
       this.notificationQueue.splice(insertIndex, 0, notification);
     }
+
+    // Trigger debounced queue processing
+    this.notificationSubject.next(notification);
   }
 
   private getPriorityValue(priority: string): number {
@@ -292,7 +314,7 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
 
   markAsRead(notification: RealtimeNotification): void {
     notification.is_read = true;
-    this.notificationService.markAsRead(notification.id).subscribe();
+    this.notificationService.markAsRead(notification.id);
   }
 
   navigateToAction(notification: RealtimeNotification): void {

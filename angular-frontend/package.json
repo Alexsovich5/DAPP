@@ -9,7 +9,11 @@
     "test": "nx test",
     "test:ci": "nx test --code-coverage --watch=false",
     "lint": "nx lint dinner-app-angular",
-    "e2e": "nx e2e"
+    "e2e": "playwright test",
+    "e2e:ci": "playwright test --reporter=html,json,junit",
+    "e2e:headed": "playwright test --headed",
+    "e2e:debug": "playwright test --debug",
+    "e2e:ui": "playwright test --ui"
   },
   "private": true,
   "dependencies": {

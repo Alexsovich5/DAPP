@@ -50,7 +50,12 @@ describe('MessagingComponent', () => {
       'disconnect'
     ]);
 
-    const soulConnectionSpy = jasmine.createSpyObj('SoulConnectionService', []);
+    const soulConnectionSpy = jasmine.createSpyObj('SoulConnectionService', [
+      'discoverSoulConnections',
+      'getActiveConnections',
+      'getSoulConnection',
+      'updateSoulConnection'
+    ]);
 
     const authSpy = jasmine.createSpyObj('AuthService', [], {
       currentUser$: of(mockUser)
