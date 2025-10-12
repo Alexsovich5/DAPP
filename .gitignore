@@ -86,3 +86,9 @@ grafana/data/
 
 # Development planning files (keep only in development branch)
 # Note: Dev_Planning/ should only exist in development branch, not main
+
+# E2E Test Results
+e2e-results/
+playwright-report/
+test-results/
+.playwright/
