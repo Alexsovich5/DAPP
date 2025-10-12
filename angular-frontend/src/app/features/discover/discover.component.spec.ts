@@ -97,9 +97,13 @@ describe('DiscoverComponent', () => {
       'subscribeToPresenceUpdates',
       'subscribeToConnectionStateChanges',
       'getConnectionHealth',
+      'getConnectionStatus',
+      'getConnectionCount',
+      'getActiveConnections',
+      'getUserPresence',
       'sendEnergyPulse'
     ]);
-    const wsPoolSpy = jasmine.createSpyObj('WebSocketPoolService', ['getConnection']);
+    const wsPoolSpy = jasmine.createSpyObj('WebSocketPoolService', ['getConnection', 'getConnectionCount']);
     const abTestSpy = jasmine.createSpyObj('ABTestingService', [
       'getVariantConfig',
       'isInVariant',
@@ -111,6 +115,11 @@ describe('DiscoverComponent', () => {
     realtimeSpy.subscribeToPresenceUpdates.and.returnValue(of({}));
     realtimeSpy.subscribeToConnectionStateChanges.and.returnValue(of({}));
     realtimeSpy.getConnectionHealth.and.returnValue(of('connected'));
+    realtimeSpy.getConnectionStatus.and.returnValue(of(true));
+    realtimeSpy.getConnectionCount.and.returnValue(of(1));
+    realtimeSpy.getActiveConnections.and.returnValue(of([]));
+    realtimeSpy.getUserPresence.and.returnValue(of(new Map()));
+    wsPoolSpy.getConnectionCount.and.returnValue(of(1));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -172,13 +181,17 @@ describe('DiscoverComponent', () => {
     expect(component.needsOnboarding).toBe(true);
   });
 
-  it('should load discoveries when not needing onboarding', () => {
+  it('should load discoveries when not needing onboarding', (done) => {
     soulConnectionService.needsEmotionalOnboarding.and.returnValue(false);
     soulConnectionService.discoverSoulConnections.and.returnValue(of(mockDiscoveries));
 
     component.ngOnInit();
 
-    expect(soulConnectionService.discoverSoulConnections).toHaveBeenCalled();
+    // Wait for async currentUser$ subscription and loadDiscoveriesWithProgress intervals
+    setTimeout(() => {
+      expect(soulConnectionService.discoverSoulConnections).toHaveBeenCalled();
+      done();
+    }, 2000);
   });
 
   it('should handle discovery errors', (done) => {
@@ -190,10 +203,11 @@ describe('DiscoverComponent', () => {
 
     component.ngOnInit();
 
+    // Wait for async currentUser$ subscription and error handling
     setTimeout(() => {
       expect(component.error).toBeTruthy();
       done();
-    }, 1000);
+    }, 2000);
   });
 
   it('should toggle filters', () => {

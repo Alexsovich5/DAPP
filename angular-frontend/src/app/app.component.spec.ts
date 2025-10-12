@@ -1,10 +1,18 @@
 import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AppComponent],
+      imports: [
+        AppComponent,
+        HttpClientTestingModule,
+        RouterTestingModule,
+        BrowserAnimationsModule
+      ],
     }).compileComponents();
   });
 
@@ -24,6 +32,6 @@ describe('AppComponent', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, dinner-app');
+    expect(compiled.querySelector('h1')?.textContent).toContain('Welcome to Dinner First');
   });
 });

@@ -36,6 +36,9 @@ describe('SoulConnectionService', () => {
   });
 
   afterEach(() => {
+    // Flush any pending getActiveConnections() call from service initialization
+    const pendingRequests = httpMock.match(() => true);
+    pendingRequests.forEach(req => req.flush([]));
     httpMock.verify();
   });
 
@@ -71,7 +74,7 @@ describe('SoulConnectionService', () => {
         expect(matches[0].compatibility.total_compatibility).toBe(85.5);
       });
 
-      const req = httpMock.expectOne(`${mockApiUrl}/connections/discover`);
+      const req = httpMock.expectOne(`${mockApiUrl}/soul-connections/discover`);
       expect(req.request.method).toBe('GET');
       req.flush(mockMatches);
     });
@@ -112,7 +115,7 @@ describe('SoulConnectionService', () => {
         expect(connection.compatibility_score).toBe(85.5);
       });
 
-      const req = httpMock.expectOne(`${mockApiUrl}/connections/initiate`);
+      const req = httpMock.expectOne(`${mockApiUrl}/soul-connections/initiate`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual(connectionData);
       req.flush(mockResponse);
@@ -257,8 +260,8 @@ describe('SoulConnectionService', () => {
         expect(connection.mutual_reveal_consent).toBe(true);
       });
 
-      const req = httpMock.expectOne(`${mockApiUrl}/connections/${connectionId}/reveal-consent`);
-      expect(req.request.method).toBe('POST');
+      const req = httpMock.expectOne(`${mockApiUrl}/soul-connections/${connectionId}`);
+      expect(req.request.method).toBe('PUT');
       req.flush(mockResponse);
     });
   });

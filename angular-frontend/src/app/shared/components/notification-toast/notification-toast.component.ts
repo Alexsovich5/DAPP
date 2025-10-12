@@ -169,6 +169,9 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
     } else {
       this.offlineNotificationQueue.push(notification);
     }
+
+    // Trigger debounced queue processing for rapid notifications
+    this.notificationSubject.next(notification);
   }
 
   shouldShowNotification(notification: RealtimeNotification): boolean {
@@ -212,6 +215,14 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
     if (!notification.id || !notification.type || !notification.message) {
       console.error('Malformed notification:', notification);
       return;
+    }
+
+    // Check if notification is expired
+    if (notification.expires_at) {
+      const expiresAt = new Date(notification.expires_at);
+      if (expiresAt < new Date()) {
+        return; // Don't show expired notifications
+      }
     }
 
     if (this.activeNotifications.length >= this.maxVisibleNotifications) {
@@ -258,6 +269,9 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
     } else {
       this.notificationQueue.splice(insertIndex, 0, notification);
     }
+
+    // Trigger debounced queue processing
+    this.notificationSubject.next(notification);
   }
 
   private getPriorityValue(priority: string): number {

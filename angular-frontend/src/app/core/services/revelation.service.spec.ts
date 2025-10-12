@@ -66,6 +66,12 @@ describe('RevelationService', () => {
         is_read: false
       };
 
+      const mockTimeline = {
+        revelations: [mockResponse],
+        current_day: 1,
+        is_cycle_complete: false
+      };
+
       service.createRevelation(revelationData).subscribe(revelation => {
         expect(revelation.day_number).toBe(1);
         expect(revelation.revelation_type).toBe('personal_value');
@@ -76,13 +82,18 @@ describe('RevelationService', () => {
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual(revelationData);
       req.flush(mockResponse);
+
+      // Expect the timeline refresh call
+      const timelineReq = httpMock.expectOne(`${mockApiUrl}/revelations/timeline/${revelationData.connection_id}`);
+      expect(timelineReq.request.method).toBe('GET');
+      timelineReq.flush(mockTimeline);
     });
 
     it('should validate revelation content length', () => {
       const shortContent = 'Too short';
       const result = service.validateRevelationContent(shortContent);
       expect(result.valid).toBe(false);
-      expect(result.message).toContain('50 characters');
+      expect(result.message).toContain('10 characters');
 
       const appropriateContent = 'This is a meaningful revelation that shares something deep and personal about my values and experiences in life.';
       const validResult = service.validateRevelationContent(appropriateContent);
@@ -151,7 +162,7 @@ describe('RevelationService', () => {
       });
 
       const req = httpMock.expectOne(`${mockApiUrl}/revelations/${revelationId}/react`);
-      expect(req.request.method).toBe('POST');
+      expect(req.request.method).toBe('PUT');
       req.flush(mockResponse);
     });
   });

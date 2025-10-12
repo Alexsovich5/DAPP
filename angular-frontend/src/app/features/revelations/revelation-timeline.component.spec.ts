@@ -288,7 +288,8 @@ describe('RevelationTimelineComponent', () => {
 
   describe('Consent Management', () => {
     it('should check if has given consent', () => {
-      component.connectionData = { hasGivenPhotoConsent: true };
+      component.currentUserId = 1;
+      component.connectionData = { user1_id: 1, user1_photo_consent: true, user2_id: 2, user2_photo_consent: false };
       const hasConsent = component.hasGivenConsent();
       expect(hasConsent).toBe(true);
     });
