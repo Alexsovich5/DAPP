@@ -12,11 +12,11 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 import structlog
-from ai.ml_model_registry import MLModelRegistry
-from core.event_publisher import EventPublisher, EventType
+from app.ai.ml_model_registry import MLModelRegistry
+from app.core.event_publisher import EventPublisher, EventType
 
 # Import our Redis cluster manager and event publisher
-from core.redis_cluster_manager import DatabaseType, RedisClusterManager
+from app.core.redis_cluster_manager import DatabaseType, RedisClusterManager
 from prometheus_client import Counter, Gauge, Histogram
 from textblob import TextBlob
 from transformers import pipeline

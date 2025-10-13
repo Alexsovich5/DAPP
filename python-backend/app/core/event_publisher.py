@@ -177,6 +177,7 @@ class EventPublisher:
         self.connection: Optional[aio_pika.RobustConnection] = None
         self.channel: Optional[aio_pika.Channel] = None
         self.exchanges: Dict[str, aio_pika.Exchange] = {}
+        self.dlx_name = "dinner_first_dlx"
 
         # Performance tracking
         self.stats = {

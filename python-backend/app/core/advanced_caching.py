@@ -10,10 +10,10 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
 import structlog
-from core.event_publisher import EventPublisher, EventType
+from app.core.event_publisher import EventPublisher, EventType
 
 # Import our Redis cluster manager and event publisher
-from core.redis_cluster_manager import DatabaseType, RedisClusterManager
+from app.core.redis_cluster_manager import DatabaseType, RedisClusterManager
 from prometheus_client import Counter, Gauge, Histogram
 
 logger = structlog.get_logger(__name__)
