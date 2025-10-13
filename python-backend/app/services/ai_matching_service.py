@@ -1441,11 +1441,11 @@ class AIMatchingService:
         # Mock response time analysis based on message frequency
         if len(messages) > 10:
             # Frequent messager - likely quick responder
-            response_times = [300, 180, 450, 200, 350]  # Average ~5 minutes
+            response_times = [300.0, 180.0, 450.0, 200.0, 350.0]  # Average ~5 minutes
         elif len(messages) > 3:
-            response_times = [1800, 900, 2400, 1200]  # Average ~30 minutes
+            response_times = [1800.0, 900.0, 2400.0, 1200.0]  # Average ~30 minutes
         else:
-            response_times = [3600, 7200, 1800]  # Average ~1+ hours
+            response_times = [3600.0, 7200.0, 1800.0]  # Average ~1+ hours
 
         return response_times
 
