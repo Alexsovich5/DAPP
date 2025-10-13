@@ -6,7 +6,7 @@ Tests for auth.py functions and security.py functions not covered in existing te
 from unittest.mock import Mock, patch
 
 import pytest
-from app.core.auth import (
+from app.core.auth_deps import (
     get_current_active_user,
     get_current_admin_user,
     get_current_user,
