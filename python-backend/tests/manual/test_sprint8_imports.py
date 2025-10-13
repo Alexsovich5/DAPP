@@ -58,6 +58,10 @@ def test_sprint8_components():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     backend_dir = os.path.dirname(os.path.dirname(script_dir))
 
+    # Add backend directory to Python path so 'app' module can be found
+    if backend_dir not in sys.path:
+        sys.path.insert(0, backend_dir)
+
     test_files = [
         os.path.join(backend_dir, "app/core/redis_cluster_manager.py"),
         os.path.join(backend_dir, "app/core/event_publisher.py"),
