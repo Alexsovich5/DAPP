@@ -45,6 +45,7 @@ describe('DashboardComponent', () => {
   });
 
   it('should call loadDashboardStats on init', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     spyOn<any>(component, 'loadDashboardStats');
     component.ngOnInit();
     expect(component['loadDashboardStats']).toHaveBeenCalled();

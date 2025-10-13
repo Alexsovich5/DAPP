@@ -71,7 +71,7 @@ describe('NotificationToastComponent', () => {
   let notificationService: jasmine.SpyObj<NotificationService>;
   let webSocketService: jasmine.SpyObj<WebSocketService>;
   let authService: jasmine.SpyObj<AuthService>;
-  let snackBar: jasmine.SpyObj<MatSnackBar>;
+  let _snackBar: jasmine.SpyObj<MatSnackBar>;
   let notificationSubject: Subject<RealtimeNotification>;
 
   const mockNotifications: RealtimeNotification[] = [
@@ -248,7 +248,7 @@ describe('NotificationToastComponent', () => {
     notificationService = TestBed.inject(NotificationService) as jasmine.SpyObj<NotificationService>;
     webSocketService = TestBed.inject(WebSocketService) as jasmine.SpyObj<WebSocketService>;
     authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
-    snackBar = TestBed.inject(MatSnackBar) as jasmine.SpyObj<MatSnackBar>;
+    _snackBar = TestBed.inject(MatSnackBar) as jasmine.SpyObj<MatSnackBar>;
 
     // Default mocks
     (authService.currentUser$ as BehaviorSubject<any>).next({

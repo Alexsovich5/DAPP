@@ -13,7 +13,7 @@ import { HapticFeedbackService } from '../../core/services/haptic-feedback.servi
 describe('RevelationTimelineComponent', () => {
   let component: RevelationTimelineComponent;
   let fixture: ComponentFixture<RevelationTimelineComponent>;
-  let hapticService: jasmine.SpyObj<HapticFeedbackService>;
+  let _hapticService: jasmine.SpyObj<HapticFeedbackService>;
 
   const mockDayData: RevelationDayData = {
     day: 1,
@@ -66,7 +66,7 @@ describe('RevelationTimelineComponent', () => {
 
     fixture = TestBed.createComponent(RevelationTimelineComponent);
     component = fixture.componentInstance;
-    hapticService = TestBed.inject(HapticFeedbackService) as jasmine.SpyObj<HapticFeedbackService>;
+    _hapticService = TestBed.inject(HapticFeedbackService) as jasmine.SpyObj<HapticFeedbackService>;
   });
 
   describe('Component Initialization', () => {

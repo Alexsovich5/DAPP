@@ -8,9 +8,9 @@
  */
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router, NavigationEnd } from '@angular/router';
+import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { of, Subject } from 'rxjs';
+import { of } from 'rxjs';
 
 import { OnboardingComponent } from './onboarding.component';
 import { AuthService } from '../../core/services/auth.service';

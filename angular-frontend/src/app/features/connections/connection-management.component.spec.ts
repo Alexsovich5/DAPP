@@ -36,6 +36,7 @@ describe('ConnectionManagementComponent', () => {
   });
 
   it('should call loadConnections on init', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     spyOn<any>(component, 'loadConnections');
     component.ngOnInit();
     expect(component['loadConnections']).toHaveBeenCalled();
