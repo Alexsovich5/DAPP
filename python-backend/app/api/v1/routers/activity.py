@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
-from app.core.auth import get_current_user
+from app.core.auth_deps import get_current_user
 from app.core.database import get_db
 from app.core.error_handlers import (
     ActivityTrackingError,

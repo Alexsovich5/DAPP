@@ -3,15 +3,15 @@ import logging
 # import os
 from pathlib import Path
 
-from app.api.v1.routers import (  # enhanced_communication,  # Temporarily disabled - file missing; social_proof,  # Temporarily disabled - file missing; advanced_ai_matching,  # Temporarily disabled - file missing
+from app.api.v1.routers import (  # enhanced_communication,  # Temporarily disabled - file missing; social_proof,  # Temporarily disabled - file missing; advanced_ai_matching_router,  # Temporarily disabled - file missing
     activity,
     adaptive_revelations,
     advanced_soul_matching,
-    ai_matching,
+    ai_matching_router,
     auth,
 )
 from app.api.v1.routers import chat as chat_router
-from app.api.v1.routers import (  # enhanced_communication,  # Temporarily disabled - file missing; social_proof,  # Temporarily disabled - file missing; advanced_ai_matching,  # Temporarily disabled - file missing
+from app.api.v1.routers import (  # enhanced_communication,  # Temporarily disabled - file missing; social_proof,  # Temporarily disabled - file missing; advanced_ai_matching_router,  # Temporarily disabled - file missing
     health,
     matches,
     messages,
@@ -22,7 +22,7 @@ from app.api.v1.routers import (  # enhanced_communication,  # Temporarily disab
     revelations,
 )
 from app.api.v1.routers import safety as safety_router
-from app.api.v1.routers import (  # enhanced_communication,  # Temporarily disabled - file missing; social_proof,  # Temporarily disabled - file missing; advanced_ai_matching,  # Temporarily disabled - file missing
+from app.api.v1.routers import (  # enhanced_communication,  # Temporarily disabled - file missing; social_proof,  # Temporarily disabled - file missing; advanced_ai_matching_router,  # Temporarily disabled - file missing
     soul_connections,
     ui_personalization,
     users,
@@ -148,7 +148,7 @@ v1_app.include_router(
 
 # Phase 5: AI-Enhanced Matching
 v1_app.include_router(
-    ai_matching.router,
+    ai_matching_router.router,
     prefix="/ai-matching",
     tags=["ai-matching"],
 )
@@ -198,7 +198,7 @@ v1_app.include_router(
 
 # Advanced AI Matching Evolution
 # v1_app.include_router(
-#     advanced_ai_matching.router,
+#     advanced_ai_matching_router.router,
 #     prefix="/advanced-ai-matching",
 #     tags=["advanced-ai-matching"],
 # )

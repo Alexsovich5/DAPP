@@ -6,7 +6,7 @@ API endpoints for intelligent, context-aware revelation prompt generation
 import logging
 from typing import List
 
-from app.core.auth import get_current_user
+from app.core.auth_deps import get_current_user
 from app.core.database import get_db
 from app.models.daily_revelation import DailyRevelation
 from app.models.soul_connection import SoulConnection

@@ -314,6 +314,12 @@ describe('NotificationToastComponent', () => {
 
   describe('Receiving Real-Time Notifications', () => {
     beforeEach(() => {
+      // Ensure WebSocket is connected for these tests
+      webSocketService.getConnectionStatus.and.returnValue({
+        isConnected: true,
+        reconnectAttempts: 0,
+        connectionQuality: 'excellent'
+      });
       fixture.detectChanges();
     });
 
