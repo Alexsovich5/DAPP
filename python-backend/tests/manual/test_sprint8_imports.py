@@ -36,7 +36,21 @@ def mock_heavy_dependencies():
     # Mock Prometheus and other dependencies
     sys.modules["prometheus_client"] = Mock()
     sys.modules["structlog"] = Mock()
-    sys.modules["aio_pika"] = Mock()
+
+    # Mock aio_pika with all its submodules and exceptions
+    aio_pika_mock = Mock()
+    aio_pika_mock.exceptions = Mock()
+    aio_pika_mock.exceptions.AMQPException = Exception
+    aio_pika_mock.DeliveryMode = Mock()
+    aio_pika_mock.ExchangeType = Mock()
+    aio_pika_mock.Message = Mock()
+    aio_pika_mock.connect_robust = Mock()
+    aio_pika_mock.RobustConnection = Mock()
+    aio_pika_mock.Channel = Mock()
+    aio_pika_mock.Queue = Mock()
+    aio_pika_mock.IncomingMessage = Mock()
+    sys.modules["aio_pika"] = aio_pika_mock
+    sys.modules["aio_pika.exceptions"] = aio_pika_mock.exceptions
 
     # Mock aioredis exceptions
     aioredis_mock = Mock()
