@@ -20,6 +20,8 @@ def mock_heavy_dependencies():
     sys.modules["pandas"] = Mock()
     sys.modules["sklearn"] = Mock()
     sys.modules["joblib"] = Mock()
+    sys.modules["textblob"] = Mock()
+    sys.modules["textblob"].TextBlob = Mock()
 
     # Mock Redis components
     redis_mock = Mock()
