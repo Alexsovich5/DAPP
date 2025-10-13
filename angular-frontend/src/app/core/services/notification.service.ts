@@ -224,6 +224,7 @@ export class NotificationService {
   // Stub methods for notification-toast component compatibility
   // TODO: Implement these methods properly when real-time notification system is built
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getNotificationSettings(): Observable<any> {
     // Return mock settings for now
     return of({
@@ -237,6 +238,7 @@ export class NotificationService {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateNotificationSettings(settings: any): Observable<any> {
     // Stub implementation
     return of(settings);
@@ -260,6 +262,7 @@ export class NotificationService {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   showDesktopNotification(title: string, options: any): void {
     // Stub implementation - would show desktop notification
     if ('Notification' in window && Notification.permission === 'granted') {

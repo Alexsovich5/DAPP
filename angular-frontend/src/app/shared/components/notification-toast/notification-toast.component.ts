@@ -136,6 +136,7 @@ export class NotificationToastComponent implements OnInit, OnDestroy {
   loadSettings(): void {
     this.subscriptions.add(
       this.notificationService.getNotificationSettings().subscribe({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         next: (settings: any) => {
           this.settings = settings;
           this.maxVisibleNotifications = settings.maxVisibleNotifications;

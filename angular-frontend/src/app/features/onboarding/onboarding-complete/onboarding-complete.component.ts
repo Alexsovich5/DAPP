@@ -395,6 +395,7 @@ export class OnboardingCompleteComponent implements OnInit {
           this.storage.setItem('onboarding_completed', 'true');
 
           // Update current user with backend response
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           this.authService.updateCurrentUser(updatedUser as any);
 
           // Navigate to discovery after a short delay

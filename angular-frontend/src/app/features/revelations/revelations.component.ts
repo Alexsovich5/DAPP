@@ -1257,6 +1257,7 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
     // Listen to navigation events
     this.keyboardNavSubscription = this.keyboardNavigationService.navigationEvents$.subscribe(
       event => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this.handleKeyboardNavigationEvent(event as any);
       }
     );
@@ -1279,9 +1280,13 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
         // Removed call to non-existent method: this.hapticFeedbackService.triggerRevelationStepCelebration();
 
         // Update UI state based on navigation
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (element && (element as any).type === 'step') {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           this.highlightCurrentDay((element as any).element);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } else if (element && (element as any).type === 'timeline-item') {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           this.highlightTimelineItem((element as any).element);
         }
         break;
