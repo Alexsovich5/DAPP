@@ -45,7 +45,7 @@ class TestGetCurrentUser:
         mock_db.query.return_value = mock_query
 
         # Mock token decode
-        with patch("app.core.auth.decode_access_token") as mock_decode:
+        with patch("app.core.auth_deps.decode_access_token") as mock_decode:
             mock_decode.return_value = {"user_id": 1, "sub": "test@example.com"}
 
             # Call the function
@@ -61,7 +61,7 @@ class TestGetCurrentUser:
         """Test user retrieval with invalid token"""
         mock_db = Mock(spec=Session)
 
-        with patch("app.core.auth.decode_access_token") as mock_decode:
+        with patch("app.core.auth_deps.decode_access_token") as mock_decode:
             mock_decode.return_value = None
 
             with pytest.raises(HTTPException) as exc_info:
@@ -75,7 +75,7 @@ class TestGetCurrentUser:
         """Test user retrieval when token missing user_id"""
         mock_db = Mock(spec=Session)
 
-        with patch("app.core.auth.decode_access_token") as mock_decode:
+        with patch("app.core.auth_deps.decode_access_token") as mock_decode:
             mock_decode.return_value = {"sub": "test@example.com"}  # Missing user_id
 
             with pytest.raises(HTTPException) as exc_info:
@@ -88,7 +88,7 @@ class TestGetCurrentUser:
         """Test user retrieval when JWT decoding raises JWTError"""
         mock_db = Mock(spec=Session)
 
-        with patch("app.core.auth.decode_access_token") as mock_decode:
+        with patch("app.core.auth_deps.decode_access_token") as mock_decode:
             mock_decode.side_effect = JWTError("Invalid token")
 
             with pytest.raises(HTTPException) as exc_info:
@@ -108,7 +108,7 @@ class TestGetCurrentUser:
         mock_filter.first.return_value = None  # User not found
         mock_db.query.return_value = mock_query
 
-        with patch("app.core.auth.decode_access_token") as mock_decode:
+        with patch("app.core.auth_deps.decode_access_token") as mock_decode:
             mock_decode.return_value = {"user_id": 999, "sub": "missing@example.com"}
 
             with pytest.raises(HTTPException) as exc_info:
@@ -186,7 +186,7 @@ class TestGetUserFromToken:
         mock_filter.first.return_value = mock_user
         mock_db.query.return_value = mock_query
 
-        with patch("app.core.auth.decode_access_token") as mock_decode:
+        with patch("app.core.auth_deps.decode_access_token") as mock_decode:
             mock_decode.return_value = {"user_id": 1}
 
             result = get_user_from_token("valid_token", mock_db)
@@ -196,7 +196,7 @@ class TestGetUserFromToken:
         """Test user retrieval with invalid token payload"""
         mock_db = Mock(spec=Session)
 
-        with patch("app.core.auth.decode_access_token") as mock_decode:
+        with patch("app.core.auth_deps.decode_access_token") as mock_decode:
             mock_decode.return_value = None
 
             result = get_user_from_token("invalid_token", mock_db)
@@ -206,7 +206,7 @@ class TestGetUserFromToken:
         """Test user retrieval when payload missing user_id"""
         mock_db = Mock(spec=Session)
 
-        with patch("app.core.auth.decode_access_token") as mock_decode:
+        with patch("app.core.auth_deps.decode_access_token") as mock_decode:
             mock_decode.return_value = {"sub": "test@example.com"}  # Missing user_id
 
             result = get_user_from_token("token_without_user_id", mock_db)
@@ -216,10 +216,10 @@ class TestGetUserFromToken:
         """Test user retrieval with exception handling and logging"""
         mock_db = Mock(spec=Session)
 
-        with patch("app.core.auth.decode_access_token") as mock_decode:
+        with patch("app.core.auth_deps.decode_access_token") as mock_decode:
             mock_decode.side_effect = Exception("Database error")
 
-            with patch("app.core.auth.logger") as mock_logger:
+            with patch("app.core.auth_deps.logger") as mock_logger:
                 result = get_user_from_token("token_with_error", mock_db)
 
                 assert result is None
@@ -431,7 +431,7 @@ class TestAuthErrorScenarios:
         corrupted_db = Mock()
         corrupted_db.query.side_effect = Exception("Database connection lost")
 
-        with patch("app.core.auth.decode_access_token") as mock_decode:
+        with patch("app.core.auth_deps.decode_access_token") as mock_decode:
             mock_decode.return_value = {"user_id": 1}
 
             with pytest.raises(Exception):
@@ -442,7 +442,7 @@ class TestAuthErrorScenarios:
         timeout_db = Mock()
         timeout_db.query.side_effect = Exception("Database timeout")
 
-        with patch("app.core.auth.decode_access_token") as mock_decode:
+        with patch("app.core.auth_deps.decode_access_token") as mock_decode:
             mock_decode.return_value = {"user_id": 1}
 
             result = get_user_from_token("valid_token", timeout_db)

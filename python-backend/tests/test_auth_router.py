@@ -5,14 +5,13 @@ Tests for authentication endpoints including register, login, and token manageme
 """
 
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from app.api.v1.deps import get_db
 from app.core.security import create_access_token, get_password_hash
 from app.main import app
 from app.models.user import User
-from app.schemas.auth import Token
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import IntegrityError
 
@@ -78,7 +77,7 @@ class TestAuthRouter:
 
     def test_register_duplicate_email(self, client):
         """Test registration with duplicate email"""
-        with patch("app.api.v1.routers.auth.get_db") as mock_get_db:
+        with patch("app.api.v1.routers.auth_router.get_db") as mock_get_db:
             mock_db = Mock()
             mock_get_db.return_value = mock_db
             mock_db.add.side_effect = IntegrityError("", "", "")
@@ -101,7 +100,7 @@ class TestAuthRouter:
 
     def test_login_success(self, client, mock_user):
         """Test successful login"""
-        with patch("app.api.v1.routers.auth.get_db") as mock_get_db:
+        with patch("app.api.v1.routers.auth_router.get_db") as mock_get_db:
             mock_db = Mock()
             mock_get_db.return_value = mock_db
             mock_db.query.return_value.filter.return_value.first.return_value = (
@@ -122,7 +121,7 @@ class TestAuthRouter:
 
     def test_login_invalid_credentials(self, client):
         """Test login with invalid credentials"""
-        with patch("app.api.v1.routers.auth.get_db") as mock_get_db:
+        with patch("app.api.v1.routers.auth_router.get_db") as mock_get_db:
             mock_db = Mock()
             mock_get_db.return_value = mock_db
             mock_db.query.return_value.filter.return_value.first.return_value = None
@@ -139,7 +138,7 @@ class TestAuthRouter:
         """Test login with inactive user"""
         mock_user.is_active = False
 
-        with patch("app.api.v1.routers.auth.get_db") as mock_get_db:
+        with patch("app.api.v1.routers.auth_router.get_db") as mock_get_db:
             mock_db = Mock()
             mock_get_db.return_value = mock_db
             mock_db.query.return_value.filter.return_value.first.return_value = (
@@ -161,10 +160,10 @@ class TestAuthRouter:
             data={"sub": "1"}, expires_delta=timedelta(days=7)
         )
 
-        with patch("app.api.v1.routers.auth.decode_token") as mock_decode:
+        with patch("app.api.v1.routers.auth_router.decode_token") as mock_decode:
             mock_decode.return_value = {"sub": "1"}
 
-            with patch("app.api.v1.routers.auth.get_db") as mock_get_db:
+            with patch("app.api.v1.routers.auth_router.get_db") as mock_get_db:
                 mock_db = Mock()
                 mock_get_db.return_value = mock_db
                 mock_user = Mock()
@@ -184,7 +183,7 @@ class TestAuthRouter:
 
     def test_refresh_token_invalid(self, client):
         """Test refresh with invalid token"""
-        with patch("app.api.v1.routers.auth.decode_token", return_value=None):
+        with patch("app.api.v1.routers.auth_router.decode_token", return_value=None):
             response = client.post(
                 "/api/v1/auth/refresh", json={"refresh_token": "invalid_token"}
             )
@@ -228,10 +227,10 @@ class TestAuthRouter:
 
     def test_verify_email(self, client):
         """Test email verification"""
-        with patch("app.api.v1.routers.auth.decode_token") as mock_decode:
+        with patch("app.api.v1.routers.auth_router.decode_token") as mock_decode:
             mock_decode.return_value = {"sub": "1", "purpose": "email_verification"}
 
-            with patch("app.api.v1.routers.auth.get_db") as mock_get_db:
+            with patch("app.api.v1.routers.auth_router.get_db") as mock_get_db:
                 mock_db = Mock()
                 mock_get_db.return_value = mock_db
                 mock_user = Mock()
@@ -245,19 +244,19 @@ class TestAuthRouter:
                 )
 
                 assert response.status_code == 200
-                assert mock_user.is_verified == True
+                assert mock_user.is_verified is True
                 mock_db.commit.assert_called()
 
     def test_request_password_reset(self, client, mock_user):
         """Test password reset request"""
-        with patch("app.api.v1.routers.auth.get_db") as mock_get_db:
+        with patch("app.api.v1.routers.auth_router.get_db") as mock_get_db:
             mock_db = Mock()
             mock_get_db.return_value = mock_db
             mock_db.query.return_value.filter.return_value.first.return_value = (
                 mock_user
             )
 
-            with patch("app.api.v1.routers.auth.send_reset_email") as mock_send:
+            with patch("app.api.v1.routers.auth_router.send_reset_email") as mock_send:
                 response = client.post(
                     "/api/v1/auth/forgot-password", json={"email": "test@example.com"}
                 )
@@ -268,10 +267,10 @@ class TestAuthRouter:
 
     def test_reset_password(self, client):
         """Test password reset"""
-        with patch("app.api.v1.routers.auth.decode_token") as mock_decode:
+        with patch("app.api.v1.routers.auth_router.decode_token") as mock_decode:
             mock_decode.return_value = {"sub": "1", "purpose": "password_reset"}
 
-            with patch("app.api.v1.routers.auth.get_db") as mock_get_db:
+            with patch("app.api.v1.routers.auth_router.get_db") as mock_get_db:
                 mock_db = Mock()
                 mock_get_db.return_value = mock_db
                 mock_user = Mock()
@@ -297,7 +296,7 @@ class TestAuthValidation:
 
     def test_password_strength_validation(self, client):
         """Test weak password rejection"""
-        with patch("app.api.v1.routers.auth.get_db") as mock_get_db:
+        with patch("app.api.v1.routers.auth_router.get_db") as mock_get_db:
             mock_db = Mock()
             mock_get_db.return_value = mock_db
 
@@ -318,7 +317,7 @@ class TestAuthValidation:
 
     def test_email_format_validation(self, client):
         """Test invalid email format"""
-        with patch("app.api.v1.routers.auth.get_db") as mock_get_db:
+        with patch("app.api.v1.routers.auth_router.get_db") as mock_get_db:
             mock_db = Mock()
             mock_get_db.return_value = mock_db
 
@@ -339,7 +338,7 @@ class TestAuthValidation:
 
     def test_age_validation(self, client):
         """Test underage user rejection"""
-        with patch("app.api.v1.routers.auth.get_db") as mock_get_db:
+        with patch("app.api.v1.routers.auth_router.get_db") as mock_get_db:
             mock_db = Mock()
             mock_get_db.return_value = mock_db
 
