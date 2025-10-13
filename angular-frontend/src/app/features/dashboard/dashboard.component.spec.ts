@@ -7,13 +7,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { DashboardComponent } from './dashboard.component';
 
-interface DashboardStats {
-  active_connections: number;
-  pending_connections: number;
-  completed_revelations: number;
-  total_messages: number;
-}
-
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;

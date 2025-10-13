@@ -858,9 +858,17 @@ def upgrade() -> None:
             existing_type=postgresql.TIMESTAMP(),
             nullable=False,
         )
-    op.add_column(
-        "users", sa.Column("notification_preferences", sa.JSON(), nullable=True)
-    )
+
+    # Check if notification_preferences column already exists before adding
+    # This column may have been added by earlier migration a0fc025ad089
+    existing_columns = []
+    if "users" in existing_tables:
+        existing_columns = [col["name"] for col in inspector.get_columns("users")]
+
+    if "notification_preferences" not in existing_columns:
+        op.add_column(
+            "users", sa.Column("notification_preferences", sa.JSON(), nullable=True)
+        )
     # ### end Alembic commands ###
 
 

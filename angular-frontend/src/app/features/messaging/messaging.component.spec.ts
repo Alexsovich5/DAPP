@@ -25,9 +25,9 @@ import { ActivatedRoute } from '@angular/router';
 describe('MessagingComponent', () => {
   let component: MessagingComponent;
   let fixture: ComponentFixture<MessagingComponent>;
-  let messageService: jasmine.SpyObj<MessageService>;
-  let webSocketService: jasmine.SpyObj<WebSocketService>;
-  let authService: jasmine.SpyObj<AuthService>;
+  let _messageService: jasmine.SpyObj<MessageService>;
+  let _webSocketService: jasmine.SpyObj<WebSocketService>;
+  let _authService: jasmine.SpyObj<AuthService>;
 
   const mockUser = {
     id: 1,
@@ -94,9 +94,9 @@ describe('MessagingComponent', () => {
     fixture = TestBed.createComponent(MessagingComponent);
     component = fixture.componentInstance;
 
-    messageService = TestBed.inject(MessageService) as jasmine.SpyObj<MessageService>;
-    webSocketService = TestBed.inject(WebSocketService) as jasmine.SpyObj<WebSocketService>;
-    authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
+    _messageService = TestBed.inject(MessageService) as jasmine.SpyObj<MessageService>;
+    _webSocketService = TestBed.inject(WebSocketService) as jasmine.SpyObj<WebSocketService>;
+    _authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
   });
 
   describe('Component Initialization', () => {

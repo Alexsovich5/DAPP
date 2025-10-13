@@ -23,7 +23,7 @@ describe('DiscoverComponent', () => {
   let component: DiscoverComponent;
   let fixture: ComponentFixture<DiscoverComponent>;
   let soulConnectionService: jasmine.SpyObj<SoulConnectionService>;
-  let authService: jasmine.SpyObj<AuthService>;
+  let _authService: jasmine.SpyObj<AuthService>;
 
   const mockUser = {
     id: 1,
@@ -142,7 +142,7 @@ describe('DiscoverComponent', () => {
     fixture = TestBed.createComponent(DiscoverComponent);
     component = fixture.componentInstance;
     soulConnectionService = TestBed.inject(SoulConnectionService) as jasmine.SpyObj<SoulConnectionService>;
-    authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
+    _authService = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
   });
 
   it('should create', () => {
@@ -230,7 +230,7 @@ describe('DiscoverComponent', () => {
   });
 
   it('should navigate to onboarding', () => {
-    const router = TestBed.inject(RouterTestingModule);
+    const _router = TestBed.inject(RouterTestingModule);
     spyOn(component['router'], 'navigate');
 
     component.goToOnboarding();

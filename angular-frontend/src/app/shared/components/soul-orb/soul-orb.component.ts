@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -424,7 +424,7 @@ import { CommonModule } from '@angular/common';
     }
   `]
 })
-export class SoulOrbComponent implements OnInit, OnDestroy, AfterViewInit {
+export class SoulOrbComponent implements OnInit, OnDestroy {
   @Input() type: 'primary' | 'secondary' | 'neutral' = 'primary';
   @Input() size: 'small' | 'medium' | 'large' | 'xlarge' = 'medium';
   @Input() state: 'active' | 'connecting' | 'matched' | 'dormant' = 'active';
@@ -548,10 +548,6 @@ export class SoulOrbComponent implements OnInit, OnDestroy, AfterViewInit {
     this.generateSparkles();
     this.generateEnergyRings();
     this.startAnimation();
-  }
-
-  ngAfterViewInit() {
-    // Lifecycle hook for AfterViewInit interface
   }
 
   ngOnDestroy() {
