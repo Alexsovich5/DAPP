@@ -26,7 +26,7 @@ def test_core_imports():
     core_modules = [
         "app.main",
         "app.core.database",
-        "app.core.auth",
+        "app.core.auth_deps",
     ]
 
     failed_imports = []
@@ -40,7 +40,7 @@ def test_core_imports():
 def test_api_router_imports():
     """Test that API router modules can be imported"""
     router_modules = [
-        "app.api.v1.routers.auth",
+        "app.api.v1.routers.auth_router",
         "app.api.v1.routers.users",
         "app.api.v1.routers.profiles",
         "app.api.v1.routers.matches",
@@ -63,7 +63,7 @@ def main():
     core_modules = [
         "app.main",
         "app.core.database",
-        "app.core.auth",
+        "app.core.auth_deps",
         "app.core.redis_cluster_manager",
         "app.core.event_publisher",
         "app.ai.sentiment_analysis",
@@ -73,7 +73,7 @@ def main():
 
     # API router imports
     router_modules = [
-        "app.api.v1.routers.auth",
+        "app.api.v1.routers.auth_router",
         "app.api.v1.routers.users",
         "app.api.v1.routers.profiles",
         "app.api.v1.routers.matches",
