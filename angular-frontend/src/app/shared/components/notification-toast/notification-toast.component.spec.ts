@@ -552,7 +552,7 @@ describe('NotificationToastComponent', () => {
       fixture.detectChanges();
 
       const dismissButton = fixture.debugElement.query(By.css('.dismiss-button'));
-      dismissButton.triggerEventHandler('click', {});
+      dismissButton.triggerEventHandler('click', { stopPropagation: () => {} });
 
       expect(component.activeNotifications).not.toContain(notification);
       expect(notificationService.dismissNotification).toHaveBeenCalledWith(notification.id);
@@ -1019,7 +1019,7 @@ describe('NotificationToastComponent', () => {
       const actionButton = fixture.debugElement.query(By.css('.action-view'));
       if (actionButton) {
         expect(actionButton.nativeElement.getAttribute('tabindex')).toBe('0');
-        actionButton.triggerEventHandler('keydown.enter', {});
+        actionButton.triggerEventHandler('keydown.enter', { stopPropagation: () => {} });
         expect(component.handleActionClick).toHaveBeenCalled();
       }
       flush();
