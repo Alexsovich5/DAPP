@@ -8,7 +8,7 @@ from app.api.v1.routers import (  # enhanced_communication,  # Temporarily disab
     adaptive_revelations,
     advanced_soul_matching,
     ai_matching_router,
-    auth,
+    auth_router,
 )
 from app.api.v1.routers import chat as chat_router
 from app.api.v1.routers import (  # enhanced_communication,  # Temporarily disabled - file missing; social_proof,  # Temporarily disabled - file missing; advanced_ai_matching_router,  # Temporarily disabled - file missing
@@ -83,7 +83,7 @@ v1_app = FastAPI(
 )
 
 # Include routers in v1_app
-v1_app.include_router(auth.router, prefix="/auth", tags=["auth"])
+v1_app.include_router(auth_router.router, prefix="/auth", tags=["auth"])
 v1_app.include_router(users.router, prefix="/users", tags=["users"])
 v1_app.include_router(profiles.router, prefix="/profiles", tags=["profiles"])
 v1_app.include_router(matches.router, prefix="/matches", tags=["matches"])
