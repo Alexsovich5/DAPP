@@ -127,10 +127,12 @@ def validate_password_strength(password: str) -> bool:
     if len(password) < 8:
         return False
 
-    # Check for common weak passwords
+    # Check for common weak password patterns (as substrings)
     weak_patterns = ["password", "qwerty", "12345678", "abc123"]
-    if password.lower() in weak_patterns:
-        return False
+    password_lower = password.lower()
+    for pattern in weak_patterns:
+        if pattern in password_lower:
+            return False
 
     # Password should not be all digits or all letters
     if password.isdigit() or password.isalpha():
