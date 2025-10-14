@@ -1457,9 +1457,24 @@ class AIMatchingService:
         # Analyze message length and emotional depth
         total_content = []
         if messages:
-            total_content.extend([msg.content for msg in messages if msg.content])
+            # Handle both dict and object formats
+            for msg in messages:
+                if isinstance(msg, dict):
+                    content = msg.get("content")
+                else:
+                    content = getattr(msg, "content", None)
+                if content:
+                    total_content.append(content)
+
         if revelations:
-            total_content.extend([rev.content for rev in revelations if rev.content])
+            # Handle both dict and object formats
+            for rev in revelations:
+                if isinstance(rev, dict):
+                    content = rev.get("content")
+                else:
+                    content = getattr(rev, "content", None)
+                if content:
+                    total_content.append(content)
 
         if not total_content:
             return "balanced"
