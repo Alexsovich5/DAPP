@@ -95,7 +95,7 @@ jobs:
         echo "Backend coverage: $COVERAGE%"
 
     - name: Generate coverage badge
-      if: always()
+      if: always() && secrets.COVERAGE_GIST_ID != ''
       uses: schneegans/dynamic-badges-action@v1.6.0
       with:
         auth: ${{ secrets.GITHUB_TOKEN }}
@@ -104,6 +104,7 @@ jobs:
         label: Backend Coverage
         message: ${{ steps.backend-coverage.outputs.coverage }}%
         color: ${{ steps.backend-coverage.outputs.coverage >= 75 && 'brightgreen' || steps.backend-coverage.outputs.coverage >= 50 && 'yellow' || 'red' }}
+      continue-on-error: true
 
     - name: Upload backend coverage reports
       if: always()
@@ -193,7 +194,7 @@ jobs:
         fi
 
     - name: Generate frontend coverage badge
-      if: always()
+      if: always() && secrets.COVERAGE_GIST_ID != ''
       uses: schneegans/dynamic-badges-action@v1.6.0
       with:
         auth: ${{ secrets.GITHUB_TOKEN }}
@@ -202,6 +203,7 @@ jobs:
         label: Frontend Coverage
         message: ${{ steps.frontend-coverage.outputs.coverage }}%
         color: ${{ steps.frontend-coverage.outputs.coverage >= 65 && 'brightgreen' || steps.frontend-coverage.outputs.coverage >= 40 && 'yellow' || 'red' }}
+      continue-on-error: true
 
     - name: Upload frontend coverage reports
       if: always()
