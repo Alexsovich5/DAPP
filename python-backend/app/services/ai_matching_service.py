@@ -1452,7 +1452,7 @@ class AIMatchingService:
     def _determine_communication_style(self, messages, revelations) -> str:
         """Determine user's communication style"""
         if not messages and not revelations:
-            return "balanced"
+            return "thoughtful"
 
         # Analyze message length and emotional depth
         total_content = []
@@ -1477,16 +1477,21 @@ class AIMatchingService:
                     total_content.append(content)
 
         if not total_content:
-            return "balanced"
+            return "thoughtful"
 
         avg_length = sum(len(content) for content in total_content) / len(total_content)
 
+        # Map length to communication style categories
         if avg_length > 200:
-            return "detailed"
-        elif avg_length < 50:
-            return "concise"
+            return "deep"  # Long, detailed messages indicate deep communication
+        elif avg_length > 100:
+            return "analytical"  # Medium-long messages suggest analytical style
+        elif avg_length > 50:
+            return "thoughtful"  # Moderate length messages
+        elif avg_length > 20:
+            return "casual"  # Short but substantive messages
         else:
-            return "balanced"
+            return "emotional"  # Very short messages, likely emotion-focused
 
     def _calculate_behavioral_engagement_score(
         self, messages, connections, revelations, days_back
