@@ -846,15 +846,15 @@ class TestAIMatchingServiceUtilities:
 
     def test_calculate_behavioral_engagement_score(self, service):
         """Test behavioral engagement score calculation"""
-        activities = {
-            "daily_logins": 1.2,
-            "messages_per_day": 3.5,
-            "revelation_completion_rate": 0.85,
-            "response_rate": 0.9,
-            "session_duration": 25,  # minutes
-        }
+        # Create mock messages, connections, and revelations
+        messages = [Mock() for _ in range(10)]  # 10 messages
+        connections = [Mock() for _ in range(2)]  # 2 connections
+        revelations = [Mock() for _ in range(5)]  # 5 revelations
+        days_back = 30
 
-        score = service._calculate_behavioral_engagement_score(activities)
+        score = service._calculate_behavioral_engagement_score(
+            messages, connections, revelations, days_back
+        )
 
         assert isinstance(score, float)
         assert 0 <= score <= 1
