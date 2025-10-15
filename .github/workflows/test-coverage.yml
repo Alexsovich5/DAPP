@@ -95,7 +95,7 @@ jobs:
         echo "Backend coverage: $COVERAGE%"
 
     - name: Generate coverage badge
-      if: always() && secrets.COVERAGE_GIST_ID != ''
+      if: false  # Disabled: requires COVERAGE_GIST_ID secret configuration
       uses: schneegans/dynamic-badges-action@v1.6.0
       with:
         auth: ${{ secrets.GITHUB_TOKEN }}
@@ -194,7 +194,7 @@ jobs:
         fi
 
     - name: Generate frontend coverage badge
-      if: always() && secrets.COVERAGE_GIST_ID != ''
+      if: false  # Disabled: requires COVERAGE_GIST_ID secret configuration
       uses: schneegans/dynamic-badges-action@v1.6.0
       with:
         auth: ${{ secrets.GITHUB_TOKEN }}
