@@ -25,12 +25,13 @@ module.exports = function (config) {
       suppressAll: true // removes the duplicated traces
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/dinner-app-angular'),
+      dir: require('path').join(__dirname, './coverage'),
       subdir: '.',
       reporters: [
-        { type: 'html' },
+        { type: 'html', subdir: 'dinner-app-angular' },
         { type: 'text-summary' },
-        { type: 'lcovonly' }
+        { type: 'lcovonly', subdir: '.' },
+        { type: 'json-summary' }
       ]
     },
     reporters: ['progress', 'kjhtml'],
