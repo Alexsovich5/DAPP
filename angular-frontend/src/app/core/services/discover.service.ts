@@ -80,10 +80,10 @@ export class DiscoverService extends BaseService {
   getMatchPercentage(profileId: string): Observable<MatchPercentageResponse> {
     return this.http.get<MatchPercentageResponse>(`${this.apiUrl}/match-percentage/${profileId}`).pipe(
       map(response => ({
-        percentage: response.match_percentage,
-        breakdown: response.breakdown,
-        rating: response.compatibility_rating,
-        mutualInterestsCount: response.mutual_interests_count
+        percentage: response.match_percentage ?? response.percentage ?? 0,
+        breakdown: response.breakdown ?? {},
+        rating: response.compatibility_rating ?? response.rating ?? 'Unknown',
+        mutualInterestsCount: response.mutual_interests_count ?? response.mutualInterestsCount ?? 0
       })),
       catchError(this.handleError<MatchPercentageResponse>('get match percentage', { percentage: 0, breakdown: {}, rating: 'Unknown', mutualInterestsCount: 0 }))
     );
