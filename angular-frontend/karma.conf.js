@@ -12,6 +12,11 @@ module.exports = function (config) {
       require('karma-coverage'),
       require('@angular-devkit/build-angular/plugins/karma')
     ],
+    files: [
+      // Load test setup file before any tests run
+      // This provides localStorage mock for Chrome Headless
+      { pattern: './src/test-setup.ts', watched: false }
+    ],
     client: {
       jasmine: {
         // you can add configuration options for Jasmine here
@@ -21,6 +26,12 @@ module.exports = function (config) {
       },
       clearContext: false // leave Jasmine Spec Runner output visible in browser
     },
+
+    // Increased timeout for slower tests and complex component integration
+    browserNoActivityTimeout: 60000, // 60 seconds (was 30 seconds default)
+    browserDisconnectTimeout: 10000,
+    browserDisconnectTolerance: 3,
+    captureTimeout: 210000,
     jasmineHtmlReporter: {
       suppressAll: true // removes the duplicated traces
     },
@@ -47,7 +58,21 @@ module.exports = function (config) {
           '--disable-gpu',
           '--disable-dev-shm-usage',
           '--disable-software-rasterizer',
-          '--disable-extensions'
+          '--disable-extensions',
+          // Enable localStorage in headless mode
+          '--disable-web-security',
+          '--allow-file-access-from-files'
+        ]
+      },
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-gpu',
+          '--disable-dev-shm-usage',
+          '--disable-web-security',
+          '--allow-file-access-from-files'
         ]
       }
     },
