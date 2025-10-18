@@ -80,36 +80,9 @@ Object.defineProperty(window, 'sessionStorage', {
   configurable: true
 });
 
-// Suppress console warnings in test environment
-// (can be removed if you want to see warnings during tests)
-const originalWarn = console.warn;
-console.warn = function(...args: unknown[]) {
-  // Filter out known warnings that are expected in tests
-  const message = args[0];
-  if (typeof message === 'string') {
-    // Suppress storage-related warnings that are expected in mocked environment
-    if (message.includes('Failed to save A/B test') ||
-        message.includes('Failed to persist A/B test') ||
-        message.includes('localStorage')) {
-      return;
-    }
-  }
-  originalWarn.apply(console, args);
-};
-
-// Suppress console errors for expected test errors
-const originalError = console.error;
-console.error = function(...args: unknown[]) {
-  const message = args[0];
-  if (typeof message === 'string') {
-    // Suppress expected error logs in tests
-    if (message.includes('Onboarding API error') ||
-        message.includes('complete onboarding failed')) {
-      return;
-    }
-  }
-  originalError.apply(console, args);
-};
+// Note: We don't suppress console.warn/error/log in test-setup
+// because tests need to spy on these methods to verify error handling.
+// Individual test suites can suppress console output if needed using beforeEach hooks.
 
 // Export for test usage
 export { localStorageMock, sessionStorageMock };
