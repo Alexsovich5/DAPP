@@ -102,9 +102,9 @@ export class ProfileEditComponent implements OnInit {
 
   private minimumAgeValidator() {
     return (control: { value: unknown }) => {
-      if (!control.value) return null;
+      if (!control.value || typeof control.value === 'object') return null;
 
-      const birthDate = new Date(control.value);
+      const birthDate = new Date(control.value as string | number | Date);
       const today = new Date();
       const age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();

@@ -152,7 +152,7 @@ export class SoulAnimationService {
       duration: this.getAdjustedDuration(finalConfig.duration),
       easing: finalConfig.easing,
       delay: finalConfig.delay,
-      iterations: finalConfig.iterations,
+      iterations: finalConfig.iterations === 'infinite' ? Infinity : finalConfig.iterations,
       direction: finalConfig.direction,
       fill: finalConfig.fillMode
     };
@@ -586,7 +586,7 @@ export class SoulAnimationService {
       duration: this.getAdjustedDuration(finalConfig.duration),
       easing: finalConfig.easing,
       delay: finalConfig.delay,
-      iterations: finalConfig.iterations,
+      iterations: finalConfig.iterations === 'infinite' ? Infinity : finalConfig.iterations,
       direction: finalConfig.direction,
       fill: finalConfig.fillMode
     };

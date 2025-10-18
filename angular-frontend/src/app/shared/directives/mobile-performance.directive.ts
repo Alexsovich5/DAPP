@@ -10,8 +10,8 @@ import {
 } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil, throttleTime } from 'rxjs/operators';
-import { MobilePerformanceService, LazyLoadConfig, ImageOptimizationConfig } from '../services/mobile-performance.service';
-import { MobileFeaturesService } from '../services/mobile-features.service';
+import { MobilePerformanceService, LazyLoadConfig, ImageOptimizationConfig } from '../../core/services/mobile-performance.service';
+import { MobileFeaturesService } from '../../core/services/mobile-features.service';
 
 @Directive({
   selector: '[appMobilePerformance]',
@@ -53,7 +53,7 @@ export class MobilePerformanceDirective implements OnInit, OnDestroy, AfterViewI
 
   private applyPerformanceOptimizations(): void {
     const element = this.elementRef.nativeElement;
-    const deviceInfo = this.mobileFeatures.getDeviceInfo();
+    const deviceInfo = this.mobileFeatures.getDeviceInfo() as any;
     const config = this.performanceService.getMobileOptimizedConfig();
 
     // Apply CSS optimizations based on device capabilities
@@ -169,7 +169,7 @@ export class MobilePerformanceDirective implements OnInit, OnDestroy, AfterViewI
         takeUntil(this.destroy$),
         throttleTime(5000)
       )
-      .subscribe(metrics => {
+      .subscribe((metrics: any) => {
         if (metrics.memoryUsage > 0.8) {
           this.applyMemoryOptimizations();
         }

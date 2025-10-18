@@ -172,7 +172,7 @@ export class GestureService {
     return this.enableGestures(element, longPressConfig).pipe(
       filter((event): event is LongPressEvent => event.type === 'longpress'),
       tap(() => {
-        this.mobileFeatures.vibrateNewRevelation(); // Haptic feedback for long press
+        this.mobileFeatures.vibrateRevelationReady(); // Haptic feedback for long press
       })
     );
   }

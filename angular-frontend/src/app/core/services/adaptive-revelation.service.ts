@@ -148,7 +148,8 @@ export class AdaptiveRevelationService {
     comments?: string;
   }): Observable<{ success: boolean; message?: string }> {
     return this.http.post<{ success: boolean; message?: string }>(`${this.apiUrl}/feedback`, feedback).pipe(
-      catchError(this.handleError('submitRevelationFeedback'))
+      catchError(this.handleError('submitRevelationFeedback')),
+      map(result => result as { success: boolean; message?: string })
     );
   }
 
@@ -228,7 +229,7 @@ export class AdaptiveRevelationService {
    * Generate insights from analytics data
    */
   private generateInsights(analytics: RevelationAnalytics): RevelationInsight[] {
-    const insights = [];
+    const insights: RevelationInsight[] = [];
 
     // Engagement trend insights
     if (analytics.engagement_trend === 'increasing') {

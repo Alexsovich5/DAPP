@@ -253,7 +253,7 @@ export class ABAnalyticsService {
 
   private calculateEventAverageValue(events: ABTestEvent[]): number {
     const values = events
-      .map(e => e.eventData?.value)
+      .map(e => e.eventData?.['value'])
       .filter(v => typeof v === 'number') as number[];
 
     if (values.length === 0) {

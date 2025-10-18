@@ -297,7 +297,7 @@ export class MobileUIComponent implements OnInit, OnDestroy {
     }
 
     // Check for haptic feedback support
-    if (navigator.vibrate) {
+    if (typeof navigator.vibrate === 'function') {
       // Enable haptic feedback for interactions
     }
   }
