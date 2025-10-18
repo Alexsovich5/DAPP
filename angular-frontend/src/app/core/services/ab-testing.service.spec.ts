@@ -54,14 +54,15 @@ describe('ABTestingService', () => {
         userId: 'user-123',
         testId: 'discovery_card_layout',
         variantId: 'control',
-        assignedAt: new Date()
+        assignedAt: new Date().toISOString() as unknown as Date
       };
 
       localStorage.setItem('ab_test_assignments', JSON.stringify([testAssignment]));
 
-      const newService = new ABTestingService(authServiceSpy);
-      const assignments = newService.getUserAssignments();
+      // Manually call the private loadAssignments method
+      (service as any).loadAssignments();
 
+      const assignments = service.getUserAssignments();
       expect(assignments.length).toBe(1);
       expect(assignments[0].testId).toBe('discovery_card_layout');
     });
@@ -450,7 +451,8 @@ describe('ABTestingService', () => {
       spyOn(localStorage, 'getItem').and.throwError('Storage error');
       spyOn(console, 'warn');
 
-      const newService = new ABTestingService(authServiceSpy);
+      // Manually call loadAssignments to trigger the error
+      (service as any).loadAssignments();
 
       expect(console.warn).toHaveBeenCalledWith('Failed to load A/B test assignments:', jasmine.any(Error));
     });
@@ -470,7 +472,8 @@ describe('ABTestingService', () => {
       localStorage.setItem('ab_test_assignments', 'invalid json');
       spyOn(console, 'warn');
 
-      const newService = new ABTestingService(authServiceSpy);
+      // Manually call loadAssignments to trigger the error
+      (service as any).loadAssignments();
 
       expect(console.warn).toHaveBeenCalled();
     });
