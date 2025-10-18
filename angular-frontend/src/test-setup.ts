@@ -22,7 +22,9 @@ const localStorageMock = {
     delete localStorageStore[key];
   },
   clear(): void {
-    localStorageStore = {};
+    // Clear all keys from the store object
+    // Don't reassign localStorageStore = {} because that breaks the closure
+    Object.keys(localStorageStore).forEach(key => delete localStorageStore[key]);
   },
   get length(): number {
     return Object.keys(localStorageStore).length;
@@ -59,7 +61,9 @@ const sessionStorageMock = {
     delete sessionStorageStore[key];
   },
   clear(): void {
-    sessionStorageStore = {};
+    // Clear all keys from the store object
+    // Don't reassign sessionStorageStore = {} because that breaks the closure
+    Object.keys(sessionStorageStore).forEach(key => delete sessionStorageStore[key]);
   },
   get length(): number {
     return Object.keys(sessionStorageStore).length;
