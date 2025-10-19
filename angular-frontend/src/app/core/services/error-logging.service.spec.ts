@@ -83,20 +83,29 @@ describe('ErrorLoggingService', () => {
     });
 
     it('should not log to console in production mode', () => {
+      // Set production mode and clear localStorage for clean test state
       (environment as any).production = true;
+      localStorage.clear();
 
       service.logError('Prod error');
 
       expect(console.error).not.toHaveBeenCalled();
+
+      // Restore development mode
+      (environment as any).production = false;
     });
 
     it('should send to logging service in production', () => {
       (environment as any).production = true;
+      localStorage.clear();
       spyOn<any>(service, 'sendToLoggingService');
 
       service.logError('Production error');
 
       expect((service as any).sendToLoggingService).toHaveBeenCalled();
+
+      // Restore development mode
+      (environment as any).production = false;
     });
 
     it('should include timestamp in error log', () => {
@@ -143,11 +152,16 @@ describe('ErrorLoggingService', () => {
     });
 
     it('should not log to console in production mode', () => {
+      // Set production mode and clear localStorage for clean test state
       (environment as any).production = true;
+      localStorage.clear();
 
       service.logWarning('Prod warning');
 
       expect(console.warn).not.toHaveBeenCalled();
+
+      // Restore development mode
+      (environment as any).production = false;
     });
   });
 
@@ -182,11 +196,16 @@ describe('ErrorLoggingService', () => {
     });
 
     it('should not log to console in production mode', () => {
+      // Set production mode and clear localStorage for clean test state
       (environment as any).production = true;
+      localStorage.clear();
 
       service.logInfo('Prod info');
 
       expect(console.info).not.toHaveBeenCalled();
+
+      // Restore development mode
+      (environment as any).production = false;
     });
   });
 
@@ -387,8 +406,22 @@ describe('ErrorLoggingService', () => {
   });
 
   describe('Production logging to localStorage', () => {
-    it('should store logs in localStorage in production', () => {
+    beforeEach(() => {
+      // Set production mode BEFORE service creation for proper test isolation
       (environment as any).production = true;
+      // Clear localStorage to ensure clean state
+      localStorage.clear();
+    });
+
+    afterEach(() => {
+      // Restore development mode
+      (environment as any).production = false;
+      localStorage.clear();
+    });
+
+    it('should store logs in localStorage in production', () => {
+      // Verify environment.production is set
+      expect(environment.production).toBe(true);
 
       service.logError('Production error', { critical: true });
 
@@ -398,8 +431,6 @@ describe('ErrorLoggingService', () => {
     });
 
     it('should maintain only last 100 logs in localStorage', () => {
-      (environment as any).production = true;
-
       // Pre-populate localStorage with 95 logs
       const existingLogs: ErrorLog[] = [];
       for (let i = 0; i < 95; i++) {
@@ -424,7 +455,6 @@ describe('ErrorLoggingService', () => {
     });
 
     it('should handle localStorage errors gracefully', () => {
-      (environment as any).production = true;
       spyOn(localStorage, 'setItem').and.throwError('Quota exceeded');
 
       // Should not throw error
@@ -433,8 +463,6 @@ describe('ErrorLoggingService', () => {
     });
 
     it('should parse existing logs from localStorage', () => {
-      (environment as any).production = true;
-
       const existingLog: ErrorLog = {
         timestamp: new Date(),
         level: 'error',

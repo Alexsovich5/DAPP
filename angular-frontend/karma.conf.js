@@ -12,11 +12,6 @@ module.exports = function (config) {
       require('karma-coverage'),
       require('@angular-devkit/build-angular/plugins/karma')
     ],
-    files: [
-      // Load test setup file before any tests run
-      // This provides localStorage mock for Chrome Headless
-      { pattern: './src/test-setup.ts', watched: false }
-    ],
     client: {
       jasmine: {
         // you can add configuration options for Jasmine here
