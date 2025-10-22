@@ -362,9 +362,34 @@ def get_revelation_timeline(
         else:
             phase = "photo_reveal"
 
+        # Convert revelations to response format with sender names
+        revelations_response = []
+        for revelation in revelations:
+            sender = db.query(User).filter(User.id == revelation.sender_id).first()
+            rev_dict = {
+                "id": revelation.id,
+                "connection_id": revelation.connection_id,
+                "sender_id": revelation.sender_id,
+                "day_number": revelation.day_number,
+                "revelation_type": revelation.revelation_type,
+                "content": revelation.content,
+                "is_read": revelation.is_read,
+                "created_at": revelation.created_at.isoformat(),
+                "sender_name": sender.first_name if sender else "Unknown",
+            }
+            revelations_response.append(rev_dict)
+
+        is_cycle_complete = (
+            current_day >= 7 and user_shared_count >= 7 and partner_shared_count >= 7
+        )
+
         return {
-            "connectionId": connection_id,
-            "currentDay": current_day,
+            "connection_id": connection_id,  # Frontend expects snake_case
+            "connectionId": connection_id,  # Keep for backwards compatibility
+            "current_day": current_day,  # Frontend expects snake_case
+            "currentDay": current_day,  # Keep for backwards compatibility
+            "revelations": revelations_response,  # Frontend expects this array
+            "is_cycle_complete": is_cycle_complete,  # Frontend expects this
             "completionPercentage": completion_percentage,
             "timeline": timeline_days,
             "progress": {
