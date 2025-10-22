@@ -337,6 +337,88 @@ async def get_message_statistics(
         )
 
 
+@router.get("/last/{connection_id}")
+async def get_last_message(
+    connection_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get the last message for a specific connection
+    Used for conversation list previews
+    """
+    try:
+        from app.models.message import Message
+        from app.models.soul_connection import SoulConnection
+        from sqlalchemy import or_
+
+        # Verify user has access to this connection
+        connection = (
+            db.query(SoulConnection)
+            .filter(
+                SoulConnection.id == connection_id,
+                or_(
+                    SoulConnection.user1_id == current_user.id,
+                    SoulConnection.user2_id == current_user.id,
+                ),
+            )
+            .first()
+        )
+
+        if not connection:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Connection not found or access denied",
+            )
+
+        # Get the last message for this connection
+        last_message = (
+            db.query(Message)
+            .filter(Message.connection_id == connection_id)
+            .order_by(Message.created_at.desc())
+            .first()
+        )
+
+        if not last_message:
+            # No messages yet - return empty state
+            return {
+                "success": True,
+                "has_messages": False,
+                "connection_id": connection_id,
+                "message": None,
+            }
+
+        # Get sender info
+        sender = db.query(User).filter(User.id == last_message.sender_id).first()
+
+        return {
+            "success": True,
+            "has_messages": True,
+            "connection_id": connection_id,
+            "message": {
+                "id": last_message.id,
+                "sender_id": last_message.sender_id,
+                "sender_name": (
+                    f"{sender.first_name} {sender.last_name}" if sender else "Unknown"
+                ),
+                "is_own_message": last_message.sender_id == current_user.id,
+                "content": last_message.message_text,
+                "message_type": last_message.message_type,
+                "is_read": last_message.is_read,
+                "created_at": last_message.created_at.isoformat(),
+            },
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting last message: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get last message",
+        )
+
+
 @router.get("/search")
 async def search_messages(
     query: str = Query(..., min_length=1),
