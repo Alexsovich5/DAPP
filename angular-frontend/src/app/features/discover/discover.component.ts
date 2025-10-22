@@ -35,6 +35,7 @@ import { SwipeEvent } from '@core/services/swipe-gesture.service';
 import { ABTestingService } from '@core/services/ab-testing.service';
 import { DiscoveryResponse, DiscoveryRequest, SoulConnectionCreate } from '../../core/interfaces/soul-connection.interfaces';
 import { User } from '../../core/interfaces/auth.interfaces';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-discover',
@@ -536,7 +537,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
 
   discoveryFilters: DiscoveryRequest = {
     max_results: 10,
-    min_compatibility: 50,
+    min_compatibility: environment.soulBeforeSkin.compatibilityThreshold,
     hide_photos: true,
     age_range_min: 21,
     age_range_max: 35
@@ -614,7 +615,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   resetFilters(): void {
     this.discoveryFilters = {
       max_results: 10,
-      min_compatibility: 50,
+      min_compatibility: environment.soulBeforeSkin.compatibilityThreshold,
       hide_photos: true
     };
     this.loadDiscoveries();

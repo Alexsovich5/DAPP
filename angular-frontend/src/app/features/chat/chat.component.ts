@@ -91,7 +91,8 @@ export class ChatComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.userId = this.route.snapshot.paramMap.get('id');
+    // Get connectionId from query params (not route params)
+    this.userId = this.route.snapshot.queryParamMap.get('connectionId');
     if (this.userId) {
       this.loadChatData();
       this.setupTypingIndicators();

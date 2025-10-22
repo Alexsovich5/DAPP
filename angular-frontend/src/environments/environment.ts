@@ -1,8 +1,8 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:5000/api/v1',
+  apiUrl: 'http://localhost:8000/api/v1',
   tokenKey: 'dinner_first_auth_token',
-  socketUrl: 'ws://localhost:5000',
+  socketUrl: 'ws://localhost:8000',
 
   // UI Configuration
   ui: {
@@ -18,7 +18,7 @@ export const environment = {
   // Soul Before Skin configuration
   soulBeforeSkin: {
     revelationCycleDays: 7,
-    compatibilityThreshold: 50,
+    compatibilityThreshold: 30,  // Lowered to 30% for test data (was 50)
     defaultPhotoHidden: true,
     emotionalOnboardingRequired: true,
     maxInterests: 10, // Maximum interests a user can select

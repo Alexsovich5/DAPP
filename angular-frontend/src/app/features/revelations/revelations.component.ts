@@ -966,6 +966,9 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
       if (params['connectionId']) {
         this.connectionId = +params['connectionId'];
         this.loadRevelationData();
+      } else {
+        // No connectionId provided - show empty state
+        this.loading = false;
       }
     });
   }
