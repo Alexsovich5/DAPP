@@ -27,7 +27,7 @@ def main():
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
-        port=5000,  # Backend runs on port 5000 as per CLAUDE.md requirements
+        port=8000,  # Using port 8000 to avoid conflict with macOS AirPlay Receiver
         reload=True,
         log_level="info",
     )

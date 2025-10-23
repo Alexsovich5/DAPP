@@ -133,65 +133,15 @@ export class NotificationService {
   }
 
   private initializeMockNotifications(): void {
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        type: 'revelation',
-        title: 'New Revelation Shared! ✨',
-        message: 'Alex shared a beautiful revelation about their core values',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-        isRead: false,
-        actionUrl: '/revelations?connectionId=1'
-      },
-      {
-        id: '2',
-        type: 'message',
-        title: 'New Message 💬',
-        message: 'You have a new message from your soul connection',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-        isRead: false,
-        actionUrl: '/messages'
-      },
-      {
-        id: '3',
-        type: 'photo_reveal',
-        title: 'Photo Reveal Day! 🎉',
-        message: 'It\'s day 7! Both of you are ready for photo reveal',
-        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
-        isRead: false,
-        actionUrl: '/revelations?connectionId=1'
-      },
-      {
-        id: '4',
-        type: 'match',
-        title: 'New Soul Connection! 💫',
-        message: 'You have a 89% compatibility match with someone special',
-        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-        isRead: true,
-        actionUrl: '/matches'
-      },
-      {
-        id: '5',
-        type: 'revelation',
-        title: 'Revelation Reminder ⏰',
-        message: 'Don\'t forget to share today\'s revelation about your dreams',
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-        isRead: true,
-        actionUrl: '/revelations?connectionId=1'
-      },
-      {
-        id: '6',
-        type: 'system',
-        title: 'Welcome to Soul Before Skin! 🌟',
-        message: 'Complete your emotional onboarding to start connecting',
-        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-        isRead: true,
-        actionUrl: '/onboarding'
-      }
-    ];
-
-    this.notifications$.next(mockNotifications);
+    // No mock notifications - use real data from backend
+    this.notifications$.next([]);
     this.updateUnreadCount();
+
+    // NOTE: Mock data removed to use real backend notifications
+    // In production, notifications will be populated via:
+    // - WebSocket real-time updates (messages, revelations, matches)
+    // - API polling for notification history
+    // - Backend notification service
   }
 
   // Simulate real-time notifications

@@ -80,15 +80,21 @@ def discover_soul_connections(
             "location": current_user.location or "",
         }
 
+        logger.info(
+            f"Discovery: Found {len(potential_matches)} potential matches for user {current_user.id}"
+        )
+        logger.info(f"Discovery: Current user interests: {current_user.interests}")
+
         for user in potential_matches:
             # Quick compatibility pre-check: skip users with no common interests
+            # Only skip if VERY high compatibility threshold (>80) to allow
+            # algorithm to find matches based on values, not just interests
             if current_user.interests and user.interests:
                 common_interests = set(current_user.interests).intersection(
                     set(user.interests)
                 )
-                if not common_interests and min_compatibility > 30:
-                    # Skip detailed calculation if no common interests and high
-                    # threshold
+                if not common_interests and min_compatibility > 80:
+                    # Skip detailed calculation only for very high thresholds
                     continue
             user_data = {
                 "interests": user.interests or [],
@@ -101,6 +107,10 @@ def discover_soul_connections(
 
             compatibility = calculator.calculate_overall_compatibility(
                 current_user_data, user_data
+            )
+
+            logger.info(
+                f"Discovery: User {user.first_name} (ID:{user.id}) - Compatibility: {compatibility['total_compatibility']}% (min: {min_compatibility}%)"
             )
 
             # Filter by minimum compatibility

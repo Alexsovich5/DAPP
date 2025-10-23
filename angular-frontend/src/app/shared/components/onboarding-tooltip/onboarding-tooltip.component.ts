@@ -26,11 +26,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       #tooltip
       *ngIf="currentStep"
       [@tooltipAnimation]="'visible'"
-      [ngClass]="[
-        'position-' + currentStep.position,
-        'theme-' + (currentStep.emotionalTheme || 'discovery'),
-        { 'has-overlay': currentStep.showOverlay }
-      ]"
+      [ngClass]="getTooltipClasses()"
       role="dialog"
       [attr.aria-labelledby]="'tooltip-title-' + currentStep.id"
       [attr.aria-describedby]="'tooltip-description-' + currentStep.id"
@@ -818,6 +814,24 @@ export class OnboardingTooltipComponent implements OnInit, OnDestroy, AfterViewI
    */
   onOverlayClick(): void {
     this.onSkipTour();
+  }
+
+  /**
+   * Get tooltip CSS classes
+   */
+  getTooltipClasses(): string {
+    if (!this.currentStep) return '';
+
+    const classes = [
+      'position-' + this.currentStep.position,
+      'theme-' + (this.currentStep.emotionalTheme || 'discovery')
+    ];
+
+    if (this.currentStep.showOverlay) {
+      classes.push('has-overlay');
+    }
+
+    return classes.join(' ');
   }
 
   /**

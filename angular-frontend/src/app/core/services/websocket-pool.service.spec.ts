@@ -596,20 +596,30 @@ describe('WebSocketPoolService', () => {
   });
 
   describe('Edge Cases', () => {
-    it('should handle multiple simultaneous connections to same URL', (done) => {
+    it('should handle multiple simultaneous connections to same URL', fakeAsync(() => {
       const url = 'ws://localhost:5000/ws';
 
-      Promise.all([
-        service.getConnection(url, ['channel1']).toPromise(),
-        service.getConnection(url, ['channel2']).toPromise(),
-        service.getConnection(url, ['channel3']).toPromise()
-      ]).then(connections => {
-        // Should reuse same connection
-        const ids = new Set(connections.map(c => c!.id));
-        expect(ids.size).toBe(1);
-        done();
-      });
-    });
+      const connections: (WebSocketConnection | undefined)[] = [];
+
+      service.getConnection(url, ['channel1']).subscribe(conn => connections.push(conn));
+      service.getConnection(url, ['channel2']).subscribe(conn => connections.push(conn));
+      service.getConnection(url, ['channel3']).subscribe(conn => connections.push(conn));
+
+      // Allow async operations to complete
+      tick();
+
+      // Should reuse same connection
+      const ids = new Set(connections.map(c => c!.id));
+      expect(ids.size).toBe(1);
+
+      // Verify all channels are registered
+      const connection = connections[0];
+      expect(connection?.channels.has('channel1')).toBe(true);
+      expect(connection?.channels.has('channel2')).toBe(true);
+      expect(connection?.channels.has('channel3')).toBe(true);
+
+      flush();
+    }));
 
     it('should handle subscribing to same channel multiple times', (done) => {
       const channel = 'multi-sub-channel';

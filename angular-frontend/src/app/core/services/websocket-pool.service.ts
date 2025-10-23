@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, OnDestroy, inject } from '@angular/core';
 import { Observable, BehaviorSubject, Subject, of, timer } from 'rxjs';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import {
@@ -9,6 +9,7 @@ import {
   takeUntil
 } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
 
 export interface WebSocketMessage {
   type: string;
@@ -65,6 +66,8 @@ export class WebSocketPoolService implements OnDestroy {
     connectionTimeout: 10000,
     messageQueueSize: 100
   };
+
+  private authService = inject(AuthService);
 
   constructor() {
     this.startHeartbeatMonitoring();
@@ -453,12 +456,21 @@ export class WebSocketPoolService implements OnDestroy {
   }
 
   private buildWebSocketUrl(): string {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = environment.production ?
-      window.location.host :
-      'localhost:5000';
+    // Get auth token
+    const token = this.authService.getToken();
 
-    return `${protocol}//${host}/ws`;
+    if (!token) {
+      console.warn('No auth token available for WebSocket connection');
+      return '';
+    }
+
+    // Build WebSocket URL from environment.socketUrl
+    // Convert http://localhost:8000 -> ws://localhost:8000
+    const apiUrl = environment.socketUrl || environment.apiUrl.replace('http', 'ws');
+    const wsBaseUrl = apiUrl.replace('http://', 'ws://').replace('https://', 'wss://');
+
+    // Add the WebSocket endpoint path and auth token as query parameter
+    return `${wsBaseUrl}/api/v1/ws/connect?token=${encodeURIComponent(token)}`;
   }
 
   private queueMessage(connectionId: string, message: WebSocketMessage): void {
