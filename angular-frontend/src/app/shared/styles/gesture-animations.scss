@@ -6,20 +6,31 @@
   --gesture-duration: 0.3s;
   --gesture-bounce-duration: 0.5s;
   --gesture-intensity: 100%;
-  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --motion-ease-in: cubic-bezier(0.5, 0, 0.75, 0);
-  --motion-stagger-step: 60ms;
+  // Enhanced easing curves for smoother animations
+  --motion-ease: cubic-bezier(0.4, 0, 0.2, 1); // Material Design Standard
+  --motion-ease-out: cubic-bezier(0, 0, 0.2, 1); // Material Design Deceleration
+  --motion-ease-in: cubic-bezier(0.4, 0, 1, 1); // Material Design Acceleration
+  --motion-ease-in-out: cubic-bezier(0.4, 0, 0.6, 1); // Material Design Sharp
+  --motion-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275); // Spring bounce
+  --motion-stagger-step: 50ms; // Slightly faster stagger for smoother feel
 
-  // Dating app colors for gesture feedback
-  --like-color: #4CAF50;
+  // Dating app colors for gesture feedback (theme-aware)
+  --like-color: var(--status-success);
   --like-glow: rgba(76, 175, 80, 0.3);
-  --pass-color: #FF5722;
+  --pass-color: var(--status-error);
   --pass-glow: rgba(255, 87, 34, 0.3);
-  --superlike-color: #FFD700;
+  --superlike-color: var(--color-accent-500);
   --superlike-glow: rgba(255, 215, 0, 0.4);
-  --revelation-color: #9C27B0;
+  --revelation-color: var(--color-primary-600);
   --revelation-glow: rgba(156, 39, 176, 0.3);
+}
+
+// Dark theme gesture color adjustments
+.dark-theme {
+  --like-glow: rgba(34, 197, 94, 0.4);
+  --pass-glow: rgba(239, 68, 68, 0.4);
+  --superlike-glow: rgba(252, 211, 77, 0.5);
+  --revelation-glow: rgba(129, 140, 248, 0.4);
 }
 // App-wide motion utility classes
 .fade-in {

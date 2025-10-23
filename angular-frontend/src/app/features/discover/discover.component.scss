@@ -14,19 +14,46 @@
   gap: 1rem;
   margin: 0 0 1rem 0;
   padding: 0.75rem 1rem;
-  background: #fff7ed;
-  border: 1px solid #ffedd5;
-  color: #9a3412;
+  background: var(--color-warning-50);
+  border: 1px solid var(--color-warning-200);
+  color: var(--color-warning-800);
   border-radius: 999px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.dark-theme .undo-banner {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: var(--color-warning-300);
 }
 
 .undo-btn {
-  background: #fed7aa;
-  color: #7c2d12;
+  background: var(--color-warning-200);
+  color: var(--color-warning-900);
   border: none;
   padding: 0.4rem 0.8rem;
   border-radius: 999px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+
+  &:hover {
+    background: var(--color-warning-300);
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.dark-theme .undo-btn {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--color-warning-200);
+
+  &:hover {
+    background: rgba(245, 158, 11, 0.3);
+  }
 }
 
 /* Soul Connection Header */
