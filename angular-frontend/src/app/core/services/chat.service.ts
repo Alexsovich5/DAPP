@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { map, tap, debounceTime, distinctUntilChanged, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { AuthService } from './auth.service';
 
 interface Message {
   id: string;
@@ -90,7 +91,7 @@ export class ChatService {
   private connectionActivity = new BehaviorSubject<Map<string, Record<string, unknown>>>(new Map());
   private emotionalStates = new BehaviorSubject<Map<string, TypingUser['emotionalState']>>(new Map());
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private authService: AuthService) {
     this.setupWebSocket();
     this.setupTypingCleanup();
   }
@@ -100,8 +101,16 @@ export class ChatService {
   }
 
   private setupWebSocket(): void {
-    const socketUrl = `${environment.socketUrl}/api/v1/ws/connect`;
-    console.log('Connecting to WebSocket:', socketUrl);
+    // Get auth token
+    const token = this.authService.getToken();
+    if (!token) {
+      console.warn('No auth token available for WebSocket connection');
+      return;
+    }
+
+    // Build WebSocket URL with token
+    const socketUrl = `${environment.socketUrl}/api/v1/ws/connect?token=${encodeURIComponent(token)}`;
+    console.log('Connecting to WebSocket:', socketUrl.replace(/token=[^&]+/, 'token=***'));
 
     this.socket$ = webSocket({
       url: socketUrl,
