@@ -11,8 +11,9 @@
 
     h1 {
       margin: 0;
-      color: #333;
+      color: var(--text-primary);
       font-weight: 500;
+      transition: color 0.3s ease;
     }
   }
 
@@ -25,8 +26,9 @@
     }
 
     p {
-      color: #666;
+      color: var(--text-secondary);
       margin: 16px 0 0 0;
+      transition: color 0.3s ease;
     }
   }
 
@@ -59,15 +61,17 @@
         margin-bottom: 16px;
 
         mat-card-title {
-          color: #333;
+          color: var(--text-primary);
           font-size: 18px;
           font-weight: 500;
+          transition: color 0.3s ease;
         }
 
         mat-card-subtitle {
-          color: #666;
+          color: var(--text-secondary);
           font-size: 14px;
           margin-top: 4px;
+          transition: color 0.3s ease;
         }
       }
 
@@ -104,15 +108,17 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            color: #666;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
           }
 
           .upload-error {
             display: flex;
             align-items: center;
             gap: 8px;
-            color: #f44336;
+            color: var(--status-error);
             font-size: 14px;
+            transition: color 0.3s ease;
           }
         }
 
@@ -139,7 +145,8 @@
             margin: 0 0 12px 0;
             font-size: 14px;
             font-weight: 500;
-            color: #666;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
           }
 
           .interest-chips {
@@ -148,24 +155,24 @@
             gap: 8px;
 
             button[mat-chip-option] {
-              border: 1px solid #e0e0e0;
-              background-color: #fafafa;
-              color: #666;
+              border: 1px solid var(--border-light);
+              background-color: var(--background-secondary);
+              color: var(--text-secondary);
               font-size: 12px;
               padding: 8px 12px;
               border-radius: 16px;
-              transition: all 0.2s ease;
+              transition: all 0.2s ease, background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 
               &:hover:not(:disabled) {
-                background-color: #e3f2fd;
-                color: #1976d2;
-                border-color: #1976d2;
+                background-color: var(--color-primary-50);
+                color: var(--interactive-primary);
+                border-color: var(--interactive-primary);
               }
 
               &:disabled {
                 opacity: 0.5;
-                background-color: #f5f5f5;
-                color: #999;
+                background-color: var(--background-tertiary);
+                color: var(--text-disabled);
               }
             }
           }
@@ -176,7 +183,8 @@
             margin: 0 0 12px 0;
             font-size: 14px;
             font-weight: 500;
-            color: #666;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
           }
 
           mat-chip-row {
@@ -185,9 +193,10 @@
             gap: 8px;
 
             mat-chip {
-              background-color: #e3f2fd;
-              color: #1976d2;
+              background-color: var(--color-primary-50);
+              color: var(--interactive-primary);
               font-size: 12px;
+              transition: background-color 0.3s ease, color 0.3s ease;
 
               mat-icon {
                 font-size: 16px;
@@ -195,6 +204,18 @@
                 height: 16px;
               }
             }
+          }
+        }
+
+        .dark-theme & {
+          .selected-interests mat-chip {
+            background-color: rgba(var(--color-primary-400), 0.2);
+            color: var(--color-primary-300);
+          }
+
+          .suggested-interests button[mat-chip-option]:hover:not(:disabled) {
+            background-color: rgba(var(--color-primary-400), 0.2);
+            color: var(--color-primary-300);
           }
         }
       }
@@ -205,8 +226,9 @@
       justify-content: flex-end;
       gap: 16px;
       padding: 20px 0;
-      border-top: 1px solid #e0e0e0;
+      border-top: 1px solid var(--border-light);
       margin-top: 20px;
+      transition: border-color 0.3s ease;
 
       button {
         display: flex;

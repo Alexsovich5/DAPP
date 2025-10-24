@@ -242,6 +242,9 @@ button {
 input, textarea, select {
   font-size: 16px; // Prevents zoom on iOS
   min-height: 44px;
+  color: var(--text-primary) !important;
+  background-color: var(--background-primary);
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 
   &:focus {
     @include focus-ring-primary;
@@ -250,6 +253,20 @@ input, textarea, select {
   &:invalid {
     border-color: var(--status-error);
     box-shadow: 0 0 0 1px var(--status-error);
+  }
+
+  &::placeholder {
+    color: var(--text-tertiary) !important;
+    opacity: 0.7;
+  }
+}
+
+// Ensure Material textareas and selects are also visible
+.mat-input-element {
+  color: var(--text-primary) !important;
+
+  &:disabled {
+    color: var(--text-disabled) !important;
   }
 }
 
@@ -354,19 +371,42 @@ table {
 
 .mat-form-field {
   .mat-form-field-label {
-    @include text-secondary;
+    color: var(--text-secondary) !important;
   }
 
   .mat-input-element {
-    @include text-primary;
+    color: var(--text-primary) !important;
+    caret-color: var(--text-primary) !important;
 
     &:focus {
       @include focus-ring-primary;
+    }
+
+    &::placeholder {
+      color: var(--text-tertiary) !important;
+      opacity: 0.7;
     }
   }
 
   &.mat-focused .mat-form-field-label {
     color: var(--interactive-primary) !important;
+  }
+
+  // Ensure all Material form field variants have visible text
+  &.mat-form-field-appearance-fill .mat-input-element,
+  &.mat-form-field-appearance-outline .mat-input-element,
+  &.mat-form-field-appearance-legacy .mat-input-element {
+    color: var(--text-primary) !important;
+    caret-color: var(--text-primary) !important;
+  }
+
+  // Fix autofill styles
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--text-primary) !important;
+    -webkit-box-shadow: 0 0 0px 1000px var(--background-primary) inset !important;
+    transition: background-color 5000s ease-in-out 0s;
   }
 }
 
