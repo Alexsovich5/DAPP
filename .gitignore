@@ -92,3 +92,11 @@ e2e-results/
 playwright-report/
 test-results/
 .playwright/
+
+# Test data and API testing files
+python-backend/seed_test_data.py
+python-backend/test_*_api.py
+test_*_api.py
+
+# Playwright MCP screenshots
+.playwright-mcp/
