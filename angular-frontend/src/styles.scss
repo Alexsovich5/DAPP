@@ -400,6 +400,25 @@ table {
     caret-color: var(--text-primary) !important;
   }
 
+  // CRITICAL: Fix outline appearance borders (used in login form)
+  &.mat-form-field-appearance-outline {
+    .mat-form-field-outline {
+      color: var(--border-medium) !important;
+    }
+
+    .mat-form-field-outline-thick {
+      color: var(--interactive-primary) !important;
+    }
+
+    &.mat-focused .mat-form-field-outline-thick {
+      color: var(--interactive-primary) !important;
+    }
+
+    &:hover:not(.mat-focused) .mat-form-field-outline {
+      color: var(--border-strong) !important;
+    }
+  }
+
   // Fix autofill styles
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
@@ -412,6 +431,63 @@ table {
 
 .mat-error {
   color: var(--status-error) !important;
+}
+
+// Material Design Components (MDC) form field styling
+.mat-mdc-form-field {
+  .mdc-text-field {
+    background-color: transparent !important;
+  }
+
+  .mat-mdc-form-field-focus-overlay {
+    background-color: transparent !important;
+  }
+
+  // MDC outline appearance
+  &.mat-mdc-form-field-appearance-outline {
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__trailing,
+    .mdc-notched-outline__notch {
+      border-color: var(--border-medium) !important;
+    }
+
+    &:hover:not(.mdc-text-field--focused) {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__trailing,
+      .mdc-notched-outline__notch {
+        border-color: var(--border-strong) !important;
+      }
+    }
+
+    &.mdc-text-field--focused {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__trailing,
+      .mdc-notched-outline__notch {
+        border-color: var(--interactive-primary) !important;
+        border-width: 2px !important;
+      }
+    }
+  }
+
+  // MDC input element
+  .mat-mdc-input-element {
+    color: var(--text-primary) !important;
+    caret-color: var(--text-primary) !important;
+
+    &::placeholder {
+      color: var(--text-tertiary) !important;
+      opacity: 0.7;
+    }
+  }
+
+  // MDC label
+  .mat-mdc-floating-label {
+    color: var(--text-secondary) !important;
+  }
+
+  &.mat-focused .mat-mdc-floating-label {
+    color: var(--interactive-primary) !important;
+  }
 }
 
 .mat-card {
