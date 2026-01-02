@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { OnboardingService, OnboardingState } from '../../core/services/onboarding.service';
-import { AuthService } from '../../core/services/auth.service';
+import { environment } from '../../../../environments/environment';
+import { OnboardingService, OnboardingState, OnboardingStep } from '../../../core/services/onboarding.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { OnboardingTooltipComponent } from '../onboarding-tooltip/onboarding-tooltip.component';
 import { OnboardingWelcomeComponent } from '../onboarding-welcome/onboarding-welcome.component';
 
@@ -412,7 +412,7 @@ export class OnboardingManagerComponent implements OnInit, OnDestroy {
 
     // Subscribe to onboarding state changes
     this.subscription.add(
-      this.onboardingService.state$.subscribe(state => {
+      this.onboardingService.state$.subscribe((state: OnboardingState) => {
         this.currentState = state;
         this.updateVisibility(state);
       })
@@ -420,7 +420,7 @@ export class OnboardingManagerComponent implements OnInit, OnDestroy {
 
     // Subscribe to active step changes
     this.subscription.add(
-      this.onboardingService.activeStep$.subscribe(step => {
+      this.onboardingService.activeStep$.subscribe((step: OnboardingStep | null) => {
         this.showTooltip = !!step;
       })
     );

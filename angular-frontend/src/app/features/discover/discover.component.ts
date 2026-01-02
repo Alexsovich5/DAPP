@@ -12,6 +12,7 @@ import { MatSliderModule } from '@angular/material/slider';
 import { FormsModule } from '@angular/forms';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { SoulConnectionService } from '@core/services/soul-connection.service';
 import { AuthService } from '@core/services/auth.service';
 import { ErrorLoggingService } from '@core/services/error-logging.service';
@@ -505,6 +506,8 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   hoveredCards = new Set<number>();
   lastAction: { type: 'pass' | 'connect' | 'super_like'; item: DiscoveryResponse; index: number; message: string; timeoutId: any } | null = null;
 
+  private subscriptions = new Subscription();
+
   discoveryFilters: DiscoveryRequest = {
     max_results: 10,
     min_compatibility: 50,
@@ -527,7 +530,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     this.initializeABTesting();
 
     // Check authentication and onboarding status
-    this.authService.currentUser$.subscribe(user => {
+    this.subscriptions.add(this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
 
       if (!user) {
@@ -541,7 +544,11 @@ export class DiscoverComponent implements OnInit, OnDestroy {
       if (!this.needsOnboarding) {
         this.loadDiscoveries();
       }
-    });
+    }));
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   loadDiscoveries(): void {
@@ -1406,6 +1413,21 @@ export class DiscoverComponent implements OnInit, OnDestroy {
    */
   private getPartnerName(discovery: DiscoveryResponse): string {
     return discovery.profile_preview?.first_name || 'soul connection';
+  }
+
+  /**
+   * Initialize A/B testing for discovery page
+   */
+  private initializeABTesting(): void {
+    const variantConfig = this.abTestingService.getVariantConfig('discovery_card_layout');
+
+    if (variantConfig) {
+      this.abTestingService.trackEvent('discovery_card_layout', 'discovery_view', {
+        layout: variantConfig.layout,
+        showCompatibilityFirst: variantConfig.showCompatibilityFirst,
+        buttonStyle: variantConfig.buttonStyle
+      });
+    }
   }
 
   /**
