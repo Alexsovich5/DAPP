@@ -136,7 +136,7 @@ describe('TypingIndicatorComponent', () => {
 
   it('should generate typing ellipsis', () => {
     const ellipsis = component.getTypingEllipsis();
-    expect(ellipsis).toMatch(/✧+/);
+    expect(ellipsis).toMatch(/\.+/);
   });
 
   it('should detect connection energy based on stage', () => {

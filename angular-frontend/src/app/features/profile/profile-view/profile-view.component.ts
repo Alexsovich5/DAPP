@@ -89,7 +89,7 @@ export class ProfileViewComponent implements OnInit {
 
   getCompletionMessage(): string {
     if (this.profileCompletion >= 90) {
-      return 'Your profile is looking great! 🎉';
+      return 'Your profile is looking great!';
     } else if (this.profileCompletion >= 70) {
       return 'Almost there! A few more details would help.';
     } else if (this.profileCompletion >= 50) {

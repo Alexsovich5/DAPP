@@ -47,7 +47,7 @@ import { SoulConfig } from '../../models/soul-types';
               [style.left.%]="heart.x"
               [style.animation-delay]="heart.delay + 's'"
               [style.animation-duration]="heart.duration + 's'">
-              {{heart.emoji}}
+              <mat-icon>{{heart.emoji}}</mat-icon>
             </div>
           </div>
         </div>
@@ -698,7 +698,7 @@ export class MatchCelebrationComponent implements OnInit, OnDestroy {
           x: Math.random() * 100,
           delay: Math.random() * 4,
           duration: 4 + Math.random() * 2,
-          emoji: '♥'
+          emoji: 'favorite'
         });
       }
     }

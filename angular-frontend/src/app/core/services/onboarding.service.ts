@@ -81,7 +81,7 @@ export class OnboardingService {
       steps: [
         {
           id: 'welcome',
-          title: '✨ Welcome to Dinner First',
+          title: 'Welcome to Dinner First',
           description: 'Where souls connect before eyes meet. Let us show you how meaningful connections begin with emotional compatibility.',
           position: 'center',
           showOverlay: true,
@@ -93,7 +93,7 @@ export class OnboardingService {
         },
         {
           id: 'soul-profile',
-          title: '💖 Your Soul Profile',
+          title: 'Your Soul Profile',
           description: 'Share your values, dreams, and what makes you truly you. This creates the foundation for authentic connections.',
           targetSelector: '.profile-section',
           position: 'right',
@@ -106,7 +106,7 @@ export class OnboardingService {
         },
         {
           id: 'compatibility-magic',
-          title: '🌟 Compatibility Magic',
+          title: 'Compatibility Magic',
           description: 'Our algorithm analyzes emotional compatibility, shared values, and communication styles to find your perfect matches.',
           targetSelector: '.compatibility-score',
           position: 'top',
@@ -119,7 +119,7 @@ export class OnboardingService {
         },
         {
           id: 'soul-connections',
-          title: '💫 Soul Connections',
+          title: 'Soul Connections',
           description: 'Discover people who align with your values and dreams. Photos are revealed after you connect emotionally.',
           targetSelector: '.soul-card',
           position: 'bottom',
@@ -132,7 +132,7 @@ export class OnboardingService {
         },
         {
           id: 'meaningful-conversations',
-          title: '💬 Meaningful Conversations',
+          title: 'Meaningful Conversations',
           description: 'Start conversations about what truly matters. Share your thoughts, dreams, and build genuine connections.',
           targetSelector: '.message-area',
           position: 'left',
@@ -155,7 +155,7 @@ export class OnboardingService {
       steps: [
         {
           id: 'discovery-filters',
-          title: '🎛️ Discovery Filters',
+          title: 'Discovery Filters',
           description: 'Customize your search by compatibility threshold, age range, and photo preferences.',
           targetSelector: '.discovery-filters',
           position: 'bottom',
@@ -168,7 +168,7 @@ export class OnboardingService {
         },
         {
           id: 'soul-orb-guide',
-          title: '🔮 Soul Orb Energy',
+          title: 'Soul Orb Energy',
           description: 'The soul orb shows emotional energy and compatibility. Watch it pulse and glow for high-compatibility matches!',
           targetSelector: '.soul-orb',
           position: 'right',
@@ -181,7 +181,7 @@ export class OnboardingService {
         },
         {
           id: 'compatibility-breakdown',
-          title: '📊 Compatibility Insights',
+          title: 'Compatibility Insights',
           description: 'See detailed compatibility in values, interests, and communication style. High scores unlock special animations!',
           targetSelector: '.compatibility-score',
           position: 'top',
@@ -194,7 +194,7 @@ export class OnboardingService {
         },
         {
           id: 'keyboard-navigation',
-          title: '⌨️ Keyboard Magic',
+          title: 'Keyboard Magic',
           description: 'Use arrow keys to navigate cards, Enter to connect, and discover keyboard shortcuts for efficient browsing.',
           targetSelector: '.keyboard-help',
           position: 'top',
@@ -217,7 +217,7 @@ export class OnboardingService {
       steps: [
         {
           id: 'conversation-starters',
-          title: '💭 Soul Conversation Starters',
+          title: 'Soul Conversation Starters',
           description: 'Use our curated conversation starters to dive deep into meaningful topics that reveal true compatibility.',
           targetSelector: '.conversation-starters',
           position: 'right',
@@ -230,7 +230,7 @@ export class OnboardingService {
         },
         {
           id: 'emotional-reactions',
-          title: '💫 Emotional Reactions',
+          title: 'Emotional Reactions',
           description: 'React with emotional depth using our soul-centered emoji system. Express how messages truly make you feel.',
           targetSelector: '.message-reactions',
           position: 'top',
@@ -243,7 +243,7 @@ export class OnboardingService {
         },
         {
           id: 'revelation-sharing',
-          title: '🌅 Daily Revelations',
+          title: 'Daily Revelations',
           description: 'Share personal insights and growth moments. This deeper sharing builds authentic emotional bonds.',
           targetSelector: '.revelation-area',
           position: 'bottom',

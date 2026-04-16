@@ -26,9 +26,9 @@ import { MatchCelebrationComponent } from '../match-celebration/match-celebratio
           <h2>Updated Navigation</h2>
           <p>Navigation now has 3 main sections instead of 5:</p>
           <ul>
-            <li>🔍 Discover</li>
-            <li>💬 Conversations (merged Connections + Messages with notification badge)</li>
-            <li>✨ Revelations</li>
+            <li>Discover</li>
+            <li>Conversations (merged Connections + Messages with notification badge)</li>
+            <li>Revelations</li>
           </ul>
           <p>Improved mobile typography with larger touch targets (min 44px) and better font sizes.</p>
         </section>
@@ -76,7 +76,7 @@ import { MatchCelebrationComponent } from '../match-celebration/match-celebratio
         </section>
 
         <section class="demo-section">
-          <h2>🌟 Enhanced Soul Visualizations</h2>
+          <h2>Enhanced Soul Visualizations</h2>
           <p>Revolutionary soul connection graphics that replace basic emojis with sophisticated animations.</p>
 
           <h3>Soul Orbs</h3>
@@ -114,13 +114,13 @@ import { MatchCelebrationComponent } from '../match-celebration/match-celebratio
               [connectionState]="'strong-match'"
               [orbSize]="'medium'"
               [showCompatibility]="true"
-              [statusMessage]="'Soul connection established ✨'">
+              [statusMessage]="'Soul connection established'">
             </app-soul-connection>
           </div>
         </section>
 
         <section class="demo-section">
-          <h2>📊 Compatibility Analysis</h2>
+          <h2>Compatibility Analysis</h2>
           <p>Advanced radar visualization showing multi-dimensional soul compatibility.</p>
 
           <div class="compatibility-demo">
@@ -136,14 +136,14 @@ import { MatchCelebrationComponent } from '../match-celebration/match-celebratio
         </section>
 
         <section class="demo-section">
-          <h2>🎉 Match Celebration</h2>
+          <h2>Match Celebration</h2>
           <p>Immersive celebration experience for successful soul connections.</p>
 
           <div class="celebration-demo">
             <button
               class="demo-button celebration-trigger"
               (click)="showCelebration = true">
-              ✨ Trigger Soul Match Celebration
+              Trigger Soul Match Celebration
             </button>
 
             <app-match-celebration

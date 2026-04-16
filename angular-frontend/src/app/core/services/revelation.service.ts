@@ -114,15 +114,15 @@ export class RevelationService {
    */
   getRevelationTypeIcon(type: RevelationType): string {
     const typeIcons: Record<RevelationType, string> = {
-      personal_value: '💎',
-      meaningful_experience: '🌟',
-      hope_or_dream: '✨',
-      what_makes_laugh: '😊',
-      challenge_overcome: '💪',
-      ideal_connection: '💝',
-      photo_reveal: '📸'
+      personal_value: 'diamond',
+      meaningful_experience: 'star',
+      hope_or_dream: 'auto_awesome',
+      what_makes_laugh: 'sentiment_satisfied',
+      challenge_overcome: 'fitness_center',
+      ideal_connection: 'favorite',
+      photo_reveal: 'photo_camera'
     };
-    return typeIcons[type] || '💭';
+    return typeIcons[type] || 'chat_bubble';
   }
 
   /**

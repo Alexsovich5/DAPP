@@ -4,6 +4,7 @@
  */
 import { Component, Input, OnInit, OnDestroy, ChangeDetectionStrategy, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { Subject, interval, takeUntil } from 'rxjs';
 import { TypingUser } from '../../core/services/chat.service';
 
@@ -22,7 +23,7 @@ export interface SoulTypingConfig {
 @Component({
   selector: 'app-soul-typing-indicator',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatIconModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
@@ -60,7 +61,7 @@ export interface SoulTypingConfig {
 
           <!-- Connection stage indicator -->
           <div class="stage-indicator" [attr.data-stage]="config.connectionStage">
-            {{ getStageEmoji() }}
+            <mat-icon>{{ getStageEmoji() }}</mat-icon>
           </div>
         </div>
 
@@ -80,7 +81,7 @@ export interface SoulTypingConfig {
         <div class="emotional-context" [attr.data-emotion]="config.emotionalState">
           <span class="context-text">{{ getEmotionalMessage() }}</span>
           <div class="compatibility-indicator" *ngIf="config.compatibilityScore >= 70">
-            <span class="compatibility-glow">{{ config.compatibilityScore }}% ✨</span>
+            <span class="compatibility-glow">{{ config.compatibilityScore }}%</span>
           </div>
         </div>
       </div>
@@ -519,10 +520,10 @@ export class SoulTypingIndicatorComponent implements OnInit, OnDestroy {
 
   getStageEmoji(): string {
     const stageEmojis = {
-      soul_discovery: '🔍',
-      revelation_sharing: '✨',
-      photo_reveal: '📸',
-      deeper_connection: '💫'
+      soul_discovery: 'search',
+      revelation_sharing: 'auto_awesome',
+      photo_reveal: 'photo_camera',
+      deeper_connection: 'stars'
     };
 
     return stageEmojis[this.config.connectionStage];

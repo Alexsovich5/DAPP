@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, OnDestroy, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { trigger, state, style, animate, transition, keyframes } from '@angular/animations';
 import { Subscription, timer } from 'rxjs';
 import { takeWhile } from 'rxjs/operators';
@@ -16,7 +17,7 @@ export interface TypingUser {
 @Component({
   selector: 'app-typing-indicator',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatIconModule],
   template: `
     <div
       class="typing-indicator"
@@ -63,13 +64,13 @@ export interface TypingUser {
           <span class="typing-label">{{ getSoulTypingText() }}</span>
           <span class="typing-ellipsis" [@ellipsisAnimation]="'animate'">{{ getTypingEllipsis() }}</span>
           <div class="connection-energy" *ngIf="showConnectionEnergy()" [@energyPulse]="'pulse'">
-            ✨
+            <mat-icon>auto_awesome</mat-icon>
           </div>
         </div>
 
         <!-- Emotional State Indicator -->
         <div class="emotional-state" *ngIf="getEmotionalState()" [@emotionalGlow]="'glow'">
-          <span class="state-emoji">{{ getEmotionalEmoji() }}</span>
+          <mat-icon class="state-emoji">{{ getEmotionalEmoji() }}</mat-icon>
           <span class="state-label">{{ getEmotionalState() }}</span>
         </div>
       </div>
@@ -551,7 +552,7 @@ export class TypingIndicatorComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   getTypingEllipsis(): string {
-    const stages = ['✧', '✧✧', '✧✧✧'];
+    const stages = ['.', '..', '...'];
     const currentStage = Math.floor(Date.now() / 500) % stages.length;
     return stages[currentStage];
   }
@@ -587,14 +588,14 @@ export class TypingIndicatorComponent implements OnInit, OnDestroy, OnChanges {
     if (!user.emotionalState) return '';
 
     const emojiMap = {
-      contemplative: '🧘',
-      romantic: '💕',
-      energetic: '⚡',
-      peaceful: '🌿',
-      sophisticated: '🎭'
+      contemplative: 'self_improvement',
+      romantic: 'favorite',
+      energetic: 'bolt',
+      peaceful: 'eco',
+      sophisticated: 'theater_comedy'
     };
 
-    return emojiMap[user.emotionalState] || '✨';
+    return emojiMap[user.emotionalState] || 'auto_awesome';
   }
 
   getAriaLabel(): string {

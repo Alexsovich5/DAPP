@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { SoulConnectionService } from '../../core/services/soul-connection.service';
 import { ChatService } from '../../core/services/chat.service';
@@ -37,7 +38,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
 @Component({
   selector: 'app-messages',
   standalone: true,
-  imports: [CommonModule, ConversationsEmptyStateComponent, SwipeDirective],
+  imports: [CommonModule, MatIconModule, ConversationsEmptyStateComponent, SwipeDirective],
   template: `
     <div class="messages-container">
       <header class="messages-header">
@@ -121,7 +122,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
                   {{message.unreadCount}}
                 </span>
                 <span class="revelation-badge" *ngIf="message.revelationDay === 7">
-                  ✨ Photo Day!
+                  <mat-icon>auto_awesome</mat-icon> Photo Day!
                 </span>
               </div>
             </div>
@@ -129,7 +130,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
 
           <div class="message-actions" role="group" aria-label="Message actions">
             <button type="button" class="action-btn" (click)="quickReply(message, $event)" title="Quick Reply">
-              💬
+              <mat-icon>forum</mat-icon>
             </button>
             <button
               type="button"
@@ -138,10 +139,10 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
               *ngIf="message.revelationDay > 1"
               title="View Revelations"
             >
-              ✨
+              <mat-icon>auto_awesome</mat-icon>
             </button>
             <button type="button" class="action-btn" (click)="toggleMute(message, $event)" title="Mute">
-              🔔
+              <mat-icon>notifications</mat-icon>
             </button>
           </div>
         </button>
@@ -156,7 +157,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
 
       <div class="floating-action">
         <button class="fab" (click)="newMessage()" title="New Message">
-          <span>✍️</span>
+          <mat-icon>edit</mat-icon>
         </button>
       </div>
 

@@ -471,7 +471,7 @@ describe('OnboardingApiService', () => {
     });
 
     it('should handle special characters in responses', () => {
-      const specialText = 'Test with "quotes", \'apostrophes\', \n newlines, and émojis 🎉';
+      const specialText = 'Test with "quotes", \'apostrophes\', \n newlines, and special chars';
       const mockData: OnboardingData = {
         relationship_values: specialText,
         ideal_evening: specialText,

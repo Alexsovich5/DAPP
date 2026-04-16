@@ -1,11 +1,12 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 
 @Component({
   selector: 'app-empty-state',
   standalone: true,
-  imports: [CommonModule, SoulOrbComponent],
+  imports: [CommonModule, MatIconModule, SoulOrbComponent],
   template: `
     <div
       class="empty-state-container"
@@ -60,7 +61,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
               <circle cx="100" cy="100" r="80" fill="url(#search-gradient)" class="search-pulse"/>
               <circle cx="100" cy="100" r="40" fill="#ffffff" stroke="#ff6b9d" stroke-width="3"/>
               <path d="M 120 120 L 140 140" stroke="#ff6b9d" stroke-width="4" stroke-linecap="round" class="search-handle"/>
-              <text x="100" y="106" text-anchor="middle" font-size="24" fill="#ff6b9d" aria-hidden="true">🔍</text>
+              <text x="100" y="106" text-anchor="middle" font-size="24" fill="#ff6b9d" aria-hidden="true"></text>
             </g>
 
             <!-- Conversations illustration -->
@@ -76,7 +77,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
               <line x1="80" y1="60" x2="160" y2="60" stroke="#60a5fa" stroke-width="2"/>
               <line x1="80" y1="80" x2="140" y2="80" stroke="#60a5fa" stroke-width="2"/>
               <line x1="80" y1="100" x2="120" y2="100" stroke="#60a5fa" stroke-width="2"/>
-              <text x="190" y="50" text-anchor="middle" font-size="16" fill="#34d399" aria-hidden="true">💬</text>
+              <text x="190" y="50" text-anchor="middle" font-size="16" fill="#34d399" aria-hidden="true"></text>
             </g>
 
             <!-- Revelations illustration -->
@@ -91,7 +92,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
               <circle cx="100" cy="100" r="90" fill="url(#revelation-gradient)" class="revelation-glow"/>
               <path d="M 100 40 L 110 70 L 140 70 L 118 90 L 128 120 L 100 105 L 72 120 L 82 90 L 60 70 L 90 70 Z"
                     fill="#ffd700" stroke="#ffffff" stroke-width="2" class="star-sparkle"/>
-              <text x="100" y="170" text-anchor="middle" font-size="20" fill="#c084fc" aria-hidden="true">✨</text>
+              <text x="100" y="170" text-anchor="middle" font-size="20" fill="#c084fc" aria-hidden="true"></text>
             </g>
 
             <!-- Profile illustration -->
@@ -105,7 +106,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
               <circle cx="100" cy="80" r="35" fill="url(#profile-gradient)" opacity="0.8"/>
               <path d="M 60 140 Q 100 120 140 140 L 140 180 L 60 180 Z" fill="url(#profile-gradient)" opacity="0.8"/>
               <circle cx="100" cy="80" r="30" fill="#ffffff" stroke="#ec4899" stroke-width="3"/>
-              <text x="100" y="88" text-anchor="middle" font-size="24" fill="#ec4899" aria-hidden="true">👤</text>
+              <text x="100" y="88" text-anchor="middle" font-size="24" fill="#ec4899" aria-hidden="true"></text>
             </g>
 
           </svg>
@@ -113,7 +114,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 
         <!-- Custom icon -->
         <div *ngIf="!illustration && !showSoulOrb && customIcon" class="custom-icon">
-          <span [ngStyle]="{'font-size': iconSize + 'rem'}">{{customIcon}}</span>
+          <mat-icon [ngStyle]="{'font-size': iconSize + 'rem', 'width': iconSize + 'rem', 'height': iconSize + 'rem'}">{{customIcon}}</mat-icon>
         </div>
       </div>
 
@@ -150,11 +151,11 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
               class="tip-item"
               role="listitem"
               [attr.aria-label]="getTipAriaLabel(tip, i)">
-              <span
+              <mat-icon
                 class="tip-icon"
                 aria-hidden="true">
-                {{tip.icon || '💡'}}
-              </span>
+                {{tip.icon || 'lightbulb'}}
+              </mat-icon>
               <span class="tip-text">{{tip.text}}</span>
             </li>
           </ul>
@@ -202,12 +203,12 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
             (click)="onPrimaryAction()"
             (keydown)="handleActionKeydown($event, 'primary')"
             [disabled]="primaryActionDisabled">
-            <span
+            <mat-icon
               *ngIf="primaryAction.icon"
               class="btn-icon"
               aria-hidden="true">
               {{primaryAction.icon}}
-            </span>
+            </mat-icon>
             <span class="btn-text">{{primaryAction.text}}</span>
           </button>
 
@@ -220,12 +221,12 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
             (click)="onSecondaryAction()"
             (keydown)="handleActionKeydown($event, 'secondary')"
             [disabled]="secondaryActionDisabled">
-            <span
+            <mat-icon
               *ngIf="secondaryAction.icon"
               class="btn-icon"
               aria-hidden="true">
               {{secondaryAction.icon}}
-            </span>
+            </mat-icon>
             <span class="btn-text">{{secondaryAction.text}}</span>
           </button>
         </div>

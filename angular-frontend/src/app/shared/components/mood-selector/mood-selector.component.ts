@@ -48,7 +48,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
             [style.box-shadow]="getCurrentMoodGlow()"
             [@orbPulse]="'pulse'">
           </div>
-          <span class="mood-icon">{{ getMoodIcon(currentMood) }}</span>
+          <mat-icon class="mood-icon">{{ getMoodIcon(currentMood) }}</mat-icon>
         </div>
 
         <div class="mood-info">
@@ -117,7 +117,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
             <!-- Mood Details -->
             <div class="mood-details">
               <div class="mood-header">
-                <span class="mood-emoji">{{ getMoodIcon(mood) }}</span>
+                <mat-icon class="mood-emoji">{{ getMoodIcon(mood) }}</mat-icon>
                 <span class="mood-name">{{ mood.name }}</span>
               </div>
               <span class="mood-intensity">{{ mood.intensity }}</span>
@@ -456,7 +456,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
       margin-bottom: 0.25rem;
 
       &:before {
-        content: '✓ ';
+        content: '\2713 ';
         color: var(--primary-color);
         font-weight: bold;
       }
@@ -756,13 +756,13 @@ export class MoodSelectorComponent implements OnInit, OnDestroy {
 
   getMoodIcon(mood: MoodState): string {
     const iconMap: { [key: string]: string } = {
-      contemplative: '🧘',
-      romantic: '💕',
-      energetic: '⚡',
-      peaceful: '🌿',
-      sophisticated: '🎭'
+      contemplative: 'self_improvement',
+      romantic: 'favorite',
+      energetic: 'bolt',
+      peaceful: 'eco',
+      sophisticated: 'theater_comedy'
     };
-    return iconMap[mood.id] || '✨';
+    return iconMap[mood.id] || 'auto_awesome';
   }
 
   getCurrentMoodGlow(): string {

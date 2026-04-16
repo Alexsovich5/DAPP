@@ -79,14 +79,14 @@ import { NotificationService, Notification } from '../../core/services/notificat
               *ngIf="!notification.isRead"
               title="Mark as read"
             >
-              ✓
+              <mat-icon>done</mat-icon>
             </button>
             <button
               class="action-btn-small secondary"
               (click)="removeNotification(notification, $event)"
               title="Remove"
             >
-              ✕
+              <mat-icon>close</mat-icon>
             </button>
           </div>
         </button>

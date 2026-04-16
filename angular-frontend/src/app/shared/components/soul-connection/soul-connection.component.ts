@@ -157,7 +157,7 @@ import { SoulConfig } from '../../models/soul-types';
               text-anchor="middle"
               class="connection-heart"
               [style.animation-delay]="heart.delay + 's'">
-              💖
+              &#x2665;
             </text>
           </g>
         </svg>

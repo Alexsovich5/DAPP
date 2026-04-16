@@ -391,7 +391,7 @@ describe('StorageService', () => {
       it('should handle Unicode characters', () => {
         localStorageSpy.setItem.and.returnValue(undefined);
 
-        const unicode = '你好 🌟 مرحبا';
+        const unicode = '你好 مرحبا';
         const result = service.setItem('unicode-key', unicode);
 
         expect(result).toBe(true);

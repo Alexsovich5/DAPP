@@ -4,6 +4,7 @@
  */
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectionStrategy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { Subject } from 'rxjs';
 import { HapticFeedbackService } from '../../core/services/haptic-feedback.service';
 
@@ -41,7 +42,7 @@ export interface RevelationDayData {
 @Component({
   selector: 'app-revelation-timeline',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatIconModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="revelation-timeline-container" [attr.data-phase]="timelineData?.visualization.phase">
@@ -124,10 +125,10 @@ export interface RevelationDayData {
             <div class="day-number">{{ dayData.day }}</div>
             <div class="day-status">
               <div class="user-status" [class.completed]="dayData.userShared">
-                {{ dayData.userShared ? '✨' : '○' }}
+                {{ dayData.userShared ? '\u2713' : '\u25CB' }}
               </div>
               <div class="partner-status" [class.completed]="dayData.partnerShared">
-                {{ dayData.partnerShared ? '💫' : '○' }}
+                {{ dayData.partnerShared ? '\u2713' : '\u25CB' }}
               </div>
             </div>
           </div>
@@ -163,7 +164,7 @@ export interface RevelationDayData {
 
           <!-- Locked day indicator -->
           <div class="day-locked" *ngIf="!dayData.isUnlocked">
-            <div class="lock-icon">🔒</div>
+            <div class="lock-icon"><mat-icon>lock</mat-icon></div>
             <div class="unlock-info">
               <span *ngIf="dayData.day === (timelineData?.currentDay || 1) + 1">
                 Unlocks tomorrow
@@ -194,7 +195,7 @@ export interface RevelationDayData {
           [disabled]="hasSharedToday()"
           [attr.aria-label]="getShareButtonLabel()"
         >
-          <span class="btn-icon">✨</span>
+          <mat-icon class="btn-icon">auto_awesome</mat-icon>
           <span class="btn-text">
             {{ hasSharedToday() ? 'Shared Today' : 'Share Your Soul' }}
           </span>
@@ -205,7 +206,7 @@ export interface RevelationDayData {
       <div class="photo-reveal-section" *ngIf="isPhotoRevealDay()">
         <div class="photo-reveal-card">
           <div class="reveal-header">
-            <h3>Photo Reveal Day! 📸</h3>
+            <h3>Photo Reveal Day!</h3>
             <p>After sharing your souls this week, are you ready to see each other?</p>
           </div>
 
@@ -216,12 +217,12 @@ export interface RevelationDayData {
               (click)="givePhotoConsent()"
               [disabled]="hasGivenConsent()"
             >
-              {{ hasGivenConsent() ? 'Consent Given ✓' : "I'm Ready to Reveal" }}
+              {{ hasGivenConsent() ? 'Consent Given' : "I'm Ready to Reveal" }}
             </button>
           </div>
 
           <div class="photos-revealed" *ngIf="isMutualConsentGiven()">
-            <div class="celebration">🎉 Photos Revealed! 🎉</div>
+            <div class="celebration">Photos Revealed!</div>
             <p>You can now see each other's photos in your connection.</p>
           </div>
         </div>

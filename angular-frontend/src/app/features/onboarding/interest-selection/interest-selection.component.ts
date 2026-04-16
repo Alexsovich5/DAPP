@@ -2,6 +2,7 @@ import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { StorageService } from '../../../core/services/storage.service';
 import { SkeletonLoaderComponent } from '@shared/components/skeleton-loader/skeleton-loader.component';
 
@@ -14,7 +15,7 @@ interface InterestCategory {
 @Component({
   selector: 'app-interest-selection',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SkeletonLoaderComponent],
+  imports: [CommonModule, MatIconModule, ReactiveFormsModule, SkeletonLoaderComponent],
   template: `
     <div class="interest-selection">
       <div class="selection-header">
@@ -35,7 +36,7 @@ interface InterestCategory {
             class="category-section">
 
             <h3 class="category-title">
-              <span class="category-icon">{{ category.icon }}</span>
+              <mat-icon class="category-icon">{{ category.icon }}</mat-icon>
               {{ category.name }}
             </h3>
 
@@ -336,32 +337,32 @@ export class InterestSelectionComponent implements OnInit {
   interestCategories: InterestCategory[] = [
     {
       name: 'Food & Dining',
-      icon: '🍽️',
+      icon: 'restaurant',
       interests: ['Cooking', 'Fine Dining', 'Street Food', 'Wine Tasting', 'Coffee Culture', 'Vegetarian/Vegan', 'Food Photography', 'Farmers Markets']
     },
     {
       name: 'Arts & Culture',
-      icon: '🎨',
+      icon: 'palette',
       interests: ['Museums', 'Theater', 'Live Music', 'Art Galleries', 'Photography', 'Writing', 'Poetry', 'Film & Cinema']
     },
     {
       name: 'Outdoor & Adventure',
-      icon: '🏔️',
+      icon: 'terrain',
       interests: ['Hiking', 'Rock Climbing', 'Cycling', 'Camping', 'Beach Activities', 'Skiing', 'Kayaking', 'Travel']
     },
     {
       name: 'Wellness & Mindfulness',
-      icon: '🧘',
+      icon: 'self_improvement',
       interests: ['Yoga', 'Meditation', 'Fitness', 'Running', 'Mental Health', 'Spirituality', 'Healthy Living', 'Nature Walks']
     },
     {
       name: 'Learning & Growth',
-      icon: '📚',
+      icon: 'menu_book',
       interests: ['Reading', 'Podcasts', 'Languages', 'History', 'Science', 'Philosophy', 'Documentaries', 'Online Courses']
     },
     {
       name: 'Social & Games',
-      icon: '🎲',
+      icon: 'casino',
       interests: ['Board Games', 'Trivia', 'Dancing', 'Karaoke', 'Video Games', 'Social Causes', 'Volunteering', 'Community Events']
     }
   ];

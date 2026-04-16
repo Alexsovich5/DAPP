@@ -46,43 +46,43 @@ export class RevelationsEmptyStateComponent {
 
   revelationTips = [
     {
-      icon: "1️⃣",
+      icon: "looks_one",
       text: "Day 1: Share a core value that guides your life decisions"
     },
     {
-      icon: "2️⃣",
+      icon: "looks_two",
       text: "Day 2: Describe a meaningful experience that shaped you"
     },
     {
-      icon: "3️⃣",
+      icon: "looks_3",
       text: "Day 3: Share a hope or dream close to your heart"
     },
     {
-      icon: "4️⃣",
+      icon: "looks_4",
       text: "Day 4: Reveal what genuinely makes you laugh and feel joy"
     },
     {
-      icon: "5️⃣",
+      icon: "looks_5",
       text: "Day 5: Share a challenge you overcame and learned from"
     },
     {
-      icon: "6️⃣",
+      icon: "looks_6",
       text: "Day 6: Describe your vision of an ideal emotional connection"
     },
     {
-      icon: "7️⃣",
+      icon: "filter_7",
       text: "Day 7: Mutual photo reveal and plan your first soul dinner"
     }
   ];
 
   primaryAction = {
     text: "Begin Soul Revelations",
-    icon: "✨"
+    icon: "auto_awesome"
   };
 
   secondaryAction = {
     text: "Learn More",
-    icon: "📚"
+    icon: "menu_book"
   };
 
   onStartJourney() {

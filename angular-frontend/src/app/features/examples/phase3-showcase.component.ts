@@ -38,10 +38,10 @@ import { AdvancedSwipeDirective } from '../../shared/directives/advanced-swipe.d
         <h1>Phase 3: Mobile UX Showcase</h1>
         <div class="viewport-info">
           <span class="info-item">{{ currentViewport?.breakpoint | uppercase }}</span>
-          <span class="info-item" *ngIf="currentViewport?.isMobile">📱 Mobile</span>
-          <span class="info-item" *ngIf="currentViewport?.isTablet">📋 Tablet</span>
-          <span class="info-item" *ngIf="currentViewport?.isDesktop">🖥️ Desktop</span>
-          <span class="info-item" *ngIf="currentViewport?.supportsTouchscreen">👆 Touch</span>
+          <span class="info-item" *ngIf="currentViewport?.isMobile">Mobile</span>
+          <span class="info-item" *ngIf="currentViewport?.isTablet">Tablet</span>
+          <span class="info-item" *ngIf="currentViewport?.isDesktop">Desktop</span>
+          <span class="info-item" *ngIf="currentViewport?.supportsTouchscreen">Touch</span>
         </div>
       </header>
 
@@ -74,8 +74,8 @@ import { AdvancedSwipeDirective } from '../../shared/directives/advanced-swipe.d
             </div>
 
             <div class="swipe-hints">
-              <span class="hint left">❌ Pass</span>
-              <span class="hint right">💝 Connect</span>
+              <span class="hint left">Pass</span>
+              <span class="hint right">Connect</span>
             </div>
           </div>
         </div>
@@ -135,28 +135,28 @@ import { AdvancedSwipeDirective } from '../../shared/directives/advanced-swipe.d
               class="btn btn-energy-soulmate"
               (click)="triggerCelebration()"
             >
-              Celebrate! 🎉
+              Celebrate!
             </button>
           </div>
 
           <div class="animation-targets">
             <div class="animation-target breathe-target" #breatheTarget>
               <div class="target-content">
-                <span class="target-emoji">😌</span>
+                <span class="target-emoji"></span>
                 <span class="target-label">Breathing</span>
               </div>
             </div>
 
             <div class="animation-target particle-container" #particleContainer>
               <div class="target-content">
-                <span class="target-emoji">✨</span>
+                <span class="target-emoji"></span>
                 <span class="target-label">Particles</span>
               </div>
             </div>
 
             <div class="animation-target celebration-target" #celebrationTarget>
               <div class="target-content">
-                <span class="target-emoji">🎊</span>
+                <span class="target-emoji"></span>
                 <span class="target-label">Celebrate</span>
               </div>
             </div>
@@ -226,11 +226,11 @@ import { AdvancedSwipeDirective } from '../../shared/directives/advanced-swipe.d
         <div class="haptic-status">
           <p>
             <strong>Haptic Support:</strong>
-            {{ hapticStatus?.supported ? '✅ Supported' : '❌ Not Supported' }}
+            {{ hapticStatus?.supported ? 'Supported' : 'Not Supported' }}
           </p>
           <p>
             <strong>Mobile Device:</strong>
-            {{ hapticStatus?.mobile ? '✅ Yes' : '❌ No' }}
+            {{ hapticStatus?.mobile ? 'Yes' : 'No' }}
           </p>
         </div>
       </section>
@@ -742,7 +742,7 @@ export class Phase3ShowcaseComponent implements OnInit, OnDestroy {
         id: 'pass',
         direction: 'left',
         threshold: 100,
-        icon: '❌',
+        icon: 'close',
         label: 'Pass',
         color: '#e53e3e',
         hapticPattern: [50, 30, 50],
@@ -754,7 +754,7 @@ export class Phase3ShowcaseComponent implements OnInit, OnDestroy {
         id: 'connect',
         direction: 'right',
         threshold: 100,
-        icon: '💝',
+        icon: 'favorite',
         label: 'Connect',
         color: '#38a169',
         hapticPattern: [100, 50, 150, 50, 100],
@@ -881,10 +881,10 @@ export class Phase3ShowcaseComponent implements OnInit, OnDestroy {
 
   getEnergyEmoji(energy: ConnectionEnergy): string {
     const emojis = {
-      low: '💤',
-      medium: '💙',
-      high: '💜',
-      soulmate: '✨'
+      low: 'bedtime',
+      medium: 'favorite',
+      high: 'favorite',
+      soulmate: 'auto_awesome'
     };
     return emojis[energy];
   }

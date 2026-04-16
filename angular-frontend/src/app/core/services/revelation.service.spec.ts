@@ -149,7 +149,7 @@ describe('RevelationService', () => {
   describe('Revelation Reactions', () => {
     it('should react to a revelation', () => {
       const revelationId = 1;
-      const emoji = '❤️';
+      const emoji = 'heart';
 
       const mockResponse = {
         revelation_id: revelationId,
@@ -158,7 +158,7 @@ describe('RevelationService', () => {
       };
 
       service.reactToRevelation(revelationId, emoji).subscribe(response => {
-        expect(response['emoji']).toBe('❤️');
+        expect(response['emoji']).toBe('heart');
       });
 
       const req = httpMock.expectOne(`${mockApiUrl}/revelations/${revelationId}/react`);
