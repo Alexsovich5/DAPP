@@ -212,10 +212,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.router.navigate(['/matches']);
   }
 
-  navigateToPreferences(): void {
-    this.router.navigate(['/preferences']);
-  }
-
   navigateToDinnerPlanning(): void {
     this.router.navigate(['/dinner-planning'], {
       queryParams: { connectionId: this.userId }

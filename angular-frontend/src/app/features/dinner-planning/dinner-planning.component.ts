@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -63,9 +63,7 @@ const CUISINE_SUGGESTIONS: { label: string; icon: string }[] = [
               [class.selected]="selectedCuisine === c.label"
               [attr.aria-pressed]="selectedCuisine === c.label"
               role="button"
-              (click)="selectCuisine(c.label)"
-              (keydown.enter)="selectCuisine(c.label)"
-              (keydown.space)="selectCuisine(c.label); $event.preventDefault()">
+              (click)="selectCuisine(c.label)">
               <mat-icon matChipLeadingIcon aria-hidden="true">{{ c.icon }}</mat-icon>
               {{ c.label }}
             </mat-chip>
@@ -136,7 +134,7 @@ const CUISINE_SUGGESTIONS: { label: string; icon: string }[] = [
     .submit-btn mat-icon { margin-right: 6px; vertical-align: middle; }
   `]
 })
-export class DinnerPlanningComponent implements OnInit {
+export class DinnerPlanningComponent implements OnInit, OnDestroy {
   dinnerForm: FormGroup;
   selectedCuisine: string | null = null;
   isSubmitting = false;
@@ -144,6 +142,7 @@ export class DinnerPlanningComponent implements OnInit {
   cuisines = CUISINE_SUGGESTIONS;
 
   private connectionId: number | null = null;
+  private submitTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
     private fb: FormBuilder,
@@ -155,6 +154,10 @@ export class DinnerPlanningComponent implements OnInit {
       date: [null, Validators.required],
       notes: ['']
     });
+  }
+
+  ngOnDestroy(): void {
+    clearTimeout(this.submitTimer);
   }
 
   ngOnInit(): void {
@@ -170,7 +173,7 @@ export class DinnerPlanningComponent implements OnInit {
     if (this.dinnerForm.invalid) return;
     this.isSubmitting = true;
     // Stub: production would POST to /api/v1/dinner-plans
-    setTimeout(() => {
+    this.submitTimer = setTimeout(() => {
       this.isSubmitting = false;
       this.snackBar.open('Dinner plan shared with your match!', 'Great', { duration: 3000 });
       if (this.connectionId) {
