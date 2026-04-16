@@ -144,6 +144,11 @@ describe('ChatComponent — connection stage display', () => {
   it('should return readable label for revelation_phase stage', () => {
     component.connectionStage = 'revelation_phase';
     expect(component.connectionStageLabel).toBe('Revelation Phase');
+    component.chatPartner = { _id: '2', firstName: 'Sam', lastName: 'Lee' };
+    fixture.detectChanges();
+    const chip = fixture.nativeElement.querySelector('.stage-chip');
+    expect(chip).toBeTruthy();
+    expect(chip.textContent.trim()).toBe('Revelation Phase');
   });
 
   it('should return readable label for soul_discovery stage', () => {
@@ -154,5 +159,8 @@ describe('ChatComponent — connection stage display', () => {
   it('should return empty string when connectionStage is null', () => {
     component.connectionStage = null;
     expect(component.connectionStageLabel).toBe('');
+    fixture.detectChanges();
+    const chip = fixture.nativeElement.querySelector('.stage-chip');
+    expect(chip).toBeNull();
   });
 });

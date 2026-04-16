@@ -13,8 +13,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ChatService, TypingUser } from '../../core/services/chat.service';
 import { AuthService } from '../../core/services/auth.service';
-import { RevelationService } from '../../core/services/revelation.service';
-import { DailyRevelation, RevelationTimelineResponse } from '../../core/interfaces/revelation.interfaces';
+import { RevelationService } from '@core/services/revelation.service';
+import { DailyRevelation, RevelationTimelineResponse } from '@core/interfaces/revelation.interfaces';
 import { SoulConnectionService } from '@core/services/soul-connection.service';
 import { ConnectionStage } from '@core/interfaces/soul-connection.interfaces';
 import { TypingIndicatorComponent } from '../../shared/components/typing-indicator/typing-indicator.component';
@@ -83,7 +83,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   // Connection stage chip
   connectionStage: ConnectionStage | null = null;
 
-  readonly STAGE_LABELS: Record<ConnectionStage, string> = {
+  private readonly STAGE_LABELS: Record<ConnectionStage, string> = {
     soul_discovery:   'Soul Discovery',
     revelation_phase: 'Revelation Phase',
     photo_reveal:     'Photo Reveal',
