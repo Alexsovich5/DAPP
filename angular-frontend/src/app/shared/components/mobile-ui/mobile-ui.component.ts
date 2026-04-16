@@ -151,7 +151,9 @@ export interface MobileUIConfig {
     </button>
 
     <!-- Mobile-specific overlays -->
-    <div class="mobile-overlay" [class.active]="showOverlay" (click)="closeOverlay()"></div>
+    <button type="button" class="mobile-overlay" [class.active]="showOverlay" (click)="closeOverlay()" aria-label="Close overlay">
+      <span class="sr-only">Close overlay</span>
+    </button>
 
     <!-- Swipe indicators -->
     <div class="swipe-indicators" *ngIf="config.enableSwipeGestures && showSwipeHints">
@@ -295,7 +297,7 @@ export class MobileUIComponent implements OnInit, OnDestroy {
     }
 
     // Check for haptic feedback support
-    if (navigator.vibrate) {
+    if (typeof navigator.vibrate === 'function') {
       // Enable haptic feedback for interactions
     }
   }
@@ -475,7 +477,7 @@ export class MobileUIComponent implements OnInit, OnDestroy {
   }
 
   // Performance optimization
-  trackByFn(index: number, item: any): any {
+  trackByFn(index: number, item: {id?: string | number}): string | number {
     return item.id || index;
   }
 }

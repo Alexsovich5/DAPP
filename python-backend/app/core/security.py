@@ -51,7 +51,11 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     # Add standard JWT claims
     now = datetime.now(timezone.utc)
     to_encode.update(
-        {"exp": expire, "iat": now, "nbf": now}  # Issued at time  # Not before time
+        {
+            "exp": expire,
+            "iat": now,
+            "nbf": now,
+        }  # Issued at time  # Not before time
     )
 
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -123,10 +127,12 @@ def validate_password_strength(password: str) -> bool:
     if len(password) < 8:
         return False
 
-    # Check for common weak passwords
+    # Check for common weak password patterns (as substrings)
     weak_patterns = ["password", "qwerty", "12345678", "abc123"]
-    if password.lower() in weak_patterns:
-        return False
+    password_lower = password.lower()
+    for pattern in weak_patterns:
+        if pattern in password_lower:
+            return False
 
     # Password should not be all digits or all letters
     if password.isdigit() or password.isalpha():

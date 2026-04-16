@@ -4,9 +4,11 @@ Advanced psychological profiling and depth compatibility analysis
 """
 
 import logging
+from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 from app.api.deps import get_current_user, get_db
+from app.models.soul_connection import SoulConnection
 from app.models.user import User
 from app.services.emotional_depth_service import (
     EmotionalDepthLevel,
@@ -41,12 +43,28 @@ async def analyze_user_emotional_depth(
 
         # Authorization check - can only analyze own profile or matched users
         if current_user.id != user_id:
-            # TODO: Add logic to check if users are matched
-            # For now, only allow self-analysis
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not authorized to analyze this user's emotional depth",
+            # Check if users are matched/connected
+            connection = (
+                db.query(SoulConnection)
+                .filter(
+                    (
+                        (SoulConnection.user1_id == current_user.id)
+                        & (SoulConnection.user2_id == user_id)
+                    )
+                    | (
+                        (SoulConnection.user1_id == user_id)
+                        & (SoulConnection.user2_id == current_user.id)
+                    )
+                )
+                .first()
             )
+
+            if not connection:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Not authorized to analyze this user's emotional depth",
+                )
+
 
         # Perform emotional depth analysis
         depth_metrics = emotional_depth_service.analyze_emotional_depth(target_user, db)
@@ -78,7 +96,7 @@ async def analyze_user_emotional_depth(
                 "authenticity_markers": depth_metrics.authenticity_markers,
             },
             "analysis_metadata": {
-                "timestamp": "2024-01-01T00:00:00Z",  # TODO: Add actual timestamp
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "algorithm_version": "1.0",
                 "confidence_level": depth_metrics.confidence,
             },
@@ -160,7 +178,7 @@ async def analyze_depth_compatibility(
                 "depth_growth_timeline": compatibility.depth_growth_timeline,
             },
             "analysis_metadata": {
-                "timestamp": "2024-01-01T00:00:00Z",  # TODO: Add actual timestamp
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "algorithm_version": "1.0",
             },
         }
@@ -177,7 +195,8 @@ async def analyze_depth_compatibility(
 
 @router.get("/summary/me", response_model=Dict[str, Any])
 async def get_my_emotional_depth_summary(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get a summary of the current user's emotional depth profile.
@@ -233,7 +252,9 @@ async def get_my_emotional_depth_summary(
 # Helper functions for response formatting
 
 
-def _generate_personal_insights(depth_metrics: EmotionalDepthMetrics) -> List[str]:
+def _generate_personal_insights(
+    depth_metrics: EmotionalDepthMetrics,
+) -> List[str]:
     """Generate personalized insights based on depth analysis"""
     insights = []
 
@@ -263,7 +284,9 @@ def _generate_personal_insights(depth_metrics: EmotionalDepthMetrics) -> List[st
     return insights[:3]  # Return top 3 insights
 
 
-def _generate_depth_recommendations(depth_metrics: EmotionalDepthMetrics) -> List[str]:
+def _generate_depth_recommendations(
+    depth_metrics: EmotionalDepthMetrics,
+) -> List[str]:
     """Generate recommendations for emotional depth development"""
     recommendations = []
 

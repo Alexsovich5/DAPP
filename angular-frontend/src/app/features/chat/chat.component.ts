@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,6 +13,10 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ChatService, TypingUser } from '../../core/services/chat.service';
 import { AuthService } from '../../core/services/auth.service';
+import { RevelationService } from '@core/services/revelation.service';
+import { DailyRevelation, RevelationTimelineResponse } from '@core/interfaces/revelation.interfaces';
+import { SoulConnectionService } from '@core/services/soul-connection.service';
+import { ConnectionStage } from '@core/interfaces/soul-connection.interfaces';
 import { TypingIndicatorComponent } from '../../shared/components/typing-indicator/typing-indicator.component';
 import { Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -50,7 +54,8 @@ interface ChatUser {
     MatToolbarModule,
     MatDividerModule,
     MatProgressSpinnerModule,
-    TypingIndicatorComponent
+    TypingIndicatorComponent,
+    RouterModule
   ]
 })
 export class ChatComponent implements OnInit, OnDestroy {
@@ -70,10 +75,32 @@ export class ChatComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
   private currentUserId: string | null = null;
 
+  // Revelation preview banner
+  revelationDay = 0;
+  latestPartnerRevelation: DailyRevelation | null = null;
+  revelationTimelineLoaded = false;
+
+  // Connection stage chip
+  connectionStage: ConnectionStage | null = null;
+
+  private readonly STAGE_LABELS: Record<ConnectionStage, string> = {
+    soul_discovery:   'Soul Discovery',
+    revelation_phase: 'Revelation Phase',
+    photo_reveal:     'Photo Reveal',
+    dinner_planning:  'Dinner Planning',
+    completed:        'Completed'
+  };
+
+  get connectionStageLabel(): string {
+    return this.connectionStage ? (this.STAGE_LABELS[this.connectionStage] ?? '') : '';
+  }
+
   constructor(
     private fb: FormBuilder,
     private chatService: ChatService,
     private authService: AuthService,
+    private revelationService: RevelationService,
+    private soulConnectionService: SoulConnectionService,
     private route: ActivatedRoute,
     private router: Router
   ) {
@@ -83,18 +110,27 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Get current user ID from auth service
-    this.authService.currentUser$.subscribe(user => {
-      if (user) {
-        this.currentUserId = user.id.toString();
-        this.chatService.setCurrentUser(this.currentUserId);
-      }
-    });
+    // Get connectionId from query params (not route params)
+    this.userId = this.route.snapshot.queryParamMap.get('connectionId');
 
-    this.userId = this.route.snapshot.paramMap.get('id');
+    // Get current user ID from auth service
+    this.subscriptions.add(
+      this.authService.currentUser$.subscribe(user => {
+        if (user) {
+          this.currentUserId = user.id.toString();
+          this.chatService.setCurrentUser(this.currentUserId);
+          // Load revelation preview now that currentUserId is set
+          if (this.userId && !this.revelationTimelineLoaded) {
+            this.loadRevelationPreview(Number(this.userId));
+          }
+        }
+      })
+    );
+
     if (this.userId) {
       this.loadChatData();
       this.setupTypingIndicators();
+      this.loadConnectionStage(Number(this.userId));
     } else {
       this.error = 'Invalid chat. Please go back to matches.';
       this.isLoading = false;
@@ -135,12 +171,41 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
 
+  private loadRevelationPreview(connectionId: number): void {
+    this.subscriptions.add(
+      this.revelationService.getRevelationTimeline(connectionId).subscribe({
+        next: (timeline: RevelationTimelineResponse) => {
+          this.revelationDay = timeline.current_day;
+          const partnerRevelation = timeline.revelations
+            .filter(r => r.sender_id !== Number(this.currentUserId))
+            .sort((a, b) => b.day_number - a.day_number)[0] ?? null;
+          this.latestPartnerRevelation = partnerRevelation;
+          this.revelationTimelineLoaded = true;
+        },
+        error: () => { this.revelationTimelineLoaded = true; }
+      })
+    );
+  }
+
+  private loadConnectionStage(connectionId: number): void {
+    this.subscriptions.add(
+      this.soulConnectionService.getSoulConnection(connectionId).subscribe({
+        next: (connection) => {
+          this.connectionStage = connection.connection_stage;
+        },
+        error: () => { /* non-critical — stage chip simply won't show */ }
+      })
+    );
+  }
+
   private scrollToBottom(): void {
     setTimeout(() => {
       try {
         this.messageContainer.nativeElement.scrollTop =
           this.messageContainer.nativeElement.scrollHeight;
-      } catch (err) {}
+      } catch (err) {
+        // Silently fail if message container is not available
+      }
     });
   }
 
@@ -179,8 +244,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.router.navigate(['/matches']);
   }
 
-  navigateToPreferences(): void {
-    this.router.navigate(['/preferences']);
+  navigateToDinnerPlanning(): void {
+    this.router.navigate(['/dinner-planning'], {
+      queryParams: { connectionId: this.userId }
+    });
   }
 
   // === TYPING INDICATOR METHODS ===
@@ -274,7 +341,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.chatForm.reset();
         this.scrollToBottom();
       },
-      error: (err) => {
+      error: (_err) => {
         this.error = 'Failed to send message. Please try again.';
       },
       complete: () => {

@@ -19,6 +19,16 @@ export interface PotentialMatch {
   lastActive?: Date;
 }
 
+export interface MatchPercentageResponse {
+  match_percentage?: number;
+  percentage: number;
+  breakdown: Record<string, unknown>;
+  compatibility_rating?: string;
+  rating: string;
+  mutual_interests_count?: number;
+  mutualInterestsCount: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -50,7 +60,7 @@ export class DiscoverService extends BaseService {
     );
   }
 
-  dislikeProfile(profileId: string): Observable<void> {
+  dislikeProfile(_profileId: string): Observable<void> {
     // No backend endpoint for dislike - just return success
     // This could be enhanced to track dislikes locally or add backend support
     return of(undefined);
@@ -67,15 +77,15 @@ export class DiscoverService extends BaseService {
     );
   }
 
-  getMatchPercentage(profileId: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/match-percentage/${profileId}`).pipe(
+  getMatchPercentage(profileId: string): Observable<MatchPercentageResponse> {
+    return this.http.get<MatchPercentageResponse>(`${this.apiUrl}/match-percentage/${profileId}`).pipe(
       map(response => ({
-        percentage: response.match_percentage,
-        breakdown: response.breakdown,
-        rating: response.compatibility_rating,
-        mutualInterestsCount: response.mutual_interests_count
+        percentage: response.match_percentage ?? response.percentage ?? 0,
+        breakdown: response.breakdown ?? {},
+        rating: response.compatibility_rating ?? response.rating ?? 'Unknown',
+        mutualInterestsCount: response.mutual_interests_count ?? response.mutualInterestsCount ?? 0
       })),
-      catchError(this.handleError<any>('get match percentage', { percentage: 0, breakdown: {}, rating: 'Unknown', mutualInterestsCount: 0 }))
+      catchError(this.handleError<MatchPercentageResponse>('get match percentage', { percentage: 0, breakdown: {}, rating: 'Unknown', mutualInterestsCount: 0 }))
     );
   }
 }

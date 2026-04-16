@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timedelta
 from typing import List
 
 from app.api.v1.deps import get_current_user
@@ -11,50 +12,85 @@ from app.schemas.daily_revelation import (
     DailyRevelationResponse,
     DailyRevelationUpdate,
     RevelationPrompt,
-    RevelationTimelineResponse,
 )
+from app.services.revelation_service import RevelationService
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["revelations"])
 
+# Initialize revelation service for automatic day progression
+revelation_service = RevelationService()
+
 # Revelation prompts for the 7-day cycle
 REVELATION_PROMPTS = {
     1: {
         "revelation_type": RevelationType.PERSONAL_VALUE,
-        "prompt_text": "Share a personal value that's important to you in relationships",
-        "example_response": "I deeply value loyalty and trust. Once someone enters my life, I believe in being completely honest and dependable with them.",
+        "prompt_text": (
+            "Share a personal value that's important to you in relationships"
+        ),
+        "example_response": (
+            "I deeply value loyalty and trust. Once someone enters my life, "
+            "I believe in being completely honest and dependable with them."
+        ),
     },
     2: {
         "revelation_type": RevelationType.MEANINGFUL_EXPERIENCE,
-        "prompt_text": "Describe a meaningful experience that shaped who you are today",
-        "example_response": "Traveling alone to a new country taught me that I'm more resilient than I thought and that genuine connections can happen anywhere.",
+        "prompt_text": (
+            "Describe a meaningful experience that shaped who you are today"
+        ),
+        "example_response": (
+            "Traveling alone to a new country taught me that I'm more "
+            "resilient than I thought and that genuine connections can happen "
+            "anywhere."
+        ),
     },
     3: {
         "revelation_type": RevelationType.HOPE_OR_DREAM,
-        "prompt_text": "Share a hope or dream that excites you about the future",
-        "example_response": "I dream of creating a home filled with warmth and laughter, where friends feel welcomed and love is the foundation.",
+        "prompt_text": ("Share a hope or dream that excites you about the future"),
+        "example_response": (
+            "I dream of creating a home filled with warmth and laughter, "
+            "where friends feel welcomed and love is the foundation."
+        ),
     },
     4: {
         "revelation_type": RevelationType.WHAT_MAKES_LAUGH,
-        "prompt_text": "Describe what makes you laugh and brings joy to your everyday life",
-        "example_response": "I find joy in silly moments - dancing in the kitchen while cooking, random conversations with strangers, and those unexpected moments of perfect timing.",
+        "prompt_text": (
+            "Describe what makes you laugh and brings joy to your " "everyday life"
+        ),
+        "example_response": (
+            "I find joy in silly moments - dancing in the kitchen while "
+            "cooking, random conversations with strangers, and those "
+            "unexpected moments of perfect timing."
+        ),
     },
     5: {
         "revelation_type": RevelationType.CHALLENGE_OVERCOME,
-        "prompt_text": "Share a challenge you've overcome and what it taught you",
-        "example_response": "Learning to set boundaries taught me that saying 'no' to some things means saying 'yes' to what truly matters to me.",
+        "prompt_text": ("Share a challenge you've overcome and what it taught you"),
+        "example_response": (
+            "Learning to set boundaries taught me that saying 'no' to some "
+            "things means saying 'yes' to what truly matters to me."
+        ),
     },
     6: {
         "revelation_type": RevelationType.IDEAL_CONNECTION,
-        "prompt_text": "Describe your ideal way to connect with someone special",
-        "example_response": "I love deep conversations over coffee that stretch for hours, where time disappears and we discover unexpected common ground.",
+        "prompt_text": ("Describe your ideal way to connect with someone special"),
+        "example_response": (
+            "I love deep conversations over coffee that stretch for hours, "
+            "where time disappears and we discover unexpected common ground."
+        ),
     },
     7: {
         "revelation_type": RevelationType.PHOTO_REVEAL,
-        "prompt_text": "If you feel a connection, this is the day to share your photo and see each other",
-        "example_response": "After sharing our souls this week, I'm excited to put a face to the amazing person I've been getting to know.",
+        "prompt_text": (
+            "If you feel a connection, this is the day to share your photo "
+            "and see each other"
+        ),
+        "example_response": (
+            "After sharing our souls this week, I'm excited to put a face "
+            "to the amazing person I've been getting to know."
+        ),
     },
 }
 
@@ -130,6 +166,19 @@ def create_revelation(
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Day number must be between 1 and 7",
+            )
+
+        # Check if user can share revelation for this day (automatic progression)
+        can_share = revelation_service.can_user_share_revelation(
+            db,
+            revelation_data.connection_id,
+            current_user.id,
+            revelation_data.day_number,
+        )
+        if not can_share["can_share"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=can_share["reason"],
             )
 
         # Check if revelation for this day already exists from this user
@@ -231,8 +280,14 @@ def get_revelation_timeline(
 
         # Get partner info
         partner_id = connection.get_partner_id(current_user.id)
-        partner = db.query(User).filter(User.id == partner_id).first()
-        partner_name = partner.first_name if partner else "Partner"
+
+        # Get current day using automatic progression logic
+        current_day = revelation_service.get_current_revelation_day(connection)
+
+        # Update connection reveal_day to match calculated current day
+        if current_day != connection.reveal_day:
+            connection.reveal_day = current_day
+            db.commit()
 
         # Build timeline data structure matching Phase 3 frontend
         timeline_days = []
@@ -261,10 +316,12 @@ def get_revelation_timeline(
                     "day": day,
                     "prompt": prompt.get("prompt_text", ""),
                     "description": prompt.get("example_response", ""),
-                    "isUnlocked": day <= connection.reveal_day,
+                    "isUnlocked": day <= current_day,
                     "userShared": user_revelation is not None,
                     "partnerShared": partner_revelation is not None,
-                    "userContent": user_revelation.content if user_revelation else None,
+                    "userContent": (
+                        user_revelation.content if user_revelation else None
+                    ),
                     "partnerContent": (
                         partner_revelation.content if partner_revelation else None
                     ),
@@ -297,29 +354,60 @@ def get_revelation_timeline(
             (user_shared_count + partner_shared_count) / 14.0
         ) * 100
 
-        # Determine visualization phase
-        if connection.reveal_day <= 3:
+        # Determine visualization phase based on current day
+        if current_day <= 3:
             phase = "soul_discovery"
-        elif connection.reveal_day <= 6:
+        elif current_day <= 6:
             phase = "deeper_connection"
         else:
             phase = "photo_reveal"
 
+        # Convert revelations to response format with sender names
+        revelations_response = []
+        for revelation in revelations:
+            sender = db.query(User).filter(User.id == revelation.sender_id).first()
+            rev_dict = {
+                "id": revelation.id,
+                "connection_id": revelation.connection_id,
+                "sender_id": revelation.sender_id,
+                "day_number": revelation.day_number,
+                "revelation_type": revelation.revelation_type,
+                "content": revelation.content,
+                "is_read": revelation.is_read,
+                "created_at": revelation.created_at.isoformat(),
+                "sender_name": sender.first_name if sender else "Unknown",
+            }
+            revelations_response.append(rev_dict)
+
+        is_cycle_complete = (
+            current_day >= 7 and user_shared_count >= 7 and partner_shared_count >= 7
+        )
+
         return {
-            "connectionId": connection_id,
-            "currentDay": connection.reveal_day,
+            "connection_id": connection_id,  # Frontend expects snake_case
+            "connectionId": connection_id,  # Keep for backwards compatibility
+            "current_day": current_day,  # Frontend expects snake_case
+            "currentDay": current_day,  # Keep for backwards compatibility
+            "revelations": revelations_response,  # Frontend expects this array
+            "is_cycle_complete": is_cycle_complete,  # Frontend expects this
             "completionPercentage": completion_percentage,
             "timeline": timeline_days,
             "progress": {
-                "daysUnlocked": connection.reveal_day,
+                "daysUnlocked": current_day,
                 "userSharedCount": user_shared_count,
                 "partnerSharedCount": partner_shared_count,
                 "mutualDays": mutual_days,
-                "nextUnlockDay": (
-                    connection.reveal_day + 1 if connection.reveal_day < 7 else None
+                "nextUnlockDay": (current_day + 1 if current_day < 7 else None),
+                "nextUnlockDate": (
+                    (connection.created_at + timedelta(days=current_day)).isoformat()
+                    if current_day < 7
+                    else None
                 ),
             },
-            "visualization": {"completionRing": completion_percentage, "phase": phase},
+            "visualization": {
+                "completionRing": completion_percentage,
+                "phase": phase,
+            },
         }
 
     except HTTPException:
@@ -351,7 +439,8 @@ def update_revelation(
 
         if not revelation:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Revelation not found"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Revelation not found",
             )
 
         # Verify user has access to this revelation's connection
@@ -517,7 +606,14 @@ def get_today_prompt(
         if not connection:
             raise HTTPException(status_code=404, detail="Connection not found")
 
-        current_day = connection.reveal_day
+        # Get current day using automatic progression logic
+        current_day = revelation_service.get_current_revelation_day(connection)
+
+        # Update connection reveal_day to match calculated current day
+        if current_day != connection.reveal_day:
+            connection.reveal_day = current_day
+            db.commit()
+
         prompt = REVELATION_PROMPTS.get(current_day)
 
         if not prompt:
@@ -630,6 +726,75 @@ def give_photo_consent(
         logger.error(f"Error giving photo consent: {str(e)}")
         db.rollback()
         raise HTTPException(status_code=500, detail="Error giving photo consent")
+
+
+@router.put("/{revelation_id}/react")
+def react_to_revelation(
+    revelation_id: int,
+    reaction_data: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    React to a revelation with an emoji or response.
+    """
+    try:
+        revelation = (
+            db.query(DailyRevelation)
+            .filter(DailyRevelation.id == revelation_id)
+            .first()
+        )
+
+        if not revelation:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Revelation not found"
+            )
+
+        # Verify user has access to this revelation's connection
+        connection = (
+            db.query(SoulConnection)
+            .filter(
+                SoulConnection.id == revelation.connection_id,
+                (
+                    (SoulConnection.user1_id == current_user.id)
+                    | (SoulConnection.user2_id == current_user.id)
+                ),
+            )
+            .first()
+        )
+
+        if not connection:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have access to this revelation",
+            )
+
+        # Store reaction (you may want to create a separate reactions table)
+        if not revelation.reactions:
+            revelation.reactions = {}
+
+        revelation.reactions[str(current_user.id)] = {
+            "emoji": reaction_data.get("emoji", "❤️"),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+
+        db.commit()
+
+        return {
+            "success": True,
+            "message": "Reaction added successfully",
+            "revelation_id": revelation_id,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error reacting to revelation: {str(e)}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error adding reaction",
+        )
 
 
 @router.get("/analytics/{connection_id}")

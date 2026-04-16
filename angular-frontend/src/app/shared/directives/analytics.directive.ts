@@ -10,8 +10,8 @@ import {
 } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil, throttleTime, debounceTime } from 'rxjs/operators';
-import { MobileAnalyticsService, EventCategory } from '../services/mobile-analytics.service';
-import { GestureService, GestureEvent } from '../services/gesture.service';
+import { MobileAnalyticsService, EventCategory } from '../../core/services/mobile-analytics.service';
+import { GestureService, GestureEvent } from '../../core/services/gesture.service';
 
 @Directive({
   selector: '[appAnalytics]',
@@ -20,7 +20,7 @@ import { GestureService, GestureEvent } from '../services/gesture.service';
 export class AnalyticsDirective implements OnInit, OnDestroy {
   @Input() trackingName!: string;
   @Input() trackingCategory: EventCategory = 'user_interaction';
-  @Input() trackingData: Record<string, any> = {};
+  @Input() trackingData: Record<string, unknown> = {};
   @Input() trackClicks: boolean = true;
   @Input() trackHovers: boolean = false;
   @Input() trackScrollIntoView: boolean = false;
@@ -105,7 +105,7 @@ export class AnalyticsDirective implements OnInit, OnDestroy {
         this.analytics.trackGesture(gestureEvent);
         this.trackEvent('gesture', {
           gestureType: gestureEvent.type,
-          gestureDirection: (gestureEvent as any).swipeDirection || 'none'
+          gestureDirection: (gestureEvent as {swipeDirection?: string}).swipeDirection || 'none'
         });
       });
   }
@@ -136,7 +136,7 @@ export class AnalyticsDirective implements OnInit, OnDestroy {
     this.trackEvent('focus');
   }
 
-  private trackEvent(action: string, additionalData: Record<string, any> = {}): void {
+  private trackEvent(action: string, additionalData: Record<string, unknown> = {}): void {
     const eventName = `${this.trackingName}_${action}`;
     const eventData = {
       ...this.trackingData,
@@ -166,7 +166,7 @@ export class AnalyticsDirective implements OnInit, OnDestroy {
 })
 export class ProfileAnalyticsDirective implements OnInit, OnDestroy {
   @Input() profileId!: string;
-  @Input() profileData: any;
+  @Input() profileData: Record<string, unknown> = {};
 
   private destroy$ = new Subject<void>();
   private viewStartTime?: number;
@@ -198,7 +198,7 @@ export class ProfileAnalyticsDirective implements OnInit, OnDestroy {
     // Setup gesture tracking for swipes
     this.gestureService.enableProfileSwipeGestures(this.elementRef)
       .pipe(takeUntil(this.destroy$))
-      .subscribe((swipeEvent) => {
+      .subscribe((swipeEvent: any) => {
         const swipeDuration = this.swipeStartTime ? Date.now() - this.swipeStartTime : 0;
 
         switch (swipeEvent.swipeDirection) {
@@ -206,24 +206,24 @@ export class ProfileAnalyticsDirective implements OnInit, OnDestroy {
             this.analytics.trackProfileInteraction('like', this.profileId, {
               swipeVelocity: swipeEvent.velocity,
               swipeDuration,
-              profileAge: this.profileData?.age,
-              profileDistance: this.profileData?.distance
+              profileAge: this.profileData?.['age'],
+              profileDistance: this.profileData?.['distance']
             });
             break;
           case 'left':
             this.analytics.trackProfileInteraction('pass', this.profileId, {
               swipeVelocity: swipeEvent.velocity,
               swipeDuration,
-              profileAge: this.profileData?.age,
-              profileDistance: this.profileData?.distance
+              profileAge: this.profileData?.['age'],
+              profileDistance: this.profileData?.['distance']
             });
             break;
           case 'up':
             this.analytics.trackProfileInteraction('superlike', this.profileId, {
               swipeVelocity: swipeEvent.velocity,
               swipeDuration,
-              profileAge: this.profileData?.age,
-              profileDistance: this.profileData?.distance
+              profileAge: this.profileData?.['age'],
+              profileDistance: this.profileData?.['distance']
             });
             break;
         }
@@ -238,11 +238,14 @@ export class ProfileAnalyticsDirective implements OnInit, OnDestroy {
   private trackProfileView(): void {
     this.viewStartTime = Date.now();
 
+    const interests = this.profileData?.['interests'];
+    const photos = this.profileData?.['photos'];
+
     this.analytics.trackProfileInteraction('view', this.profileId, {
-      profileAge: this.profileData?.age,
-      profileDistance: this.profileData?.distance,
-      profileInterests: this.profileData?.interests?.length || 0,
-      profilePhotoCount: this.profileData?.photos?.length || 0
+      profileAge: this.profileData?.['age'],
+      profileDistance: this.profileData?.['distance'],
+      profileInterests: Array.isArray(interests) ? interests.length : 0,
+      profilePhotoCount: Array.isArray(photos) ? photos.length : 0
     });
   }
 
@@ -403,7 +406,7 @@ export class RevelationAnalyticsDirective implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         debounceTime(300)
       )
-      .subscribe((gestureEvent) => {
+      .subscribe((gestureEvent: any) => {
         this.analytics.trackEvent('revelation_gesture', 'gesture', {
           revelationId: this.revelationId,
           gestureType: gestureEvent.type,

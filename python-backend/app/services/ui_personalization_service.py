@@ -9,22 +9,14 @@ import logging
 # import math
 import statistics
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
-from app.models.personalization_models import UserPersonalizationProfile
 from app.models.ui_personalization_models import (
     DeviceType,
-    UIABTestParticipation,
-    UIAdaptiveComponent,
     UIInteractionLog,
-    UIInteractionType,
-    UIPersonalizationEvent,
-    UIPersonalizationInsight,
-    UIPersonalizationStrategy,
     UserUIProfile,
 )
-from app.models.user import User
-from sqlalchemy import and_, desc, func, or_
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -330,7 +322,10 @@ class UIPersonalizationEngine:
 
         primary_time = "evening"
         max_activity = max(
-            morning_activity, afternoon_activity, evening_activity, night_activity
+            morning_activity,
+            afternoon_activity,
+            evening_activity,
+            night_activity,
         )
 
         if max_activity == morning_activity:
@@ -684,7 +679,10 @@ class UIPersonalizationEngine:
         return adaptations
 
     async def _check_real_time_adaptations(
-        self, ui_profile: UserUIProfile, interaction: UIInteractionLog, db: Session
+        self,
+        ui_profile: UserUIProfile,
+        interaction: UIInteractionLog,
+        db: Session,
     ) -> None:
         """Check if real-time UI adaptations should be triggered"""
 
@@ -713,16 +711,29 @@ class UIPersonalizationEngine:
         """Initialize configuration for adaptive UI components"""
         return {
             "chat_input": {
-                "adaptations": ["size", "position", "auto_complete", "send_method"],
+                "adaptations": [
+                    "size",
+                    "position",
+                    "auto_complete",
+                    "send_method",
+                ],
                 "triggers": ["typing_speed", "error_rate", "usage_frequency"],
             },
             "revelation_card": {
                 "adaptations": ["layout", "text_size", "interaction_method"],
-                "triggers": ["engagement_time", "completion_rate", "feedback_scores"],
+                "triggers": [
+                    "engagement_time",
+                    "completion_rate",
+                    "feedback_scores",
+                ],
             },
             "navigation_bar": {
                 "adaptations": ["position", "size", "content", "style"],
-                "triggers": ["navigation_patterns", "device_type", "usage_frequency"],
+                "triggers": [
+                    "navigation_patterns",
+                    "device_type",
+                    "usage_frequency",
+                ],
             },
             "discovery_feed": {
                 "adaptations": [
@@ -816,21 +827,24 @@ class UIPersonalizationEngine:
     async def _initialize_user_components(self, profile_id: int, db: Session) -> None:
         """Initialize adaptive components for new user"""
         # This would set up component tracking for the user
-        pass
 
     async def _trigger_immediate_adaptation(
-        self, ui_profile: UserUIProfile, interaction: UIInteractionLog, db: Session
+        self,
+        ui_profile: UserUIProfile,
+        interaction: UIInteractionLog,
+        db: Session,
     ) -> None:
         """Trigger immediate UI adaptation based on interaction"""
         # This would implement real-time adaptation logic
-        pass
 
     async def _update_interaction_metrics(
-        self, ui_profile: UserUIProfile, interaction: UIInteractionLog, db: Session
+        self,
+        ui_profile: UserUIProfile,
+        interaction: UIInteractionLog,
+        db: Session,
     ) -> None:
         """Update running interaction metrics"""
         # This would update profile metrics in real-time
-        pass
 
     def _analyze_error_patterns(
         self, interactions: List[UIInteractionLog]

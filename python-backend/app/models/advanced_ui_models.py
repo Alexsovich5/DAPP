@@ -8,7 +8,6 @@ from datetime import datetime
 
 from app.core.database import Base
 from sqlalchemy import (
-    DECIMAL,
     JSON,
     Boolean,
     Column,
@@ -327,7 +326,10 @@ class AccessibilityProfile(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     ui_profile_id = Column(
-        Integer, ForeignKey("ui_experience_profiles.id"), nullable=False, unique=True
+        Integer,
+        ForeignKey("ui_experience_profiles.id"),
+        nullable=False,
+        unique=True,
     )
 
     # Visual accessibility

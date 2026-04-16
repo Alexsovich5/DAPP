@@ -580,6 +580,7 @@ development → main PR = for releasing work
 - Use conventional commits format
 - Include scope and breaking changes
 - Reference issue numbers when applicable
+- Do NOT mention Claude, Claude Code, or any AI tool in commit messages
 - No external tool attribution in commit messages
 
 ### Development Best Practices

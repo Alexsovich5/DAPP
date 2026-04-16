@@ -1,18 +1,19 @@
 """
 Analytics API Router - Phase 4 User Analytics and Engagement Tracking
-Comprehensive analytics endpoints for user insights, system metrics, and engagement tracking
+Comprehensive analytics endpoints for user insights, system metrics, and
+engagement tracking
 """
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from app.api.v1.deps import get_current_user
 from app.core.database import get_db
-from app.models.soul_analytics import AnalyticsEventType
+from app.models.soul_analytics import AnalyticsEventType, UserEngagementAnalytics
 from app.models.user import User
 from app.services.analytics_service import analytics_service
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -52,7 +53,8 @@ async def track_user_event(
 
 @router.get("/user/engagement-score")
 async def get_user_engagement_score(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get current user's engagement score"""
     try:
@@ -76,7 +78,8 @@ async def get_user_engagement_score(
 
 @router.get("/user/insights")
 async def get_user_insights(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get personalized insights for current user"""
     try:
@@ -115,7 +118,10 @@ async def get_dashboard_summary(
 
         return {
             "period": f"Last {days} days",
-            "user": {"engagementScore": user_engagement, "insights": user_insights},
+            "user": {
+                "engagementScore": user_engagement,
+                "insights": user_insights,
+            },
             "system": {
                 "activeUsers": {
                     "daily": engagement_metrics.daily_active_users,
@@ -138,7 +144,8 @@ async def get_dashboard_summary(
 
 @router.get("/metrics/engagement")
 async def get_engagement_metrics(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get overall engagement metrics"""
     try:
@@ -166,7 +173,8 @@ async def get_engagement_metrics(
 
 @router.get("/metrics/connections")
 async def get_connection_metrics(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get soul connection metrics"""
     try:
@@ -196,7 +204,8 @@ async def get_connection_metrics(
 
 @router.get("/metrics/system-health")
 async def get_system_health_metrics(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get system health and performance metrics"""
     try:
@@ -255,7 +264,10 @@ async def track_batch_events(
             "success": True,
             "totalEvents": len(events),
             "successfulTracks": successful_tracks,
-            "message": f"Successfully tracked {successful_tracks} out of {len(events)} events",
+            "message": (
+                f"Successfully tracked {successful_tracks} out of "
+                f"{len(events)} events"
+            ),
         }
 
     except Exception as e:
@@ -265,7 +277,8 @@ async def track_batch_events(
 
 @router.get("/realtime/active-users")
 async def get_realtime_active_users(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """Get real-time active user count"""
     try:

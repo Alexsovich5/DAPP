@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 
 export interface Notification {
   id: string;
@@ -9,7 +9,7 @@ export interface Notification {
   timestamp: Date;
   isRead: boolean;
   actionUrl?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   autoHide?: boolean;
   duration?: number;
 }
@@ -133,65 +133,15 @@ export class NotificationService {
   }
 
   private initializeMockNotifications(): void {
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        type: 'revelation',
-        title: 'New Revelation Shared! ✨',
-        message: 'Alex shared a beautiful revelation about their core values',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-        isRead: false,
-        actionUrl: '/revelations?connectionId=1'
-      },
-      {
-        id: '2',
-        type: 'message',
-        title: 'New Message 💬',
-        message: 'You have a new message from your soul connection',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-        isRead: false,
-        actionUrl: '/messages'
-      },
-      {
-        id: '3',
-        type: 'photo_reveal',
-        title: 'Photo Reveal Day! 🎉',
-        message: 'It\'s day 7! Both of you are ready for photo reveal',
-        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
-        isRead: false,
-        actionUrl: '/revelations?connectionId=1'
-      },
-      {
-        id: '4',
-        type: 'match',
-        title: 'New Soul Connection! 💫',
-        message: 'You have a 89% compatibility match with someone special',
-        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-        isRead: true,
-        actionUrl: '/matches'
-      },
-      {
-        id: '5',
-        type: 'revelation',
-        title: 'Revelation Reminder ⏰',
-        message: 'Don\'t forget to share today\'s revelation about your dreams',
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-        isRead: true,
-        actionUrl: '/revelations?connectionId=1'
-      },
-      {
-        id: '6',
-        type: 'system',
-        title: 'Welcome to Soul Before Skin! 🌟',
-        message: 'Complete your emotional onboarding to start connecting',
-        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-        isRead: true,
-        actionUrl: '/onboarding'
-      }
-    ];
-
-    this.notifications$.next(mockNotifications);
+    // No mock notifications - use real data from backend
+    this.notifications$.next([]);
     this.updateUnreadCount();
+
+    // NOTE: Mock data removed to use real backend notifications
+    // In production, notifications will be populated via:
+    // - WebSocket real-time updates (messages, revelations, matches)
+    // - API polling for notification history
+    // - Backend notification service
   }
 
   // Simulate real-time notifications
@@ -219,5 +169,54 @@ export class NotificationService {
 
     const randomNotification = notificationTypes[Math.floor(Math.random() * notificationTypes.length)];
     this.addNotification(randomNotification);
+  }
+
+  // Stub methods for notification-toast component compatibility
+  // TODO: Implement these methods properly when real-time notification system is built
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getNotificationSettings(): Observable<any> {
+    // Return mock settings for now
+    return of({
+      enableSounds: true,
+      enableDesktopNotifications: false,
+      enableInAppNotifications: true,
+      quietHours: { enabled: false, start: '22:00', end: '08:00' },
+      categorySettings: {},
+      maxVisibleNotifications: 5,
+      autoCloseDelay: 8000
+    });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updateNotificationSettings(settings: any): Observable<any> {
+    // Stub implementation
+    return of(settings);
+  }
+
+  dismissNotification(notificationId: string): Observable<void> {
+    // Call existing removeNotification method
+    this.removeNotification(notificationId);
+    return of(undefined);
+  }
+
+  playNotificationSound(category: string): void {
+    // Stub implementation - would play sound based on category
+    console.log(`Playing notification sound for category: ${category}`);
+  }
+
+  requestDesktopPermission(): void {
+    // Stub implementation - would request browser notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  showDesktopNotification(title: string, options: any): void {
+    // Stub implementation - would show desktop notification
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, options);
+    }
   }
 }

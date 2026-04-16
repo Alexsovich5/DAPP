@@ -3,8 +3,6 @@ Test data factories for Dinner First dating platform
 Creates realistic test data for soul connections, revelations, and user interactions
 """
 
-from datetime import datetime, timedelta
-
 import factory
 import factory.fuzzy
 from app.core.security import get_password_hash
@@ -98,7 +96,13 @@ class ProfileFactory(factory.alchemy.SQLAlchemyModelFactory):
     favorite_cuisines = factory.LazyAttribute(
         lambda obj: [
             fake.random_element(
-                elements=["Italian", "Asian", "Mediterranean", "Mexican", "Indian"]
+                elements=[
+                    "Italian",
+                    "Asian",
+                    "Mediterranean",
+                    "Mexican",
+                    "Indian",
+                ]
             )
         ]
     )
@@ -115,7 +119,7 @@ class SoulConnectionFactory(factory.alchemy.SQLAlchemyModelFactory):
 
     user1_id = factory.Sequence(lambda n: n)
     user2_id = factory.Sequence(lambda n: n + 1000)  # Ensure different IDs
-    # initiated_by will be set manually when creating connections
+    initiated_by = factory.LazyAttribute(lambda obj: obj.user1_id)  # Default to user1
     connection_stage = factory.fuzzy.FuzzyChoice(
         [stage.value for stage in ConnectionStage]
     )
@@ -161,7 +165,10 @@ class DailyRevelationFactory(factory.alchemy.SQLAlchemyModelFactory):
             RevelationType.CHALLENGE_OVERCOME.value: "Learning to trust again after heartbreak made me stronger.",
             RevelationType.IDEAL_CONNECTION.value: "A partner who challenges me to grow while accepting who I am.",
             RevelationType.PHOTO_REVEAL.value: "Ready to share my photo - excited to see the real you!",
-        }.get(obj.revelation_type, "A meaningful reflection from my heart to yours.")
+        }.get(
+            obj.revelation_type,
+            "A meaningful reflection from my heart to yours.",
+        )
     )
 
     created_at = factory.LazyAttribute(lambda obj: fake.date_time_this_year())

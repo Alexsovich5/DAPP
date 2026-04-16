@@ -4,7 +4,7 @@
  */
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectionStrategy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subject, interval, takeUntil, animationFrameScheduler } from 'rxjs';
+import { Subject } from 'rxjs';
 import { HapticFeedbackService } from '../../core/services/haptic-feedback.service';
 
 export interface RevelationTimelineData {
@@ -139,7 +139,7 @@ export interface RevelationDayData {
 
             <!-- Revelation previews -->
             <div class="revelation-previews" *ngIf="dayData.userShared || dayData.partnerShared">
-              <div class="user-revelation" *ngIf="dayData.userShared" (click)="viewRevelation(dayData, 'user')">
+              <button type="button" class="user-revelation" *ngIf="dayData.userShared" (click)="viewRevelation(dayData, 'user')">
                 <div class="revelation-snippet">
                   "{{ getSnippet(dayData.userContent) }}"
                 </div>
@@ -147,9 +147,9 @@ export interface RevelationDayData {
                   <span class="author">You</span>
                   <span class="timestamp">{{ formatTime(dayData.userSharedAt) }}</span>
                 </div>
-              </div>
+              </button>
 
-              <div class="partner-revelation" *ngIf="dayData.partnerShared" (click)="viewRevelation(dayData, 'partner')">
+              <button type="button" class="partner-revelation" *ngIf="dayData.partnerShared" (click)="viewRevelation(dayData, 'partner')">
                 <div class="revelation-snippet">
                   "{{ getSnippet(dayData.partnerContent) }}"
                 </div>
@@ -157,7 +157,7 @@ export interface RevelationDayData {
                   <span class="author">{{ partnerName || 'Partner' }}</span>
                   <span class="timestamp">{{ formatTime(dayData.partnerSharedAt) }}</span>
                 </div>
-              </div>
+              </button>
             </div>
           </div>
 
@@ -216,7 +216,7 @@ export interface RevelationDayData {
               (click)="givePhotoConsent()"
               [disabled]="hasGivenConsent()"
             >
-              {{ hasGivenConsent() ? 'Consent Given ✓' : 'I\'m Ready to Reveal' }}
+              {{ hasGivenConsent() ? 'Consent Given ✓' : "I'm Ready to Reveal" }}
             </button>
           </div>
 
@@ -697,12 +697,14 @@ export interface RevelationDayData {
 export class RevelationTimelineComponent implements OnInit, OnDestroy {
   @Input() timelineData: RevelationTimelineData | null = null;
   @Input() partnerName: string | null = null;
-  @Input() canShareToday = true;
+  @Input() canShareTodayInput = true;
   @Input() isPhotoRevealReady = false;
+  @Input() connectionData: Record<string, unknown> | null = null; // Soul connection data with consent status
+  @Input() currentUserId: number | null = null;
 
   @Output() dayClicked = new EventEmitter<RevelationDayData>();
-  @Output() shareRevelation = new EventEmitter<number>();
-  @Output() viewRevelation = new EventEmitter<{ dayData: RevelationDayData; type: 'user' | 'partner' }>();
+  @Output() shareRevelationEmit = new EventEmitter<number>();
+  @Output() viewRevelationEmit = new EventEmitter<{ dayData: RevelationDayData; type: 'user' | 'partner' }>();
   @Output() photoConsentGiven = new EventEmitter<void>();
 
   @ViewChild('completionRing', { static: false }) completionRingRef?: ElementRef;
@@ -844,21 +846,23 @@ export class RevelationTimelineComponent implements OnInit, OnDestroy {
     if (!this.canShareToday() || this.hasSharedToday()) return;
 
     this.hapticService.triggerRevelationFeedback();
-    this.shareRevelation.emit(this.timelineData?.currentDay || 1);
+    this.shareRevelationEmit.emit(this.timelineData?.currentDay || 1);
   }
 
   viewRevelation(dayData: RevelationDayData, type: 'user' | 'partner'): void {
     this.hapticService.triggerSelectionFeedback();
-    this.viewRevelation.emit({ dayData, type });
+    this.viewRevelationEmit.emit({ dayData, type });
   }
 
   givePhotoConsent(): void {
+    if (this.hasGivenConsent()) return;
+
     this.hapticService.triggerSuccessFeedback();
     this.photoConsentGiven.emit();
   }
 
   canShareToday(): boolean {
-    return this.canShareToday && (this.timelineData?.currentDay || 1) <= 7;
+    return this.canShareTodayInput && (this.timelineData?.currentDay || 1) <= 7;
   }
 
   hasSharedToday(): boolean {
@@ -891,13 +895,28 @@ export class RevelationTimelineComponent implements OnInit, OnDestroy {
   }
 
   isMutualConsentGiven(): boolean {
-    // This would be determined by the backend data
-    return false; // Placeholder
+    if (!this.connectionData) return false;
+
+    // Check if both users have given photo consent
+    return !!(this.connectionData['user1_photo_consent'] && this.connectionData['user2_photo_consent']);
   }
 
   hasGivenConsent(): boolean {
-    // This would track user's consent status
-    return false; // Placeholder
+    if (!this.connectionData) return false;
+
+    // Check if current user has given consent
+    // Assuming we have a way to identify the current user
+    const currentUserId = this.getCurrentUserId(); // We'll need to inject this
+
+    if (this.connectionData['user1_id'] === currentUserId) {
+      return !!this.connectionData['user1_photo_consent'];
+    } else {
+      return !!this.connectionData['user2_photo_consent'];
+    }
+  }
+
+  private getCurrentUserId(): number {
+    return this.currentUserId || 0;
   }
 
   getSnippet(content: string | null): string {

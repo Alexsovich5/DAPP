@@ -5,8 +5,8 @@
 # import json
 import logging
 import re
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import datetime
+from typing import Any, Dict, List
 
 # import numpy as np
 from sklearn.decomposition import LatentDirichletAllocation
@@ -14,12 +14,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sqlalchemy.orm import Session
 
-from ..core.config import settings
-from ..core.database import get_db
-from ..models.match import Match
 from ..models.profile import Profile
 from ..models.user import User
-from ..schemas.matching import CompatibilityAnalysis, ConversationStarter
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +65,8 @@ class PrivacyFirstMatchingAI:
             profiles = (
                 db.query(Profile)
                 .filter(
-                    Profile.life_philosophy.isnot(None), Profile.core_values.isnot(None)
+                    Profile.life_philosophy.isnot(None),
+                    Profile.core_values.isnot(None),
                 )
                 .all()
             )
@@ -439,8 +436,20 @@ class PrivacyFirstMatchingAI:
             "health": ["health", "fitness", "wellness", "exercise", "active"],
             "creativity": ["creative", "art", "music", "writing", "design"],
             "education": ["learn", "education", "knowledge", "study", "grow"],
-            "spirituality": ["spiritual", "meaning", "purpose", "values", "faith"],
-            "community": ["community", "service", "help", "volunteer", "social"],
+            "spirituality": [
+                "spiritual",
+                "meaning",
+                "purpose",
+                "values",
+                "faith",
+            ],
+            "community": [
+                "community",
+                "service",
+                "help",
+                "volunteer",
+                "social",
+            ],
         }
 
         # Categorize goals

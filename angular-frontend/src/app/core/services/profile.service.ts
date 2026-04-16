@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, switchMap, catchError, tap } from 'rxjs';
+import { Observable, map, catchError, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { User } from '../interfaces/auth.interfaces';
 import { AuthService } from './auth.service';
@@ -22,6 +22,16 @@ export interface UserProfileData {
   is_profile_complete: boolean;
   created_at?: string;
   updated_at?: string;
+
+  // Soul Before Skin specific fields
+  emotional_onboarding_completed?: boolean;
+  emotional_depth_score?: number;
+  core_values?: Record<string, unknown>;
+  personality_traits?: Record<string, unknown>;
+  communication_style?: Record<string, unknown>;
+  emotional_responses?: Record<string, string>;
+  soul_profile_visibility?: 'hidden' | 'connections_only' | 'discovery' | 'public';
+  photo_sharing_consent?: boolean;
 }
 
 export interface ProfileUpdateData {
@@ -33,6 +43,21 @@ export interface ProfileUpdateData {
   dietary_preferences?: string[];
   gender?: string;
   date_of_birth?: string;
+
+  // Soul Before Skin fields
+  core_values?: Record<string, unknown>;
+  personality_traits?: Record<string, unknown>;
+  communication_style?: {
+    preferred_style?: string;
+    response_preference?: string;
+  };
+  emotional_responses?: {
+    relationship_values?: string;
+    ideal_evening?: string;
+    feeling_understood?: string;
+  };
+  soul_profile_visibility?: 'hidden' | 'connections_only' | 'discovery' | 'public';
+  photo_sharing_consent?: boolean;
 }
 
 export interface ProfilePictureResponse {
@@ -56,6 +81,7 @@ export class ProfileService extends BaseService {
   // Get current user's profile data from the user endpoint
   getProfile(): Observable<UserProfileData> {
     return this.http.get<User>(`${this.apiUrl}/users/me`).pipe(
+      map(user => user as unknown as UserProfileData),
       catchError(this.handleError<UserProfileData>('get profile'))
     );
   }
@@ -66,7 +92,7 @@ export class ProfileService extends BaseService {
       map(updatedUser => {
         // Update the auth service's current user
         this.authService.updateCurrentUser(updatedUser);
-        return updatedUser;
+        return updatedUser as unknown as UserProfileData;
       }),
       tap(this.handleSuccess('Profile updated', true)),
       catchError(this.handleError<UserProfileData>('update profile'))

@@ -1,6 +1,5 @@
 import { Injectable, ElementRef, NgZone } from '@angular/core';
-import { BehaviorSubject, Observable, fromEvent, merge, timer } from 'rxjs';
-import { map, debounceTime, throttleTime, distinctUntilChanged, filter } from 'rxjs/operators';
+import { BehaviorSubject, timer } from 'rxjs';
 import { MobileFeaturesService } from './mobile-features.service';
 
 export interface PerformanceMetrics {
@@ -122,7 +121,6 @@ export class MobilePerformanceService {
   private monitorFrameRate(): void {
     let lastTime = performance.now();
     let frameCount = 0;
-    const targetFPS = 60;
     const measureInterval = 1000; // 1 second
 
     const measureFPS = () => {
@@ -147,7 +145,7 @@ export class MobilePerformanceService {
   private monitorMemoryUsage(): void {
     if ('memory' in performance) {
       timer(0, 30000).subscribe(() => { // Check every 30 seconds
-        const memory = (performance as any).memory;
+        const memory = (performance as Performance & { memory?: { usedJSHeapSize: number; totalJSHeapSize: number } }).memory;
         if (memory) {
           const usedMemory = memory.usedJSHeapSize;
           const totalMemory = memory.totalJSHeapSize;
@@ -188,7 +186,7 @@ export class MobilePerformanceService {
 
     // Cleanup on low memory warning
     if ('navigator' in window && 'connection' in navigator) {
-      const connection = (navigator as any).connection;
+      const connection = (navigator as Navigator & { connection?: { saveData: boolean; addEventListener: (type: string, listener: () => void) => void } }).connection;
       if (connection) {
         connection.addEventListener('change', () => {
           if (connection.saveData) {
@@ -320,7 +318,7 @@ export class MobilePerformanceService {
   }
 
   private async loadLazyImage(img: HTMLImageElement, config: LazyLoadConfig): Promise<void> {
-    const src = img.dataset.src;
+    const src = img.dataset['src'];
     if (!src) return;
 
     try {
@@ -385,7 +383,7 @@ export class MobilePerformanceService {
    * Preload critical images for dating app
    */
   async preloadCriticalImages(imageUrls: string[]): Promise<void> {
-    const deviceInfo = this.mobileFeatures.getDeviceInfo();
+    const deviceInfo = this.mobileFeatures.getDeviceInfo() as ReturnType<typeof this.mobileFeatures.getDeviceInfo> & { isLowEndDevice?: boolean };
 
     // Reduce preload count for low-end devices
     const maxPreload = deviceInfo.isLowEndDevice ? 3 : 8;
@@ -429,7 +427,7 @@ export class MobilePerformanceService {
     debounceTime: number;
   } {
     const metrics = this.performanceMetrics$.value;
-    const deviceInfo = this.mobileFeatures.getDeviceInfo();
+    const deviceInfo = this.mobileFeatures.getDeviceInfo() as ReturnType<typeof this.mobileFeatures.getDeviceInfo> & { isLowEndDevice?: boolean };
 
     return {
       shouldVirtualize: deviceInfo.isLowEndDevice || metrics.memoryUsage > 0.7,
@@ -448,7 +446,7 @@ export class MobilePerformanceService {
     enableAdvancedFeatures: boolean;
   } {
     const metrics = this.performanceMetrics$.value;
-    const deviceInfo = this.mobileFeatures.getDeviceInfo();
+    const deviceInfo = this.mobileFeatures.getDeviceInfo() as ReturnType<typeof this.mobileFeatures.getDeviceInfo> & { isLowEndDevice?: boolean };
 
     if (deviceInfo.isLowEndDevice || metrics.memoryUsage > 0.8) {
       return {
@@ -486,7 +484,7 @@ export class MobilePerformanceService {
 
     // Force garbage collection if available
     if ('gc' in window) {
-      (window as any).gc();
+      (window as Window & { gc?: () => void }).gc?.();
     }
   }
 
@@ -538,7 +536,7 @@ export class MobilePerformanceService {
 
   private detectNetworkSpeed(): void {
     if ('connection' in navigator) {
-      const connection = (navigator as any).connection;
+      const connection = (navigator as Navigator & { connection?: { effectiveType: string; addEventListener: (type: string, listener: () => void) => void } }).connection;
 
       if (connection) {
         const updateNetworkSpeed = () => {
@@ -565,12 +563,13 @@ export class MobilePerformanceService {
     const deviceInfo = this.mobileFeatures.getDeviceInfo();
 
     // Detect low-end device based on various factors
+    const deviceMemory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 0;
     const isLowEndDevice =
       deviceInfo.screenSize.width < 400 ||
       navigator.hardwareConcurrency <= 2 ||
-      (navigator as any).deviceMemory <= 2;
+      deviceMemory <= 2;
 
-    this.updateMetrics({ isLowEndDevice });
+    this.updateMetrics({ isLowEndDevice: Boolean(isLowEndDevice) });
   }
 
   private processPerformanceEntries(entries: PerformanceEntry[]): void {

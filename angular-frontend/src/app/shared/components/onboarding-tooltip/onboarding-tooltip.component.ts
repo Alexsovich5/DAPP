@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, Cha
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { trigger, state, style, animate, transition } from '@angular/animations';
+import { trigger, style, animate, transition } from '@angular/animations';
 import { Subscription } from 'rxjs';
 import { OnboardingService, OnboardingStep } from '../../../core/services/onboarding.service';
 import { HapticFeedbackService } from '../../../core/services/haptic-feedback.service';
@@ -26,11 +26,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       #tooltip
       *ngIf="currentStep"
       [@tooltipAnimation]="'visible'"
-      [ngClass]="[
-        'position-' + currentStep.position,
-        'theme-' + (currentStep.emotionalTheme || 'discovery'),
-        { 'has-overlay': currentStep.showOverlay }
-      ]"
+      [ngClass]="getTooltipClasses()"
       role="dialog"
       [attr.aria-labelledby]="'tooltip-title-' + currentStep.id"
       [attr.aria-describedby]="'tooltip-description-' + currentStep.id"
@@ -708,10 +704,12 @@ export class OnboardingTooltipComponent implements OnInit, OnDestroy, AfterViewI
           break;
         case 'Enter':
         case ' ':
-          event.preventDefault();
-          const primaryAction = this.currentStep.actions.find(a => a.primary);
-          if (primaryAction) {
-            this.onAction(primaryAction);
+          {
+            event.preventDefault();
+            const primaryAction = this.currentStep.actions.find(a => a.primary);
+            if (primaryAction) {
+              this.onAction(primaryAction);
+            }
           }
           break;
         case 'ArrowRight':
@@ -741,7 +739,7 @@ export class OnboardingTooltipComponent implements OnInit, OnDestroy, AfterViewI
   /**
    * Handle action button clicks
    */
-  onAction(action: any): void {
+  onAction(action: {type?: string; action?: () => void; label?: string; primary?: boolean}): void {
     if (this.isProcessingAction) return;
 
     this.isProcessingAction = true;
@@ -819,6 +817,24 @@ export class OnboardingTooltipComponent implements OnInit, OnDestroy, AfterViewI
   }
 
   /**
+   * Get tooltip CSS classes
+   */
+  getTooltipClasses(): string {
+    if (!this.currentStep) return '';
+
+    const classes = [
+      'position-' + this.currentStep.position,
+      'theme-' + (this.currentStep.emotionalTheme || 'discovery')
+    ];
+
+    if (this.currentStep.showOverlay) {
+      classes.push('has-overlay');
+    }
+
+    return classes.join(' ');
+  }
+
+  /**
    * Get energy colors based on emotional theme
    */
   getEnergyColors(): { center: string; middle: string; outer: string; accent: string } {
@@ -857,7 +873,7 @@ export class OnboardingTooltipComponent implements OnInit, OnDestroy, AfterViewI
   /**
    * Get ARIA label for action button
    */
-  getActionAriaLabel(action: any): string {
+  getActionAriaLabel(action: {label?: string; type?: string}): string {
     const stepInfo = `Step ${this.currentStepIndex + 1} of ${this.totalSteps}`;
     return `${action.label}. ${stepInfo}`;
   }
@@ -865,7 +881,7 @@ export class OnboardingTooltipComponent implements OnInit, OnDestroy, AfterViewI
   /**
    * Track function for actions
    */
-  trackAction(index: number, action: any): string {
-    return action.type + action.label;
+  trackAction(index: number, action: {label?: string; type?: string}): string {
+    return (action.type ?? '') + (action.label ?? '');
   }
 }

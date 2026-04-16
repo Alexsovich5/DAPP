@@ -2,9 +2,9 @@
  * Soul Animation Service - Phase 3 Advanced Animation System
  * Provides soul-themed animations with performance optimization and accessibility
  */
-import { Injectable, ElementRef } from '@angular/core';
-import { BehaviorSubject, Observable, fromEvent, animationFrameScheduler, EMPTY } from 'rxjs';
-import { map, takeUntil, startWith, distinctUntilChanged } from 'rxjs/operators';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable, EMPTY } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ResponsiveDesignService } from './responsive-design.service';
 
 export interface SoulAnimationConfig {
@@ -152,7 +152,7 @@ export class SoulAnimationService {
       duration: this.getAdjustedDuration(finalConfig.duration),
       easing: finalConfig.easing,
       delay: finalConfig.delay,
-      iterations: finalConfig.iterations,
+      iterations: finalConfig.iterations === 'infinite' ? Infinity : finalConfig.iterations,
       direction: finalConfig.direction,
       fill: finalConfig.fillMode
     };
@@ -304,7 +304,7 @@ export class SoulAnimationService {
    */
   createRevealAnimation(
     element: HTMLElement,
-    direction: 'up' | 'down' | 'left' | 'right' = 'up'
+    _direction: 'up' | 'down' | 'left' | 'right' = 'up'
   ): Observable<Animation> {
     return this.createSoulAnimation(element, 'reveal', {
       duration: 600,
@@ -440,13 +440,13 @@ export class SoulAnimationService {
     return line;
   }
 
-  private createParticle(theme: ConnectionEnergyTheme, index: number): HTMLElement {
+  private createParticle(theme: ConnectionEnergyTheme, _index: number): HTMLElement {
     const particle = document.createElement('div');
     particle.className = 'soul-particle';
 
-    const delay = Math.random() * 4;
-    const duration = 3 + Math.random() * 2;
-    const angle = Math.random() * 360;
+    const _delay = Math.random() * 4;
+    const _duration = 3 + Math.random() * 2;
+    const _angle = Math.random() * 360;
 
     particle.style.cssText = `
       position: absolute;
@@ -458,7 +458,7 @@ export class SoulAnimationService {
       pointer-events: none;
       top: 50%;
       left: 20%;
-      animation-delay: ${delay}s;
+      animation-delay: ${_delay}s;
     `;
 
     return particle;
@@ -516,8 +516,8 @@ export class SoulAnimationService {
   private detectPerformanceLevel(): 'low' | 'medium' | 'high' {
     // Simple heuristics for performance detection
     const hardwareConcurrency = navigator.hardwareConcurrency || 2;
-    const memory = (navigator as any).deviceMemory || 4;
-    const connection = (navigator as any).connection;
+    const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory || 4;
+    const connection = (navigator as Navigator & { connection?: { effectiveType?: string } }).connection;
 
     if (hardwareConcurrency >= 8 && memory >= 8) return 'high';
     if (hardwareConcurrency >= 4 && memory >= 4) return 'medium';
@@ -586,7 +586,7 @@ export class SoulAnimationService {
       duration: this.getAdjustedDuration(finalConfig.duration),
       easing: finalConfig.easing,
       delay: finalConfig.delay,
-      iterations: finalConfig.iterations,
+      iterations: finalConfig.iterations === 'infinite' ? Infinity : finalConfig.iterations,
       direction: finalConfig.direction,
       fill: finalConfig.fillMode
     };

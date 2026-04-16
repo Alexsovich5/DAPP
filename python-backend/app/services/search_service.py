@@ -5,7 +5,7 @@ import asyncio
 import json
 import logging
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -79,7 +79,9 @@ class ElasticsearchService:
     """
 
     def __init__(
-        self, elasticsearch_client: AsyncElasticsearch, redis_client: redis.Redis
+        self,
+        elasticsearch_client: AsyncElasticsearch,
+        redis_client: redis.Redis,
     ):
         self.es_client = elasticsearch_client
         self.redis_client = redis_client
@@ -143,7 +145,10 @@ class ElasticsearchService:
                         "analyzer": "dating_analyzer",
                         "fields": {"keyword": {"type": "keyword"}},
                     },
-                    "first_name": {"type": "text", "analyzer": "dating_analyzer"},
+                    "first_name": {
+                        "type": "text",
+                        "analyzer": "dating_analyzer",
+                    },
                     "age": {"type": "integer"},
                     "gender": {"type": "keyword"},
                     "location": {"type": "geo_point"},
@@ -181,7 +186,12 @@ class ElasticsearchService:
                         "profile_analyzer": {
                             "type": "custom",
                             "tokenizer": "standard",
-                            "filter": ["lowercase", "stop", "snowball", "synonym"],
+                            "filter": [
+                                "lowercase",
+                                "stop",
+                                "snowball",
+                                "synonym",
+                            ],
                         }
                     },
                     "filter": {
@@ -204,7 +214,10 @@ class ElasticsearchService:
                 "properties": {
                     "user_id": {"type": "integer"},
                     "bio": {"type": "text", "analyzer": "profile_analyzer"},
-                    "life_philosophy": {"type": "text", "analyzer": "profile_analyzer"},
+                    "life_philosophy": {
+                        "type": "text",
+                        "analyzer": "profile_analyzer",
+                    },
                     "interests": {
                         "type": "text",
                         "analyzer": "profile_analyzer",
@@ -334,7 +347,12 @@ class ElasticsearchService:
         except Exception as e:
             logger.error(f"Search failed for user {searcher_id}: {e}")
             return SearchResponse(
-                results=[], total_count=0, page=0, size=0, took_ms=0, search_id="error"
+                results=[],
+                total_count=0,
+                page=0,
+                size=0,
+                took_ms=0,
+                search_id="error",
             )
 
     async def _build_search_query(
@@ -347,7 +365,14 @@ class ElasticsearchService:
 
         # Base query structure
         query = {
-            "query": {"bool": {"must": [], "must_not": [], "should": [], "filter": []}},
+            "query": {
+                "bool": {
+                    "must": [],
+                    "must_not": [],
+                    "should": [],
+                    "filter": [],
+                }
+            },
             "sort": [],
             "_source": {
                 "includes": [
@@ -573,7 +598,12 @@ class ElasticsearchService:
 
         elif criteria.sort_by == SortOrder.RANDOM:
             query["sort"] = [
-                {"_script": {"type": "number", "script": {"source": "Math.random()"}}}
+                {
+                    "_script": {
+                        "type": "number",
+                        "script": {"source": "Math.random()"},
+                    }
+                }
             ]
 
         else:  # RELEVANCE
@@ -883,7 +913,10 @@ class ElasticsearchService:
         return suggestions[:3]
 
     async def _track_search_analytics(
-        self, searcher_id: int, criteria: SearchCriteria, response: SearchResponse
+        self,
+        searcher_id: int,
+        criteria: SearchCriteria,
+        response: SearchResponse,
     ):
         """Track search analytics for optimization"""
         try:
@@ -909,7 +942,9 @@ class ElasticsearchService:
         """Index or update user in Elasticsearch"""
         try:
             await self.es_client.index(
-                index=self.indexes["users"], id=user_data["user_id"], body=user_data
+                index=self.indexes["users"],
+                id=user_data["user_id"],
+                body=user_data,
             )
             return True
         except Exception as e:
@@ -967,7 +1002,10 @@ class ElasticsearchService:
                     "suggest": {
                         "user_suggest": {
                             "prefix": query,
-                            "completion": {"field": "username.suggest", "size": size},
+                            "completion": {
+                                "field": "username.suggest",
+                                "size": size,
+                            },
                         }
                     }
                 },
@@ -1024,7 +1062,7 @@ _search_service: Optional[ElasticsearchService] = None
 
 def get_search_service() -> ElasticsearchService:
     """Get global search service instance"""
-    global _search_service
+    # global _search_service  # Not needed for read-only
     if _search_service is None:
         raise RuntimeError("Search service not initialized")
     return _search_service

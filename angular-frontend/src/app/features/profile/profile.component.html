@@ -35,6 +35,112 @@
       <mat-error *ngIf="profileForm.get('bio')?.errors?.['maxlength']">Bio must be 500 characters or less</mat-error>
     </mat-form-field>
 
+    <!-- Soul Before Skin Profile Section -->
+    <section class="soul-profile-section" aria-labelledby="soul-profile-heading">
+      <h2 id="soul-profile-heading">Your Soul Profile</h2>
+
+      <!-- Emotional Depth Score Display -->
+      <div class="emotional-depth-container" *ngIf="currentUser?.emotional_depth_score">
+        <div class="depth-score-card">
+          <mat-icon class="soul-icon">psychology</mat-icon>
+          <div class="score-content">
+            <h3>Emotional Depth Score</h3>
+            <div class="score-display">
+              <span class="score-number">{{currentUser!.emotional_depth_score ?? 0}}</span>
+              <span class="score-max">/100</span>
+            </div>
+            <div class="score-description">
+              {{getDepthScoreDescription(currentUser!.emotional_depth_score ?? 0)}}
+            </div>
+          </div>
+          <mat-progress-bar
+            mode="determinate"
+            [value]="currentUser!.emotional_depth_score ?? 0"
+            class="depth-progress">
+          </mat-progress-bar>
+        </div>
+      </div>
+
+      <!-- Soul Profile Visibility -->
+      <mat-form-field appearance="fill">
+        <mat-label>Soul Profile Visibility</mat-label>
+        <mat-select formControlName="soulProfileVisibility">
+          <mat-option value="hidden">Hidden - Only I can see</mat-option>
+          <mat-option value="connections_only">Connections Only - People I've matched with</mat-option>
+          <mat-option value="discovery">Discovery - Available for soul matching</mat-option>
+          <mat-option value="public">Public - Visible to everyone</mat-option>
+        </mat-select>
+        <mat-hint>Control who can see your emotional profile and depth score</mat-hint>
+      </mat-form-field>
+
+      <!-- Photo Sharing Consent -->
+      <div class="photo-consent-section">
+        <mat-slide-toggle formControlName="photoSharingConsent" color="primary">
+          Allow photo sharing after 7-day revelation cycle
+        </mat-slide-toggle>
+        <p class="consent-description">
+          When enabled, your photos can be revealed to soul connections after completing the progressive revelation timeline.
+        </p>
+      </div>
+    </section>
+
+    <!-- Core Values Editing -->
+    <section class="core-values-section" aria-labelledby="core-values-heading">
+      <h2 id="core-values-heading">Core Values</h2>
+      <p class="section-description">Update the values that guide your relationships and connections.</p>
+
+      <div formGroupName="coreValues" class="values-grid">
+        <mat-form-field appearance="fill">
+          <mat-label>What you value most in relationships</mat-label>
+          <textarea matInput formControlName="relationshipValues" rows="3"
+            placeholder="Describe what matters most to you in a relationship"
+            [attr.aria-label]="'Relationship values'"></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Your ideal evening together</mat-label>
+          <textarea matInput formControlName="idealEvening" rows="3"
+            placeholder="Describe your perfect evening with someone special"
+            [attr.aria-label]="'Ideal evening description'"></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>How you feel most understood</mat-label>
+          <textarea matInput formControlName="feelingUnderstood" rows="3"
+            placeholder="What makes you feel truly seen and understood?"
+            [attr.aria-label]="'Feeling understood description'"></textarea>
+        </mat-form-field>
+      </div>
+    </section>
+
+    <!-- Communication Style -->
+    <section class="communication-section" aria-labelledby="communication-heading">
+      <h2 id="communication-heading">Communication Style</h2>
+
+      <div formGroupName="communicationStyle" class="communication-controls">
+        <mat-form-field appearance="fill">
+          <mat-label>Preferred Communication Style</mat-label>
+          <mat-select formControlName="preferredStyle">
+            <mat-option value="deep_conversation">Deep Conversations</mat-option>
+            <mat-option value="playful_banter">Playful Banter</mat-option>
+            <mat-option value="supportive_listening">Supportive Listening</mat-option>
+            <mat-option value="direct_honest">Direct & Honest</mat-option>
+            <mat-option value="gentle_thoughtful">Gentle & Thoughtful</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+          <mat-label>Response Preference</mat-label>
+          <mat-select formControlName="responsePreference">
+            <mat-option value="immediate">Immediate responses</mat-option>
+            <mat-option value="thoughtful">Thoughtful, considered responses</mat-option>
+            <mat-option value="flexible">Flexible timing</mat-option>
+            <mat-option value="scheduled">Scheduled communication times</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </section>
+
     <!-- Profile Picture -->
     <section class="profile-picture-section" aria-labelledby="profile-picture-heading">
       <h2 id="profile-picture-heading">Profile Picture</h2>

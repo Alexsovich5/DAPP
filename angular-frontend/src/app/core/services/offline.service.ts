@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, fromEvent, merge } from 'rxjs';
+import { BehaviorSubject, fromEvent, merge } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
 // === OFFLINE INTERFACES ===
@@ -7,7 +7,7 @@ import { map, startWith } from 'rxjs/operators';
 export interface OfflineAction {
   id: string;
   type: 'connection_request' | 'message_send' | 'profile_update' | 'discovery_interaction';
-  data: any;
+  data: Record<string, unknown>;
   timestamp: Date;
   retryCount: number;
   maxRetries: number;
@@ -163,7 +163,7 @@ export class OfflineService {
   /**
    * Queue an action for later processing when online
    */
-  queueAction(type: OfflineAction['type'], data: any, maxRetries = 3): string {
+  queueAction(type: OfflineAction['type'], data: Record<string, unknown>, maxRetries = 3): string {
     const actionId = this.generateActionId();
     const action: OfflineAction = {
       id: actionId,
@@ -255,7 +255,7 @@ export class OfflineService {
   /**
    * Cache data for offline access
    */
-  async cacheData(key: string, data: any, expiryMinutes = 60): Promise<void> {
+  async cacheData(key: string, data: unknown, expiryMinutes = 60): Promise<void> {
     try {
       const cacheData = {
         data,
@@ -277,7 +277,7 @@ export class OfflineService {
   /**
    * Retrieve cached data
    */
-  async getCachedData(key: string): Promise<any | null> {
+  async getCachedData(key: string): Promise<unknown> {
     try {
       let cacheData;
 
@@ -350,10 +350,10 @@ export class OfflineService {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
-        this.offlineQueue = JSON.parse(stored).map((action: any) => ({
+        this.offlineQueue = JSON.parse(stored).map((action: Record<string, unknown>) => ({
           ...action,
-          timestamp: new Date(action.timestamp)
-        }));
+          timestamp: new Date(action['timestamp'] as string)
+        })) as OfflineAction[];
         this.updateSyncStatus({ pendingActions: this.offlineQueue.length });
       }
     } catch (error) {
@@ -378,8 +378,8 @@ export class OfflineService {
     this.syncStatusSubject.next({ ...currentStatus, ...updates });
   }
 
-  private handleServiceWorkerMessage(message: any): void {
-    switch (message.type) {
+  private handleServiceWorkerMessage(message: Record<string, unknown>): void {
+    switch (message['type']) {
       case 'CACHE_UPDATED':
         console.log('Cache updated by service worker');
         break;
@@ -399,7 +399,7 @@ export class OfflineService {
 
   // === ACTION PROCESSORS ===
 
-  private async processConnectionRequest(data: any): Promise<void> {
+  private async processConnectionRequest(data: Record<string, unknown>): Promise<void> {
     const response = await fetch('/api/v1/connections', {
       method: 'POST',
       headers: {
@@ -414,14 +414,14 @@ export class OfflineService {
     }
   }
 
-  private async processMessageSend(data: any): Promise<void> {
-    const response = await fetch(`/api/v1/messages/${data.connectionId}`, {
+  private async processMessageSend(data: Record<string, unknown>): Promise<void> {
+    const response = await fetch(`/api/v1/messages/${data['connectionId']}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.getAuthToken()}`
       },
-      body: JSON.stringify({ message: data.message })
+      body: JSON.stringify({ message: data['message'] })
     });
 
     if (!response.ok) {
@@ -429,7 +429,7 @@ export class OfflineService {
     }
   }
 
-  private async processProfileUpdate(data: any): Promise<void> {
+  private async processProfileUpdate(data: Record<string, unknown>): Promise<void> {
     const response = await fetch('/api/v1/profiles/me', {
       method: 'PUT',
       headers: {
@@ -444,7 +444,7 @@ export class OfflineService {
     }
   }
 
-  private async processDiscoveryInteraction(data: any): Promise<void> {
+  private async processDiscoveryInteraction(data: Record<string, unknown>): Promise<void> {
     const response = await fetch('/api/v1/discoveries/interact', {
       method: 'POST',
       headers: {
@@ -466,7 +466,7 @@ export class OfflineService {
 
   // === INDEXEDDB METHODS ===
 
-  private async storeInIndexedDB(key: string, data: any): Promise<void> {
+  private async storeInIndexedDB(key: string, data: Record<string, unknown>): Promise<void> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
 
@@ -490,7 +490,7 @@ export class OfflineService {
     });
   }
 
-  private async getFromIndexedDB(key: string): Promise<any | null> {
+  private async getFromIndexedDB(key: string): Promise<unknown> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.DB_NAME, this.DB_VERSION);
 

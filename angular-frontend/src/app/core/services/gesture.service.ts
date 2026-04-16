@@ -1,6 +1,6 @@
 import { Injectable, ElementRef, NgZone } from '@angular/core';
 import { Observable, Subject, fromEvent, merge } from 'rxjs';
-import { map, filter, takeUntil, tap, debounceTime } from 'rxjs/operators';
+import { map, filter, tap } from 'rxjs/operators';
 import { MobileFeaturesService } from './mobile-features.service';
 
 export interface GestureEvent {
@@ -172,7 +172,7 @@ export class GestureService {
     return this.enableGestures(element, longPressConfig).pipe(
       filter((event): event is LongPressEvent => event.type === 'longpress'),
       tap(() => {
-        this.mobileFeatures.vibrateNewRevelation(); // Haptic feedback for long press
+        this.mobileFeatures.vibrateRevelationReady(); // Haptic feedback for long press
       })
     );
   }
@@ -350,7 +350,7 @@ export class GestureService {
     }
   }
 
-  private handlePinchGesture(element: HTMLElement, event: NormalizedEvent, gestureState: GestureState, config: GestureConfig): void {
+  private handlePinchGesture(element: HTMLElement, event: NormalizedEvent, gestureState: GestureState, _config: GestureConfig): void {
     if (event.points.length !== 2 || !gestureState.initialDistance) return;
 
     const currentDistance = this.getDistance(event.points[0], event.points[1]);
@@ -381,7 +381,7 @@ export class GestureService {
     });
   }
 
-  private handleDragGesture(element: HTMLElement, event: NormalizedEvent, gestureState: GestureState, config: GestureConfig): void {
+  private handleDragGesture(element: HTMLElement, event: NormalizedEvent, gestureState: GestureState, _config: GestureConfig): void {
     const currentPoint = event.points[0];
     const deltaX = currentPoint.x - gestureState.startPoint.x;
     const deltaY = currentPoint.y - gestureState.startPoint.y;

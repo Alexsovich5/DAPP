@@ -1,0 +1,355 @@
+# AI Matching Service Production Deployment
+# High-performance ML-powered matching with canary deployment support
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matching-service-stable
+  namespace: dinner-first-prod
+  labels:
+    app: matching-service
+    version: v2.0.0
+    deployment: stable
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 2
+  selector:
+    matchLabels:
+      app: matching-service
+      version: v2.0.0
+      deployment: stable
+  template:
+    metadata:
+      labels:
+        app: matching-service
+        version: v2.0.0
+        deployment: stable
+        service: matching
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - matching-service
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: matching-service
+        image: dinner-first/matching-service:v2.0.0-stable
+        ports:
+        - containerPort: 8000
+          name: http
+        - containerPort: 8080
+          name: metrics
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: matching-db-secret
+              key: connection-string
+        - name: REDIS_CLUSTER_ENDPOINTS
+          value: "redis-cluster.dinner-first-redis.svc.cluster.local:6379"
+        - name: RABBITMQ_URL
+          valueFrom:
+            secretKeyRef:
+              name: messaging-secrets
+              key: rabbitmq-url
+        - name: ML_MODEL_REGISTRY_URL
+          value: "http://ml-model-registry.dinner-first-prod.svc.cluster.local:8080"
+        - name: SENTIMENT_SERVICE_URL
+          value: "http://sentiment-service.dinner-first-prod.svc.cluster.local:8000"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: PROMETHEUS_ENABLED
+          value: "true"
+        - name: JAEGER_AGENT_HOST
+          value: "jaeger-agent.dinner-first-monitoring.svc.cluster.local"
+        - name: GPU_ENABLED
+          value: "false"  # Set to true if GPU nodes available
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+            # nvidia.com/gpu: 1  # Uncomment if GPU required
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          timeoutSeconds: 10
+          failureThreshold: 3
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+        - name: model-cache
+          mountPath: /app/models
+        - name: logs-volume
+          mountPath: /app/logs
+      volumes:
+      - name: config-volume
+        configMap:
+          name: matching-service-config
+      - name: model-cache
+        emptyDir:
+          sizeLimit: 5Gi
+      - name: logs-volume
+        emptyDir: {}
+      serviceAccountName: matching-service-account
+---
+# Canary Deployment for A/B Testing
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matching-service-canary
+  namespace: dinner-first-prod
+  labels:
+    app: matching-service
+    version: v3.0.0
+    deployment: canary
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: matching-service
+      version: v3.0.0
+      deployment: canary
+  template:
+    metadata:
+      labels:
+        app: matching-service
+        version: v3.0.0
+        deployment: canary
+        service: matching
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: matching-service
+        image: dinner-first/matching-service:v3.0.0-canary
+        ports:
+        - containerPort: 8000
+          name: http
+        - containerPort: 8080
+          name: metrics
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: matching-db-secret
+              key: connection-string
+        - name: REDIS_CLUSTER_ENDPOINTS
+          value: "redis-cluster.dinner-first-redis.svc.cluster.local:6379"
+        - name: RABBITMQ_URL
+          valueFrom:
+            secretKeyRef:
+              name: messaging-secrets
+              key: rabbitmq-url
+        - name: ML_MODEL_REGISTRY_URL
+          value: "http://ml-model-registry.dinner-first-prod.svc.cluster.local:8080"
+        - name: SENTIMENT_SERVICE_URL
+          value: "http://sentiment-service.dinner-first-prod.svc.cluster.local:8000"
+        - name: LOG_LEVEL
+          value: "DEBUG"
+        - name: CANARY_DEPLOYMENT
+          value: "true"
+        - name: PROMETHEUS_ENABLED
+          value: "true"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "300m"
+          limits:
+            memory: "1Gi"
+            cpu: "600m"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 20
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+        - name: model-cache
+          mountPath: /app/models
+      volumes:
+      - name: config-volume
+        configMap:
+          name: matching-service-config
+      - name: model-cache
+        emptyDir:
+          sizeLimit: 2Gi
+      serviceAccountName: matching-service-account
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: matching-service
+  namespace: dinner-first-prod
+  labels:
+    app: matching-service
+spec:
+  selector:
+    app: matching-service
+  ports:
+  - port: 8000
+    targetPort: 8000
+    name: http
+  - port: 8080
+    targetPort: 8080
+    name: metrics
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: matching-service-config
+  namespace: dinner-first-prod
+data:
+  app.yaml: |
+    server:
+      port: 8000
+      host: "0.0.0.0"
+      workers: 4
+
+    redis:
+      cluster_endpoints:
+        - "redis-cluster.dinner-first-redis.svc.cluster.local:6379"
+      matches_db: 2
+      analytics_db: 3
+      cache_ttl: 1800
+      max_connections: 50
+
+    database:
+      pool_size: 30
+      max_overflow: 50
+      pool_timeout: 30
+      pool_recycle: 3600
+
+    ml_models:
+      compatibility_model: "compatibility_v2.0.0"
+      sentiment_model: "sentiment_v1.5.0"
+      behavior_model: "behavior_v1.2.0"
+      model_cache_size: 3
+      prediction_timeout: 15
+
+    matching:
+      min_compatibility_score: 0.6
+      max_matches_per_user: 10
+      match_radius_km: 50
+      age_range_tolerance: 5
+      batch_size: 100
+
+    performance:
+      request_timeout: 30
+      circuit_breaker:
+        failure_threshold: 5
+        recovery_timeout: 60
+        request_volume_threshold: 20
+
+    monitoring:
+      prometheus_enabled: true
+      jaeger_enabled: true
+      log_level: "INFO"
+      custom_metrics_enabled: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: matching-db-secret
+  namespace: dinner-first-prod
+type: Opaque
+data:
+  connection-string: cG9zdGdyZXNxbDovL3VzZXI6cGFzc0BtYXRjaGluZy1kYi5kaW5uZXItZmlyc3QtcHJvZC5zdmMuY2x1c3Rlci5sb2NhbDo1NDMyL21hdGNoaW5nX2Ri  # Base64 encoded
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: matching-service-account
+  namespace: dinner-first-prod
+  labels:
+    app: matching-service
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: matching-service-hpa
+  namespace: dinner-first-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: matching-service-stable
+  minReplicas: 3
+  maxReplicas: 12
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 75
+  - type: Pods
+    pods:
+      metric:
+        name: ml_prediction_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "50"
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 120
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 30
+    scaleDown:
+      stabilizationWindowSeconds: 600
+      policies:
+      - type: Percent
+        value: 5
+        periodSeconds: 120

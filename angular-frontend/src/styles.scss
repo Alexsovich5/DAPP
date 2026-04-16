@@ -1,6 +1,9 @@
 /* Import WCAG 2.1 AA Compliant Color System */
 @import 'app/shared/styles/accessibility-colors';
 
+/* Import Icon Standardization */
+@import 'app/shared/styles/icon-standards';
+
 /* Import Swipe Gesture Styles */
 @import 'app/shared/styles/swipe-gestures';
 
@@ -239,6 +242,9 @@ button {
 input, textarea, select {
   font-size: 16px; // Prevents zoom on iOS
   min-height: 44px;
+  color: var(--text-primary) !important;
+  background-color: var(--background-primary);
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 
   &:focus {
     @include focus-ring-primary;
@@ -247,6 +253,20 @@ input, textarea, select {
   &:invalid {
     border-color: var(--status-error);
     box-shadow: 0 0 0 1px var(--status-error);
+  }
+
+  &::placeholder {
+    color: var(--text-tertiary) !important;
+    opacity: 0.7;
+  }
+}
+
+// Ensure Material textareas and selects are also visible
+.mat-input-element {
+  color: var(--text-primary) !important;
+
+  &:disabled {
+    color: var(--text-disabled) !important;
   }
 }
 
@@ -351,24 +371,123 @@ table {
 
 .mat-form-field {
   .mat-form-field-label {
-    @include text-secondary;
+    color: var(--text-secondary) !important;
   }
 
   .mat-input-element {
-    @include text-primary;
+    color: var(--text-primary) !important;
+    caret-color: var(--text-primary) !important;
 
     &:focus {
       @include focus-ring-primary;
+    }
+
+    &::placeholder {
+      color: var(--text-tertiary) !important;
+      opacity: 0.7;
     }
   }
 
   &.mat-focused .mat-form-field-label {
     color: var(--interactive-primary) !important;
   }
+
+  // Ensure all Material form field variants have visible text
+  &.mat-form-field-appearance-fill .mat-input-element,
+  &.mat-form-field-appearance-outline .mat-input-element,
+  &.mat-form-field-appearance-legacy .mat-input-element {
+    color: var(--text-primary) !important;
+    caret-color: var(--text-primary) !important;
+  }
+
+  // CRITICAL: Fix outline appearance borders (used in login form)
+  &.mat-form-field-appearance-outline {
+    .mat-form-field-outline {
+      color: var(--border-medium) !important;
+    }
+
+    .mat-form-field-outline-thick {
+      color: var(--interactive-primary) !important;
+    }
+
+    &.mat-focused .mat-form-field-outline-thick {
+      color: var(--interactive-primary) !important;
+    }
+
+    &:hover:not(.mat-focused) .mat-form-field-outline {
+      color: var(--border-strong) !important;
+    }
+  }
+
+  // Fix autofill styles
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--text-primary) !important;
+    -webkit-box-shadow: 0 0 0px 1000px var(--background-primary) inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
 }
 
 .mat-error {
   color: var(--status-error) !important;
+}
+
+// Material Design Components (MDC) form field styling
+.mat-mdc-form-field {
+  .mdc-text-field {
+    background-color: transparent !important;
+  }
+
+  .mat-mdc-form-field-focus-overlay {
+    background-color: transparent !important;
+  }
+
+  // MDC outline appearance
+  &.mat-mdc-form-field-appearance-outline {
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__trailing,
+    .mdc-notched-outline__notch {
+      border-color: var(--border-medium) !important;
+    }
+
+    &:hover:not(.mdc-text-field--focused) {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__trailing,
+      .mdc-notched-outline__notch {
+        border-color: var(--border-strong) !important;
+      }
+    }
+
+    &.mdc-text-field--focused {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__trailing,
+      .mdc-notched-outline__notch {
+        border-color: var(--interactive-primary) !important;
+        border-width: 2px !important;
+      }
+    }
+  }
+
+  // MDC input element
+  .mat-mdc-input-element {
+    color: var(--text-primary) !important;
+    caret-color: var(--text-primary) !important;
+
+    &::placeholder {
+      color: var(--text-tertiary) !important;
+      opacity: 0.7;
+    }
+  }
+
+  // MDC label
+  .mat-mdc-floating-label {
+    color: var(--text-secondary) !important;
+  }
+
+  &.mat-focused .mat-mdc-floating-label {
+    color: var(--interactive-primary) !important;
+  }
 }
 
 .mat-card {

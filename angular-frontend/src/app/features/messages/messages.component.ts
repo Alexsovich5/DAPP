@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -70,7 +71,8 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
       </div>
 
       <div class="messages-list" *ngIf="filteredMessages.length > 0; else noMessages">
-        <div
+        <button
+          type="button"
           *ngFor="let message of filteredMessages"
           class="message-item conversation-item"
           [class.unread]="message.unreadCount > 0"
@@ -125,11 +127,12 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
             </div>
           </div>
 
-          <div class="message-actions">
-            <button class="action-btn" (click)="quickReply(message, $event)" title="Quick Reply">
+          <div class="message-actions" role="group" aria-label="Message actions">
+            <button type="button" class="action-btn" (click)="quickReply(message, $event)" title="Quick Reply">
               💬
             </button>
             <button
+              type="button"
               class="action-btn revelation"
               (click)="viewRevelations(message, $event)"
               *ngIf="message.revelationDay > 1"
@@ -137,11 +140,11 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
             >
               ✨
             </button>
-            <button class="action-btn" (click)="toggleMute(message, $event)" title="Mute">
+            <button type="button" class="action-btn" (click)="toggleMute(message, $event)" title="Mute">
               🔔
             </button>
           </div>
-        </div>
+        </button>
       </div>
 
       <ng-template #noMessages>

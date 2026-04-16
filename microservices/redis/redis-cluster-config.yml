@@ -1,0 +1,261 @@
+# Redis Cluster Configuration for Sprint 8 - Advanced Microservices Architecture
+# High-performance multi-database setup for different data types
+
+version: '3.8'
+
+services:
+  # Redis Cluster Nodes (3 Masters + 3 Replicas)
+  redis-node-1:
+    image: redis:7-cluster
+    container_name: dinner-first-redis-node-1
+    command: |
+      redis-server /etc/redis/redis.conf
+      --cluster-enabled yes
+      --cluster-config-file nodes-6379.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --port 6379
+      --cluster-announce-port 6379
+      --cluster-announce-bus-port 16379
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+      - "16379:16379"
+    volumes:
+      - redis_node_1_data:/data
+      - ./redis-cluster.conf:/etc/redis/redis.conf
+    networks:
+      dinner-first-network:
+        ipv4_address: 172.20.0.10
+    deploy:
+      resources:
+        limits:
+          memory: 2GB
+          cpus: '0.5'
+        reservations:
+          memory: 1GB
+          cpus: '0.25'
+
+  redis-node-2:
+    image: redis:7-cluster
+    container_name: dinner-first-redis-node-2
+    command: |
+      redis-server /etc/redis/redis.conf
+      --cluster-enabled yes
+      --cluster-config-file nodes-6380.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --port 6380
+      --cluster-announce-port 6380
+      --cluster-announce-bus-port 16380
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    ports:
+      - "6380:6380"
+      - "16380:16380"
+    volumes:
+      - redis_node_2_data:/data
+      - ./redis-cluster.conf:/etc/redis/redis.conf
+    networks:
+      dinner-first-network:
+        ipv4_address: 172.20.0.11
+    deploy:
+      resources:
+        limits:
+          memory: 2GB
+          cpus: '0.5'
+        reservations:
+          memory: 1GB
+          cpus: '0.25'
+
+  redis-node-3:
+    image: redis:7-cluster
+    container_name: dinner-first-redis-node-3
+    command: |
+      redis-server /etc/redis/redis.conf
+      --cluster-enabled yes
+      --cluster-config-file nodes-6381.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --port 6381
+      --cluster-announce-port 6381
+      --cluster-announce-bus-port 16381
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    ports:
+      - "6381:6381"
+      - "16381:16381"
+    volumes:
+      - redis_node_3_data:/data
+      - ./redis-cluster.conf:/etc/redis/redis.conf
+    networks:
+      dinner-first-network:
+        ipv4_address: 172.20.0.12
+    deploy:
+      resources:
+        limits:
+          memory: 2GB
+          cpus: '0.5'
+        reservations:
+          memory: 1GB
+          cpus: '0.25'
+
+  redis-node-4:
+    image: redis:7-cluster
+    container_name: dinner-first-redis-node-4
+    command: |
+      redis-server /etc/redis/redis.conf
+      --cluster-enabled yes
+      --cluster-config-file nodes-6382.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --port 6382
+      --cluster-announce-port 6382
+      --cluster-announce-bus-port 16382
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    ports:
+      - "6382:6382"
+      - "16382:16382"
+    volumes:
+      - redis_node_4_data:/data
+      - ./redis-cluster.conf:/etc/redis/redis.conf
+    networks:
+      dinner-first-network:
+        ipv4_address: 172.20.0.13
+    deploy:
+      resources:
+        limits:
+          memory: 2GB
+          cpus: '0.5'
+        reservations:
+          memory: 1GB
+          cpus: '0.25'
+
+  redis-node-5:
+    image: redis:7-cluster
+    container_name: dinner-first-redis-node-5
+    command: |
+      redis-server /etc/redis/redis.conf
+      --cluster-enabled yes
+      --cluster-config-file nodes-6383.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --port 6383
+      --cluster-announce-port 6383
+      --cluster-announce-bus-port 16383
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    ports:
+      - "6383:6383"
+      - "16383:16383"
+    volumes:
+      - redis_node_5_data:/data
+      - ./redis-cluster.conf:/etc/redis/redis.conf
+    networks:
+      dinner-first-network:
+        ipv4_address: 172.20.0.14
+    deploy:
+      resources:
+        limits:
+          memory: 2GB
+          cpus: '0.5'
+        reservations:
+          memory: 1GB
+          cpus: '0.25'
+
+  redis-node-6:
+    image: redis:7-cluster
+    container_name: dinner-first-redis-node-6
+    command: |
+      redis-server /etc/redis/redis.conf
+      --cluster-enabled yes
+      --cluster-config-file nodes-6384.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --port 6384
+      --cluster-announce-port 6384
+      --cluster-announce-bus-port 16384
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    ports:
+      - "6384:6384"
+      - "16384:16384"
+    volumes:
+      - redis_node_6_data:/data
+      - ./redis-cluster.conf:/etc/redis/redis.conf
+    networks:
+      dinner-first-network:
+        ipv4_address: 172.20.0.15
+    deploy:
+      resources:
+        limits:
+          memory: 2GB
+          cpus: '0.5'
+        reservations:
+          memory: 1GB
+          cpus: '0.25'
+
+  # Redis Cluster Initialization Service
+  redis-cluster-init:
+    image: redis:7-cluster
+    container_name: dinner-first-redis-cluster-init
+    command: |
+      sh -c "
+      echo 'Waiting for Redis nodes to be ready...'
+      sleep 30
+      echo 'Creating Redis cluster...'
+      redis-cli --cluster create \
+        172.20.0.10:6379 172.20.0.11:6380 172.20.0.12:6381 \
+        172.20.0.13:6382 172.20.0.14:6383 172.20.0.15:6384 \
+        --cluster-replicas 1 --cluster-yes
+      echo 'Redis cluster initialized successfully'
+      "
+    depends_on:
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+      - redis-node-4
+      - redis-node-5
+      - redis-node-6
+    networks:
+      - dinner-first-network
+
+  # Redis Cluster Monitoring
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: dinner-first-redis-exporter
+    environment:
+      REDIS_ADDR: "redis://172.20.0.10:6379,redis://172.20.0.11:6380,redis://172.20.0.12:6381"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    ports:
+      - "9121:9121"
+    networks:
+      - dinner-first-network
+    depends_on:
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+
+networks:
+  dinner-first-network:
+    external: true
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  redis_node_1_data:
+    driver: local
+  redis_node_2_data:
+    driver: local
+  redis_node_3_data:
+    driver: local
+  redis_node_4_data:
+    driver: local
+  redis_node_5_data:
+    driver: local
+  redis_node_6_data:
+    driver: local

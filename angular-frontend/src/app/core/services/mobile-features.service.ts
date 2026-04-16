@@ -1,6 +1,25 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, fromEvent } from 'rxjs';
-import { map, debounceTime } from 'rxjs/operators';
+import { BehaviorSubject, fromEvent, Observable } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+
+// Browser API type declarations
+interface BatteryManager {
+  level: number;
+  charging: boolean;
+  chargingTime: number;
+  dischargingTime: number;
+}
+
+interface NetworkInformation {
+  effectiveType: string;
+  downlink: number;
+  rtt: number;
+  saveData: boolean;
+}
+
+interface WakeLockSentinel {
+  release: () => Promise<void>;
+}
 
 export interface GeolocationResult {
   latitude: number;
@@ -235,7 +254,7 @@ export class MobileFeaturesService {
   // Device Orientation
   private initializeOrientationListener(): void {
     if ('DeviceOrientationEvent' in window) {
-      fromEvent(window, 'deviceorientation').subscribe((event: any) => {
+      fromEvent<DeviceOrientationEvent>(window, 'deviceorientation').subscribe((event) => {
         this.orientationSubject.next({
           alpha: event.alpha || 0,
           beta: event.beta || 0,
@@ -246,9 +265,10 @@ export class MobileFeaturesService {
   }
 
   async requestOrientationPermission(): Promise<boolean> {
-    if ('DeviceOrientationEvent' in window && typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+    const DeviceOrientationEventWithPermission = DeviceOrientationEvent as typeof DeviceOrientationEvent & { requestPermission?: () => Promise<string> };
+    if ('DeviceOrientationEvent' in window && typeof DeviceOrientationEventWithPermission.requestPermission === 'function') {
       try {
-        const permission = await (DeviceOrientationEvent as any).requestPermission();
+        const permission = await DeviceOrientationEventWithPermission.requestPermission();
         return permission === 'granted';
       } catch (error) {
         console.error('Orientation permission error:', error);
@@ -264,9 +284,9 @@ export class MobileFeaturesService {
       let lastAcceleration = { x: 0, y: 0, z: 0 };
       let lastTime = Date.now();
 
-      fromEvent(window, 'devicemotion')
+      fromEvent<DeviceMotionEvent>(window, 'devicemotion')
         .pipe(debounceTime(100))
-        .subscribe((event: any) => {
+        .subscribe((event) => {
           const acceleration = event.accelerationIncludingGravity;
           if (!acceleration) return;
 
@@ -274,9 +294,9 @@ export class MobileFeaturesService {
           const timeDelta = currentTime - lastTime;
 
           if (timeDelta > 100) {
-            const deltaX = Math.abs(acceleration.x - lastAcceleration.x);
-            const deltaY = Math.abs(acceleration.y - lastAcceleration.y);
-            const deltaZ = Math.abs(acceleration.z - lastAcceleration.z);
+            const deltaX = Math.abs((acceleration.x || 0) - lastAcceleration.x);
+            const deltaY = Math.abs((acceleration.y || 0) - lastAcceleration.y);
+            const deltaZ = Math.abs((acceleration.z || 0) - lastAcceleration.z);
 
             const shakeThreshold = 15;
             const totalDelta = deltaX + deltaY + deltaZ;
@@ -286,7 +306,7 @@ export class MobileFeaturesService {
               setTimeout(() => this.shakeSubject.next(false), 1000);
             }
 
-            lastAcceleration = { x: acceleration.x, y: acceleration.y, z: acceleration.z };
+            lastAcceleration = { x: acceleration.x || 0, y: acceleration.y || 0, z: acceleration.z || 0 };
             lastTime = currentTime;
           }
         });
@@ -345,9 +365,10 @@ export class MobileFeaturesService {
     chargingTime: number;
     dischargingTime: number;
   } | null> {
-    if ('getBattery' in navigator) {
+    const navigatorWithBattery = navigator as Navigator & { getBattery?: () => Promise<BatteryManager> };
+    if ('getBattery' in navigator && navigatorWithBattery.getBattery) {
       try {
-        const battery = await (navigator as any).getBattery();
+        const battery = await navigatorWithBattery.getBattery();
         return {
           level: battery.level,
           charging: battery.charging,
@@ -369,7 +390,8 @@ export class MobileFeaturesService {
     rtt: number;
     saveData: boolean;
   } | null {
-    const connection = (navigator as any).connection;
+    const navigatorWithConnection = navigator as Navigator & { connection?: NetworkInformation };
+    const connection = navigatorWithConnection.connection;
     if (connection) {
       return {
         effectiveType: connection.effectiveType,
@@ -382,12 +404,13 @@ export class MobileFeaturesService {
   }
 
   // Screen Wake Lock
-  private wakeLock: any = null;
+  private wakeLock: WakeLockSentinel | null = null;
 
   async requestWakeLock(): Promise<boolean> {
-    if ('wakeLock' in navigator) {
+    const navigatorWithWakeLock = navigator as Navigator & { wakeLock?: { request: (type: string) => Promise<WakeLockSentinel> } };
+    if ('wakeLock' in navigator && navigatorWithWakeLock.wakeLock) {
       try {
-        this.wakeLock = await (navigator as any).wakeLock.request('screen');
+        this.wakeLock = await navigatorWithWakeLock.wakeLock.request('screen');
         return true;
       } catch (error) {
         console.error('Wake lock failed:', error);
@@ -451,9 +474,10 @@ export class MobileFeaturesService {
 
   // App Badging (for notifications)
   async setBadge(count: number): Promise<boolean> {
-    if ('setAppBadge' in navigator) {
+    const navigatorWithBadging = navigator as Navigator & { setAppBadge?: (count: number) => Promise<void> };
+    if ('setAppBadge' in navigator && navigatorWithBadging.setAppBadge) {
       try {
-        await (navigator as any).setAppBadge(count);
+        await navigatorWithBadging.setAppBadge(count);
         return true;
       } catch (error) {
         console.error('Failed to set app badge:', error);
@@ -464,9 +488,10 @@ export class MobileFeaturesService {
   }
 
   async clearBadge(): Promise<boolean> {
-    if ('clearAppBadge' in navigator) {
+    const navigatorWithBadging = navigator as Navigator & { clearAppBadge?: () => Promise<void> };
+    if ('clearAppBadge' in navigator && navigatorWithBadging.clearAppBadge) {
       try {
-        await (navigator as any).clearAppBadge();
+        await navigatorWithBadging.clearAppBadge();
         return true;
       } catch (error) {
         console.error('Failed to clear app badge:', error);

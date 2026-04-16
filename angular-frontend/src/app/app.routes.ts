@@ -86,6 +86,21 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'connections',
+    loadComponent: () =>
+      import('./features/connections/connection-management.component')
+        .then(m => m.ConnectionManagementComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'dinner-planning',
+    loadComponent: () =>
+      import('./features/dinner-planning/dinner-planning.component').then(
+        m => m.DinnerPlanningComponent
+      ),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'demo',
     loadComponent: () => import('./shared/components/navigation/navigation-demo.component').then(m => m.NavigationDemoComponent)
   },

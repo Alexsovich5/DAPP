@@ -8,7 +8,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List
 
-from app.core.auth import get_current_user
+from app.core.auth_deps import get_current_user
 from app.core.database import get_db
 from app.models.soul_connection import SoulConnection
 from app.models.user import User
@@ -204,7 +204,8 @@ async def get_soul_compatibility(
         target_user = db.query(User).filter(User.id == user_id).first()
         if not target_user:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Target user not found"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Target user not found",
             )
 
         # Prevent self-compatibility calculation
@@ -245,7 +246,8 @@ async def get_soul_compatibility(
 
 
 @router.get(
-    "/advanced-compatibility/{user_id}", response_model=AdvancedCompatibilityResponse
+    "/advanced-compatibility/{user_id}",
+    response_model=AdvancedCompatibilityResponse,
 )
 async def get_advanced_compatibility(
     user_id: int,
@@ -261,7 +263,8 @@ async def get_advanced_compatibility(
         target_user = db.query(User).filter(User.id == user_id).first()
         if not target_user:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Target user not found"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Target user not found",
             )
 
         if current_user.id == user_id:
@@ -315,7 +318,8 @@ async def get_advanced_compatibility(
 
 @router.get("/emotional-depth", response_model=EmotionalDepthMetricsResponse)
 async def get_emotional_depth_analysis(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get current user's emotional depth analysis
@@ -445,7 +449,8 @@ async def get_depth_compatibility(
         target_user = db.query(User).filter(User.id == user_id).first()
         if not target_user:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Target user not found"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Target user not found",
             )
 
         if current_user.id == user_id:
@@ -544,7 +549,8 @@ async def get_comprehensive_match_quality(
         target_user = db.query(User).filter(User.id == user_id).first()
         if not target_user:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Target user not found"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Target user not found",
             )
 
         if current_user.id == user_id:
@@ -714,7 +720,7 @@ async def get_enhanced_discovery_matches(
             .filter(
                 User.id != current_user.id,
                 ~User.id.in_(connected_user_ids),
-                User.emotional_onboarding_completed is True,
+                User.emotional_onboarding_completed,
             )
             .limit(limit * 2)
             .all()

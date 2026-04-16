@@ -4,10 +4,8 @@ Pydantic models for personalization API request/response validation
 """
 
 from datetime import datetime
-from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from app.models.personalization_models import ContentType, PersonalizationStrategy
 from pydantic import BaseModel, Field, validator
 
 

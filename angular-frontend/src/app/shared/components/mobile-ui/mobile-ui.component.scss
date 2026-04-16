@@ -14,12 +14,12 @@
   --safe-area-left: env(safe-area-inset-left);
   --safe-area-right: env(safe-area-inset-right);
 
-  // Dating app brand colors
-  --brand-primary: #E91E63;
-  --brand-secondary: #FF6B9D;
-  --brand-accent: #FFB74D;
-  --soul-connection: #9C27B0;
-  --revelation-glow: #FFC107;
+  // Dating app brand colors (use CSS variables for theme support)
+  --brand-primary: var(--interactive-secondary);
+  --brand-secondary: var(--interactive-primary);
+  --brand-accent: var(--interactive-accent);
+  --soul-connection: var(--color-primary-600);
+  --revelation-glow: var(--color-accent-500);
 
   display: block;
   width: 100%;

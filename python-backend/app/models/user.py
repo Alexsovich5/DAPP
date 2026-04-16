@@ -67,6 +67,11 @@ class User(Base):
         JSON, nullable=True
     )  # Store onboarding question responses
 
+    # Notification preferences
+    notification_preferences = Column(
+        JSON, nullable=True
+    )  # Store notification settings
+
     # Phase 4 Enhanced Features
     # Real-time state
     current_emotional_state = Column(String, default=UserEmotionalState.CONTEMPLATIVE)

@@ -1,0 +1,339 @@
+# Messaging Service Production Deployment
+# Real-time messaging with WebSocket support and event processing
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: messaging-service
+  namespace: dinner-first-prod
+  labels:
+    app: messaging-service
+    version: v1.0.0
+spec:
+  replicas: 4
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 2
+  selector:
+    matchLabels:
+      app: messaging-service
+      version: v1.0.0
+  template:
+    metadata:
+      labels:
+        app: messaging-service
+        version: v1.0.0
+        service: messaging
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - messaging-service
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: messaging-service
+        image: dinner-first/messaging-service:v1.0.0
+        ports:
+        - containerPort: 8000
+          name: http
+        - containerPort: 8080
+          name: metrics
+        - containerPort: 8765
+          name: websocket
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: messaging-db-secret
+              key: connection-string
+        - name: REDIS_CLUSTER_ENDPOINTS
+          value: "redis-cluster.dinner-first-redis.svc.cluster.local:6379"
+        - name: RABBITMQ_URL
+          valueFrom:
+            secretKeyRef:
+              name: messaging-secrets
+              key: rabbitmq-url
+        - name: SENTIMENT_SERVICE_URL
+          value: "http://sentiment-service.dinner-first-prod.svc.cluster.local:8000"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: PROMETHEUS_ENABLED
+          value: "true"
+        - name: JAEGER_AGENT_HOST
+          value: "jaeger-agent.dinner-first-monitoring.svc.cluster.local"
+        - name: WEBSOCKET_ENABLED
+          value: "true"
+        - name: CLUSTER_NODE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "300m"
+          limits:
+            memory: "1Gi"
+            cpu: "800m"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+        - name: logs-volume
+          mountPath: /app/logs
+      volumes:
+      - name: config-volume
+        configMap:
+          name: messaging-service-config
+      - name: logs-volume
+        emptyDir: {}
+      serviceAccountName: messaging-service-account
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: messaging-service
+  namespace: dinner-first-prod
+  labels:
+    app: messaging-service
+spec:
+  selector:
+    app: messaging-service
+  ports:
+  - port: 8000
+    targetPort: 8000
+    name: http
+  - port: 8080
+    targetPort: 8080
+    name: metrics
+  - port: 8765
+    targetPort: 8765
+    name: websocket
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: messaging-service-websocket
+  namespace: dinner-first-prod
+  labels:
+    app: messaging-service
+    service: websocket
+spec:
+  selector:
+    app: messaging-service
+  ports:
+  - port: 8765
+    targetPort: 8765
+    name: websocket
+    protocol: TCP
+  type: ClusterIP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 3600
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: messaging-service-config
+  namespace: dinner-first-prod
+data:
+  app.yaml: |
+    server:
+      port: 8000
+      host: "0.0.0.0"
+      workers: 1  # Single worker for WebSocket support
+
+    websocket:
+      enabled: true
+      port: 8765
+      host: "0.0.0.0"
+      max_connections: 1000
+      heartbeat_interval: 30
+      connection_timeout: 300
+
+    redis:
+      cluster_endpoints:
+        - "redis-cluster.dinner-first-redis.svc.cluster.local:6379"
+      messages_db: 1
+      sessions_db: 0
+      pubsub_db: 5
+      cache_ttl: 86400  # 24 hours for messages
+      max_connections: 100
+
+    database:
+      pool_size: 25
+      max_overflow: 40
+      pool_timeout: 30
+      pool_recycle: 3600
+
+    messaging:
+      max_message_length: 5000
+      message_retention_days: 90
+      batch_processing_size: 100
+      enable_message_encryption: true
+      enable_read_receipts: true
+      enable_typing_indicators: true
+
+      rate_limiting:
+        messages_per_minute: 60
+        burst_limit: 10
+
+      content_filtering:
+        enabled: true
+        inappropriate_content_action: "flag"
+        spam_detection_enabled: true
+
+    real_time:
+      websocket_clusters: true
+      message_broadcast_enabled: true
+      presence_tracking_enabled: true
+      connection_state_sync: true
+
+      event_types:
+        - message_sent
+        - message_delivered
+        - message_read
+        - typing_start
+        - typing_stop
+        - user_online
+        - user_offline
+
+    integrations:
+      sentiment_analysis_enabled: true
+      sentiment_service_timeout: 10
+      async_sentiment_processing: true
+
+      notification_service_enabled: true
+      push_notifications_enabled: true
+
+    performance:
+      request_timeout: 30
+      websocket_timeout: 300
+      circuit_breaker:
+        failure_threshold: 5
+        recovery_timeout: 60
+        request_volume_threshold: 20
+
+      connection_pooling:
+        max_pool_size: 100
+        pool_timeout: 30
+        pool_recycle: 3600
+
+    monitoring:
+      prometheus_enabled: true
+      jaeger_enabled: true
+      log_level: "INFO"
+      custom_metrics_enabled: true
+      websocket_metrics_enabled: true
+      message_delivery_tracking: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: messaging-db-secret
+  namespace: dinner-first-prod
+type: Opaque
+data:
+  connection-string: cG9zdGdyZXNxbDovL3VzZXI6cGFzc0BtZXNzYWdpbmctZGIuZGlubmVyLWZpcnN0LXByb2Quc3ZjLmNsdXN0ZXIubG9jYWw6NTQzMi9tZXNzYWdpbmdfZGI=  # Base64 encoded
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: messaging-secrets
+  namespace: dinner-first-prod
+type: Opaque
+data:
+  # Values populated from environment variables via CI/CD pipeline
+  # See .env.messaging.production.example for required variables
+  rabbitmq-url: ${RABBITMQ_URL_B64}
+  encryption-key: ${MESSAGE_ENCRYPTION_KEY_B64}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: messaging-service-account
+  namespace: dinner-first-prod
+  labels:
+    app: messaging-service
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: messaging-service-hpa
+  namespace: dinner-first-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: messaging-service
+  minReplicas: 4
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 65
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 75
+  - type: Pods
+    pods:
+      metric:
+        name: websocket_connections
+      target:
+        type: AverageValue
+        averageValue: "800"
+  - type: Pods
+    pods:
+      metric:
+        name: messages_per_second
+      target:
+        type: AverageValue
+        averageValue: "100"
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60

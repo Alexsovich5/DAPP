@@ -1,0 +1,489 @@
+# Kubernetes Deployment Scripts and Automation
+# Production deployment automation with health checks and rollback capabilities
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: deployment-scripts
+  namespace: dinner-first-prod
+data:
+  deploy.sh: |
+    #!/bin/bash
+    set -e
+
+    echo "Starting Dinner First Production Deployment..."
+
+    # Color codes for output
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    NC='\033[0m' # No Color
+
+    # Function to log messages
+    log() {
+        echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1"
+    }
+
+    warn() {
+        echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] WARNING:${NC} $1"
+    }
+
+    error() {
+        echo -e "${RED}[$(date +'%Y-%m-%d %H:%M:%S')] ERROR:${NC} $1"
+        exit 1
+    }
+
+    # Check if kubectl is available
+    if ! command -v kubectl &> /dev/null; then
+        error "kubectl is not installed or not in PATH"
+    fi
+
+    # Check cluster connection
+    if ! kubectl cluster-info &> /dev/null; then
+        error "Cannot connect to Kubernetes cluster"
+    fi
+
+    log "Connected to Kubernetes cluster successfully"
+
+    # Create namespaces
+    log "Creating namespaces..."
+    kubectl apply -f namespace.yml
+
+    # Wait for namespaces to be ready
+    kubectl wait --for=condition=Active --timeout=60s namespace/dinner-first-prod
+    kubectl wait --for=condition=Active --timeout=60s namespace/dinner-first-monitoring
+    kubectl wait --for=condition=Active --timeout=60s namespace/dinner-first-redis
+    kubectl wait --for=condition=Active --timeout=60s namespace/dinner-first-messaging
+
+    # Deploy Redis cluster
+    log "Deploying Redis cluster..."
+    kubectl apply -f redis-cluster.yml
+
+    # Wait for Redis cluster to be ready
+    log "Waiting for Redis cluster to be ready..."
+    kubectl wait --for=condition=Ready --timeout=300s pod -l app=redis-cluster -n dinner-first-redis
+
+    # Initialize Redis cluster
+    log "Initializing Redis cluster..."
+    kubectl wait --for=condition=Complete --timeout=300s job/redis-cluster-init -n dinner-first-redis
+
+    # Deploy databases
+    log "Deploying PostgreSQL databases..."
+    kubectl apply -f databases.yml
+
+    # Wait for databases to be ready
+    log "Waiting for databases to be ready..."
+    kubectl wait --for=condition=Ready --timeout=300s pod -l component=database -n dinner-first-prod
+
+    # Deploy RabbitMQ
+    log "Deploying RabbitMQ cluster..."
+    kubectl apply -f rabbitmq.yml
+
+    # Wait for RabbitMQ cluster
+    log "Waiting for RabbitMQ cluster to be ready..."
+    kubectl wait --for=condition=Ready --timeout=300s pod -l app=rabbitmq -n dinner-first-messaging
+
+    # Initialize RabbitMQ
+    log "Initializing RabbitMQ cluster..."
+    kubectl wait --for=condition=Complete --timeout=300s job/rabbitmq-cluster-init -n dinner-first-messaging
+
+    # Deploy monitoring stack
+    log "Deploying monitoring stack..."
+    kubectl apply -f monitoring.yml
+
+    # Wait for monitoring services
+    log "Waiting for monitoring services to be ready..."
+    kubectl wait --for=condition=Ready --timeout=300s pod -l app=prometheus -n dinner-first-monitoring
+    kubectl wait --for=condition=Ready --timeout=300s pod -l app=grafana -n dinner-first-monitoring
+    kubectl wait --for=condition=Ready --timeout=300s pod -l app=jaeger -n dinner-first-monitoring
+
+    # Deploy microservices
+    log "Deploying microservices..."
+    kubectl apply -f auth-service.yml
+    kubectl apply -f matching-service.yml
+    kubectl apply -f sentiment-service.yml
+    kubectl apply -f messaging-service.yml
+    kubectl apply -f profile-service.yml
+
+    # Wait for microservices to be ready
+    log "Waiting for microservices to be ready..."
+    kubectl wait --for=condition=Ready --timeout=300s pod -l app=auth-service -n dinner-first-prod
+    kubectl wait --for=condition=Ready --timeout=300s pod -l app=matching-service -n dinner-first-prod
+    kubectl wait --for=condition=Ready --timeout=300s pod -l app=sentiment-service -n dinner-first-prod
+    kubectl wait --for=condition=Ready --timeout=300s pod -l app=messaging-service -n dinner-first-prod
+    kubectl wait --for=condition=Ready --timeout=300s pod -l app=profile-service -n dinner-first-prod
+
+    # Deploy Istio service mesh configuration
+    log "Deploying Istio service mesh..."
+    kubectl apply -f ../istio/istio-service-mesh-config.yml
+
+    # Deploy ingress
+    log "Deploying ingress controllers..."
+    kubectl apply -f ingress.yml
+
+    # Health checks
+    log "Running health checks..."
+    bash health-check.sh
+
+    log "Deployment completed successfully!"
+    log "Access points:"
+    log "  - API: https://api.dinner-first.app"
+    log "  - Frontend: https://dinner-first.app"
+    log "  - WebSocket: wss://ws.dinner-first.app"
+    log "  - Monitoring: https://monitoring.dinner-first.app/grafana"
+    log "  - Admin: https://admin.dinner-first.app"
+
+  health-check.sh: |
+    #!/bin/bash
+    set -e
+
+    echo "Running comprehensive health checks..."
+
+    # Color codes
+    GREEN='\033[0;32m'
+    RED='\033[0;31m'
+    YELLOW='\033[1;33m'
+    NC='\033[0m'
+
+    FAILED_CHECKS=0
+
+    check_service() {
+        local service=$1
+        local namespace=$2
+        local expected_replicas=$3
+
+        echo -n "Checking $service in $namespace... "
+
+        local ready_replicas=$(kubectl get deployment $service -n $namespace -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
+
+        if [ "$ready_replicas" = "$expected_replicas" ]; then
+            echo -e "${GREEN}✓${NC} ($ready_replicas/$expected_replicas ready)"
+        else
+            echo -e "${RED}✗${NC} ($ready_replicas/$expected_replicas ready)"
+            FAILED_CHECKS=$((FAILED_CHECKS + 1))
+        fi
+    }
+
+    check_endpoint() {
+        local service=$1
+        local namespace=$2
+        local port=$3
+        local path=$4
+
+        echo -n "Checking $service endpoint... "
+
+        local pod=$(kubectl get pod -l app=$service -n $namespace -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+        if [ -z "$pod" ]; then
+            echo -e "${RED}✗${NC} (No pods found)"
+            FAILED_CHECKS=$((FAILED_CHECKS + 1))
+            return
+        fi
+
+        if kubectl exec -n $namespace $pod -- curl -f -s "http://localhost:$port$path" > /dev/null 2>&1; then
+            echo -e "${GREEN}✓${NC}"
+        else
+            echo -e "${RED}✗${NC} (Endpoint not responding)"
+            FAILED_CHECKS=$((FAILED_CHECKS + 1))
+        fi
+    }
+
+    echo "=== Microservices Health Checks ==="
+    check_service "auth-service" "dinner-first-prod" "3"
+    check_service "matching-service-stable" "dinner-first-prod" "3"
+    check_service "sentiment-service" "dinner-first-prod" "2"
+    check_service "messaging-service" "dinner-first-prod" "4"
+    check_service "profile-service" "dinner-first-prod" "3"
+
+    echo ""
+    echo "=== Infrastructure Health Checks ==="
+    check_service "redis-cluster" "dinner-first-redis" "6"
+    check_service "rabbitmq" "dinner-first-messaging" "3"
+
+    # Check database connectivity
+    echo -n "Checking database connectivity... "
+    DB_CHECKS=0
+    for db in auth-db matching-db sentiment-db messaging-db profile-db; do
+        if kubectl exec -n dinner-first-prod deployment/$db -- pg_isready > /dev/null 2>&1; then
+            DB_CHECKS=$((DB_CHECKS + 1))
+        fi
+    done
+
+    if [ $DB_CHECKS -eq 5 ]; then
+        echo -e "${GREEN}✓${NC} (All 5 databases ready)"
+    else
+        echo -e "${RED}✗${NC} ($DB_CHECKS/5 databases ready)"
+        FAILED_CHECKS=$((FAILED_CHECKS + 1))
+    fi
+
+    echo ""
+    echo "=== Monitoring Stack Health Checks ==="
+    check_service "prometheus" "dinner-first-monitoring" "1"
+    check_service "grafana" "dinner-first-monitoring" "1"
+    check_service "jaeger" "dinner-first-monitoring" "1"
+    check_service "alertmanager" "dinner-first-monitoring" "1"
+
+    echo ""
+    echo "=== Endpoint Health Checks ==="
+    check_endpoint "auth-service" "dinner-first-prod" "8000" "/health"
+    check_endpoint "matching-service" "dinner-first-prod" "8000" "/health"
+    check_endpoint "sentiment-service" "dinner-first-prod" "8000" "/health"
+    check_endpoint "messaging-service" "dinner-first-prod" "8000" "/health"
+    check_endpoint "profile-service" "dinner-first-prod" "8000" "/health"
+
+    echo ""
+    echo "=== Redis Cluster Status ==="
+    echo -n "Checking Redis cluster status... "
+    REDIS_POD=$(kubectl get pod -l app=redis-cluster -n dinner-first-redis -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+    if [ -n "$REDIS_POD" ]; then
+        if kubectl exec -n dinner-first-redis $REDIS_POD -- redis-cli cluster nodes | grep -q "master"; then
+            echo -e "${GREEN}✓${NC} (Cluster operational)"
+        else
+            echo -e "${RED}✗${NC} (Cluster not properly configured)"
+            FAILED_CHECKS=$((FAILED_CHECKS + 1))
+        fi
+    else
+        echo -e "${RED}✗${NC} (No Redis pods found)"
+        FAILED_CHECKS=$((FAILED_CHECKS + 1))
+    fi
+
+    echo ""
+    echo "=== Summary ==="
+    if [ $FAILED_CHECKS -eq 0 ]; then
+        echo -e "${GREEN}All health checks passed!${NC} ✅"
+        exit 0
+    else
+        echo -e "${RED}$FAILED_CHECKS health check(s) failed!${NC} ❌"
+        echo "Please check the failing components before proceeding."
+        exit 1
+    fi
+
+  rollback.sh: |
+    #!/bin/bash
+    set -e
+
+    echo "Starting rollback process..."
+
+    # Color codes
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    NC='\033[0m'
+
+    log() {
+        echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1"
+    }
+
+    warn() {
+        echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] WARNING:${NC} $1"
+    }
+
+    error() {
+        echo -e "${RED}[$(date +'%Y-%m-%d %H:%M:%S')] ERROR:${NC} $1"
+    }
+
+    # Check if deployment exists
+    if ! kubectl get deployment -n dinner-first-prod > /dev/null 2>&1; then
+        error "No deployments found to rollback"
+    fi
+
+    # Get list of deployments
+    DEPLOYMENTS=(
+        "auth-service"
+        "matching-service-stable"
+        "matching-service-canary"
+        "sentiment-service"
+        "messaging-service"
+        "profile-service"
+        "angular-frontend"
+    )
+
+    log "Rolling back microservices deployments..."
+
+    for deployment in "${DEPLOYMENTS[@]}"; do
+        if kubectl get deployment $deployment -n dinner-first-prod > /dev/null 2>&1; then
+            log "Rolling back $deployment..."
+            kubectl rollout undo deployment/$deployment -n dinner-first-prod
+            kubectl rollout status deployment/$deployment -n dinner-first-prod --timeout=300s
+        else
+            warn "Deployment $deployment not found, skipping"
+        fi
+    done
+
+    # Rollback monitoring if requested
+    if [ "$1" = "--include-monitoring" ]; then
+        log "Rolling back monitoring stack..."
+        MONITORING_DEPLOYMENTS=("prometheus" "grafana" "jaeger" "alertmanager")
+
+        for deployment in "${MONITORING_DEPLOYMENTS[@]}"; do
+            if kubectl get deployment $deployment -n dinner-first-monitoring > /dev/null 2>&1; then
+                log "Rolling back $deployment..."
+                kubectl rollout undo deployment/$deployment -n dinner-first-monitoring
+                kubectl rollout status deployment/$deployment -n dinner-first-monitoring --timeout=300s
+            fi
+        done
+    fi
+
+    log "Running health checks after rollback..."
+    bash health-check.sh
+
+    log "Rollback completed successfully!"
+
+  scale.sh: |
+    #!/bin/bash
+    set -e
+
+    # Scaling script for production workloads
+    SCALE_FACTOR=${1:-1}
+
+    echo "Scaling Dinner First microservices by factor: $SCALE_FACTOR"
+
+    # Base replica counts
+    declare -A BASE_REPLICAS=(
+        ["auth-service"]="3"
+        ["matching-service-stable"]="3"
+        ["sentiment-service"]="2"
+        ["messaging-service"]="4"
+        ["profile-service"]="3"
+        ["angular-frontend"]="3"
+    )
+
+    for deployment in "${!BASE_REPLICAS[@]}"; do
+        base_count=${BASE_REPLICAS[$deployment]}
+        new_count=$((base_count * SCALE_FACTOR))
+
+        echo "Scaling $deployment from $base_count to $new_count replicas..."
+        kubectl scale deployment $deployment --replicas=$new_count -n dinner-first-prod
+    done
+
+    echo "Waiting for all deployments to be ready..."
+    kubectl wait --for=condition=Available --timeout=300s deployment --all -n dinner-first-prod
+
+    echo "Scaling completed successfully!"
+
+  backup.sh: |
+    #!/bin/bash
+    set -e
+
+    BACKUP_DATE=$(date +%Y%m%d-%H%M%S)
+    BACKUP_DIR="/backups/dinner-first-$BACKUP_DATE"
+
+    echo "Creating backup: $BACKUP_DIR"
+    mkdir -p "$BACKUP_DIR"
+
+    # Backup Kubernetes configurations
+    echo "Backing up Kubernetes configurations..."
+    kubectl get all -n dinner-first-prod -o yaml > "$BACKUP_DIR/k8s-dinner-first-prod.yaml"
+    kubectl get all -n dinner-first-monitoring -o yaml > "$BACKUP_DIR/k8s-monitoring.yaml"
+    kubectl get all -n dinner-first-redis -o yaml > "$BACKUP_DIR/k8s-redis.yaml"
+    kubectl get all -n dinner-first-messaging -o yaml > "$BACKUP_DIR/k8s-messaging.yaml"
+
+    # Backup secrets and configmaps
+    echo "Backing up secrets and configmaps..."
+    kubectl get secrets -n dinner-first-prod -o yaml > "$BACKUP_DIR/secrets-prod.yaml"
+    kubectl get configmaps -n dinner-first-prod -o yaml > "$BACKUP_DIR/configmaps-prod.yaml"
+
+    # Backup persistent volumes
+    echo "Backing up persistent volume information..."
+    kubectl get pv -o yaml > "$BACKUP_DIR/persistent-volumes.yaml"
+    kubectl get pvc --all-namespaces -o yaml > "$BACKUP_DIR/persistent-volume-claims.yaml"
+
+    # Database backup commands (would need to be executed)
+    echo "Database backup commands:" > "$BACKUP_DIR/database-backup-commands.sh"
+    cat >> "$BACKUP_DIR/database-backup-commands.sh" << 'EOF'
+    #!/bin/bash
+    # Execute these commands to backup databases
+
+    # Auth database
+    kubectl exec -n dinner-first-prod deployment/auth-db -- pg_dump -U auth_user auth_db > auth_db_backup.sql
+
+    # Matching database
+    kubectl exec -n dinner-first-prod deployment/matching-db -- pg_dump -U matching_user matching_db > matching_db_backup.sql
+
+    # Sentiment database
+    kubectl exec -n dinner-first-prod deployment/sentiment-db -- pg_dump -U sentiment_user sentiment_db > sentiment_db_backup.sql
+
+    # Messaging database
+    kubectl exec -n dinner-first-prod deployment/messaging-db -- pg_dump -U messaging_user messaging_db > messaging_db_backup.sql
+
+    # Profile database
+    kubectl exec -n dinner-first-prod deployment/profile-db -- pg_dump -U profile_user profile_db > profile_db_backup.sql
+    EOF
+
+    chmod +x "$BACKUP_DIR/database-backup-commands.sh"
+
+    echo "Backup created successfully at: $BACKUP_DIR"
+    echo "To backup databases, run: $BACKUP_DIR/database-backup-commands.sh"
+---
+# Deployment Job for automated deployment
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dinner-first-deployment
+  namespace: dinner-first-prod
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: deployment-manager
+      containers:
+      - name: deploy
+        image: bitnami/kubectl:1.28
+        command: ["/bin/bash"]
+        args: ["-c", "cd /scripts && bash deploy.sh"]
+        volumeMounts:
+        - name: scripts-volume
+          mountPath: /scripts
+        - name: manifests-volume
+          mountPath: /manifests
+      volumes:
+      - name: scripts-volume
+        configMap:
+          name: deployment-scripts
+          defaultMode: 0755
+      - name: manifests-volume
+        configMap:
+          name: kubernetes-manifests
+---
+# Service Account for deployment operations
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: deployment-manager
+  namespace: dinner-first-prod
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: deployment-manager
+rules:
+- apiGroups: [""]
+  resources: ["*"]
+  verbs: ["*"]
+- apiGroups: ["apps"]
+  resources: ["*"]
+  verbs: ["*"]
+- apiGroups: ["extensions"]
+  resources: ["*"]
+  verbs: ["*"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["*"]
+  verbs: ["*"]
+- apiGroups: ["autoscaling"]
+  resources: ["*"]
+  verbs: ["*"]
+- apiGroups: ["batch"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: deployment-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: deployment-manager
+subjects:
+- kind: ServiceAccount
+  name: deployment-manager
+  namespace: dinner-first-prod

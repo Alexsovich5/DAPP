@@ -173,7 +173,7 @@ export class ToastComponent implements OnInit, OnDestroy {
 
   constructor(
     private notificationService: NotificationService,
-    @Inject(PLATFORM_ID) private platformId: Object
+    @Inject(PLATFORM_ID) private platformId: object
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }

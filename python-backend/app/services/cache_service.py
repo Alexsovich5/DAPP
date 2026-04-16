@@ -9,14 +9,13 @@ import json
 import logging
 import pickle
 import time
-from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
+from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 import redis
-from redis.connection import ConnectionPool
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +101,11 @@ class CacheService:
             ),
             # Conversation threads - frequently accessed
             "conversation_threads": CachePolicy(
-                ttl=600, invalidation_tags=["new_messages", "user_blocks"]  # 10 minutes
+                ttl=600,
+                invalidation_tags=[
+                    "new_messages",
+                    "user_blocks",
+                ],  # 10 minutes
             ),
             # Revelation content - static until user changes
             "user_revelations": CachePolicy(
@@ -112,7 +115,8 @@ class CacheService:
             ),
             # Session data - short-lived but frequently accessed
             "user_sessions": CachePolicy(
-                ttl=1800, invalidation_tags=["logout", "security_events"]  # 30 minutes
+                ttl=1800,
+                invalidation_tags=["logout", "security_events"],  # 30 minutes
             ),
             # Search results - dynamic but cacheable
             "search_results": CachePolicy(
@@ -626,8 +630,7 @@ _cache_service: Optional[CacheService] = None
 
 def get_cache_service() -> CacheService:
     """Get global cache service instance"""
-    global _cache_service
-    if _cache_service is None:
+    if "_cache_service" not in globals() or _cache_service is None:
         raise RuntimeError("Cache service not initialized")
     return _cache_service
 

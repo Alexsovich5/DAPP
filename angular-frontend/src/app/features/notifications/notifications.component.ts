@@ -45,7 +45,8 @@ import { NotificationService, Notification } from '../../core/services/notificat
       </div>
 
       <div class="notifications-list" *ngIf="notifications.length > 0; else noNotifications">
-        <div
+        <button
+          type="button"
           *ngFor="let notification of notifications; trackBy: trackByNotificationId"
           class="notification-item"
           [class.unread]="!notification.isRead"
@@ -87,7 +88,7 @@ import { NotificationService, Notification } from '../../core/services/notificat
               ✕
             </button>
           </div>
-        </div>
+        </button>
       </div>
 
       <ng-template #noNotifications>

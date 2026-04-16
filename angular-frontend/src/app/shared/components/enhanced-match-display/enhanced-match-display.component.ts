@@ -379,7 +379,12 @@ export class EnhancedMatchDisplayComponent implements OnInit, OnDestroy {
 
   constructor() {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Component uses input properties for initialization
+    if (this.matchData) {
+      this.selectedTabIndex = 0;
+    }
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -442,23 +447,23 @@ export class EnhancedMatchDisplayComponent implements OnInit, OnDestroy {
 
   // Content availability checks
   hasStrengths(): boolean {
-    return this.matchData?.relationship_insights.connection_strengths?.length > 0;
+    return (this.matchData?.relationship_insights?.connection_strengths?.length ?? 0) > 0;
   }
 
   hasOpportunities(): boolean {
-    return this.matchData?.relationship_insights.growth_opportunities?.length > 0;
+    return (this.matchData?.relationship_insights?.growth_opportunities?.length ?? 0) > 0;
   }
 
   hasChallenges(): boolean {
-    return this.matchData?.relationship_insights.potential_challenges?.length > 0;
+    return (this.matchData?.relationship_insights?.potential_challenges?.length ?? 0) > 0;
   }
 
   hasConversationStarters(): boolean {
-    return this.matchData?.interaction_guidance.conversation_starters?.length > 0;
+    return (this.matchData?.interaction_guidance?.conversation_starters?.length ?? 0) > 0;
   }
 
   // Event handlers
-  onTabChange(event: any): void {
+  onTabChange(event: {index: number}): void {
     this.selectedTabIndex = event.index;
   }
 

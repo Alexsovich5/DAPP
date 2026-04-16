@@ -1,7 +1,21 @@
 import { Injectable } from '@angular/core';
-import { SwUpdate, SwPush } from '@angular/service-worker';
-import { BehaviorSubject, Observable, fromEvent } from 'rxjs';
+import { BehaviorSubject, Observable, fromEvent, EMPTY } from 'rxjs';
 import { environment } from '@environments/environment';
+
+// Stub interfaces for service worker types (when @angular/service-worker is not installed)
+interface SwUpdate {
+  isEnabled: boolean;
+  versionUpdates: Observable<{ type: string }>;
+  checkForUpdate(): Promise<boolean>;
+  activateUpdate(): Promise<boolean>;
+}
+
+interface SwPush {
+  isEnabled: boolean;
+  messages: Observable<unknown>;
+  notificationClicks: Observable<unknown>;
+  requestSubscription(options: { serverPublicKey: string }): Promise<PushSubscription>;
+}
 
 export interface PWAInstallPrompt {
   prompt(): Promise<void>;
@@ -28,10 +42,22 @@ export class PWAService {
   public connectionStatus$ = this.connectionStatusSubject.asObservable();
   public updateAvailable$ = this.updateAvailableSubject.asObservable();
 
-  constructor(
-    private swUpdate: SwUpdate,
-    private swPush: SwPush
-  ) {
+  // Stub implementations for when service worker is not available
+  private swUpdate: SwUpdate = {
+    isEnabled: false,
+    versionUpdates: EMPTY,
+    checkForUpdate: async () => false,
+    activateUpdate: async () => false
+  };
+
+  private swPush: SwPush = {
+    isEnabled: false,
+    messages: EMPTY,
+    notificationClicks: EMPTY,
+    requestSubscription: async () => { throw new Error('Service worker not available'); }
+  };
+
+  constructor() {
     this.initializePWA();
     this.monitorConnection();
     this.monitorUpdates();
@@ -41,7 +67,7 @@ export class PWAService {
     // Listen for beforeinstallprompt event
     window.addEventListener('beforeinstallprompt', (event: Event) => {
       event.preventDefault();
-      this.installPromptEvent = event as PWAInstallPrompt;
+      this.installPromptEvent = event as unknown as PWAInstallPrompt;
       this.isInstallableSubject.next(true);
     });
 
@@ -65,7 +91,7 @@ export class PWAService {
 
     // Monitor connection quality if available
     if ('connection' in navigator) {
-      const connection = (navigator as any).connection;
+      const connection = (navigator as Navigator & { connection?: { addEventListener: (event: string, handler: () => void) => void } }).connection;
       connection?.addEventListener('change', () => {
         this.updateConnectionStatus();
       });
@@ -77,7 +103,7 @@ export class PWAService {
 
   private monitorUpdates(): void {
     if (this.swUpdate.isEnabled) {
-      this.swUpdate.versionUpdates.subscribe(event => {
+      this.swUpdate.versionUpdates.subscribe((event: { type: string }) => {
         if (event.type === 'VERSION_READY') {
           this.updateAvailableSubject.next(true);
         }
@@ -91,7 +117,13 @@ export class PWAService {
   }
 
   private updateConnectionStatus(): void {
-    const connection = (navigator as any).connection;
+    const connection = (navigator as Navigator & {
+      connection?: {
+        effectiveType?: string;
+        downlink?: number;
+        rtt?: number
+      }
+    }).connection;
 
     const status: ConnectionStatus = {
       isOnline: navigator.onLine,
@@ -146,9 +178,15 @@ export class PWAService {
       return false;
     }
 
+    const vapidKey = (environment as typeof environment & { vapidPublicKey?: string }).vapidPublicKey;
+    if (!vapidKey) {
+      console.warn('VAPID public key not configured');
+      return false;
+    }
+
     try {
       const subscription = await this.swPush.requestSubscription({
-        serverPublicKey: environment.vapidPublicKey
+        serverPublicKey: vapidKey
       });
 
       // Send subscription to backend
@@ -184,30 +222,31 @@ export class PWAService {
     }
   }
 
-  listenToNotificationClicks(): Observable<any> {
+  listenToNotificationClicks(): Observable<unknown> {
     return this.swPush.notificationClicks;
   }
 
-  listenToNotificationMessages(): Observable<any> {
+  listenToNotificationMessages(): Observable<unknown> {
     return this.swPush.messages;
   }
 
-  handleNotificationClick(notification: any): void {
+  handleNotificationClick(notification: { notification: { data?: Record<string, unknown> } }): void {
     const data = notification.notification.data;
 
     // Handle different notification types
-    switch (data?.type) {
+    const type = data?.['type'] as string | undefined;
+    switch (type) {
       case 'new_message':
-        this.navigateToMessages(data.connectionId);
+        this.navigateToMessages(data?.['connectionId'] as string | undefined);
         break;
       case 'new_revelation':
-        this.navigateToRevelations(data.connectionId);
+        this.navigateToRevelations(data?.['connectionId'] as string | undefined);
         break;
       case 'new_match':
         this.navigateToDiscover();
         break;
       case 'photo_reveal':
-        this.navigateToConnection(data.connectionId);
+        this.navigateToConnection(data?.['connectionId'] as string);
         break;
       default:
         this.navigateToHome();
@@ -243,8 +282,8 @@ export class PWAService {
 
   private trackInstallation(): void {
     // Track PWA installation for analytics
-    if (typeof gtag !== 'undefined') {
-      gtag('event', 'pwa_installed', {
+    if (typeof window !== 'undefined' && 'gtag' in window) {
+      (window as Window & { gtag?: (command: string, event: string, params: Record<string, string>) => void }).gtag?.('event', 'pwa_installed', {
         event_category: 'PWA',
         event_label: 'dinner_first_app'
       });
@@ -253,12 +292,17 @@ export class PWAService {
 
   isStandalone(): boolean {
     return window.matchMedia('(display-mode: standalone)').matches ||
-           (window.navigator as any).standalone ||
+           (window.navigator as Navigator & { standalone?: boolean }).standalone ||
            document.referrer.includes('android-app://');
   }
 
   getConnectionQuality(): 'high' | 'medium' | 'low' | 'unknown' {
-    const connection = (navigator as any).connection;
+    const connection = (navigator as Navigator & {
+      connection?: {
+        effectiveType?: string;
+        downlink?: number
+      }
+    }).connection;
 
     if (!connection) {
       return 'unknown';
@@ -266,9 +310,9 @@ export class PWAService {
 
     const { effectiveType, downlink } = connection;
 
-    if (effectiveType === '4g' && downlink > 5) {
+    if (effectiveType === '4g' && downlink && downlink > 5) {
       return 'high';
-    } else if (effectiveType === '4g' || (effectiveType === '3g' && downlink > 1)) {
+    } else if (effectiveType === '4g' || (effectiveType === '3g' && downlink && downlink > 1)) {
       return 'medium';
     } else {
       return 'low';
@@ -283,7 +327,7 @@ export class PWAService {
   }): Promise<boolean> {
     if ('share' in navigator) {
       try {
-        await (navigator as any).share(shareData);
+        await (navigator as Navigator & { share?: (data: { title?: string; text?: string; url?: string; files?: File[] }) => Promise<void> }).share?.(shareData);
         return true;
       } catch (error) {
         console.error('Failed to share:', error);
@@ -294,7 +338,7 @@ export class PWAService {
     // Fallback for browsers without Web Share API
     if (shareData.url && 'clipboard' in navigator) {
       try {
-        await navigator.clipboard.writeText(shareData.url);
+        await (navigator as Navigator & { clipboard?: { writeText: (text: string) => Promise<void> } }).clipboard?.writeText(shareData.url);
         return true;
       } catch (error) {
         console.error('Failed to copy to clipboard:', error);
@@ -333,7 +377,8 @@ export class PWAService {
     if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
       try {
         const registration = await navigator.serviceWorker.ready;
-        await registration.sync.register(tag);
+        // Use type assertion for sync API (not in standard TypeScript types)
+        await (registration as ServiceWorkerRegistration & { sync: { register: (tag: string) => Promise<void> } }).sync.register(tag);
       } catch (error) {
         console.error('Failed to register background sync:', error);
       }

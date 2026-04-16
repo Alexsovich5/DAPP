@@ -101,14 +101,15 @@ import { Observable } from 'rxjs';
             (keydown.escape)="closeUserMenu()"
             (keydown.arrowdown)="openUserMenuAndFocus()"
             (blur)="onUserMenuBlur($event)">
-            <div class="user-avatar" [attr.aria-label]="'User avatar for ' + getUserInitial()">
+            <span class="user-avatar" [attr.aria-label]="'User avatar for ' + getUserInitial()">
               <span aria-hidden="true">{{getUserInitial()}}</span>
-            </div>
+            </span>
             <div
               class="user-dropdown"
               *ngIf="userMenuOpen"
               role="menu"
               aria-label="User menu options"
+              tabindex="-1"
               (keydown)="handleDropdownKeydown($event)">
               <a
                 routerLink="/profile"
@@ -647,7 +648,7 @@ export class NavigationComponent implements OnInit {
     this.userMenuOpen = false;
   }
 
-  onUserMenuBlur(event: FocusEvent) {
+  onUserMenuBlur(_event: FocusEvent) {
     // Close menu if focus moves outside the user menu area
     setTimeout(() => {
       const activeElement = document.activeElement;
@@ -665,15 +666,19 @@ export class NavigationComponent implements OnInit {
 
     switch (event.key) {
       case 'ArrowDown':
-        event.preventDefault();
-        const nextIndex = (currentIndex + 1) % menuItems.length;
-        menuItems[nextIndex]?.focus();
+        {
+          event.preventDefault();
+          const nextIndex = (currentIndex + 1) % menuItems.length;
+          menuItems[nextIndex]?.focus();
+        }
         break;
 
       case 'ArrowUp':
-        event.preventDefault();
-        const prevIndex = currentIndex <= 0 ? menuItems.length - 1 : currentIndex - 1;
-        menuItems[prevIndex]?.focus();
+        {
+          event.preventDefault();
+          const prevIndex = currentIndex <= 0 ? menuItems.length - 1 : currentIndex - 1;
+          menuItems[prevIndex]?.focus();
+        }
         break;
 
       case 'Escape':

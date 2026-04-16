@@ -5,7 +5,6 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { RegisterData } from '../../../core/interfaces/auth.interfaces';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
-import { HttpErrorResponse } from '@angular/common/http';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -106,7 +105,7 @@ export class RegisterComponent implements OnInit {
   }
 
   private passwordMatchValidator(): ValidatorFn {
-    return (control: AbstractControl): {[key: string]: any} | null => {
+    return (control: AbstractControl): {[key: string]: boolean} | null => {
       const form = control as FormGroup;
       const password = form.get('password');
       const confirmPassword = form.get('confirmPassword');
@@ -125,12 +124,7 @@ export class RegisterComponent implements OnInit {
     eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
 
     // Use type-safe form initialization
-    this.accountForm = this.fb.group<{
-      email: any;
-      username: any;
-      password: any;
-      confirmPassword: any;
-    }>({
+    this.accountForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       username: ['', [
         Validators.required,
@@ -141,25 +135,14 @@ export class RegisterComponent implements OnInit {
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator() });
 
-    this.personalForm = this.fb.group<{
-      firstName: any;
-      lastName: any;
-      birthdate: any;
-      gender: any;
-    }>({
+    this.personalForm = this.fb.group({
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
       birthdate: ['', [Validators.required, this.minimumAgeValidator(eighteenYearsAgo)]],
       gender: ['', [Validators.required]]
     });
 
-    this.preferencesForm = this.fb.group<{
-      dietaryPreferences: any;
-      cuisinePreferences: any;
-      location: any;
-      lookingFor: any;
-      agreeTerms: any;
-    }>({
+    this.preferencesForm = this.fb.group({
       dietaryPreferences: [[], [Validators.required]],
       cuisinePreferences: ['', [Validators.required]],
       location: ['', [Validators.required]],

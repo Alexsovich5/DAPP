@@ -4,13 +4,11 @@ Tests for basic JWT operations, password security, and authentication core funct
 """
 
 from datetime import datetime, timedelta, timezone
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import jwt
 import pytest
 from app.core.security import (
-    ALGORITHM,
-    SECRET_KEY,
     create_access_token,
     create_refresh_token,
     get_password_hash,
@@ -44,7 +42,7 @@ class TestPasswordSecurity:
         hashed = get_password_hash(password)
 
         # Correct password should verify
-        assert verify_password(password, hashed) == True
+        assert verify_password(password, hashed)
 
     @pytest.mark.unit
     @pytest.mark.security
@@ -55,7 +53,7 @@ class TestPasswordSecurity:
         hashed = get_password_hash(password)
 
         # Wrong password should not verify
-        assert verify_password(wrong_password, hashed) == False
+        assert verify_password(wrong_password, hashed) is False
 
     @pytest.mark.unit
     @pytest.mark.security
@@ -68,8 +66,8 @@ class TestPasswordSecurity:
         # Same password should produce different hashes due to salt
         assert hash1 != hash2
         # Both should verify with the original password
-        assert verify_password(password, hash1) == True
-        assert verify_password(password, hash2) == True
+        assert verify_password(password, hash1)
+        assert verify_password(password, hash2)
 
     @pytest.mark.unit
     @pytest.mark.security
@@ -80,7 +78,7 @@ class TestPasswordSecurity:
 
         # Should still create a hash for empty password
         assert hashed != ""
-        assert verify_password(empty_password, hashed) == True
+        assert verify_password(empty_password, hashed)
 
     @pytest.mark.unit
     @pytest.mark.security
@@ -89,7 +87,7 @@ class TestPasswordSecurity:
         special_password = "P@ssw0rd!#$%^&*()_+-=[]{}|;:,.<>?"
         hashed = get_password_hash(special_password)
 
-        assert verify_password(special_password, hashed) == True
+        assert verify_password(special_password, hashed)
 
     @pytest.mark.unit
     @pytest.mark.security
@@ -98,7 +96,7 @@ class TestPasswordSecurity:
         unicode_password = "пароль123Ωαφ密码🔐"
         hashed = get_password_hash(unicode_password)
 
-        assert verify_password(unicode_password, hashed) == True
+        assert verify_password(unicode_password, hashed)
 
 
 class TestJWTTokenOperations:
@@ -187,7 +185,7 @@ class TestJWTTokenOperations:
         # Standard claims should be added
         assert "exp" in decoded
         assert "iat" in decoded
-        assert "nbf" in decoded
+        assert "nb" in decoded
 
 
 class TestAuthCoreIntegration:
@@ -197,7 +195,11 @@ class TestAuthCoreIntegration:
     @pytest.mark.security
     def test_create_token_for_user(self):
         """Test creating token for user data"""
-        user_data = {"sub": "user@example.com", "user_id": 1, "username": "testuser"}
+        user_data = {
+            "sub": "user@example.com",
+            "user_id": 1,
+            "username": "testuser",
+        }
 
         token = create_access_token(user_data)
         decoded = verify_token(token)
@@ -210,7 +212,11 @@ class TestAuthCoreIntegration:
     @pytest.mark.security
     def test_get_user_from_token(self):
         """Test extracting user information from token"""
-        user_data = {"sub": "user@example.com", "user_id": 42, "username": "testuser"}
+        user_data = {
+            "sub": "user@example.com",
+            "user_id": 42,
+            "username": "testuser",
+        }
 
         token = create_access_token(user_data)
         decoded = verify_token(token)
@@ -228,7 +234,7 @@ class TestAuthCoreIntegration:
         hashed = get_password_hash(password)
 
         # Step 2: Verify password (login)
-        assert verify_password(password, hashed) == True
+        assert verify_password(password, hashed)
 
         # Step 3: Create token after successful login
         user_data = {"sub": "user@example.com", "user_id": 1}
@@ -327,7 +333,7 @@ class TestAuthErrorHandling:
         # Very long password
         long_password = "a" * 1000
         hashed = get_password_hash(long_password)
-        assert verify_password(long_password, hashed) == True
+        assert verify_password(long_password, hashed)
 
         # Password with null bytes - bcrypt doesn't support this
         # This is expected behavior - bcrypt rejects null bytes for security
@@ -335,7 +341,7 @@ class TestAuthErrorHandling:
         try:
             hashed = get_password_hash(null_password)
             # If it doesn't raise an exception, verify it works
-            assert verify_password(null_password, hashed) == True
+            assert verify_password(null_password, hashed)
         except Exception:
             # Expected: bcrypt should reject null bytes
             pass
@@ -345,7 +351,6 @@ class TestAuthErrorHandling:
     def test_concurrent_auth_operations(self):
         """Test thread safety of auth operations"""
         import threading
-        import time
 
         results = []
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, fromEvent, merge } from 'rxjs';
-import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { filter, tap } from 'rxjs/operators';
 
 export interface SwipeEvent {
   direction: 'left' | 'right' | 'up' | 'down';
@@ -213,7 +213,7 @@ export class SwipeGestureService {
           endPosition: currentPosition,
           duration: Date.now() - startTime,
           element,
-          originalEvent: event as any,
+          originalEvent: event as TouchEvent | MouseEvent,
           deltaX,
           deltaY
         };
@@ -308,7 +308,7 @@ export class SwipeGestureService {
     duration: number,
     element: HTMLElement,
     originalEvent: TouchEvent | MouseEvent,
-    config: Partial<SwipeConfig>
+    _config: Partial<SwipeConfig>
   ): SwipeEvent {
     const distance = this.calculateDistance(startPosition, endPosition);
     const velocity = distance / duration;

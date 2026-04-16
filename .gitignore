@@ -15,6 +15,9 @@ build/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.messaging.production
+.env.secrets.*
+*.env.secrets
 
 # IDE files
 .vscode/
@@ -83,3 +86,17 @@ grafana/data/
 
 # Development planning files (keep only in development branch)
 # Note: Dev_Planning/ should only exist in development branch, not main
+
+# E2E Test Results
+e2e-results/
+playwright-report/
+test-results/
+.playwright/
+
+# Test data and API testing files
+python-backend/seed_test_data.py
+python-backend/test_*_api.py
+test_*_api.py
+
+# Playwright MCP screenshots
+.playwright-mcp/

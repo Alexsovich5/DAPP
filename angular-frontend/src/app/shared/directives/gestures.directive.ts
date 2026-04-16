@@ -18,8 +18,8 @@ import {
   LongPressEvent,
   DragEvent,
   GestureConfig
-} from '../services/gesture.service';
-import { MobileFeaturesService } from '../services/mobile-features.service';
+} from '../../core/services/gesture.service';
+import { MobileFeaturesService } from '../../core/services/mobile-features.service';
 
 @Directive({
   selector: '[appGestures]',
@@ -48,9 +48,9 @@ export class GesturesDirective implements OnInit, OnDestroy {
   @Output() pinchOut = new EventEmitter<PinchEvent>();
 
   @Output() longPress = new EventEmitter<LongPressEvent>();
-  @Output() drag = new EventEmitter<DragEvent>();
-  @Output() dragStart = new EventEmitter<DragEvent>();
-  @Output() dragEnd = new EventEmitter<DragEvent>();
+  @Output() gestureDrag = new EventEmitter<DragEvent>();
+  @Output() gestureDragStart = new EventEmitter<DragEvent>();
+  @Output() gestureDragEnd = new EventEmitter<DragEvent>();
 
   @Output() tap = new EventEmitter<GestureEvent>();
   @Output() doubleTap = new EventEmitter<GestureEvent>();
@@ -85,7 +85,7 @@ export class GesturesDirective implements OnInit, OnDestroy {
     if (this.enableProfileSwipe) {
       this.gestureService.enableProfileSwipeGestures(this.elementRef)
         .pipe(takeUntil(this.destroy$))
-        .subscribe(event => {
+        .subscribe((event: SwipeEvent) => {
           this.swipe.emit(event);
 
           // Emit direction-specific events
@@ -114,7 +114,7 @@ export class GesturesDirective implements OnInit, OnDestroy {
     if (this.enablePhotoGallery) {
       this.gestureService.enablePhotoGalleryGestures(this.elementRef)
         .pipe(takeUntil(this.destroy$))
-        .subscribe(event => {
+        .subscribe((event: GestureEvent) => {
           if (event.type === 'pinch') {
             const pinchEvent = event as PinchEvent;
             this.pinch.emit(pinchEvent);
@@ -145,7 +145,7 @@ export class GesturesDirective implements OnInit, OnDestroy {
     if (this.enableLongPress) {
       this.gestureService.enableLongPressGestures(this.elementRef)
         .pipe(takeUntil(this.destroy$))
-        .subscribe(event => {
+        .subscribe((event: LongPressEvent) => {
           this.longPress.emit(event);
           this.contextMenu.emit(event);
           this.addGestureVisualFeedback('longpress');
@@ -156,16 +156,16 @@ export class GesturesDirective implements OnInit, OnDestroy {
     if (this.enableDrag) {
       this.gestureService.enableDragGestures(this.elementRef)
         .pipe(takeUntil(this.destroy$))
-        .subscribe(event => {
-          this.drag.emit(event);
+        .subscribe((event: DragEvent) => {
+          this.gestureDrag.emit(event);
 
           if (event.isDragging && !this.isDragging) {
             this.isDragging = true;
-            this.dragStart.emit(event);
+            this.gestureDragStart.emit(event);
             this.elementRef.nativeElement.classList.add('dragging');
           } else if (!event.isDragging && this.isDragging) {
             this.isDragging = false;
-            this.dragEnd.emit(event);
+            this.gestureDragEnd.emit(event);
             this.elementRef.nativeElement.classList.remove('dragging');
           }
         });
@@ -175,7 +175,7 @@ export class GesturesDirective implements OnInit, OnDestroy {
     if (this.enableDoubleTap) {
       this.gestureService.enableDoubleTapGestures(this.elementRef)
         .pipe(takeUntil(this.destroy$))
-        .subscribe(event => {
+        .subscribe((event: GestureEvent) => {
           if (event.type === 'tap') {
             this.tap.emit(event);
           } else if (event.type === 'doubletap') {
@@ -190,34 +190,38 @@ export class GesturesDirective implements OnInit, OnDestroy {
         !this.enableDrag && !this.enableDoubleTap) {
       this.gestureService.enableGestures(this.elementRef, this.gestureConfig)
         .pipe(takeUntil(this.destroy$))
-        .subscribe(event => {
+        .subscribe((event: GestureEvent) => {
           this.gesture.emit(event);
 
           // Emit specific events based on gesture type
           switch (event.type) {
             case 'swipe':
-              const swipeEvent = event as SwipeEvent;
-              this.swipe.emit(swipeEvent);
+              {
+                const swipeEvent = event as SwipeEvent;
+                this.swipe.emit(swipeEvent);
 
-              switch (swipeEvent.swipeDirection) {
-                case 'left':
-                  this.swipeLeft.emit(swipeEvent);
-                  break;
-                case 'right':
-                  this.swipeRight.emit(swipeEvent);
-                  break;
-                case 'up':
-                  this.swipeUp.emit(swipeEvent);
-                  break;
-                case 'down':
-                  this.swipeDown.emit(swipeEvent);
-                  break;
+                switch (swipeEvent.swipeDirection) {
+                  case 'left':
+                    this.swipeLeft.emit(swipeEvent);
+                    break;
+                  case 'right':
+                    this.swipeRight.emit(swipeEvent);
+                    break;
+                  case 'up':
+                    this.swipeUp.emit(swipeEvent);
+                    break;
+                  case 'down':
+                    this.swipeDown.emit(swipeEvent);
+                    break;
+                }
               }
               break;
 
             case 'pinch':
-              const pinchEvent = event as PinchEvent;
-              this.pinch.emit(pinchEvent);
+              {
+                const pinchEvent = event as PinchEvent;
+                this.pinch.emit(pinchEvent);
+              }
               break;
 
             case 'longpress':
@@ -225,7 +229,7 @@ export class GesturesDirective implements OnInit, OnDestroy {
               break;
 
             case 'drag':
-              this.drag.emit(event as DragEvent);
+              this.gestureDrag.emit(event as DragEvent);
               break;
 
             case 'tap':
@@ -257,7 +261,7 @@ export class GesturesDirective implements OnInit, OnDestroy {
 
   // Host listeners for additional touch feedback
   @HostListener('touchstart', ['$event'])
-  onTouchStart(event: TouchEvent): void {
+  onTouchStart(_event: TouchEvent): void {
     if (this.mobileFeatures.isTouchDevice()) {
       this.elementRef.nativeElement.classList.add('touch-active');
     }
@@ -265,7 +269,7 @@ export class GesturesDirective implements OnInit, OnDestroy {
 
   @HostListener('touchend', ['$event'])
   @HostListener('touchcancel', ['$event'])
-  onTouchEnd(event: TouchEvent): void {
+  onTouchEnd(_event: TouchEvent): void {
     if (this.mobileFeatures.isTouchDevice()) {
       this.elementRef.nativeElement.classList.remove('touch-active');
     }
@@ -295,7 +299,7 @@ export class ProfileCardGestureDirective implements OnInit, OnDestroy {
     // Enable profile-specific gestures
     this.gestureService.enableProfileSwipeGestures(this.elementRef)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(event => {
+      .subscribe((event: SwipeEvent) => {
         switch (event.swipeDirection) {
           case 'right':
             this.like.emit();
@@ -322,7 +326,7 @@ export class ProfileCardGestureDirective implements OnInit, OnDestroy {
     // Double tap for like
     this.gestureService.enableDoubleTapGestures(this.elementRef)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(event => {
+      .subscribe((event: GestureEvent) => {
         if (event.type === 'doubletap') {
           this.like.emit();
           this.animateCard('like', 1);
@@ -353,7 +357,7 @@ export class ProfileCardGestureDirective implements OnInit, OnDestroy {
         this.mobileFeatures.vibrateNewMessage();
         break;
       case 'superlike':
-        this.mobileFeatures.vibrateNewRevelation();
+        this.mobileFeatures.vibrateRevelationReady();
         break;
     }
 
@@ -390,13 +394,13 @@ export class RevelationCardGestureDirective implements OnInit, OnDestroy {
       swipeVelocityThreshold: 0.2
     })
     .pipe(takeUntil(this.destroy$))
-    .subscribe(event => {
+    .subscribe((event: GestureEvent) => {
       if (event.type === 'swipe') {
         const swipeEvent = event as SwipeEvent;
         switch (swipeEvent.swipeDirection) {
           case 'up':
             this.reveal.emit();
-            this.mobileFeatures.vibrateNewRevelation();
+            this.mobileFeatures.vibrateRevelationReady();
             break;
           case 'right':
             this.respond.emit();

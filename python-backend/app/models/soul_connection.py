@@ -8,7 +8,6 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
-    Float,
     ForeignKey,
     Integer,
     String,
@@ -118,7 +117,9 @@ class SoulConnection(Base):
 
     # Relationship to revelations and messages
     revelations = relationship(
-        "DailyRevelation", back_populates="connection", cascade="all, delete-orphan"
+        "DailyRevelation",
+        back_populates="connection",
+        cascade="all, delete-orphan",
     )
     messages = relationship(
         "Message", back_populates="connection", cascade="all, delete-orphan"

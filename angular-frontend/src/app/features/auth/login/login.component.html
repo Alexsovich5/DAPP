@@ -46,9 +46,9 @@
           <mat-checkbox formControlName="rememberMe" color="primary">
             Remember me
           </mat-checkbox>
-          <a mat-button color="primary" (click)="navigateToForgotPassword()">
+          <button type="button" mat-button color="primary" (click)="navigateToForgotPassword()">
             Forgot password?
-          </a>
+          </button>
         </div>
 
         <button mat-raised-button color="primary" type="submit" class="submit-button"
@@ -72,9 +72,9 @@
 
         <div class="register-prompt">
           <span>Don't have an account yet?</span>
-          <a mat-button color="primary" (click)="navigateToRegister()">
+          <button type="button" mat-button color="primary" (click)="navigateToRegister()">
             Create one now
-          </a>
+          </button>
         </div>
       </form>
     </mat-card-content>

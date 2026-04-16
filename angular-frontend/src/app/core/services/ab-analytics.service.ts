@@ -94,6 +94,13 @@ interface MetricCalculation {
   isPercentage: boolean;
 }
 
+interface FunnelStep {
+  step: string;
+  users: number;
+  conversionRate: number;
+  dropoffRate: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -159,11 +166,11 @@ export class ABAnalyticsService {
   /**
    * Get funnel analysis for a test
    */
-  getFunnelAnalysis(testId: string, funnelSteps: string[]): Record<string, any[]> {
+  getFunnelAnalysis(testId: string, funnelSteps: string[]): Record<string, FunnelStep[]> {
     const events = this.getTestEvents(testId);
     const variants = new Set(events.map(e => e.variantId));
 
-    const funnelData: Record<string, any[]> = {};
+    const funnelData: Record<string, FunnelStep[]> = {};
 
     variants.forEach(variantId => {
       const variantEvents = events.filter(e => e.variantId === variantId);
@@ -246,7 +253,7 @@ export class ABAnalyticsService {
 
   private calculateEventAverageValue(events: ABTestEvent[]): number {
     const values = events
-      .map(e => e.eventData?.value)
+      .map(e => e.eventData?.['value'])
       .filter(v => typeof v === 'number') as number[];
 
     if (values.length === 0) {
@@ -272,7 +279,7 @@ export class ABAnalyticsService {
 
     const variants: VariantMetric[] = variantMetrics.map(variant => {
       let value = 0;
-      let sampleSize = variant.participants;
+      const sampleSize = variant.participants;
 
       if (metricDef.numeratorEvents && metricDef.denominatorEvents) {
         // Rate calculation
@@ -429,7 +436,7 @@ export class ABAnalyticsService {
     }, {} as Record<string, ABTestEvent[]>);
   }
 
-  private calculateFunnel(userSessions: Record<string, ABTestEvent[]>, steps: string[]): any[] {
+  private calculateFunnel(userSessions: Record<string, ABTestEvent[]>, steps: string[]): FunnelStep[] {
     const userCount = Object.keys(userSessions).length;
 
     return steps.map((step, index) => {

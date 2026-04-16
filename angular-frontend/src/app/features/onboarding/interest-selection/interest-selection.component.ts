@@ -325,7 +325,7 @@ interface InterestCategory {
   `]
 })
 export class InterestSelectionComponent implements OnInit {
-  @Output() stepCompleted = new EventEmitter<any>();
+  @Output() stepCompleted = new EventEmitter<Record<string, unknown>>();
 
   interestForm!: FormGroup;
   selectedInterests: string[] = [];

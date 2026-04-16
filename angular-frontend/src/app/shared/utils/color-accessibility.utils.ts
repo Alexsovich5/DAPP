@@ -91,7 +91,6 @@ export class ColorAccessibilityUtils {
     targetLevel: 'aa' | 'aaa' = 'aa'
   ): string {
     const targetRatio = targetLevel === 'aaa' ? 7 : 4.5;
-    let testColor = originalColor;
 
     // Try darkening or lightening the color to meet contrast requirements
     const rgb = this.hexToRgb(originalColor);

@@ -75,8 +75,8 @@ export class RevelationService {
   /**
    * Complete emotional onboarding
    */
-  completeEmotionalOnboarding(onboardingData: EmotionalOnboarding): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/onboarding/complete`, onboardingData);
+  completeEmotionalOnboarding(onboardingData: EmotionalOnboarding): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/onboarding/complete`, onboardingData);
   }
 
   /**
@@ -200,5 +200,46 @@ export class RevelationService {
     }
 
     return { valid: true };
+  }
+
+  /**
+   * Give photo sharing consent for a connection
+   */
+  givePhotoConsent(connectionId: number): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/revelations/photo-consent/${connectionId}`, {})
+      .pipe(
+        tap(() => this.refreshTimeline(connectionId))
+      );
+  }
+
+  /**
+   * React to a revelation with an emoji
+   */
+  reactToRevelation(revelationId: number, emoji: string): Observable<Record<string, unknown>> {
+    return this.http.put<Record<string, unknown>>(`${this.apiUrl}/revelations/${revelationId}/react`, { emoji });
+  }
+
+  /**
+   * Share today's revelation for a connection
+   */
+  shareRevelation(connectionId: number, content: string): Observable<Record<string, unknown>> {
+    return this.http.post<Record<string, unknown>>(`${this.apiUrl}/revelations/share/${connectionId}`, { content })
+      .pipe(
+        tap(() => this.refreshTimeline(connectionId))
+      );
+  }
+
+  /**
+   * Get today's revelation prompt and status
+   */
+  getTodayPrompt(connectionId: number): Observable<Record<string, unknown>> {
+    return this.http.get<Record<string, unknown>>(`${this.apiUrl}/revelations/today/${connectionId}`);
+  }
+
+  /**
+   * Get revelation analytics for a connection
+   */
+  getRevelationAnalytics(connectionId: number): Observable<Record<string, unknown>> {
+    return this.http.get<Record<string, unknown>>(`${this.apiUrl}/revelations/analytics/${connectionId}`);
   }
 }

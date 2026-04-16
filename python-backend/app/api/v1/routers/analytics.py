@@ -8,8 +8,10 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
 from ....core.auth import get_current_admin_user, get_current_user
+from ....core.database import get_db
 from ....models.user import User
 from ....services.analytics import AnalyticsService
 
@@ -83,9 +85,9 @@ class A_B_TestRequest(BaseModel):
 # Dependencies
 async def get_analytics_service() -> AnalyticsService:
     """Get analytics service instance"""
-    # This would be injected through dependency injection
-    # For now, we'll create a placeholder
-    raise HTTPException(status_code=503, detail="Analytics service not configured")
+    from ....services.analytics_service import analytics_service
+
+    return analytics_service
 
 
 @router.get("/metrics/realtime", response_model=RealTimeMetricsResponse)
@@ -260,7 +262,10 @@ async def track_custom_event(
         success = await analytics_service.track_event(event)
 
         if success:
-            return {"status": "success", "message": "Event tracked successfully"}
+            return {
+                "status": "success",
+                "message": "Event tracked successfully",
+            }
         else:
             raise HTTPException(status_code=500, detail="Failed to track event")
 
@@ -277,6 +282,7 @@ async def track_custom_event(
 async def get_a_b_test_results(
     experiment_id: str,
     analytics_service: AnalyticsService = Depends(get_analytics_service),
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin_user),
 ):
     """
@@ -285,7 +291,7 @@ async def get_a_b_test_results(
     Admin-only endpoint for analyzing experiment results
     """
     try:
-        results = await analytics_service.get_a_b_test_results(experiment_id)
+        results = await analytics_service.get_a_b_test_results(experiment_id, db)
 
         if not results:
             raise HTTPException(status_code=404, detail="A/B test not found")
@@ -303,6 +309,7 @@ async def get_a_b_test_results(
 async def track_a_b_test_event(
     test_data: A_B_TestRequest,
     analytics_service: AnalyticsService = Depends(get_analytics_service),
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """
@@ -317,6 +324,7 @@ async def track_a_b_test_event(
             variant=test_data.variant,
             event_type=test_data.event_type,
             metric_value=test_data.metric_value,
+            db=db,
         )
 
         if success:

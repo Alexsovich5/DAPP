@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
 
 interface PrivacySettings {
@@ -674,7 +674,7 @@ export class SettingsComponent implements OnInit {
   };
 
   hasChanges = false;
-  originalSettings: any = {};
+  originalSettings: Record<string, unknown> = {};
 
   constructor(
     private router: Router,
@@ -722,9 +722,9 @@ export class SettingsComponent implements OnInit {
   }
 
   detectChanges(): boolean {
-    return JSON.stringify(this.privacySettings) !== JSON.stringify(this.originalSettings.privacy) ||
-           JSON.stringify(this.notificationSettings) !== JSON.stringify(this.originalSettings.notifications) ||
-           JSON.stringify(this.appSettings) !== JSON.stringify(this.originalSettings.app);
+    return JSON.stringify(this.privacySettings) !== JSON.stringify(this.originalSettings['privacy']) ||
+           JSON.stringify(this.notificationSettings) !== JSON.stringify(this.originalSettings['notifications']) ||
+           JSON.stringify(this.appSettings) !== JSON.stringify(this.originalSettings['app']);
   }
 
   saveSettings() {

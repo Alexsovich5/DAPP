@@ -1,35 +1,22 @@
 """
 Phase 8C: Analytics & Business Intelligence Service
-Comprehensive data analytics, insights, and business intelligence for platform optimization
+Comprehensive data analytics, insights, and business intelligence for
+platform optimization
 """
 
 # import json
 import logging
 from datetime import datetime, timedelta
-from decimal import Decimal
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional
 
-from app.models.analytics_models import (
-    AnalyticsCategory,
-    BehaviorAnalytics,
-    BusinessIntelligenceReport,
-    ChurnAnalysis,
-    EngagementMetric,
-    MetricType,
-    PlatformMetric,
-    ReportType,
-    RevenuAnalytics,
-    SegmentType,
-    UserAnalytics,
-    UserSegment,
-)
+from app.models.analytics_models import BusinessIntelligenceReport, ReportType
 from app.models.daily_revelation import DailyRevelation
 from app.models.soul_connection import SoulConnection
 from app.models.user import User
 
 # import numpy as np
 # import pandas as pd
-from sqlalchemy import and_, desc, func, or_, text
+from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -187,7 +174,7 @@ class AnalyticsIntelligenceEngine:
             if user_segment:
                 users = await self._get_users_by_segment(user_segment, db)
             else:
-                users = db.query(User).filter(User.is_active is True).limit(10000).all()
+                db.query(User).filter(User.is_active).limit(10000).all()
 
             # Collect behavioral data
             behavioral_data = await self._collect_behavioral_data(users, db)
@@ -404,7 +391,11 @@ class AnalyticsIntelligenceEngine:
                 "prediction_metadata": {
                     "prediction_type": prediction_type,
                     "forecast_horizon_days": forecast_horizon_days,
-                    "models_used": ["time_series", "machine_learning", "statistical"],
+                    "models_used": [
+                        "time_series",
+                        "machine_learning",
+                        "statistical",
+                    ],
                     "confidence_level": model_performance.get(
                         "average_confidence", 0.85
                     ),
@@ -418,7 +409,9 @@ class AnalyticsIntelligenceEngine:
                 "matching_predictions": matching_predictions,
                 "model_performance": model_performance,
                 "actionable_recommendations": await self._generate_predictive_recommendations(
-                    behavior_predictions, churn_predictions, revenue_predictions
+                    behavior_predictions,
+                    churn_predictions,
+                    revenue_predictions,
                 ),
                 "risk_factors": await self._identify_predictive_risk_factors(
                     churn_predictions, revenue_predictions, growth_predictions
@@ -446,7 +439,7 @@ class AnalyticsIntelligenceEngine:
 
             active_users = (
                 db.query(func.count(User.id))
-                .filter(and_(User.is_active is True, User.updated_at >= start_date))
+                .filter(and_(User.is_active, User.updated_at >= start_date))
                 .scalar()
             )
 
@@ -494,7 +487,8 @@ class AnalyticsIntelligenceEngine:
                     "total_revelations": total_revelations,
                     "revelations_per_user": total_revelations / max(active_users, 1),
                     "engagement_score": min(
-                        (total_revelations / max(active_users, 1)) / 7 * 100, 100
+                        (total_revelations / max(active_users, 1)) / 7 * 100,
+                        100,
                     ),
                 },
             }

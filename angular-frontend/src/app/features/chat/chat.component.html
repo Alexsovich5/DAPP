@@ -11,15 +11,49 @@
         title="Chat partner's profile picture" [title]="chatPartner.firstName + '\'s avatar'" />
       <div class="user-info">
         <h2>{{chatPartner.firstName}} {{chatPartner.lastName}}</h2>
-        <span class="online-status">
-          {{chatPartner.lastActive ? 'Online' : 'Offline'}}
-        </span>
+        <div class="status-row">
+          <span class="online-status">
+            {{chatPartner.lastActive ? 'Online' : 'Offline'}}
+          </span>
+          <span
+            class="stage-chip"
+            *ngIf="connectionStageLabel"
+            [attr.aria-label]="'Connection stage: ' + connectionStageLabel">
+            {{ connectionStageLabel }}
+          </span>
+        </div>
       </div>
     </div>
-    <button mat-icon-button (click)="navigateToPreferences()" matTooltip="Suggest a restaurant">
+    <button mat-icon-button type="button" (click)="navigateToDinnerPlanning()" matTooltip="Plan your first dinner" aria-label="Plan your first dinner">
       <mat-icon>restaurant</mat-icon>
     </button>
   </mat-toolbar>
+
+  <!-- Revelation Preview Banner -->
+  <div
+    class="revelation-banner"
+    *ngIf="revelationTimelineLoaded && revelationDay > 0"
+    role="region"
+    aria-label="Revelation journey progress">
+    <a
+      [routerLink]="['/revelations']"
+      [queryParams]="{ connectionId: userId }"
+      class="banner-link"
+      [attr.aria-label]="'View revelation timeline, day ' + revelationDay + ' of 7'">
+      <span class="day-badge">Day {{ revelationDay }}/7</span>
+      <span class="banner-text" *ngIf="latestPartnerRevelation; else noRevelation">
+        <mat-icon aria-hidden="true">auto_stories</mat-icon>
+        {{ latestPartnerRevelation.content | slice:0:60 }}{{ latestPartnerRevelation.content.length > 60 ? '…' : '' }}
+      </span>
+      <ng-template #noRevelation>
+        <span class="banner-text no-revelation">
+          <mat-icon aria-hidden="true">auto_stories</mat-icon>
+          No revelation shared yet — be the first
+        </span>
+      </ng-template>
+      <mat-icon class="arrow-icon" aria-hidden="true">chevron_right</mat-icon>
+    </a>
+  </div>
 
   <!-- Error Alert -->
   <mat-card *ngIf="error" class="error-alert">

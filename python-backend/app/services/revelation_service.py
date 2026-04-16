@@ -3,14 +3,13 @@ Revelation Service - Handles the 7-day soul revelation cycle
 Implements the progressive revelation system from CLAUDE.md
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from app.models.daily_revelation import DailyRevelation
 from app.models.message import Message, MessageType
 from app.models.soul_connection import SoulConnection
-from app.models.user import User
 from sqlalchemy.orm import Session
 
 
@@ -90,7 +89,10 @@ class RevelationService:
             return {"can_share": False, "reason": "Connection not found"}
 
         if user_id not in {connection.user1_id, connection.user2_id}:
-            return {"can_share": False, "reason": "User not part of connection"}
+            return {
+                "can_share": False,
+                "reason": "User not part of connection",
+            }
 
         current_day = self.get_current_revelation_day(connection)
 
@@ -117,10 +119,18 @@ class RevelationService:
                 "reason": f"Already shared revelation for day {day}",
             }
 
-        return {"can_share": True, "revelation": self.get_revelation_for_day(day)}
+        return {
+            "can_share": True,
+            "revelation": self.get_revelation_for_day(day),
+        }
 
     def create_revelation(
-        self, db: Session, connection_id: int, user_id: int, day: int, content: str
+        self,
+        db: Session,
+        connection_id: int,
+        user_id: int,
+        day: int,
+        content: str,
     ) -> Dict[str, Any]:
         """Create a new revelation entry"""
         # Validate user can share
@@ -215,7 +225,7 @@ class RevelationService:
                 "is_unlocked": day <= current_day,
                 "user_shared": bool(user_revelation),
                 "partner_shared": bool(partner_revelation),
-                "user_content": user_revelation.content if user_revelation else None,
+                "user_content": (user_revelation.content if user_revelation else None),
                 "partner_content": (
                     partner_revelation.content if partner_revelation else None
                 ),

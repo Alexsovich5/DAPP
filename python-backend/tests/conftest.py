@@ -1,4 +1,3 @@
-import asyncio
 import os
 from typing import Any, Dict, Generator
 
@@ -10,13 +9,15 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
 # Set test database URL BEFORE importing app modules
-os.environ["DATABASE_URL"] = "postgresql://postgres@localhost/test_dinner_app"
+os.environ["DATABASE_URL"] = (
+    "postgresql://postgres:postgres@localhost:5432/test_dinner_app"
+)
 
 # === ENGINE-LEVEL DATABASE OVERRIDE ===
 # Create test database engine and session BEFORE importing app modules
 # This ensures both test fixtures and API endpoints use the same session
 
-TEST_DATABASE_URL = "postgresql://postgres@localhost/test_dinner_app"
+TEST_DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/test_dinner_app"
 
 # Create test engine with same configuration as production
 test_engine = create_engine(
@@ -50,7 +51,7 @@ def get_test_db():
 
 # === PATCH DATABASE MODULE ===
 # Import and patch the database module before importing app components
-import app.core.database as db_module
+import app.core.database as db_module  # noqa: E402
 
 # Replace production engine and session with test versions
 db_module.engine = test_engine
@@ -71,16 +72,17 @@ def patched_get_db():
 db_module.get_db = patched_get_db
 
 # Now import app components - they will use our patched database
-from app.core.database import Base, get_db
-from app.core.security import create_access_token, get_password_hash
-from app.main import app
-from app.models.match import Match, MatchStatus
-from app.models.profile import Profile
-from app.models.user import User
+from app.core.database import Base  # noqa: E402
+from app.core.security import create_access_token  # noqa: E402
+from app.core.security import get_password_hash  # noqa: E402
+from app.main import app  # noqa: E402
+from app.models.match import Match, MatchStatus  # noqa: E402
+from app.models.profile import Profile  # noqa: E402
+from app.models.user import User  # noqa: E402
 
 # Import test factories
-from tests.factories import (
-    DailyRevelationFactory,
+from tests.factories import DailyRevelationFactory  # noqa: E402
+from tests.factories import (  # noqa: E402
     MessageFactory,
     PhotoRevealFactory,
     ProfileFactory,
@@ -94,12 +96,59 @@ from tests.factories import (
 @pytest.fixture(scope="session")
 def test_db():
     """Create test database and tables using our test engine"""
+    # Close any existing connections before dropping database
     if database_exists(TEST_DATABASE_URL):
+        test_engine.dispose()  # Close all connections in the pool
+
+        # Forcefully terminate all connections to the test database
+        from sqlalchemy import text
+
+        admin_engine = create_engine(
+            "postgresql://postgres:postgres@localhost:5432/postgres",
+            isolation_level="AUTOCOMMIT",
+        )
+        with admin_engine.connect() as conn:
+            conn.execute(
+                text(
+                    """
+                SELECT pg_terminate_backend(pg_stat_activity.pid)
+                FROM pg_stat_activity
+                WHERE pg_stat_activity.datname = 'test_dinner_app'
+                AND pid <> pg_backend_pid()
+                """
+                )
+            )
+        admin_engine.dispose()
+
         drop_database(TEST_DATABASE_URL)
 
     create_database(TEST_DATABASE_URL)
     Base.metadata.create_all(bind=test_engine)
     yield test_engine
+
+    # Clean up after tests
+    test_engine.dispose()  # Close all connections before dropping
+
+    # Forcefully terminate all connections to the test database
+    from sqlalchemy import text
+
+    admin_engine = create_engine(
+        "postgresql://postgres:postgres@localhost:5432/postgres",
+        isolation_level="AUTOCOMMIT",
+    )
+    with admin_engine.connect() as conn:
+        conn.execute(
+            text(
+                """
+            SELECT pg_terminate_backend(pg_stat_activity.pid)
+            FROM pg_stat_activity
+            WHERE pg_stat_activity.datname = 'test_dinner_app'
+            AND pid <> pg_backend_pid()
+            """
+            )
+        )
+    admin_engine.dispose()
+
     drop_database(TEST_DATABASE_URL)
 
 
@@ -176,7 +225,7 @@ def db_session(test_db):
         print(f"Cleanup error: {e}")
         try:
             _test_db_session.rollback()
-        except:
+        except Exception:
             pass
 
 
@@ -345,6 +394,73 @@ def authenticated_user(db_session) -> Dict[str, Any]:
 
 
 @pytest.fixture
+def authenticated_user_connection(db_session, authenticated_user) -> Dict[str, Any]:
+    """Create a soul connection that includes the authenticated user"""
+    import uuid
+
+    from app.models.soul_connection import ConnectionEnergyLevel, SoulConnection
+
+    # Generate unique identifier to prevent constraint violations
+    unique_id = str(uuid.uuid4())[:8]
+
+    # Create a second user for the connection
+    partner_user = User(
+        email=f"partner_{unique_id}@test.com",
+        username=f"partner_{unique_id}",
+        hashed_password=get_password_hash("testpass123"),
+        first_name="Partner",
+        last_name="User",
+        is_active=True,
+        emotional_onboarding_completed=True,
+        emotional_depth_score=7.8,
+    )
+
+    # Commit partner user to database
+    db_session.add(partner_user)
+    db_session.commit()
+    db_session.refresh(partner_user)
+
+    # Create profile for partner
+    partner_profile = Profile(
+        user_id=partner_user.id,
+        full_name="Partner User",
+        bio="Soul connection partner for testing",
+        location="Test City, TC",
+        cuisine_preferences="All cuisines",
+    )
+    db_session.add(partner_profile)
+    db_session.commit()
+    db_session.refresh(partner_profile)
+
+    # Create soul connection between authenticated user and partner
+    connection = SoulConnection(
+        user1_id=authenticated_user["user"].id,
+        user2_id=partner_user.id,
+        initiated_by=authenticated_user["user"].id,
+        compatibility_score=85.5,
+        compatibility_breakdown={
+            "interests": 80.0,
+            "values": 90.0,
+            "demographics": 85.0,
+        },
+        connection_stage="active_connection",
+        current_energy_level=ConnectionEnergyLevel.HIGH.value,
+        status="active",
+    )
+
+    db_session.add(connection)
+    db_session.commit()
+    db_session.refresh(connection)
+
+    return {
+        "connection": connection,
+        "authenticated_user": authenticated_user["user"],
+        "partner_user": partner_user,
+        "partner_profile": partner_profile,
+    }
+
+
+@pytest.fixture
 def matching_users(db_session) -> Dict[str, Any]:
     """Create two users ready for soul connection matching"""
     import uuid
@@ -390,6 +506,34 @@ async def async_client() -> AsyncClient:
     """Async HTTP client for testing async endpoints"""
     async with AsyncClient(app=app, base_url="http://test") as client:
         yield client
+
+
+@pytest.fixture
+def photo_reveal_service(db_session):
+    """Photo Reveal Service instance for testing"""
+    from app.services.photo_reveal_service import PhotoRevealService
+
+    service = PhotoRevealService()
+    service.db = db_session  # Inject the test database session
+    return service
+
+
+@pytest.fixture
+def realtime_service(db_session):
+    """Real-time service instance for testing WebSocket functionality"""
+    from app.services.realtime import ConnectionManager
+
+    service = ConnectionManager(db_session)
+    return service
+
+
+@pytest.fixture
+def connection_manager(db_session):
+    """Connection manager instance for testing (alias for realtime_service)"""
+    from app.services.realtime_connection_manager import RealtimeConnectionManager
+
+    manager = RealtimeConnectionManager()
+    return manager
 
 
 @pytest.fixture

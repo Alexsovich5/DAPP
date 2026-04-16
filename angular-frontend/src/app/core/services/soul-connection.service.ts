@@ -13,6 +13,7 @@ import {
   DiscoveryResponse,
   CompatibilityResponse
 } from '../interfaces/soul-connection.interfaces';
+import { User } from '../interfaces/auth.interfaces';
 
 @Injectable({
   providedIn: 'root'
@@ -106,7 +107,7 @@ export class SoulConnectionService extends BaseService {
    * Progress a connection to the next stage
    */
   progressConnectionStage(connectionId: number, newStage: string): Observable<SoulConnection> {
-    return this.updateSoulConnection(connectionId, { connection_stage: newStage as any });
+    return this.updateSoulConnection(connectionId, { connection_stage: newStage as unknown as 'soul_discovery' });
   }
 
   /**
@@ -163,7 +164,7 @@ export class SoulConnectionService extends BaseService {
   /**
    * Check if user needs emotional onboarding
    */
-  needsEmotionalOnboarding(user: any): boolean {
+  needsEmotionalOnboarding(user: User): boolean {
     // Check if onboarding is completed according to localStorage
     const isOnboardingComplete = this.storage.getItem('onboarding_completed') === 'true';
 

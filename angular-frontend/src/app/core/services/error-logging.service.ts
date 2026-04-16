@@ -6,7 +6,7 @@ export interface ErrorLog {
   level: 'error' | 'warn' | 'info' | 'debug';
   message: string;
   error?: Error;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   userId?: string;
   url?: string;
   userAgent?: string;
@@ -24,7 +24,7 @@ export class ErrorLoggingService {
   /**
    * Log an error with full context information
    */
-  logError(error: Error | string, context?: Record<string, any>): void {
+  logError(error: Error | string, context?: Record<string, unknown>): void {
     const errorLog: ErrorLog = {
       timestamp: new Date(),
       level: 'error',
@@ -51,7 +51,7 @@ export class ErrorLoggingService {
   /**
    * Log a warning message
    */
-  logWarning(message: string, context?: Record<string, any>): void {
+  logWarning(message: string, context?: Record<string, unknown>): void {
     const warningLog: ErrorLog = {
       timestamp: new Date(),
       level: 'warn',
@@ -70,7 +70,7 @@ export class ErrorLoggingService {
   /**
    * Log an info message
    */
-  logInfo(message: string, context?: Record<string, any>): void {
+  logInfo(message: string, context?: Record<string, unknown>): void {
     const infoLog: ErrorLog = {
       timestamp: new Date(),
       level: 'info',
@@ -92,8 +92,8 @@ export class ErrorLoggingService {
   logApiError(
     endpoint: string,
     status: number,
-    error: any,
-    requestData?: any
+    error: Error | string,
+    requestData?: Record<string, unknown>
   ): void {
     this.logError(error, {
       type: 'api_error',
@@ -107,7 +107,7 @@ export class ErrorLoggingService {
   /**
    * Log user action for debugging
    */
-  logUserAction(action: string, data?: any): void {
+  logUserAction(action: string, data?: Record<string, unknown>): void {
     this.logInfo(`User action: ${action}`, {
       type: 'user_action',
       action,

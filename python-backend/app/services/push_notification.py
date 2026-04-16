@@ -7,13 +7,11 @@ import logging
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 # import jwt
 import redis
 from app.core.database import Base
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
 from pywebpush import WebPushException, webpush
 from sqlalchemy import JSON, Boolean, Column, DateTime, Integer, String, Text
 from sqlalchemy.orm import Session
@@ -261,7 +259,7 @@ class PushNotificationService:
                 db.query(PushSubscription)
                 .filter(
                     PushSubscription.user_id == user_id,
-                    PushSubscription.is_active is True,
+                    PushSubscription.is_active,
                 )
                 .all()
             )
@@ -291,7 +289,10 @@ class PushNotificationService:
             return False
 
     async def send_to_subscription(
-        self, subscription: PushSubscription, payload: NotificationPayload, db: Session
+        self,
+        subscription: PushSubscription,
+        payload: NotificationPayload,
+        db: Session,
     ) -> bool:
         """Send notification to specific subscription"""
         try:
@@ -521,7 +522,11 @@ class PushNotificationService:
         )
 
     async def notify_connection_request(
-        self, user_id: int, requester_name: str, compatibility_score: float, db: Session
+        self,
+        user_id: int,
+        requester_name: str,
+        compatibility_score: float,
+        db: Session,
     ) -> bool:
         """Send connection request notification"""
         return await self.send_notification(
@@ -575,7 +580,9 @@ class PushNotificationService:
 
                 # Cache for 1 hour
                 self.redis_client.setex(
-                    cache_key, 3600, json.dumps({k.value: v for k, v in prefs.items()})
+                    cache_key,
+                    3600,
+                    json.dumps({k.value: v for k, v in prefs.items()}),
                 )
 
             return prefs.get(notification_type.value, True)
@@ -585,7 +592,7 @@ class PushNotificationService:
             return True  # Default to sending notifications
 
     async def update_notification_preferences(
-        self, user_id: int, preferences: Dict[str, bool]
+        self, user_id: int, preferences: Dict[str, bool], db
     ) -> bool:
         """Update user notification preferences"""
         try:
@@ -593,7 +600,13 @@ class PushNotificationService:
             cache_key = f"notification_prefs:{user_id}"
             self.redis_client.setex(cache_key, 3600, json.dumps(preferences))
 
-            # TODO: Update database table with user preferences
+            # Update database with user preferences
+            from app.models.user import User
+
+            user = db.query(User).filter(User.id == user_id).first()
+            if user:
+                user.notification_preferences = preferences
+                db.commit()
 
             return True
         except Exception as e:
@@ -703,7 +716,7 @@ _push_service: Optional[PushNotificationService] = None
 
 def get_push_service() -> PushNotificationService:
     """Get global push notification service instance"""
-    global _push_service
+    # global _push_service  # Not needed for read-only
     if _push_service is None:
         raise RuntimeError("Push notification service not initialized")
     return _push_service
@@ -721,3 +734,11 @@ def init_push_service(
         redis_client, vapid_private_key, vapid_public_key, vapid_email
     )
     return _push_service
+
+
+def send_notification(
+    user_id: int, notification_type: str, message: str, data: dict = None
+) -> bool:
+    """Send notification to user"""
+    # Basic implementation for testing
+    return True

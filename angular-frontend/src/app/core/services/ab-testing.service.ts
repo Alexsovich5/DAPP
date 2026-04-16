@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { AuthService } from './auth.service';
 
 // === A/B TESTING INTERFACES ===
@@ -22,7 +22,7 @@ export interface ABTestVariant {
   id: string;
   name: string;
   description: string;
-  config: Record<string, any>;
+  config: Record<string, unknown>;
   isControl: boolean;
 }
 
@@ -47,7 +47,7 @@ export interface ABTestEvent {
   testId: string;
   variantId: string;
   eventType: string;
-  eventData?: Record<string, any>;
+  eventData?: Record<string, unknown>;
   timestamp: Date;
   sessionId?: string;
 }
@@ -254,7 +254,7 @@ export class ABTestingService {
   /**
    * Get configuration for a specific variant
    */
-  getVariantConfig(testId: string, configKey?: string): any {
+  getVariantConfig(testId: string, configKey?: string): unknown {
     const variant = this.getVariant(testId);
     if (!variant) {
       return null;
@@ -278,7 +278,7 @@ export class ABTestingService {
   /**
    * Track an A/B test event
    */
-  trackEvent(testId: string, eventType: string, eventData?: Record<string, any>): void {
+  trackEvent(testId: string, eventType: string, eventData?: Record<string, unknown>): void {
     const variant = this.getVariant(testId);
     if (!variant) {
       return;

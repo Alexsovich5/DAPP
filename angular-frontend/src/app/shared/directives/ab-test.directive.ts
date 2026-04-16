@@ -35,7 +35,7 @@ import { ABTestingService } from '../../core/services/ab-testing.service';
  * </button>
  */
 @Directive({
-  selector: '[abTest]',
+  selector: '[appAbTest]',
   standalone: true
 })
 export class ABTestDirective implements OnInit, OnDestroy {
@@ -48,7 +48,7 @@ export class ABTestDirective implements OnInit, OnDestroy {
   private hasView = false;
 
   constructor(
-    private templateRef: TemplateRef<any>,
+    private templateRef: TemplateRef<unknown>,
     private viewContainer: ViewContainerRef,
     private abTestingService: ABTestingService
   ) {}
@@ -147,7 +147,7 @@ export class ABTestDirective implements OnInit, OnDestroy {
  * </div>
  */
 @Directive({
-  selector: '[abTestClass]',
+  selector: '[appAbTestClass]',
   standalone: true
 })
 export class ABTestClassDirective implements OnInit {
@@ -205,7 +205,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 export class ABTestConfigPipe implements PipeTransform {
   constructor(private abTestingService: ABTestingService) {}
 
-  transform(testId: string, configKey?: string): any {
+  transform(testId: string, configKey?: string): unknown {
     return this.abTestingService.getVariantConfig(testId, configKey);
   }
 }

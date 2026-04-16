@@ -14,19 +14,46 @@
   gap: 1rem;
   margin: 0 0 1rem 0;
   padding: 0.75rem 1rem;
-  background: #fff7ed;
-  border: 1px solid #ffedd5;
-  color: #9a3412;
+  background: var(--color-warning-50);
+  border: 1px solid var(--color-warning-200);
+  color: var(--color-warning-800);
   border-radius: 999px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.dark-theme .undo-banner {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: var(--color-warning-300);
 }
 
 .undo-btn {
-  background: #fed7aa;
-  color: #7c2d12;
+  background: var(--color-warning-200);
+  color: var(--color-warning-900);
   border: none;
   padding: 0.4rem 0.8rem;
   border-radius: 999px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+
+  &:hover {
+    background: var(--color-warning-300);
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.dark-theme .undo-btn {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--color-warning-200);
+
+  &:hover {
+    background: rgba(245, 158, 11, 0.3);
+  }
 }
 
 /* Soul Connection Header */
@@ -828,5 +855,263 @@ mat-card-actions {
     padding: 1rem;
     background: white;
     border-top: 1px solid rgba(0, 0, 0, 0.12);
+  }
+}
+
+/* Enhanced Mobile-Responsive Swipe Gestures */
+
+/* Swipe-enabled elements */
+.swipe-enabled {
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y pinch-zoom;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+/* Swipe active state */
+.swipe-active {
+  z-index: 10;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Swipe preview states with enhanced mobile feedback */
+.swipe-left-preview {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%) !important;
+  border-left: 4px solid #ef4444 !important;
+
+  &::before {
+    content: '✕';
+    position: absolute;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
+    font-size: 2rem;
+    color: #ef4444;
+    font-weight: bold;
+    z-index: 5;
+    animation: swipeIconPulse 0.3s ease-out;
+  }
+
+  @media (max-width: 768px) {
+    &::before {
+      font-size: 3rem;
+      left: 30px;
+    }
+  }
+}
+
+.swipe-right-preview {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%) !important;
+  border-right: 4px solid #22c55e !important;
+
+  &::before {
+    content: '♡';
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    font-size: 2rem;
+    color: #22c55e;
+    font-weight: bold;
+    z-index: 5;
+    animation: swipeIconPulse 0.3s ease-out;
+  }
+
+  @media (max-width: 768px) {
+    &::before {
+      font-size: 3rem;
+      right: 30px;
+    }
+  }
+}
+
+.swipe-up-preview {
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%) !important;
+  border-top: 4px solid #f59e0b !important;
+
+  &::before {
+    content: '⭐';
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2rem;
+    color: #f59e0b;
+    font-weight: bold;
+    z-index: 5;
+    animation: swipeIconPulse 0.3s ease-out;
+  }
+
+  @media (max-width: 768px) {
+    &::before {
+      font-size: 3rem;
+      top: 30px;
+    }
+  }
+}
+
+/* Enhanced mobile swipe animations */
+@media (max-width: 768px) {
+  .soul-card {
+    /* Improved touch responsiveness */
+    touch-action: pan-y;
+    -webkit-touch-callout: none;
+
+    /* Enhanced mobile transitions */
+    transition: transform 0.1s ease-out, filter 0.1s ease-out, box-shadow 0.2s ease-out;
+
+    /* Better mobile visual feedback */
+    &.swipe-active {
+      box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.25),
+        0 0 20px rgba(255, 107, 157, 0.3);
+      z-index: 100;
+    }
+
+    /* Mobile-specific hover states (for devices that support hover) */
+    @media (hover: hover) {
+      &:hover {
+        transform: translateY(-4px) scale(1.01);
+      }
+    }
+
+    /* Mobile-optimized swipe feedback */
+    &.swipe-left-preview,
+    &.swipe-right-preview,
+    &.swipe-up-preview {
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: currentColor;
+        opacity: 0.05;
+        pointer-events: none;
+        animation: mobileSwipeFeedback 0.3s ease-out;
+      }
+    }
+  }
+
+  /* Enhanced discovery cards layout for mobile swipe */
+  .discovery-cards {
+    /* Stack cards for better mobile swipe experience */
+    .discovery-card {
+      margin-bottom: 1rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  /* Mobile swipe hint improvements */
+  .swipe-hint {
+    bottom: 2rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    mat-icon {
+      font-size: 20px;
+      height: 20px;
+      width: 20px;
+    }
+  }
+}
+
+/* Swipe animation keyframes */
+@keyframes swipeIconPulse {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+@keyframes mobileSwipeFeedback {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.1;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 0.05;
+    transform: scale(1);
+  }
+}
+
+/* High compatibility enhanced mobile effects */
+@media (max-width: 768px) {
+  .soul-card.high-compatibility {
+    &.swipe-right-preview::before {
+      content: '💖';
+      animation: swipeIconPulse 0.3s ease-out, heartGlow 1s ease-in-out infinite alternate;
+    }
+
+    &.swipe-up-preview::before {
+      content: '✨';
+      animation: swipeIconPulse 0.3s ease-out, starGlow 1s ease-in-out infinite alternate;
+    }
+  }
+}
+
+@keyframes heartGlow {
+  0% {
+    filter: drop-shadow(0 0 5px rgba(255, 20, 147, 0.5));
+  }
+  100% {
+    filter: drop-shadow(0 0 15px rgba(255, 20, 147, 0.8));
+  }
+}
+
+@keyframes starGlow {
+  0% {
+    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+  }
+  100% {
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8));
+  }
+}
+
+/* Performance optimizations for mobile */
+@media (max-width: 768px) {
+  .soul-card {
+    /* GPU acceleration for smooth animations */
+    will-change: transform, filter;
+    transform: translateZ(0);
+
+    /* Optimized for 60fps on mobile */
+    &.swipe-active {
+      will-change: transform, filter, box-shadow;
+    }
+  }
+
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    .soul-card {
+      transition: none !important;
+      animation: none !important;
+
+      &::before,
+      &::after {
+        animation: none !important;
+      }
+    }
   }
 }

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 
 export interface EmotionalColorPalette {
   primary: string;
@@ -486,7 +486,7 @@ export class ColorPsychologyService {
   private blendPersonalityWithMood(
     personality: ColorPersonality,
     mood: MoodState,
-    context: string
+    _context: string
   ): EmotionalColorPalette {
     // Complex blending logic that considers personality, mood, and context
     // This would be more sophisticated in a real implementation
@@ -516,7 +516,7 @@ export class ColorPsychologyService {
     return multipliers[depth as keyof typeof multipliers] || 1.0;
   }
 
-  private adjustGlowIntensity(glow: string, multiplier: number): string {
+  private adjustGlowIntensity(glow: string, _multiplier: number): string {
     // Simplified glow adjustment - would be more sophisticated in real implementation
     return glow;
   }
@@ -544,7 +544,7 @@ export class ColorPsychologyService {
     return 'contemplative';
   }
 
-  private generateAccentColor(primary: string, secondary: string): string {
+  private generateAccentColor(_primary: string, _secondary: string): string {
     // Simplified accent generation - would use color theory in real implementation
     return 'var(--trust-ocean-600)';
   }
@@ -564,7 +564,7 @@ export class ColorPsychologyService {
     return `var(--shadow-emotional-${intensityMap[intensity as keyof typeof intensityMap]})`;
   }
 
-  private generateGlow(color: string, intensity: string): string {
+  private generateGlow(_color: string, _intensity: string): string {
     // Simplified glow generation
     return 'rgba(255, 107, 157, 0.3)';
   }

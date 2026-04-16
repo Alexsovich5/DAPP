@@ -11,8 +11,7 @@ import { takeUntil } from 'rxjs/operators';
 
 import {
   EmotionalDepthService,
-  EmotionalDepthSummary,
-  EmotionalDepthMetrics
+  EmotionalDepthSummary
 } from '../../../core/services/emotional-depth.service';
 
 @Component({
@@ -292,23 +291,23 @@ export class EmotionalDepthDisplayComponent implements OnInit, OnDestroy {
 
   // Conditional display methods
   hasStrengths(): boolean {
-    return this.depthSummary?.emotional_depth_summary.key_strengths?.length > 0;
+    return (this.depthSummary?.emotional_depth_summary?.key_strengths?.length ?? 0) > 0;
   }
 
   hasInsights(): boolean {
-    return this.depthSummary?.personal_insights?.length > 0;
+    return (this.depthSummary?.personal_insights?.length ?? 0) > 0;
   }
 
   hasGrowthAreas(): boolean {
-    return this.depthSummary?.emotional_depth_summary.growth_areas?.length > 0;
+    return (this.depthSummary?.emotional_depth_summary?.growth_areas?.length ?? 0) > 0;
   }
 
   hasRecommendations(): boolean {
-    return this.depthSummary?.recommendations?.length > 0;
+    return (this.depthSummary?.recommendations?.length ?? 0) > 0;
   }
 
   hasSuggestions(): boolean {
-    return this.depthSummary?.profile_completeness.suggestions?.length > 0;
+    return (this.depthSummary?.profile_completeness?.suggestions?.length ?? 0) > 0;
   }
 
   // Action handlers

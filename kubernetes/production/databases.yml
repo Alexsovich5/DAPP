@@ -1,0 +1,642 @@
+# PostgreSQL Databases Production Deployment
+# Separate databases for each microservice with replication
+
+# Auth Service Database
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-db
+  namespace: dinner-first-prod
+  labels:
+    app: auth-db
+    component: database
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: auth-db
+  template:
+    metadata:
+      labels:
+        app: auth-db
+        component: database
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:16-alpine
+        ports:
+        - containerPort: 5432
+          name: postgres
+        env:
+        - name: POSTGRES_DB
+          value: auth_db
+        - name: POSTGRES_USER
+          value: auth_user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: auth-db-secret
+              key: password
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        - name: postgres-config
+          mountPath: /etc/postgresql/postgresql.conf
+          subPath: postgresql.conf
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - auth_user
+            - -d
+            - auth_db
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - auth_user
+            - -d
+            - auth_db
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: postgres-config
+        configMap:
+          name: postgres-config
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: auth-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-db
+  namespace: dinner-first-prod
+  labels:
+    app: auth-db
+spec:
+  selector:
+    app: auth-db
+  ports:
+  - port: 5432
+    targetPort: 5432
+    name: postgres
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: auth-db-pvc
+  namespace: dinner-first-prod
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: fast-ssd
+---
+# Matching Service Database
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matching-db
+  namespace: dinner-first-prod
+  labels:
+    app: matching-db
+    component: database
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: matching-db
+  template:
+    metadata:
+      labels:
+        app: matching-db
+        component: database
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:16-alpine
+        ports:
+        - containerPort: 5432
+          name: postgres
+        env:
+        - name: POSTGRES_DB
+          value: matching_db
+        - name: POSTGRES_USER
+          value: matching_user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: matching-db-secret
+              key: password
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        - name: postgres-config
+          mountPath: /etc/postgresql/postgresql.conf
+          subPath: postgresql.conf
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "300m"
+          limits:
+            memory: "1Gi"
+            cpu: "800m"
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - matching_user
+            - -d
+            - matching_db
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - matching_user
+            - -d
+            - matching_db
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: postgres-config
+        configMap:
+          name: postgres-config
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: matching-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: matching-db
+  namespace: dinner-first-prod
+  labels:
+    app: matching-db
+spec:
+  selector:
+    app: matching-db
+  ports:
+  - port: 5432
+    targetPort: 5432
+    name: postgres
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: matching-db-pvc
+  namespace: dinner-first-prod
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: fast-ssd
+---
+# Sentiment Analysis Database
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentiment-db
+  namespace: dinner-first-prod
+  labels:
+    app: sentiment-db
+    component: database
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: sentiment-db
+  template:
+    metadata:
+      labels:
+        app: sentiment-db
+        component: database
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:16-alpine
+        ports:
+        - containerPort: 5432
+          name: postgres
+        env:
+        - name: POSTGRES_DB
+          value: sentiment_db
+        - name: POSTGRES_USER
+          value: sentiment_user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sentiment-db-secret
+              key: password
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        - name: postgres-config
+          mountPath: /etc/postgresql/postgresql.conf
+          subPath: postgresql.conf
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - sentiment_user
+            - -d
+            - sentiment_db
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - sentiment_user
+            - -d
+            - sentiment_db
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: postgres-config
+        configMap:
+          name: postgres-config
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: sentiment-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentiment-db
+  namespace: dinner-first-prod
+  labels:
+    app: sentiment-db
+spec:
+  selector:
+    app: sentiment-db
+  ports:
+  - port: 5432
+    targetPort: 5432
+    name: postgres
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sentiment-db-pvc
+  namespace: dinner-first-prod
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 30Gi
+  storageClassName: fast-ssd
+---
+# Messaging Database
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: messaging-db
+  namespace: dinner-first-prod
+  labels:
+    app: messaging-db
+    component: database
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: messaging-db
+  template:
+    metadata:
+      labels:
+        app: messaging-db
+        component: database
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:16-alpine
+        ports:
+        - containerPort: 5432
+          name: postgres
+        env:
+        - name: POSTGRES_DB
+          value: messaging_db
+        - name: POSTGRES_USER
+          value: messaging_user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: messaging-db-secret
+              key: password
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        - name: postgres-config
+          mountPath: /etc/postgresql/postgresql.conf
+          subPath: postgresql.conf
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "300m"
+          limits:
+            memory: "1Gi"
+            cpu: "800m"
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - messaging_user
+            - -d
+            - messaging_db
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - messaging_user
+            - -d
+            - messaging_db
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: postgres-config
+        configMap:
+          name: postgres-config
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: messaging-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: messaging-db
+  namespace: dinner-first-prod
+  labels:
+    app: messaging-db
+spec:
+  selector:
+    app: messaging-db
+  ports:
+  - port: 5432
+    targetPort: 5432
+    name: postgres
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: messaging-db-pvc
+  namespace: dinner-first-prod
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: fast-ssd
+---
+# Profile Database
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: profile-db
+  namespace: dinner-first-prod
+  labels:
+    app: profile-db
+    component: database
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: profile-db
+  template:
+    metadata:
+      labels:
+        app: profile-db
+        component: database
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:16-alpine
+        ports:
+        - containerPort: 5432
+          name: postgres
+        env:
+        - name: POSTGRES_DB
+          value: profile_db
+        - name: POSTGRES_USER
+          value: profile_user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: profile-db-secret
+              key: password
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        - name: postgres-config
+          mountPath: /etc/postgresql/postgresql.conf
+          subPath: postgresql.conf
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - profile_user
+            - -d
+            - profile_db
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - profile_user
+            - -d
+            - profile_db
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: postgres-config
+        configMap:
+          name: postgres-config
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: profile-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: profile-db
+  namespace: dinner-first-prod
+  labels:
+    app: profile-db
+spec:
+  selector:
+    app: profile-db
+  ports:
+  - port: 5432
+    targetPort: 5432
+    name: postgres
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: profile-db-pvc
+  namespace: dinner-first-prod
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 30Gi
+  storageClassName: fast-ssd
+---
+# Shared PostgreSQL Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: dinner-first-prod
+data:
+  postgresql.conf: |
+    # Memory Configuration
+    shared_buffers = 128MB
+    effective_cache_size = 512MB
+    work_mem = 4MB
+    maintenance_work_mem = 64MB
+
+    # Connection Settings
+    max_connections = 200
+
+    # Write-Ahead Logging
+    wal_level = replica
+    max_wal_senders = 3
+    max_replication_slots = 3
+
+    # Query Planning
+    random_page_cost = 1.1
+    effective_io_concurrency = 200
+
+    # Logging
+    logging_collector = on
+    log_destination = 'stderr'
+    log_min_messages = warning
+    log_min_error_statement = error
+    log_min_duration_statement = 1000
+
+    # Performance
+    checkpoint_completion_target = 0.9
+    wal_buffers = 16MB
+    default_statistics_target = 100
+
+    # Locale
+    lc_messages = 'en_US.utf8'
+    lc_monetary = 'en_US.utf8'
+    lc_numeric = 'en_US.utf8'
+    lc_time = 'en_US.utf8'
+---
+# Database Secrets
+apiVersion: v1
+kind: Secret
+metadata:
+  name: auth-db-secret
+  namespace: dinner-first-prod
+type: Opaque
+data:
+  password: ZGlubmVyLWZpcnN0LWF1dGgtZGItMjAyNQ==  # Base64: dinner-first-auth-db-2025
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: matching-db-secret
+  namespace: dinner-first-prod
+type: Opaque
+data:
+  password: ZGlubmVyLWZpcnN0LW1hdGNoaW5nLWRiLTIwMjU=  # Base64: dinner-first-matching-db-2025
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sentiment-db-secret
+  namespace: dinner-first-prod
+type: Opaque
+data:
+  password: ZGlubmVyLWZpcnN0LXNlbnRpbWVudC1kYi0yMDI1  # Base64: dinner-first-sentiment-db-2025
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: messaging-db-secret
+  namespace: dinner-first-prod
+type: Opaque
+data:
+  password: ZGlubmVyLWZpcnN0LW1lc3NhZ2luZy1kYi0yMDI1  # Base64: dinner-first-messaging-db-2025
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: profile-db-secret
+  namespace: dinner-first-prod
+type: Opaque
+data:
+  password: ZGlubmVyLWZpcnN0LXByb2ZpbGUtZGItMjAyNQ==  # Base64: dinner-first-profile-db-2025

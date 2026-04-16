@@ -1,14 +1,22 @@
 import { Injectable, NgZone } from '@angular/core';
-import { BehaviorSubject, Observable, timer, fromEvent, merge } from 'rxjs';
-import { throttleTime, debounceTime, map, filter } from 'rxjs/operators';
+import { BehaviorSubject, timer } from 'rxjs';
 import { MobileFeaturesService } from './mobile-features.service';
 import { MobilePerformanceService } from './mobile-performance.service';
 import { GestureEvent } from './gesture.service';
 
+// Browser API type declarations
+interface NetworkInformation {
+  effectiveType: string;
+  downlink: number;
+  rtt: number;
+  saveData: boolean;
+  addEventListener: (type: string, listener: () => void) => void;
+}
+
 export interface AnalyticsEvent {
   eventName: string;
   category: EventCategory;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   timestamp: number;
   sessionId: string;
   userId?: string;
@@ -222,7 +230,8 @@ export class MobileAnalyticsService {
 
       // Track network changes
       if ('connection' in navigator) {
-        const connection = (navigator as any).connection;
+        const navigatorWithConnection = navigator as Navigator & { connection?: NetworkInformation };
+        const connection = navigatorWithConnection.connection;
         if (connection) {
           connection.addEventListener('change', () => {
             this.trackEvent('network_change', 'performance', {
@@ -239,7 +248,7 @@ export class MobileAnalyticsService {
   /**
    * Track a custom event
    */
-  trackEvent(eventName: string, category: EventCategory, parameters: Record<string, any> = {}): void {
+  trackEvent(eventName: string, category: EventCategory, parameters: Record<string, unknown> = {}): void {
     const event: AnalyticsEvent = {
       eventName,
       category,
@@ -267,7 +276,7 @@ export class MobileAnalyticsService {
   /**
    * Track dating app specific events
    */
-  trackDatingAction(action: string, details: Record<string, any> = {}): void {
+  trackDatingAction(action: string, details: Record<string, unknown> = {}): void {
     this.trackEvent(`dating_${action}`, 'dating_action', details);
     this.updateDatingMetrics(action, details);
   }
@@ -294,7 +303,7 @@ export class MobileAnalyticsService {
   /**
    * Track profile interactions
    */
-  trackProfileInteraction(action: 'view' | 'like' | 'pass' | 'superlike', profileId: string, additionalData: any = {}): void {
+  trackProfileInteraction(action: 'view' | 'like' | 'pass' | 'superlike', profileId: string, additionalData: Record<string, unknown> = {}): void {
     if (action === 'view') {
       this.engagementMetrics.profilesViewed++;
     }
@@ -319,7 +328,7 @@ export class MobileAnalyticsService {
   /**
    * Track message interactions
    */
-  trackMessageInteraction(action: 'send' | 'receive' | 'react' | 'view', messageData: any = {}): void {
+  trackMessageInteraction(action: 'send' | 'receive' | 'react' | 'view', messageData: Record<string, unknown> = {}): void {
     if (action === 'react') {
       this.engagementMetrics.messagesReactions++;
       this.datingMetrics.messageEngagement.reactions++;
@@ -336,7 +345,7 @@ export class MobileAnalyticsService {
   /**
    * Track revelation interactions
    */
-  trackRevelationInteraction(action: 'create' | 'view' | 'respond', revelationData: any = {}): void {
+  trackRevelationInteraction(action: 'create' | 'view' | 'respond', revelationData: Record<string, unknown> = {}): void {
     if (action === 'create') {
       this.engagementMetrics.revelationsCreated++;
       this.datingMetrics.revelationEngagement.created++;
@@ -353,7 +362,7 @@ export class MobileAnalyticsService {
   /**
    * Track connection events
    */
-  trackConnectionEvent(action: 'initiate' | 'accept' | 'photo_reveal' | 'complete_cycle', connectionData: any = {}): void {
+  trackConnectionEvent(action: 'initiate' | 'accept' | 'photo_reveal' | 'complete_cycle', connectionData: Record<string, unknown> = {}): void {
     if (action === 'initiate') {
       this.datingMetrics.connectionEngagement.initiated++;
     } else if (action === 'accept') {
@@ -372,7 +381,7 @@ export class MobileAnalyticsService {
   /**
    * Track navigation events
    */
-  trackNavigation(page: string, additionalData: any = {}): void {
+  trackNavigation(page: string, additionalData: Record<string, unknown> = {}): void {
     this.pageViewCount++;
     this.engagementMetrics.pageViews++;
 
@@ -388,7 +397,7 @@ export class MobileAnalyticsService {
   /**
    * Track performance issues
    */
-  trackPerformanceIssue(issue: string, details: any = {}): void {
+  trackPerformanceIssue(issue: string, details: Record<string, unknown> = {}): void {
     this.trackEvent('performance_issue', 'performance', {
       issue,
       ...details,
@@ -399,7 +408,7 @@ export class MobileAnalyticsService {
   /**
    * Track errors
    */
-  trackError(error: Error | string, context: any = {}): void {
+  trackError(error: Error | string, context: Record<string, unknown> = {}): void {
     const errorDetails = typeof error === 'string' ? { message: error } : {
       message: error.message,
       stack: error.stack,
@@ -417,7 +426,7 @@ export class MobileAnalyticsService {
   /**
    * Track conversion events
    */
-  trackConversion(conversionType: string, value?: number, additionalData: any = {}): void {
+  trackConversion(conversionType: string, value?: number, additionalData: Record<string, unknown> = {}): void {
     this.trackEvent('conversion', 'conversion', {
       conversionType,
       value,
@@ -500,7 +509,7 @@ export class MobileAnalyticsService {
     });
   }
 
-  private updateDatingMetrics(action: string, details: any): void {
+  private updateDatingMetrics(_action: string, _details: Record<string, unknown>): void {
     // Update specific dating metrics based on action
     // This is already handled in specific tracking methods
   }
@@ -527,21 +536,27 @@ export class MobileAnalyticsService {
   }
 
   private getDeviceInfo(): DeviceInfo {
-    const deviceInfo = this.mobileFeatures.getDeviceInfo();
+    const deviceInfo = this.mobileFeatures.getDeviceInfo() as ReturnType<typeof this.mobileFeatures.getDeviceInfo> & {
+      isTouchDevice?: boolean;
+      isAndroid?: boolean;
+      isIOS?: boolean;
+      batteryLevel?: number;
+      isLowEndDevice?: boolean;
+    };
 
     return {
       userAgent: navigator.userAgent,
       screenSize: deviceInfo.screenSize,
       devicePixelRatio: window.devicePixelRatio,
-      isTouch: deviceInfo.isTouchDevice,
+      isTouch: deviceInfo.isTouchDevice ?? false,
       isMobile: deviceInfo.isMobile,
       isTablet: deviceInfo.isTablet,
-      isAndroid: deviceInfo.isAndroid,
-      isIOS: deviceInfo.isIOS,
+      isAndroid: deviceInfo.isAndroid ?? false,
+      isIOS: deviceInfo.isIOS ?? false,
       browserName: this.getBrowserName(),
       connectionType: this.getConnectionType(),
-      batteryLevel: deviceInfo.batteryLevel,
-      isLowEndDevice: deviceInfo.isLowEndDevice
+      batteryLevel: deviceInfo.batteryLevel ?? 0,
+      isLowEndDevice: deviceInfo.isLowEndDevice ?? false
     };
   }
 
@@ -559,7 +574,7 @@ export class MobileAnalyticsService {
 
   private getConnectionType(): string {
     if ('connection' in navigator) {
-      const connection = (navigator as any).connection;
+      const connection = (navigator as Navigator & { connection?: NetworkInformation }).connection;
       return connection?.effectiveType || 'unknown';
     }
     return 'unknown';
@@ -567,7 +582,7 @@ export class MobileAnalyticsService {
 
   private getCurrentPerformanceSnapshot(): PerformanceSnapshot | undefined {
     try {
-      const metrics = this.performanceService.performance$.value;
+      const metrics = (this.performanceService.performance$ as unknown as BehaviorSubject<PerformanceSnapshot>).value;
       return {
         memoryUsage: metrics.memoryUsage,
         frameRate: metrics.frameRate,

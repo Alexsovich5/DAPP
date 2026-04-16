@@ -4,7 +4,7 @@
  */
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, fromEvent, merge, animationFrameScheduler } from 'rxjs';
-import { filter, map, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
+import { filter, tap, throttleTime } from 'rxjs/operators';
 import { HapticFeedbackService } from './haptic-feedback.service';
 
 export interface ElasticSwipeEvent extends SwipeEvent {
@@ -229,7 +229,7 @@ export class AdvancedSwipeService {
         endPosition: currentPosition,
         duration: Date.now() - startTime,
         element,
-        originalEvent: event as any,
+        originalEvent: event,
         deltaX: rawDelta.x,
         deltaY: rawDelta.y,
         phase: 'move',
@@ -248,7 +248,7 @@ export class AdvancedSwipeService {
 
       // Progressive haptic feedback
       if (zone.config.progressiveHaptics && distance > lastHapticDistance + 20) {
-        this.triggerProgressiveHaptic(elasticData.elasticProgress, zone.config);
+        this.triggerProgressiveHaptic(elasticData.elasticProgress);
         lastHapticDistance = distance;
       }
 
@@ -276,7 +276,7 @@ export class AdvancedSwipeService {
         endPosition,
         duration,
         element,
-        originalEvent: event as any,
+        originalEvent: event,
         deltaX: rawDelta.x,
         deltaY: rawDelta.y,
         phase: 'end',
@@ -296,10 +296,10 @@ export class AdvancedSwipeService {
       }
 
       // Animate snap-back
-      this.animateSnapBack(zone, finalEvent);
+      this.animateSnapBack(zone);
 
       // Reset state
-      this.resetSwipeState(zone, startPosition, isSwipeActive);
+      this.resetSwipeState();
       startPosition = null;
       isSwipeActive = false;
       this.isSwipeInProgress.next(false);
@@ -376,7 +376,7 @@ export class AdvancedSwipeService {
     }
   }
 
-  private animateSnapBack(zone: AdvancedSwipeZone, event: ElasticSwipeEvent): void {
+  private animateSnapBack(zone: AdvancedSwipeZone): void {
     const element = zone.element;
     zone.isAnimating = true;
 
@@ -448,10 +448,7 @@ export class AdvancedSwipeService {
     return 'soulmate';
   }
 
-  private triggerProgressiveHaptic(
-    elasticProgress: number,
-    config: AdvancedSwipeConfig
-  ): void {
+  private triggerProgressiveHaptic(elasticProgress: number): void {
     const intensity = elasticProgress > 0.7 ? 'heavy' : elasticProgress > 0.4 ? 'medium' : 'light';
     this.hapticService.triggerImpactFeedback(intensity);
   }
@@ -545,17 +542,18 @@ export class AdvancedSwipeService {
     return elasticData.elasticProgress * 0.8; // Higher elastic = faster snap back
   }
 
-  private resetSwipeState(
-    zone: AdvancedSwipeZone,
-    startPosition: { x: number; y: number } | null,
-    isSwipeActive: boolean
-  ): void {
+  private resetSwipeState(): void {
     // Reset internal state variables in the calling context
   }
 
   private initializePhysicsEngine(): void {
     // Initialize any physics-related systems
     // This could include setting up RAF-based physics updates if needed
+  }
+
+  private updateSwipePhysics(zone: AdvancedSwipeZone): void {
+    // Update physics parameters based on zone configuration
+    // Physics are applied during swipe gesture handling
   }
 
   /**

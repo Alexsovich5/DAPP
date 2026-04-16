@@ -1,4 +1,3 @@
-import { Injectable } from '@angular/core';
 import {
   HttpRequest,
   HttpHandlerFn,
@@ -68,7 +67,7 @@ export const ApiInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, nex
         // FastAPI returns validation errors in a specific format
         const validationErrors = error.error?.detail || [];
         if (validationErrors.length) {
-          errorMsg = validationErrors.map((err: any) =>
+          errorMsg = validationErrors.map((err: { loc: string[]; msg: string }) =>
             `${err.loc.join('.')}: ${err.msg}`
           ).join(', ');
         } else {

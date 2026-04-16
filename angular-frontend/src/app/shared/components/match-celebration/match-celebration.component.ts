@@ -2,13 +2,14 @@ import { Component, Input, OnInit, OnDestroy, Output, EventEmitter } from '@angu
 import { CommonModule } from '@angular/common';
 import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 import { SoulConnectionComponent } from '../soul-connection/soul-connection.component';
+import { SoulConfig } from '../../models/soul-types';
 
 @Component({
   selector: 'app-match-celebration',
   standalone: true,
   imports: [CommonModule, SoulOrbComponent, SoulConnectionComponent],
   template: `
-    <div class="celebration-overlay" [class.active]="isActive" (click)="onOverlayClick()">
+    <button type="button" class="celebration-overlay" [class.active]="isActive" (click)="onOverlayClick()">
       <div class="celebration-container" [ngClass]="celebrationType">
 
         <!-- Celebration background effects -->
@@ -139,12 +140,12 @@ import { SoulConnectionComponent } from '../soul-connection/soul-connection.comp
         </div>
 
         <!-- Close button -->
-        <button class="close-btn" (click)="onDismiss()" aria-label="Close celebration">
+        <button class="close-btn" (click)="onDismiss(); $event.stopPropagation()" aria-label="Close celebration">
           <span>×</span>
         </button>
 
       </div>
-    </div>
+    </button>
   `,
   styles: [`
     .celebration-overlay {
@@ -589,9 +590,9 @@ import { SoulConnectionComponent } from '../soul-connection/soul-connection.comp
 export class MatchCelebrationComponent implements OnInit, OnDestroy {
   @Input() isActive: boolean = false;
   @Input() compatibilityScore: number = 85;
-  @Input() leftSoul: any = { type: 'primary', state: 'matched', energy: 5, label: 'You' };
-  @Input() rightSoul: any = { type: 'secondary', state: 'matched', energy: 5, label: 'Match' };
-  @Input() matchData: any = {};
+  @Input() leftSoul: SoulConfig = { type: 'primary', state: 'matched', energy: 5, label: 'You' };
+  @Input() rightSoul: SoulConfig = { type: 'secondary', state: 'matched', energy: 5, label: 'Match' };
+  @Input() matchData: Record<string, unknown> = {};
   @Input() showConfetti: boolean = true;
   @Input() showSparkles: boolean = true;
   @Input() showHearts: boolean = true;
@@ -603,11 +604,11 @@ export class MatchCelebrationComponent implements OnInit, OnDestroy {
   @Output() dismiss = new EventEmitter<void>();
 
   isProcessing: boolean = false;
-  confettiParticles: any[] = [];
-  sparkleParticles: any[] = [];
-  heartParticles: any[] = [];
-  compatibilityHighlights: any[] = [];
-  connectionInsights: any[] = [];
+  confettiParticles: Array<{id: number; x: number; delay: number; duration: number; color: string}> = [];
+  sparkleParticles: Array<{id: number; x: number; y: number; delay: number}> = [];
+  heartParticles: Array<{id: number; x: number; delay: number; duration: number; emoji: string}> = [];
+  compatibilityHighlights: Array<{label: string; score: number; icon: string; color: string; level: string}> = [];
+  connectionInsights: Array<{icon: string; text: string}> = [];
 
   private animationFrame?: number;
 
@@ -770,23 +771,23 @@ export class MatchCelebrationComponent implements OnInit, OnDestroy {
     this.onDismiss();
   }
 
-  trackConfetti(index: number, item: any): any {
+  trackConfetti(index: number, item: {id: number; x: number; delay: number; duration: number; color: string}): number {
     return item.id;
   }
 
-  trackSparkle(index: number, item: any): any {
+  trackSparkle(index: number, item: {id: number; x: number; y: number; delay: number}): number {
     return item.id;
   }
 
-  trackHeart(index: number, item: any): any {
+  trackHeart(index: number, item: {id: number; x: number; delay: number; duration: number; emoji: string}): number {
     return item.id;
   }
 
-  trackHighlight(index: number, item: any): any {
+  trackHighlight(index: number, item: {label: string; score: number; icon: string; color: string; level: string}): string {
     return item.label;
   }
 
-  trackInsight(index: number, item: any): any {
+  trackInsight(index: number, item: {text: string; icon: string}): string {
     return item.text;
   }
 }

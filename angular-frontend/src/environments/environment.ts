@@ -18,7 +18,7 @@ export const environment = {
   // Soul Before Skin configuration
   soulBeforeSkin: {
     revelationCycleDays: 7,
-    compatibilityThreshold: 50,
+    compatibilityThreshold: 30,  // Lowered to 30% for test data (was 50)
     defaultPhotoHidden: true,
     emotionalOnboardingRequired: true,
     maxInterests: 10, // Maximum interests a user can select

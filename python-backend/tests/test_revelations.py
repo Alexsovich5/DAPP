@@ -3,11 +3,11 @@ Comprehensive tests for Daily Revelation System
 Tests the core "Soul Before Skin" 7-day revelation cycle
 """
 
-from datetime import datetime, timedelta
+import time
 from unittest.mock import patch
 
 import pytest
-from app.models.daily_revelation import DailyRevelation, RevelationType
+from app.models.daily_revelation import RevelationType
 from app.models.soul_connection import ConnectionStage
 from app.services.revelation_service import RevelationService
 from fastapi import status
@@ -138,7 +138,7 @@ class TestRevelationService:
             day=1,
             content="Day 1 revelation content",
         )
-        assert revelation["success"] == True
+        assert revelation["success"]
         assert revelation["revelation"]["day"] == 1
 
         # Test invalid day - service returns error rather than raising exception
@@ -149,7 +149,7 @@ class TestRevelationService:
             day=8,
             content="Invalid day revelation",
         )
-        assert invalid_result["success"] == False
+        assert invalid_result["success"] is False
         assert "Invalid revelation day" in invalid_result["error"]
 
     @pytest.mark.unit
@@ -162,7 +162,7 @@ class TestRevelationService:
         user = soul_connection_data["users"][0]
 
         # Empty content should be rejected
-        empty_result = revelation_service.create_revelation(
+        revelation_service.create_revelation(
             db=db_session,
             connection_id=connection.id,
             user_id=user.id,
@@ -173,7 +173,7 @@ class TestRevelationService:
         # Just verify empty content is handled appropriately
 
         # Test short content
-        short_result = revelation_service.create_revelation(
+        revelation_service.create_revelation(
             db=db_session,
             connection_id=connection.id,
             user_id=user.id,
@@ -190,7 +190,7 @@ class TestRevelationService:
             day=1,
             content="I deeply value honesty, compassion, and genuine connection in all my relationships.",
         )
-        assert good_revelation["success"] == True
+        assert good_revelation["success"]
 
     @pytest.mark.unit
     @pytest.mark.revelations
@@ -209,7 +209,7 @@ class TestRevelationService:
             day=1,
             content="My first day 1 revelation",
         )
-        assert first_revelation["success"] == True
+        assert first_revelation["success"]
 
         # Attempt to create duplicate revelation for same day
         duplicate_result = revelation_service.create_revelation(
@@ -219,7 +219,7 @@ class TestRevelationService:
             day=1,
             content="My duplicate day 1 revelation",
         )
-        assert duplicate_result["success"] == False
+        assert duplicate_result["success"] is False
         assert "Already shared" in duplicate_result["error"]
 
     @pytest.mark.unit
@@ -239,7 +239,7 @@ class TestRevelationService:
             day=3,
             content="Skipping to day 3",
         )
-        assert skip_result["success"] == False
+        assert skip_result["success"] is False
         assert "not yet unlocked" in skip_result["error"]
 
         # Should be able to start with day 1
@@ -250,10 +250,10 @@ class TestRevelationService:
             day=1,
             content="Starting with day 1",
         )
-        assert day1_result["success"] == True
+        assert day1_result["success"]
 
         # Test day 2 - may work depending on current revelation day logic
-        day2_result = revelation_service.create_revelation(
+        revelation_service.create_revelation(
             db=db_session,
             connection_id=connection.id,
             user_id=user.id,
@@ -424,7 +424,10 @@ class TestRevelationAPI:
             # If accepted, should have moderation flag
             if response.status_code == status.HTTP_201_CREATED:
                 data = response.json()
-                assert data.get("moderation_status") in ["pending_review", "flagged"]
+                assert data.get("moderation_status") in [
+                    "pending_review",
+                    "flagged",
+                ]
 
 
 class TestRevelationTiming:
@@ -483,9 +486,9 @@ class TestRevelationTiming:
 
         # Check completion status
         completion_status = revelation_service.get_completion_status(connection.id)
-        assert completion_status["day_1"]["user1_completed"] == True
-        assert completion_status["day_1"]["user2_completed"] == False
-        assert completion_status["day_1"]["both_completed"] == False
+        assert completion_status["day_1"]["user1_completed"]
+        assert completion_status["day_1"]["user2_completed"] is False
+        assert completion_status["day_1"]["both_completed"] is False
 
         # User 2 completes day 1
         revelation_service.create_revelation(
@@ -498,7 +501,7 @@ class TestRevelationTiming:
 
         # Now both should be completed
         completion_status = revelation_service.get_completion_status(connection.id)
-        assert completion_status["day_1"]["both_completed"] == True
+        assert completion_status["day_1"]["both_completed"]
 
     @pytest.mark.unit
     @pytest.mark.revelations
@@ -531,11 +534,11 @@ class TestRevelationTiming:
 
         # Check if cycle is complete
         is_complete = revelation_service.is_cycle_complete(connection.id, user.id)
-        assert is_complete == True
+        assert is_complete
 
         # Should be eligible for photo reveal
         can_reveal = revelation_service.can_photo_reveal(connection.id, user.id)
-        assert can_reveal == True
+        assert can_reveal
 
 
 class TestRevelationIntegration:
@@ -615,7 +618,7 @@ class TestRevelationIntegration:
             "content": "A deeply personal value I hold dear",
         }
 
-        with patch("app.services.push_notification.send_notification") as mock_notify:
+        with patch("app.services.push_notification.send_notification") as _:
             response = client.post(
                 "/api/v1/revelations/create",
                 json=revelation_data,
@@ -633,13 +636,12 @@ class TestRevelationIntegration:
         self, client, authenticated_user, performance_config
     ):
         """Test revelation timeline retrieval performance"""
-        import time
 
         # This would need a connection with many revelations for proper testing
         connection_id = 1  # Mock connection ID
 
         start_time = time.time()
-        response = client.get(
+        client.get(
             f"/api/v1/revelations/timeline/{connection_id}",
             headers=authenticated_user["headers"],
         )

@@ -63,7 +63,7 @@ describe('AuthService', () => {
 
       const req = httpMock.expectOne(`${environment.apiUrl}/auth/login`);
       expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ email, password });
+      expect(req.request.body).toBe('username=test%40example.com&password=password123');
       req.flush(mockLoginResponse);
     });
 
@@ -236,28 +236,49 @@ describe('AuthService', () => {
   });
 
   describe('loadStoredUser', () => {
-    it('should load user from localStorage on initialization', () => {
+    it('should load user from localStorage on initialization', (done) => {
+      // Set user before creating service
+      localStorage.clear();
       localStorage.setItem('user', JSON.stringify(mockUser));
 
-      // Create a new instance to test initialization
+      // Create a fresh test module with the stored user
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [HttpClientTestingModule],
+        providers: [AuthService]
+      });
+
       const newService = TestBed.inject(AuthService);
 
-      newService.currentUser$.subscribe(user => {
-        expect(user).toEqual(mockUser);
-      }).unsubscribe();
+      // Use setTimeout to let the service initialize
+      setTimeout(() => {
+        newService.currentUser$.subscribe(user => {
+          expect(user).toEqual(mockUser);
+          done();
+        }).unsubscribe();
+      }, 0);
     });
 
-    it('should handle invalid JSON in localStorage', () => {
+    it('should handle invalid JSON in localStorage', (done) => {
+      localStorage.clear();
       localStorage.setItem('user', 'invalid-json');
 
-      // Create a new instance to test initialization
+      // Create a fresh test module with invalid data
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [HttpClientTestingModule],
+        providers: [AuthService]
+      });
+
       const newService = TestBed.inject(AuthService);
 
-      newService.currentUser$.subscribe(user => {
-        expect(user).toBeNull();
-      }).unsubscribe();
-
-      expect(localStorage.getItem('user')).toBeNull();
+      setTimeout(() => {
+        newService.currentUser$.subscribe(user => {
+          expect(user).toBeNull();
+          expect(localStorage.getItem('user')).toBeNull();
+          done();
+        }).unsubscribe();
+      }, 0);
     });
   });
 });

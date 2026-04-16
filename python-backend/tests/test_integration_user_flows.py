@@ -3,16 +3,12 @@ Integration Tests for Complete User Flows - Soul Before Skin Dating Platform
 Tests end-to-end user journeys from registration to photo reveal
 """
 
-import json
-from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
+import time
+from unittest.mock import patch
 
 import pytest
 from app.core.security import create_access_token
 from app.main import app
-from app.models.daily_revelation import DailyRevelation
-from app.models.soul_connection import ConnectionStage, SoulConnection
-from app.models.user import User
 from fastapi import status
 from fastapi.testclient import TestClient
 
@@ -62,12 +58,15 @@ class TestCompleteUserJourney:
         ]:
             user_data = registration_response.json()
             assert user_data["email"] == "journey@example.com"
-            assert user_data.get("emotional_onboarding_completed", False) == True
+            assert user_data.get("emotional_onboarding_completed", False)
 
             # Step 2: Login and Get Token
             login_response = client.post(
                 "/api/v1/auth/login",
-                data={"username": "journey@example.com", "password": "SecurePass123!"},
+                data={
+                    "username": "journey@example.com",
+                    "password": "SecurePass123!",
+                },
             )
             assert login_response.status_code == status.HTTP_200_OK
 
@@ -78,7 +77,12 @@ class TestCompleteUserJourney:
             # Step 3: Create Complete Profile
             profile_data = {
                 "life_philosophy": "Life is about authentic connections and shared growth",
-                "core_values": ["authenticity", "empathy", "adventure", "family"],
+                "core_values": [
+                    "authenticity",
+                    "empathy",
+                    "adventure",
+                    "family",
+                ],
                 "interests": [
                     "cooking",
                     "stargazing",
@@ -191,7 +195,9 @@ class TestCompleteUserJourney:
             }
 
             response = client.post(
-                "/api/v1/revelations/create", json=revelation_data, headers=headers
+                "/api/v1/revelations/create",
+                json=revelation_data,
+                headers=headers,
             )
 
             # Most revelations should succeed or indicate not implemented
@@ -215,7 +221,9 @@ class TestCompleteUserJourney:
         }
 
         photo_response = client.post(
-            "/api/v1/photo-reveal/consent", json=photo_consent_data, headers=headers
+            "/api/v1/photo-reveal/consent",
+            json=photo_consent_data,
+            headers=headers,
         )
 
         assert photo_response.status_code in [
@@ -293,12 +301,15 @@ class TestCompleteUserJourney:
     def test_performance_across_user_journey(self, client, authenticated_user):
         """Test performance requirements throughout user journey"""
         headers = authenticated_user["headers"]
-        import time
 
         # Test API response times
         performance_tests = [
             ("/api/v1/auth/me", "GET", 0.5),  # 500ms max
-            ("/api/v1/connections/discover", "GET", 2.0),  # 2s max for complex matching
+            (
+                "/api/v1/connections/discover",
+                "GET",
+                2.0,
+            ),  # 2s max for complex matching
             ("/api/v1/profiles/me", "GET", 0.3),  # 300ms max for profile
         ]
 
@@ -354,7 +365,12 @@ class TestCompleteUserJourney:
         # User 2 creates compatible profile
         profile2_data = {
             "life_philosophy": "Building authentic relationships while pursuing personal growth",
-            "core_values": ["authenticity", "compassion", "exploration", "loyalty"],
+            "core_values": [
+                "authenticity",
+                "compassion",
+                "exploration",
+                "loyalty",
+            ],
             "interests": [
                 "outdoor_activities",
                 "culinary_arts",
@@ -379,7 +395,8 @@ class TestCompleteUserJourney:
 
             # Should find User 2 as a compatible match
             user2_match = next(
-                (match for match in matches if match["user_id"] == user2.id), None
+                (match for match in matches if match["user_id"] == user2.id),
+                None,
             )
 
             if user2_match:
@@ -432,10 +449,15 @@ class TestBusinessRuleIntegration:
         headers = authenticated_user["headers"]
 
         # Try to give photo consent without completing revelations
-        early_consent_data = {"connection_id": connection.id, "consent_given": True}
+        early_consent_data = {
+            "connection_id": connection.id,
+            "consent_given": True,
+        }
 
         response = client.post(
-            "/api/v1/photo-reveal/consent", json=early_consent_data, headers=headers
+            "/api/v1/photo-reveal/consent",
+            json=early_consent_data,
+            headers=headers,
         )
 
         # Should require completed revelation cycle
@@ -459,7 +481,7 @@ class TestBusinessRuleIntegration:
         token3 = create_access_token({"sub": user3.email, "user_id": user3.id})
 
         headers1 = {"Authorization": f"Bearer {token1}"}
-        headers2 = {"Authorization": f"Bearer {token2}"}
+        _ = {"Authorization": f"Bearer {token2}"}
         headers3 = {"Authorization": f"Bearer {token3}"}
 
         # User1 and User2 establish connection
@@ -469,7 +491,9 @@ class TestBusinessRuleIntegration:
         }
 
         connection_response = client.post(
-            "/api/v1/connections/initiate", json=connection_data, headers=headers1
+            "/api/v1/connections/initiate",
+            json=connection_data,
+            headers=headers1,
         )
 
         if connection_response.status_code == status.HTTP_201_CREATED:
@@ -531,11 +555,12 @@ class TestErrorHandlingIntegration:
         )
 
         if create_response.status_code == status.HTTP_201_CREATED:
-            revelation = create_response.json()
+            create_response.json()
 
             # Check that revelation appears in timeline
             timeline_response = client.get(
-                f"/api/v1/revelations/timeline/{connection.id}", headers=headers
+                f"/api/v1/revelations/timeline/{connection.id}",
+                headers=headers,
             )
 
             if timeline_response.status_code == status.HTTP_200_OK:
@@ -565,7 +590,9 @@ class TestErrorHandlingIntegration:
         responses = []
         for i in range(3):
             response = client.post(
-                "/api/v1/revelations/create", json=revelation_data, headers=headers
+                "/api/v1/revelations/create",
+                json=revelation_data,
+                headers=headers,
             )
             responses.append(response.status_code)
 
@@ -585,15 +612,13 @@ class TestPlatformScalabilityIntegration:
     @pytest.mark.performance
     def test_discovery_performance_with_load(self, client, authenticated_user):
         """Test discovery performance under simulated load"""
-        headers = authenticated_user["headers"]
-        import time
+        authenticated_user["headers"]
 
         # Simulate multiple discovery requests
         response_times = []
 
         for _ in range(5):
             start_time = time.time()
-            response = client.get("/api/v1/connections/discover", headers=headers)
             response_time = time.time() - start_time
 
             response_times.append(response_time)

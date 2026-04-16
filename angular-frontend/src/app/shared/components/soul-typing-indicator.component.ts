@@ -4,7 +4,7 @@
  */
 import { Component, Input, OnInit, OnDestroy, ChangeDetectionStrategy, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subject, interval, takeUntil, animationFrameScheduler } from 'rxjs';
+import { Subject, interval, takeUntil } from 'rxjs';
 import { TypingUser } from '../../core/services/chat.service';
 
 export interface SoulTypingConfig {
@@ -588,11 +588,11 @@ export class SoulTypingIndicatorComponent implements OnInit, OnDestroy {
     return counts[this.config.connectionEnergy];
   }
 
-  trackDot(index: number, dot: any): number {
+  trackDot(index: number, _dot: unknown): number {
     return index;
   }
 
-  trackParticle(index: number, particle: any): number {
+  trackParticle(index: number, particle: {id: number}): number {
     return particle.id;
   }
 }

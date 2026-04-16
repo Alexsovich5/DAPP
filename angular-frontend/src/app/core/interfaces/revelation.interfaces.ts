@@ -8,6 +8,10 @@ export interface DailyRevelation {
   is_read: boolean;
   created_at: string;
   sender_name?: string;
+  reactions?: Record<string, {
+    emoji: string;
+    timestamp: string;
+  }>;
 }
 
 export type RevelationType =
@@ -50,9 +54,9 @@ export interface EmotionalOnboarding {
   relationship_values?: string;
   ideal_evening?: string;
   feeling_understood?: string;
-  core_values?: Record<string, any>;
-  personality_traits?: Record<string, any>;
-  communication_style?: Record<string, any>;
+  core_values?: Record<string, unknown>;
+  personality_traits?: Record<string, unknown>;
+  communication_style?: Record<string, unknown>;
   interests?: string[];
 }
 

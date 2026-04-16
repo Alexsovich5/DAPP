@@ -7,7 +7,7 @@ import { isPlatformBrowser } from '@angular/common';
 export class StorageService {
   private isBrowser: boolean;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+  constructor(@Inject(PLATFORM_ID) private platformId: NonNullable<unknown>) {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
 

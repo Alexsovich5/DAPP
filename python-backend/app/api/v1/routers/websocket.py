@@ -25,9 +25,24 @@ router = APIRouter(tags=["websocket"])
 async def websocket_endpoint(
     websocket: WebSocket, token: str, db: Session = Depends(get_db)
 ):
-    """
-    Main WebSocket endpoint for real-time connections
-    """
+    """Main WebSocket endpoint for real-time connections"""
+    await _handle_websocket_connection(websocket, token, db)
+
+
+@router.websocket("/{user_id}")
+async def websocket_user_endpoint(
+    websocket: WebSocket,
+    user_id: int,
+    token: str,
+    db: Session = Depends(get_db),
+):
+    """WebSocket endpoint with user ID in path (for test compatibility)"""
+    # Restore full WebSocket functionality with authentication
+    await _handle_websocket_connection(websocket, token, db)
+
+
+async def _handle_websocket_connection(websocket: WebSocket, token: str, db: Session):
+    """Handle WebSocket connection logic"""
     user = None
     try:
         # Authenticate user from token
@@ -120,7 +135,8 @@ async def websocket_endpoint(
 
 @router.get("/status")
 async def get_realtime_status(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get real-time system status for current user
@@ -136,11 +152,14 @@ async def get_realtime_status(
         # Get connection stats
         stats = realtime_manager.get_connection_stats()
 
+        # Get user channel subscriptions
+        user_channels = await realtime_manager.get_user_channels(current_user.id)
+
         return {
             "userId": current_user.id,
             "isConnected": current_user.id in realtime_manager.active_connections,
             "presence": {
-                "status": presence.status if presence else UserPresenceStatus.OFFLINE,
+                "status": (presence.status if presence else UserPresenceStatus.OFFLINE),
                 "lastSeen": (
                     presence.last_seen.isoformat()
                     if presence and presence.last_seen
@@ -151,12 +170,149 @@ async def get_realtime_status(
                     presence.typing_in_connection if presence else None
                 ),
             },
+            "channels": user_channels,
             "systemStats": stats,
         }
 
     except Exception as e:
         logger.error(f"Error getting realtime status: {str(e)}")
         raise HTTPException(status_code=500, detail="Error getting realtime status")
+
+
+@router.get("/health")
+async def get_websocket_health():
+    """
+    Get WebSocket connection pool health status (Frontend WebSocket Pool compatibility)
+    """
+    try:
+        stats = realtime_manager.get_connection_stats()
+
+        # Determine health based on connections and system state
+        if stats["active_connections"] == 0:
+            health = "disconnected"
+        elif (
+            stats.get("channel_subscribers", 0) > 0 and stats["active_connections"] > 0
+        ):
+            # Good health if we have both connections and active subscribers
+            connection_ratio = min(
+                stats["active_connections"] / 10, 1.0
+            )  # Scale by expected connections
+            if connection_ratio >= 0.9:
+                health = "excellent"
+            elif connection_ratio >= 0.7:
+                health = "good"
+            else:
+                health = "poor"
+        else:
+            health = "poor"
+
+        return {
+            "health": health,
+            "connectionCount": stats["active_connections"],
+            "activeChannels": stats.get("channel_subscribers", 0),
+            "totalChannelSubscriptions": stats.get("total_channel_subscriptions", 0),
+            "queuedMessages": stats["queued_messages"],
+            "typingSessions": stats["typing_sessions"],
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting WebSocket health: {str(e)}")
+        return {
+            "health": "error",
+            "connectionCount": 0,
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+
+
+@router.post("/channels/subscribe")
+async def subscribe_to_channel(
+    channel_data: Dict[str, str],
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Subscribe user to a WebSocket channel (Frontend WebSocket Pool compatibility)
+    """
+    try:
+        channel = channel_data.get("channel")
+        if not channel:
+            raise HTTPException(status_code=400, detail="Channel name is required")
+
+        success = await realtime_manager.subscribe_to_channel(current_user.id, channel)
+
+        if not success:
+            raise HTTPException(
+                status_code=400, detail="Failed to subscribe to channel"
+            )
+
+        return {
+            "success": True,
+            "channel": channel,
+            "userId": current_user.id,
+            "message": f"Successfully subscribed to channel '{channel}'",
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error subscribing to channel: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error subscribing to channel")
+
+
+@router.post("/channels/unsubscribe")
+async def unsubscribe_from_channel(
+    channel_data: Dict[str, str],
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Unsubscribe user from a WebSocket channel
+    """
+    try:
+        channel = channel_data.get("channel")
+        if not channel:
+            raise HTTPException(status_code=400, detail="Channel name is required")
+
+        success = await realtime_manager.unsubscribe_from_channel(
+            current_user.id, channel
+        )
+
+        if not success:
+            raise HTTPException(
+                status_code=400, detail="Failed to unsubscribe from channel"
+            )
+
+        return {
+            "success": True,
+            "channel": channel,
+            "userId": current_user.id,
+            "message": f"Successfully unsubscribed from channel '{channel}'",
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error unsubscribing from channel: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error unsubscribing from channel")
+
+
+@router.get("/channels/list")
+async def list_user_channels(current_user: User = Depends(get_current_user)):
+    """
+    Get list of channels user is subscribed to
+    """
+    try:
+        channels = await realtime_manager.get_user_channels(current_user.id)
+
+        return {
+            "userId": current_user.id,
+            "channels": channels,
+            "totalChannels": len(channels),
+        }
+
+    except Exception as e:
+        logger.error(f"Error listing user channels: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error listing user channels")
 
 
 @router.post("/typing/start/{connection_id}")
@@ -318,14 +474,16 @@ async def get_user_presence(
 
         return {
             "userId": user_id,
-            "status": presence.status if presence else UserPresenceStatus.OFFLINE.value,
+            "status": (
+                presence.status if presence else UserPresenceStatus.OFFLINE.value
+            ),
             "lastSeen": (
                 presence.last_seen.isoformat()
                 if presence and presence.last_seen
                 else None
             ),
             "isTyping": presence.is_typing if presence else False,
-            "typingInConnection": presence.typing_in_connection if presence else None,
+            "typingInConnection": (presence.typing_in_connection if presence else None),
             "isOnline": user_id in realtime_manager.active_connections,
         }
 
@@ -338,7 +496,8 @@ async def get_user_presence(
 
 @router.get("/connections/active")
 async def get_active_connections(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Get real-time status of user's active connections
@@ -462,7 +621,8 @@ async def get_system_stats(current_user: User = Depends(get_current_user)):
 
 @router.post("/admin/cleanup")
 async def cleanup_stale_sessions(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Manually trigger cleanup of stale sessions (admin only)
