@@ -159,6 +159,7 @@ describe('ChatComponent — connection stage display', () => {
   it('should return empty string when connectionStage is null', () => {
     component.connectionStage = null;
     expect(component.connectionStageLabel).toBe('');
+    component.chatPartner = { _id: '2', firstName: 'Sam', lastName: 'Lee' };
     fixture.detectChanges();
     const chip = fixture.nativeElement.querySelector('.stage-chip');
     expect(chip).toBeNull();
