@@ -1,5 +1,4 @@
 import { Component, Inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,9 +10,9 @@ export interface PhotoRevealConsentData {
 @Component({
   selector: 'app-photo-reveal-consent-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
+  imports: [MatDialogModule, MatButtonModule, MatIconModule],
   template: `
-    <div class="consent-dialog" role="dialog" aria-labelledby="consent-title" aria-describedby="consent-desc">
+    <div class="consent-dialog">
       <div class="dialog-icon">
         <mat-icon aria-hidden="true">photo_camera</mat-icon>
       </div>
@@ -68,8 +67,8 @@ export interface PhotoRevealConsentData {
 })
 export class PhotoRevealConsentDialogComponent {
   constructor(
-    public dialogRef: MatDialogRef<PhotoRevealConsentDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: PhotoRevealConsentData
+    private dialogRef: MatDialogRef<PhotoRevealConsentDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public readonly data: PhotoRevealConsentData
   ) {}
 
   onConsent(): void {

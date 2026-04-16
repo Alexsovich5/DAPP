@@ -5,9 +5,10 @@ import { PhotoRevealConsentDialogComponent } from './photo-reveal-consent-dialog
 describe('PhotoRevealConsentDialogComponent', () => {
   let fixture: ComponentFixture<PhotoRevealConsentDialogComponent>;
   let component: PhotoRevealConsentDialogComponent;
-  const dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
+  let dialogRefSpy: jasmine.SpyObj<MatDialogRef<PhotoRevealConsentDialogComponent>>;
 
   beforeEach(async () => {
+    dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
     await TestBed.configureTestingModule({
       imports: [PhotoRevealConsentDialogComponent],
       providers: [
