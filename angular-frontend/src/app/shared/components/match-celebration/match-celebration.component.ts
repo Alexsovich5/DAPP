@@ -2,12 +2,13 @@ import { Component, Input, OnInit, OnDestroy, Output, EventEmitter } from '@angu
 import { CommonModule } from '@angular/common';
 import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 import { SoulConnectionComponent } from '../soul-connection/soul-connection.component';
+import { MatIconModule } from '@angular/material/icon';
 import { SoulConfig } from '../../models/soul-types';
 
 @Component({
   selector: 'app-match-celebration',
   standalone: true,
-  imports: [CommonModule, SoulOrbComponent, SoulConnectionComponent],
+  imports: [CommonModule, MatIconModule, SoulOrbComponent, SoulConnectionComponent],
   template: `
     <button type="button" class="celebration-overlay" [class.active]="isActive" (click)="onOverlayClick()">
       <div class="celebration-container" [ngClass]="celebrationType">
@@ -34,7 +35,7 @@ import { SoulConfig } from '../../models/soul-types';
               [style.left.%]="sparkle.x"
               [style.top.%]="sparkle.y"
               [style.animation-delay]="sparkle.delay + 's'">
-              ✨
+              <mat-icon class="sparkle-icon">auto_awesome</mat-icon>
             </div>
           </div>
 
@@ -82,7 +83,7 @@ import { SoulConfig } from '../../models/soul-types';
                 *ngFor="let highlight of compatibilityHighlights; trackBy: trackHighlight"
                 class="highlight-item"
                 [ngClass]="highlight.level">
-                <div class="highlight-icon">{{highlight.icon}}</div>
+                <mat-icon class="highlight-icon">{{highlight.icon}}</mat-icon>
                 <div class="highlight-content">
                   <span class="highlight-label">{{highlight.label}}</span>
                   <span class="highlight-score">{{highlight.score}}%</span>
@@ -104,7 +105,7 @@ import { SoulConfig } from '../../models/soul-types';
               class="action-btn primary"
               (click)="onStartConversation()"
               [disabled]="isProcessing">
-              <span class="btn-icon">💬</span>
+              <mat-icon class="btn-icon">forum</mat-icon>
               <span class="btn-text">Start Soul Conversation</span>
             </button>
 
@@ -112,7 +113,7 @@ import { SoulConfig } from '../../models/soul-types';
               class="action-btn secondary"
               (click)="onViewProfile()"
               [disabled]="isProcessing">
-              <span class="btn-icon">👤</span>
+              <mat-icon class="btn-icon">person</mat-icon>
               <span class="btn-text">Explore Their Soul</span>
             </button>
 
@@ -131,7 +132,7 @@ import { SoulConfig } from '../../models/soul-types';
               <div
                 *ngFor="let insight of connectionInsights; trackBy: trackInsight"
                 class="insight-item">
-                <span class="insight-icon">{{insight.icon}}</span>
+                <mat-icon class="insight-icon">{{insight.icon}}</mat-icon>
                 <span class="insight-text">{{insight.text}}</span>
               </div>
             </div>
@@ -227,6 +228,10 @@ import { SoulConfig } from '../../models/soul-types';
       position: absolute;
       font-size: 1.5rem;
       animation: sparkle-twinkle 2s ease-in-out infinite;
+    }
+
+    .sparkle-icon {
+      color: #ffd700;
     }
 
     .hearts-container {
@@ -619,10 +624,10 @@ export class MatchCelebrationComponent implements OnInit, OnDestroy {
   }
 
   get celebrationTitle(): string {
-    if (this.compatibilityScore >= 95) return 'Perfect Soul Match! 💫';
-    if (this.compatibilityScore >= 85) return 'Exceptional Connection! ✨';
-    if (this.compatibilityScore >= 75) return 'Strong Soul Bond! 💖';
-    return 'Beautiful Match! 🌟';
+    if (this.compatibilityScore >= 95) return 'Perfect Soul Match';
+    if (this.compatibilityScore >= 85) return 'Exceptional Connection';
+    if (this.compatibilityScore >= 75) return 'Strong Soul Bond';
+    return 'Beautiful Match';
   }
 
   get celebrationSubtitle(): string {
@@ -687,14 +692,13 @@ export class MatchCelebrationComponent implements OnInit, OnDestroy {
     // Generate hearts for high compatibility
     this.heartParticles = [];
     if (this.showHearts && this.compatibilityScore >= 80) {
-      const heartEmojis = ['💖', '💕', '💗', '💘', '❤️'];
       for (let i = 0; i < 10; i++) {
         this.heartParticles.push({
           id: i,
           x: Math.random() * 100,
           delay: Math.random() * 4,
           duration: 4 + Math.random() * 2,
-          emoji: heartEmojis[Math.floor(Math.random() * heartEmojis.length)]
+          emoji: '♥'
         });
       }
     }
@@ -706,9 +710,9 @@ export class MatchCelebrationComponent implements OnInit, OnDestroy {
 
     // Mock compatibility data - in real app, this would come from matchData
     const highlights = [
-      { label: 'Core Values', score: 92, icon: '💎', color: '#ffd700' },
-      { label: 'Life Goals', score: 88, icon: '🎯', color: '#ff6b9d' },
-      { label: 'Communication', score: 85, icon: '💬', color: '#c084fc' }
+      { label: 'Core Values', score: 92, icon: 'diamond', color: '#ffd700' },
+      { label: 'Life Goals', score: 88, icon: 'track_changes', color: '#ff6b9d' },
+      { label: 'Communication', score: 85, icon: 'forum', color: '#c084fc' }
     ].filter(h => h.score >= 80);
 
     this.compatibilityHighlights = highlights.map(h => ({
@@ -722,10 +726,10 @@ export class MatchCelebrationComponent implements OnInit, OnDestroy {
     if (!this.showInsights) return;
 
     const insights = [
-      { icon: '🌟', text: 'You both value deep, meaningful conversations over small talk' },
-      { icon: '🎭', text: 'Similar sense of humor creates natural chemistry' },
-      { icon: '🌱', text: 'Shared growth mindset suggests lasting compatibility' },
-      { icon: '💫', text: 'Both prioritize authenticity in relationships' }
+      { icon: 'stars', text: 'You both value deep, meaningful conversations over small talk' },
+      { icon: 'theater_comedy', text: 'Similar sense of humor creates natural chemistry' },
+      { icon: 'eco', text: 'Shared growth mindset suggests lasting compatibility' },
+      { icon: 'auto_awesome', text: 'Both prioritize authenticity in relationships' }
     ];
 
     // Select 2-3 random insights
