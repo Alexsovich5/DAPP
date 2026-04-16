@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
@@ -86,11 +86,12 @@ describe('RevelationsComponent — photo consent', () => {
     expect(dialogSpy.open).toHaveBeenCalled();
   });
 
-  it('should call updateSoulConnection with mutual_reveal_consent: true on consent', () => {
+  it('should call updateSoulConnection with mutual_reveal_consent: true on consent', fakeAsync(() => {
     component.connectionId = 1;
     component.checkForPhotoReveal({ connection_id: 1, current_day: 7, revelations: [], is_cycle_complete: true } as any);
+    tick();
     expect(soulConnectionServiceSpy.updateSoulConnection).toHaveBeenCalledWith(
       1, { mutual_reveal_consent: true }
     );
-  });
+  }));
 });

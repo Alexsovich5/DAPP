@@ -937,7 +937,7 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
   loading = true;
   submitting = false;
   currentUserId = 1; // Mock current user ID
-  partnerName = 'Alex'; // Mock partner name
+  partnerName: string | null = null;
   userConsent = false;
   partnerConsent = false;
   photoRevealed = false;
@@ -945,6 +945,8 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
   showCelebrate = false;
   confettiPieces = Array.from({ length: 24 }).map((_, i) => i);
   whatsNext: string | null = null;
+
+  private photoConsentSub?: Subscription;
 
   // Keyboard navigation
   private keyboardNavSubscription?: Subscription;
@@ -986,6 +988,7 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.keyboardNavSubscription) {
       this.keyboardNavSubscription.unsubscribe();
     }
+    this.photoConsentSub?.unsubscribe();
   }
 
   loadRevelationData() {
@@ -1194,6 +1197,7 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
 
   checkForPhotoReveal(timeline: RevelationTimelineResponse): void {
     if (timeline.current_day < 7 || !timeline.is_cycle_complete) return;
+    if (this.userConsent) return;  // Already consented — don't re-open dialog
 
     const partnerName = this.partnerName ?? 'your match';
     const dialogRef = this.dialog.open(PhotoRevealConsentDialogComponent, {
@@ -1202,7 +1206,7 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
       data: { partnerName }
     });
 
-    dialogRef.afterClosed().subscribe((consented: boolean) => {
+    this.photoConsentSub = dialogRef.afterClosed().subscribe((consented: boolean) => {
       if (consented && this.connectionId) {
         this.soulConnectionService.updateSoulConnection(
           this.connectionId,
