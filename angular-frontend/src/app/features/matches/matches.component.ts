@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import { SoulConnectionService } from '../../core/services/soul-connection.service';
 import { RevelationService } from '../../core/services/revelation.service';
@@ -8,7 +9,7 @@ import { SoulConnection } from '../../core/interfaces/soul-connection.interfaces
 @Component({
   selector: 'app-matches',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatIconModule],
   template: `
     <div class="matches-container">
       <header class="matches-header">
@@ -89,7 +90,7 @@ import { SoulConnection } from '../../core/interfaces/soul-connection.interfaces
 
           <div class="connection-actions">
             <button type="button" class="action-btn primary" (click)="startConversation(connection, $event)">
-              <span>💬</span> Continue Chat
+              <mat-icon>forum</mat-icon> Continue Chat
             </button>
             <button
               type="button"
@@ -97,7 +98,7 @@ import { SoulConnection } from '../../core/interfaces/soul-connection.interfaces
               (click)="viewRevelations(connection, $event)"
               *ngIf="connection.reveal_day > 1"
             >
-              <span>✨</span> View Revelations
+              <mat-icon>auto_awesome</mat-icon> View Revelations
             </button>
           </div>
         </button>
@@ -105,11 +106,11 @@ import { SoulConnection } from '../../core/interfaces/soul-connection.interfaces
 
       <ng-template #noConnections>
         <div class="empty-state">
-          <div class="empty-icon">💫</div>
+          <div class="empty-icon"><mat-icon>stars</mat-icon></div>
           <h2>No Soul Connections Yet</h2>
           <p>Start discovering meaningful connections based on emotional compatibility</p>
           <button type="button" class="cta-button" (click)="goToDiscover()">
-            <span>🔍</span> Discover Connections
+            <mat-icon>search</mat-icon> Discover Connections
           </button>
         </div>
       </ng-template>

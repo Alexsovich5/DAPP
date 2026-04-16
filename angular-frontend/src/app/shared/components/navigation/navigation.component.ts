@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { Observable } from 'rxjs';
@@ -8,7 +9,7 @@ import { Observable } from 'rxjs';
 @Component({
   selector: 'app-navigation',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, MatIconModule],
   template: `
     <nav
       class="main-navigation"
@@ -21,7 +22,7 @@ import { Observable } from 'rxjs';
             routerLink="/"
             class="brand-link"
             aria-label="Dinner First home page">
-            <span class="brand-icon" aria-hidden="true">💫</span>
+            <mat-icon class="brand-icon" aria-hidden="true">local_dining</mat-icon>
             <span class="brand-text">Dinner First</span>
           </a>
         </div>
@@ -43,7 +44,7 @@ import { Observable } from 'rxjs';
             (keydown.enter)="closeMobileMenu()"
             (keydown.space)="closeMobileMenu()"
           >
-            <span class="nav-icon" aria-hidden="true">🔍</span>
+            <mat-icon class="nav-icon" aria-hidden="true">explore</mat-icon>
             <span class="nav-text">Discover</span>
           </a>
 
@@ -58,7 +59,7 @@ import { Observable } from 'rxjs';
             (keydown.enter)="closeMobileMenu()"
             (keydown.space)="closeMobileMenu()"
           >
-            <span class="nav-icon" aria-hidden="true">💬</span>
+            <mat-icon class="nav-icon" aria-hidden="true">forum</mat-icon>
             <span class="nav-text">Conversations</span>
             <span
               class="notification-badge"
@@ -80,7 +81,7 @@ import { Observable } from 'rxjs';
             (keydown.enter)="closeMobileMenu()"
             (keydown.space)="closeMobileMenu()"
           >
-            <span class="nav-icon" aria-hidden="true">✨</span>
+            <mat-icon class="nav-icon" aria-hidden="true">auto_awesome</mat-icon>
             <span class="nav-text">Revelations</span>
           </a>
 
@@ -119,7 +120,7 @@ import { Observable } from 'rxjs';
                 aria-label="View and edit your profile"
                 (click)="closeUserMenu()"
                 (keydown.enter)="closeUserMenu()">
-                <span aria-hidden="true">👤</span> Profile
+                <mat-icon aria-hidden="true">person</mat-icon> Profile
               </a>
               <a
                 routerLink="/settings"
@@ -129,7 +130,7 @@ import { Observable } from 'rxjs';
                 aria-label="Application settings and preferences"
                 (click)="closeUserMenu()"
                 (keydown.enter)="closeUserMenu()">
-                <span aria-hidden="true">⚙️</span> Settings
+                <mat-icon aria-hidden="true">settings</mat-icon> Settings
               </a>
               <div class="dropdown-divider" role="separator"></div>
               <button
@@ -139,7 +140,7 @@ import { Observable } from 'rxjs';
                 aria-label="Sign out of your account"
                 (click)="logout()"
                 (keydown.enter)="logout()">
-                <span aria-hidden="true">🚪</span> Logout
+                <mat-icon aria-hidden="true">logout</mat-icon> Logout
               </button>
             </div>
           </div>
@@ -209,7 +210,9 @@ import { Observable } from 'rxjs';
     }
 
     .brand-icon {
-      font-size: 1.5rem;
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
     }
 
     .nav-menu {
@@ -242,7 +245,9 @@ import { Observable } from 'rxjs';
     }
 
     .nav-icon {
-      font-size: 1.2rem;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
     }
 
     .nav-text {
@@ -252,8 +257,8 @@ import { Observable } from 'rxjs';
 
     .revelation-link:hover,
     .revelation-link.active {
-      color: #ffd700;
-      background: rgba(255, 215, 0, 0.1);
+      color: var(--interactive-primary);
+      background: rgba(var(--primary-color-rgb), 0.1);
     }
 
     .nav-link {
@@ -338,6 +343,12 @@ import { Observable } from 'rxjs';
 
     .dropdown-item:hover {
       background: var(--surface-color);
+    }
+
+    .dropdown-item mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
     }
 
     .logout-btn:hover {
@@ -425,7 +436,9 @@ import { Observable } from 'rxjs';
       }
 
       .nav-icon {
-        font-size: 1.5rem;
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
         min-width: 24px;
       }
 
@@ -481,7 +494,7 @@ import { Observable } from 'rxjs';
       }
 
       .nav-icon {
-        font-size: 1.6rem;
+        font-size: 24px;
       }
     }
 

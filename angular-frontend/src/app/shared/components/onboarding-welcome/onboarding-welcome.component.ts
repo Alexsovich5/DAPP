@@ -79,7 +79,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       <!-- Welcome Content -->
       <div class="welcome-content">
         <div id="welcome-description" class="philosophy-section">
-          <h2 class="section-title">✨ Our Philosophy</h2>
+          <h2 class="section-title">Our Philosophy</h2>
           <p class="philosophy-text">
             In a world obsessed with appearances, we believe the most beautiful connections
             happen when hearts recognize each other first. Here, your emotional depth,
@@ -89,7 +89,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 
         <!-- How It Works -->
         <div class="how-it-works">
-          <h2 class="section-title">💫 How Soul Connections Work</h2>
+          <h2 class="section-title">How Soul Connections Work</h2>
 
           <div class="steps-container">
             <div class="step" *ngFor="let step of howItWorksSteps; let i = index">
@@ -98,18 +98,18 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
                 <h3 class="step-title">{{ step.title }}</h3>
                 <p class="step-description">{{ step.description }}</p>
               </div>
-              <div class="step-icon" [innerHTML]="step.icon"></div>
+              <div class="step-icon"><mat-icon>{{step.icon}}</mat-icon></div>
             </div>
           </div>
         </div>
 
         <!-- Benefits -->
         <div class="benefits-section">
-          <h2 class="section-title">💖 Why Soul-First Dating Works</h2>
+          <h2 class="section-title">Why Soul-First Dating Works</h2>
 
           <div class="benefits-grid">
             <div class="benefit" *ngFor="let benefit of benefits">
-              <div class="benefit-icon" [innerHTML]="benefit.icon"></div>
+              <div class="benefit-icon"><mat-icon>{{benefit.icon}}</mat-icon></div>
               <h3 class="benefit-title">{{ benefit.title }}</h3>
               <p class="benefit-description">{{ benefit.description }}</p>
             </div>
@@ -118,7 +118,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 
         <!-- Tutorial Options -->
         <div class="tutorial-options">
-          <h2 class="section-title">🎯 Choose Your Journey</h2>
+          <h2 class="section-title">Choose Your Journey</h2>
 
           <div class="option-cards">
             <div
@@ -131,7 +131,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
               role="button"
               aria-label="Choose guided tutorial">
               <div class="option-header">
-                <div class="option-icon">🌟</div>
+                <div class="option-icon"><mat-icon>explore</mat-icon></div>
                 <h3 class="option-title">Guided Experience</h3>
               </div>
               <p class="option-description">
@@ -151,7 +151,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
               role="button"
               aria-label="Choose quick start">
               <div class="option-header">
-                <div class="option-icon">🚀</div>
+                <div class="option-icon"><mat-icon>rocket_launch</mat-icon></div>
                 <h3 class="option-title">Quick Start</h3>
               </div>
               <p class="option-description">
@@ -214,7 +214,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       <!-- Footer -->
       <div class="welcome-footer">
         <p class="footer-text">
-          🌙 Welcome to a more meaningful way to connect. Your soul journey begins now.
+          Welcome to a more meaningful way to connect. Your soul journey begins now.
         </p>
       </div>
     </div>
@@ -703,22 +703,22 @@ export class OnboardingWelcomeComponent implements OnInit {
     {
       title: 'Share Your Soul',
       description: 'Complete your emotional profile with values, dreams, and what makes you unique.',
-      icon: '💖'
+      icon: 'favorite'
     },
     {
       title: 'Algorithm Magic',
       description: 'Our compatibility algorithm finds people who align with your deeper self.',
-      icon: '✨'
+      icon: 'auto_awesome'
     },
     {
       title: 'Connect First',
       description: 'Start meaningful conversations based on emotional compatibility.',
-      icon: '💬'
+      icon: 'forum'
     },
     {
       title: 'Reveal Photos',
       description: 'After connecting emotionally, choose when to share photos together.',
-      icon: '🌅'
+      icon: 'photo_camera'
     }
   ];
 
@@ -726,22 +726,22 @@ export class OnboardingWelcomeComponent implements OnInit {
     {
       title: 'Deeper Connections',
       description: 'Build relationships based on true compatibility, not just attraction.',
-      icon: '🔗'
+      icon: 'link'
     },
     {
       title: 'Authentic Self',
       description: 'Be valued for who you truly are, not just your appearance.',
-      icon: '🌟'
+      icon: 'star'
     },
     {
       title: 'Meaningful Conversations',
       description: 'Start with topics that matter and create genuine understanding.',
-      icon: '💭'
+      icon: 'chat_bubble'
     },
     {
       title: 'Quality Matches',
       description: 'Spend time with people who truly align with your values and goals.',
-      icon: '🎯'
+      icon: 'track_changes'
     }
   ];
 

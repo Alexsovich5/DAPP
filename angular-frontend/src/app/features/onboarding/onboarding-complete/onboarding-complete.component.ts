@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../../core/services/auth.service';
 import { RevelationService } from '../../../core/services/revelation.service';
 import { StorageService } from '../../../core/services/storage.service';
@@ -10,11 +11,11 @@ import { EmotionalOnboarding } from '../../../core/interfaces/revelation.interfa
 @Component({
   selector: 'app-onboarding-complete',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatIconModule],
   template: `
     <div class="onboarding-complete">
       <div class="completion-content" *ngIf="!isSubmitting">
-        <div class="success-icon">✨</div>
+        <div class="success-icon"><mat-icon>auto_awesome</mat-icon></div>
 
         <h1>Welcome to Soul Before Skin</h1>
         <p class="welcome-message">
@@ -26,19 +27,19 @@ import { EmotionalOnboarding } from '../../../core/interfaces/revelation.interfa
           <h3>Your Soul Profile Includes:</h3>
           <ul class="profile-features">
             <li>
-              <span class="feature-icon">💭</span>
+              <mat-icon class="feature-icon">chat_bubble</mat-icon>
               Deep emotional insights and relationship values
             </li>
             <li>
-              <span class="feature-icon">🤝</span>
+              <mat-icon class="feature-icon">handshake</mat-icon>
               Personality traits and communication style
             </li>
             <li>
-              <span class="feature-icon">❤️</span>
+              <mat-icon class="feature-icon">favorite</mat-icon>
               {{ totalInterests }} carefully selected interests
             </li>
             <li>
-              <span class="feature-icon">🎯</span>
+              <mat-icon class="feature-icon">track_changes</mat-icon>
               Compatibility scoring with local algorithms
             </li>
           </ul>
@@ -82,7 +83,7 @@ import { EmotionalOnboarding } from '../../../core/interfaces/revelation.interfa
       </div>
 
       <div class="error-content" *ngIf="hasError">
-        <div class="error-icon">⚠️</div>
+        <div class="error-icon"><mat-icon>warning</mat-icon></div>
         <h2>Something went wrong</h2>
         <p>{{ errorMessage }}</p>
         <button class="btn btn-outline" (click)="retrySubmission()">

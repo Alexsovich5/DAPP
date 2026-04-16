@@ -10,7 +10,7 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
     <app-empty-state
       theme="neutral"
       size="medium"
-      customIcon="⚙️"
+      customIcon="settings"
       [iconSize]="3"
       [title]="title"
       [description]="description"
@@ -38,35 +38,35 @@ export class SettingsEmptyStateComponent {
 
   settingsTips = [
     {
-      icon: "🔔",
+      icon: "notifications",
       text: "Set notification preferences for matches and messages"
     },
     {
-      icon: "🌙",
+      icon: "dark_mode",
       text: "Choose your preferred conversation times and activity periods"
     },
     {
-      icon: "🔒",
+      icon: "lock",
       text: "Configure privacy settings and photo visibility preferences"
     },
     {
-      icon: "💫",
+      icon: "stars",
       text: "Adjust matching criteria and distance preferences"
     },
     {
-      icon: "🎨",
+      icon: "palette",
       text: "Select your preferred theme and display options"
     }
   ];
 
   primaryAction = {
     text: "Set Up Notifications",
-    icon: "🔔"
+    icon: "notifications"
   };
 
   secondaryAction = {
     text: "Customize Preferences",
-    icon: "⚙️"
+    icon: "settings"
   };
 
   onConfigureNotifications() {

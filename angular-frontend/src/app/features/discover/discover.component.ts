@@ -1137,7 +1137,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
 
     for (let i = 0; i < heartsCount; i++) {
       const heart = document.createElement('div');
-      heart.innerHTML = '💖';
+      heart.textContent = '\u2665';
       heart.style.position = 'absolute';
       heart.style.fontSize = '1.5rem';
       heart.style.pointerEvents = 'none';
@@ -1164,7 +1164,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
    */
   private triggerConnectionSuccessEffects(discovery: DiscoveryResponse): void {
     // Create success announcement with sound for screen readers
-    this.announceAction(`🎉 Soul connection established with ${discovery.profile_preview.first_name}! Compatibility: ${discovery.compatibility.total_compatibility}%`);
+    this.announceAction(`Soul connection established with ${discovery.profile_preview.first_name}! Compatibility: ${discovery.compatibility.total_compatibility}%`);
 
     // Create page-wide celebration effect
     const celebrationOverlay = document.createElement('div');

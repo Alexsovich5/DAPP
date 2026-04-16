@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { Subscription } from 'rxjs';
 import { CompatibilityBreakdown, CompatibilityResponse } from '../../../core/interfaces/soul-connection.interfaces';
 import { SoulConnectionService } from '../../../core/services/soul-connection.service';
@@ -7,7 +8,7 @@ import { SoulConnectionService } from '../../../core/services/soul-connection.se
 @Component({
   selector: 'app-compatibility-radar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatIconModule],
   template: `
     <div class="compatibility-radar-container" [ngClass]="size">
       <div class="radar-header" *ngIf="showHeader">
@@ -175,7 +176,7 @@ import { SoulConnectionService } from '../../../core/services/soul-connection.se
             *ngFor="let insight of insights; trackBy: trackInsight"
             class="insight-item"
             [ngClass]="insight.type">
-            <div class="insight-icon">{{insight.icon}}</div>
+            <div class="insight-icon"><mat-icon>{{insight.icon}}</mat-icon></div>
             <div class="insight-text">{{insight.text}}</div>
           </div>
         </div>
@@ -697,7 +698,7 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
       const topStrength = strengths.reduce((a, b) => a.score > b.score ? a : b);
       this.insights.push({
         type: 'strength',
-        icon: '✨',
+        icon: 'auto_awesome',
         text: `Exceptional ${topStrength.label.toLowerCase()} compatibility (${topStrength.score}%) creates a strong foundation for soul connection.`
       });
     }
@@ -708,7 +709,7 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
       const topOpportunity = opportunities.reduce((a, b) => a.score > b.score ? a : b);
       this.insights.push({
         type: 'opportunity',
-        icon: '🌱',
+        icon: 'spa',
         text: `Growing ${topOpportunity.label.toLowerCase()} alignment (${topOpportunity.score}%) offers potential for deeper soul connection.`
       });
     }
@@ -719,7 +720,7 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
       const topConcern = concerns.reduce((a, b) => a.score < b.score ? a : b);
       this.insights.push({
         type: 'concern',
-        icon: '💭',
+        icon: 'chat_bubble',
         text: `Exploring ${topConcern.label.toLowerCase()} differences (${topConcern.score}%) through meaningful revelations could deepen understanding.`
       });
     }
@@ -729,13 +730,13 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
     if (overall >= 85) {
       this.insights.push({
         type: 'strength',
-        icon: '💫',
+        icon: 'stars',
         text: `Outstanding overall compatibility (${overall}%) suggests a profound soul-level connection.`
       });
     } else if (overall >= 70) {
       this.insights.push({
         type: 'opportunity',
-        icon: '🔗',
+        icon: 'link',
         text: `Strong overall compatibility (${overall}%) indicates promising potential for lasting connection.`
       });
     }

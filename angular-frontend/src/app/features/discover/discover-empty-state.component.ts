@@ -41,31 +41,31 @@ export class DiscoverEmptyStateComponent {
 
   discoveryTips = [
     {
-      icon: "✨",
+      icon: "auto_awesome",
       text: "Complete your emotional profile to help us find deeper connections"
     },
     {
-      icon: "💫",
+      icon: "stars",
       text: "Share your authentic interests and values for better matches"
     },
     {
-      icon: "🌟",
+      icon: "star",
       text: "Be patient - meaningful soul connections are worth the wait"
     },
     {
-      icon: "💖",
+      icon: "favorite",
       text: "Quality over quantity: we prioritize compatible souls over endless options"
     }
   ];
 
   primaryAction = {
     text: "Search for Soul Matches",
-    icon: "🔍"
+    icon: "search"
   };
 
   secondaryAction = {
     text: "Enhance Your Profile",
-    icon: "✨"
+    icon: "auto_awesome"
   };
 
   onRefreshMatches() {

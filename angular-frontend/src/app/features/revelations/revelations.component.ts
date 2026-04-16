@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 import { RevelationService } from '../../core/services/revelation.service';
 import { SoulConnectionService } from '../../core/services/soul-connection.service';
 import { HapticFeedbackService } from '../../core/services/haptic-feedback.service';
@@ -21,7 +22,7 @@ import {
 @Component({
   selector: 'app-revelations',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RevelationsEmptyStateComponent, MatDialogModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RevelationsEmptyStateComponent, MatDialogModule, MatIconModule],
   template: `
     <div class="revelations-container" #revelationContainer>
       <header class="revelations-header">
@@ -38,9 +39,9 @@ import {
         <div class="progress-header">
           <h2>Day {{timeline.current_day}} of 7</h2>
           <span class="completion-status" [class.complete]="timeline.is_cycle_complete">
-            {{timeline.is_cycle_complete ? 'Cycle Complete! 🎉' : 'In Progress...'}}
+            {{timeline.is_cycle_complete ? 'Cycle Complete' : 'In Progress...'}}
           </span>
-          <span class="streak-badge" *ngIf="streakCount > 0">🔥 {{streakCount}} day streak</span>
+          <span class="streak-badge" *ngIf="streakCount > 0"><mat-icon class="inline-icon">local_fire_department</mat-icon> {{streakCount}} day streak</span>
         </div>
 
         <div class="progress-visual">
@@ -119,8 +120,8 @@ import {
                 class="share-btn"
                 [disabled]="revelationForm.invalid || submitting"
               >
-                <span *ngIf="!submitting">✨ Share Revelation</span>
-                <span *ngIf="submitting">Sharing... 💫</span>
+                <span *ngIf="!submitting">Share Revelation</span>
+                <span *ngIf="submitting">Sharing...</span>
               </button>
             </div>
           </form>
@@ -164,10 +165,10 @@ import {
 
             <div class="revelation-actions" *ngIf="revelation.sender_id !== currentUserId">
               <button class="action-btn" (click)="markAsRead(revelation)">
-                <span>👀</span> Read
+                <mat-icon class="inline-icon">visibility</mat-icon> Read
               </button>
               <button class="action-btn" (click)="reactToRevelation(revelation)">
-                <span>💝</span> React
+                <mat-icon class="inline-icon">favorite</mat-icon> React
               </button>
             </div>
           </div>
@@ -178,7 +179,7 @@ import {
       <div class="photo-reveal-section" *ngIf="timeline?.current_day === 7 || timeline?.is_cycle_complete">
         <div class="photo-reveal-card">
           <div class="photo-reveal-header">
-            <h3>🎉 Photo Reveal Day!</h3>
+            <h3>Photo Reveal Day!</h3>
             <p>You've completed your 7-day revelation journey. Ready to see each other?</p>
           </div>
 
@@ -187,13 +188,13 @@ import {
               <div class="consent-item">
                 <span class="user">You</span>
                 <span class="status" [class.agreed]="userConsent">
-                  {{userConsent ? '✅ Ready' : '⏳ Pending'}}
+                  {{userConsent ? 'Ready' : 'Pending'}}
                 </span>
               </div>
               <div class="consent-item">
                 <span class="user">{{partnerName}}</span>
                 <span class="status" [class.agreed]="partnerConsent">
-                  {{partnerConsent ? '✅ Ready' : '⏳ Pending'}}
+                  {{partnerConsent ? 'Ready' : 'Pending'}}
                 </span>
               </div>
             </div>
@@ -204,15 +205,15 @@ import {
               (click)="togglePhotoConsent()"
               [disabled]="submitting"
             >
-              {{userConsent ? '✅ You agreed to reveal' : '🤔 Agree to photo reveal'}}
+              {{userConsent ? 'You agreed to reveal' : 'Agree to photo reveal'}}
             </button>
           </div>
 
           <div class="photo-revealed" *ngIf="photoRevealed">
-            <h4>🌟 Photos Revealed!</h4>
+            <h4>Photos Revealed</h4>
             <p>You can now see each other's photos and continue your connection journey.</p>
             <button class="view-profile-btn" (click)="viewFullProfile()">
-              <span>👀</span> View Full Profile
+              <mat-icon class="inline-icon">visibility</mat-icon> View Full Profile
             </button>
           </div>
         </div>
@@ -233,6 +234,14 @@ import {
     </div>
   `,
   styles: [`
+    .inline-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+
     .revelations-container {
       max-width: 800px;
       margin: 0 auto;
@@ -1126,7 +1135,7 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  async reactToRevelation(revelation: DailyRevelation, emoji: string = '❤️') {
+  async reactToRevelation(revelation: DailyRevelation, emoji: string = 'heart') {
     try {
       await this.revelationService.reactToRevelation(revelation.id, emoji).toPromise();
 

@@ -49,35 +49,35 @@ export class ProfileEmptyStateComponent {
 
   profileTips = [
     {
-      icon: "💭",
+      icon: "chat_bubble",
       text: "Share your life philosophy and core values that guide you"
     },
     {
-      icon: "🎯",
+      icon: "track_changes",
       text: "Describe your interests and passions in authentic detail"
     },
     {
-      icon: "💖",
+      icon: "favorite",
       text: "Express what you're looking for in a meaningful connection"
     },
     {
-      icon: "✨",
+      icon: "auto_awesome",
       text: "Add thoughtful photos that reflect your genuine personality"
     },
     {
-      icon: "🌟",
+      icon: "star",
       text: "Write prompts that invite deeper conversation and understanding"
     }
   ];
 
   primaryAction = {
     text: "Complete Your Profile",
-    icon: "✨"
+    icon: "auto_awesome"
   };
 
   secondaryAction = {
     text: "Add Photos",
-    icon: "📸"
+    icon: "photo_camera"
   };
 
   onCompleteProfile() {

@@ -16,6 +16,14 @@
       font-weight: bold;
     }
 
+    .logo-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+
     .spacer {
       flex: 1;
     }
@@ -86,9 +94,17 @@
   padding: 2rem;
 
   .soul-orb {
-    font-size: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     animation: pulse 2s infinite;
-    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+
+    mat-icon {
+      font-size: 36px;
+      width: 36px;
+      height: 36px;
+      color: white;
+    }
   }
 
   .connection-lines {
@@ -169,18 +185,21 @@
   }
 
   .feature-icon {
-    font-size: 3.5rem;
-    margin-bottom: 16px;
-    display: block;
-    filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.3));
-  }
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(var(--primary-color-rgb), 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
 
-  mat-icon {
-    font-size: 60px;
-    height: 60px;
-    width: 60px;
-    margin-bottom: 16px;
-    color: var(--primary-color);
+    mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: var(--interactive-primary);
+    }
   }
 
   h3 {

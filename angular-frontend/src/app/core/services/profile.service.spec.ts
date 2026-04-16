@@ -565,7 +565,7 @@ describe('ProfileService', () => {
       const updateData: ProfileUpdateData = {
         first_name: 'José',
         last_name: "O'Brien",
-        bio: 'Test with émojis 🎉 and "quotes"'
+        bio: 'Test with special chars and "quotes"'
       };
 
       service.updateProfile(updateData).subscribe();

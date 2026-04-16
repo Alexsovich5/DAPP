@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { FormsModule, ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -32,7 +33,7 @@ interface AppSettings {
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, MatIconModule, FormsModule, ReactiveFormsModule],
   template: `
     <div class="settings-container">
       <header class="settings-header">
@@ -44,7 +45,7 @@ interface AppSettings {
         <!-- Privacy Settings -->
         <section class="settings-section">
           <div class="section-header">
-            <h2>🔒 Privacy & Visibility</h2>
+            <h2><mat-icon>lock</mat-icon> Privacy & Visibility</h2>
             <p>Control who can see your profile and information</p>
           </div>
 
@@ -110,7 +111,7 @@ interface AppSettings {
         <!-- Notification Settings -->
         <section class="settings-section">
           <div class="section-header">
-            <h2>🔔 Notifications</h2>
+            <h2><mat-icon>notifications</mat-icon> Notifications</h2>
             <p>Choose what notifications you want to receive</p>
           </div>
 
@@ -186,7 +187,7 @@ interface AppSettings {
         <!-- App Settings -->
         <section class="settings-section">
           <div class="section-header">
-            <h2>⚙️ App Preferences</h2>
+            <h2><mat-icon>settings</mat-icon> App Preferences</h2>
             <p>Customize how the app works for you</p>
           </div>
 
@@ -272,7 +273,7 @@ interface AppSettings {
         <!-- Account Actions -->
         <section class="settings-section danger-section">
           <div class="section-header">
-            <h2>⚠️ Account Management</h2>
+            <h2><mat-icon>warning</mat-icon> Account Management</h2>
             <p>Manage your account and data</p>
           </div>
 
@@ -283,7 +284,7 @@ interface AppSettings {
                 <p>Download a copy of your revelations and connections</p>
               </div>
               <button class="action-btn secondary" (click)="exportData()">
-                <span>📥</span> Export Data
+                <mat-icon>download</mat-icon> Export Data
               </button>
             </div>
 
@@ -303,7 +304,7 @@ interface AppSettings {
                 <p>Permanently delete your account and all data</p>
               </div>
               <button class="action-btn danger" (click)="deleteAccount()">
-                <span>🗑️</span> Delete Account
+                <mat-icon>delete</mat-icon> Delete Account
               </button>
             </div>
           </div>
@@ -313,10 +314,10 @@ interface AppSettings {
       <!-- Save Actions -->
       <div class="save-actions">
         <button class="save-btn" (click)="saveSettings()" [disabled]="!hasChanges">
-          <span>💾</span> Save Changes
+          <mat-icon>save</mat-icon> Save Changes
         </button>
         <button class="reset-btn" (click)="resetSettings()">
-          <span>🔄</span> Reset to Defaults
+          <mat-icon>refresh</mat-icon> Reset to Defaults
         </button>
       </div>
     </div>

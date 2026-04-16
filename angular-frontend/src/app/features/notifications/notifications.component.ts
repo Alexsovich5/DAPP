@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 import { NotificationService, Notification } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatIconModule],
   template: `
     <div class="notifications-container">
       <header class="notifications-header">
@@ -54,7 +55,7 @@ import { NotificationService, Notification } from '../../core/services/notificat
           (click)="handleNotificationClick(notification)"
         >
           <div class="notification-icon">
-            <span>{{getNotificationIcon(notification.type)}}</span>
+            <mat-icon>{{getNotificationIcon(notification.type)}}</mat-icon>
           </div>
 
           <div class="notification-content">
@@ -78,14 +79,14 @@ import { NotificationService, Notification } from '../../core/services/notificat
               *ngIf="!notification.isRead"
               title="Mark as read"
             >
-              ✓
+              <mat-icon>done</mat-icon>
             </button>
             <button
               class="action-btn-small secondary"
               (click)="removeNotification(notification, $event)"
               title="Remove"
             >
-              ✕
+              <mat-icon>close</mat-icon>
             </button>
           </div>
         </button>
@@ -93,11 +94,11 @@ import { NotificationService, Notification } from '../../core/services/notificat
 
       <ng-template #noNotifications>
         <div class="empty-state">
-          <div class="empty-icon">🔔</div>
+          <div class="empty-icon"><mat-icon>notifications_none</mat-icon></div>
           <h2>No Notifications</h2>
           <p>You're all caught up! Check back later for updates on your soul connections.</p>
           <button class="cta-button" (click)="simulateNotification()">
-            <span>🧪</span> Simulate Notification
+            <mat-icon class="inline-icon">science</mat-icon> Simulate Notification
           </button>
         </div>
       </ng-template>
@@ -106,25 +107,9 @@ import { NotificationService, Notification } from '../../core/services/notificat
       <div class="notification-legend" *ngIf="notifications.length > 0">
         <h3>Notification Types</h3>
         <div class="legend-items">
-          <div class="legend-item">
-            <span class="legend-icon">✨</span>
-            <span>Revelations - Someone shared a revelation</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-icon">💬</span>
-            <span>Messages - New messages received</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-icon">💫</span>
-            <span>Matches - New soul connections found</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-icon">🎉</span>
-            <span>Photo Reveals - Mutual photo reveal ready</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-icon">🔔</span>
-            <span>System - App updates and reminders</span>
+          <div class="legend-item" *ngFor="let type of ['revelation', 'message', 'match', 'photo_reveal', 'system']">
+            <mat-icon class="legend-icon">{{getNotificationIcon(type)}}</mat-icon>
+            <span>{{formatNotificationType(type)}} - {{getLegendDescription(type)}}</span>
           </div>
         </div>
       </div>
@@ -541,14 +526,25 @@ export class NotificationsComponent implements OnInit {
   }
 
   getNotificationIcon(type: string): string {
-    const icons = {
-      revelation: '✨',
-      message: '💬',
-      match: '💫',
-      photo_reveal: '🎉',
-      system: '🔔'
+    const icons: Record<string, string> = {
+      revelation: 'auto_awesome',
+      message: 'forum',
+      match: 'diversity_3',
+      photo_reveal: 'photo_camera',
+      system: 'notifications'
     };
-    return icons[type as keyof typeof icons] || '🔔';
+    return icons[type] || 'notifications';
+  }
+
+  getLegendDescription(type: string): string {
+    const descriptions: Record<string, string> = {
+      revelation: 'Someone shared a revelation',
+      message: 'New messages received',
+      match: 'New soul connections found',
+      photo_reveal: 'Mutual photo reveal ready',
+      system: 'App updates and reminders'
+    };
+    return descriptions[type] || '';
   }
 
   formatNotificationType(type: string): string {

@@ -238,7 +238,7 @@ describe('MessageService', () => {
 
     it('should handle special characters in message text', () => {
       const connectionId = 333;
-      const messageText = 'Hello 👋 \n\t "quotes" \'apostrophes\'';
+      const messageText = 'Hello \n\t "quotes" \'apostrophes\'';
 
       service.sendMessage(connectionId, messageText).subscribe();
 
@@ -437,7 +437,7 @@ describe('MessageService', () => {
 
     it('should handle special characters in new text', () => {
       const messageId = 789;
-      const newText = 'Updated 🎉 with "quotes" and \n newlines';
+      const newText = 'Updated with "quotes" and \n newlines';
 
       service.editMessage(messageId, newText).subscribe();
 

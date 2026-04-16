@@ -1,11 +1,12 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { SkeletonLoaderComponent } from '../skeleton-loader/skeleton-loader.component';
 
 @Component({
   selector: 'app-loading-screen',
   standalone: true,
-  imports: [CommonModule, SkeletonLoaderComponent],
+  imports: [CommonModule, MatIconModule, SkeletonLoaderComponent],
   template: `
     <div class="loading-screen" [ngClass]="screenType">
 
@@ -54,9 +55,9 @@ import { SkeletonLoaderComponent } from '../skeleton-loader/skeleton-loader.comp
 
       <!-- Soul Connection Animation -->
       <div class="soul-connection-animation">
-        <div class="soul-orb primary">✨</div>
+        <div class="soul-orb primary"><mat-icon>auto_awesome</mat-icon></div>
         <div class="connection-pulse"></div>
-        <div class="soul-orb secondary">💫</div>
+        <div class="soul-orb secondary"><mat-icon>stars</mat-icon></div>
       </div>
 
       <p class="loading-text">{{ loadingText }}</p>

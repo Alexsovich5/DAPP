@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { Observable, Subject, combineLatest } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 import { WebSocketPoolService } from '../../../core/services/websocket-pool.service';
@@ -16,7 +17,7 @@ export interface ConnectionStatusInfo {
 @Component({
   selector: 'app-websocket-status',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatIconModule],
   template: `
     <div
       class="websocket-status"
@@ -46,7 +47,7 @@ export interface ConnectionStatusInfo {
         </span>
         <span class="metric-item">
           <span class="metric-value">{{statusInfo.onlineUsers}}</span>
-          <span class="metric-label">👥</span>
+          <span class="metric-label"><mat-icon>people</mat-icon></span>
         </span>
       </div>
     </div>

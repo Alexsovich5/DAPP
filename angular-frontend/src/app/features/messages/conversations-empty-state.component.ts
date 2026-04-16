@@ -42,35 +42,35 @@ export class ConversationsEmptyStateComponent {
 
   conversationTips = [
     {
-      icon: "💭",
+      icon: "chat_bubble",
       text: "Ask about their dreams and aspirations rather than surface topics"
     },
     {
-      icon: "🎯",
+      icon: "track_changes",
       text: "Share personal stories and experiences that shaped you"
     },
     {
-      icon: "🌱",
+      icon: "spa",
       text: "Focus on values and beliefs rather than just hobbies"
     },
     {
-      icon: "💝",
+      icon: "favorite",
       text: "Be vulnerable and authentic - it creates deeper bonds"
     },
     {
-      icon: "🌟",
+      icon: "star",
       text: "Listen actively and ask follow-up questions to show genuine interest"
     }
   ];
 
   primaryAction = {
     text: "Find Soul Connections",
-    icon: "💫"
+    icon: "stars"
   };
 
   secondaryAction = {
     text: "Conversation Guide",
-    icon: "📖"
+    icon: "menu_book"
   };
 
   onDiscoverMatches() {

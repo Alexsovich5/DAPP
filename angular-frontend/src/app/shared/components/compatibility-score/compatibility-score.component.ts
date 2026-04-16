@@ -1,10 +1,11 @@
 import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-compatibility-score',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatIconModule],
   template: `
     <div
       class="compatibility-container"
@@ -147,9 +148,9 @@ import { CommonModule } from '@angular/common';
 
       <!-- Floating hearts for high compatibility -->
       <div class="floating-hearts" *ngIf="score >= 90 && animated">
-        <div class="heart heart-1">💖</div>
-        <div class="heart heart-2">✨</div>
-        <div class="heart heart-3">💫</div>
+        <div class="heart heart-1"><mat-icon>favorite</mat-icon></div>
+        <div class="heart heart-2"><mat-icon>auto_awesome</mat-icon></div>
+        <div class="heart heart-3"><mat-icon>stars</mat-icon></div>
       </div>
     </div>
   `,
@@ -632,12 +633,12 @@ export class CompatibilityScoreComponent implements OnInit, OnDestroy, AfterView
   }
 
   getCompatibilityTitle(): string {
-    if (this.score >= 90) return '✨ Soul Connection';
-    if (this.score >= 80) return '💖 Exceptional Match';
-    if (this.score >= 70) return '💕 Strong Connection';
-    if (this.score >= 60) return '💙 Good Harmony';
-    if (this.score >= 50) return '💜 Potential Bond';
-    return '💛 Growing Connection';
+    if (this.score >= 90) return 'Soul Connection';
+    if (this.score >= 80) return 'Exceptional Match';
+    if (this.score >= 70) return 'Strong Connection';
+    if (this.score >= 60) return 'Good Harmony';
+    if (this.score >= 50) return 'Potential Bond';
+    return 'Growing Connection';
   }
 
   getCompatibilityDescription(): string {

@@ -141,7 +141,7 @@ describe('NotificationToastComponent', () => {
     {
       id: 'notif-4',
       type: 'photo_reveal_ready',
-      title: 'Photo Reveal Ready! 📸',
+      title: 'Photo Reveal Ready!',
       message: 'Both you and Emma are ready for photo reveal',
       priority: 'urgent',
       category: 'soul_connection',
