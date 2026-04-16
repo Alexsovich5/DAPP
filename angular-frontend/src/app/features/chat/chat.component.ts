@@ -92,20 +92,24 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Get connectionId from query params (not route params)
+    this.userId = this.route.snapshot.queryParamMap.get('connectionId');
+
     // Get current user ID from auth service
     this.authService.currentUser$.subscribe(user => {
       if (user) {
         this.currentUserId = user.id.toString();
         this.chatService.setCurrentUser(this.currentUserId);
+        // Load revelation preview now that currentUserId is set
+        if (this.userId && !this.revelationTimelineLoaded) {
+          this.loadRevelationPreview(Number(this.userId));
+        }
       }
     });
 
-    // Get connectionId from query params (not route params)
-    this.userId = this.route.snapshot.queryParamMap.get('connectionId');
     if (this.userId) {
       this.loadChatData();
       this.setupTypingIndicators();
-      this.loadRevelationPreview(Number(this.userId));
     } else {
       this.error = 'Invalid chat. Please go back to matches.';
       this.isLoading = false;
@@ -146,7 +150,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
 
-  loadRevelationPreview(connectionId: number): void {
+  private loadRevelationPreview(connectionId: number): void {
     this.subscriptions.add(
       this.revelationService.getRevelationTimeline(connectionId).subscribe({
         next: (timeline: RevelationTimelineResponse) => {

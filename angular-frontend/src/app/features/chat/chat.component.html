@@ -30,7 +30,8 @@
     <a
       [routerLink]="['/revelations']"
       [queryParams]="{ connectionId: userId }"
-      class="banner-link">
+      class="banner-link"
+      [attr.aria-label]="'View revelation timeline, day ' + revelationDay + ' of 7'">
       <span class="day-badge">Day {{ revelationDay }}/7</span>
       <span class="banner-text" *ngIf="latestPartnerRevelation; else noRevelation">
         <mat-icon aria-hidden="true">auto_stories</mat-icon>
