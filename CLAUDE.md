@@ -368,123 +368,89 @@ interface/Angular/src/app/
 
 ## Essential Development Commands
 
-### Backend (Python FastAPI)
+### Start / Stop (Docker — required)
 ```bash
-cd backend_py
-source venv/bin/activate  # Create venv first time: python -m venv venv
-pip install -r requirements.txt
-python run.py  # Runs on port 5000
-pytest  # Run tests
-alembic upgrade head  # Apply migrations
-alembic revision --autogenerate -m "Add soul before skin tables"  # Create migrations
+# Start everything (PostgreSQL + backend + frontend)
+./start-app.sh          # or: docker compose -f docker-compose.dev.yml up --build
+
+# Stop all services
+./start-app.sh down     # or: docker compose -f docker-compose.dev.yml down
+
+# Tail logs
+./start-app.sh logs             # all services
+./start-app.sh logs backend     # backend only
+./start-app.sh logs frontend    # frontend only
+
+# Wipe database and restart fresh
+./start-app.sh reset
 ```
 
-### Angular Frontend
+### Backend (inside container)
 ```bash
-cd interface/Angular
-npm install
-ng serve --port 5001  # Must use port 5001 for CORS
-ng test
-ng build
-npm run serve:ssr:dinner-app  # SSR build
-ng generate component features/onboarding/emotional-questions  # Generate components
-ng generate service core/services/soul-connection  # Generate services
+# Run tests
+docker compose -f docker-compose.dev.yml exec backend pytest
+
+# Create a new migration
+docker compose -f docker-compose.dev.yml exec backend \
+  alembic revision --autogenerate -m "description"
+
+# Apply migrations manually (runs automatically on startup)
+docker compose -f docker-compose.dev.yml exec backend alembic upgrade head
+
+# Open a shell
+docker compose -f docker-compose.dev.yml exec backend sh
+```
+
+### Angular Frontend (inside container)
+```bash
+# Generate a component
+docker compose -f docker-compose.dev.yml exec frontend \
+  npx ng generate component features/onboarding/emotional-questions
+
+# Generate a service
+docker compose -f docker-compose.dev.yml exec frontend \
+  npx ng generate service core/services/soul-connection
+
+# Run unit tests (runs on host, not in container)
+cd angular-frontend && npx ng test --watch=false --browsers=ChromeHeadless
 ```
 
 ## Environment Setup
 
-### Required Backend Environment (.env in backend_py/)
-```
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/dinner_first
-SECRET_KEY=your_jwt_secret_here
-CORS_ORIGINS=http://localhost:4200,http://localhost:5001
+All environment variables are defined in `docker-compose.dev.yml`.
+No `.env` file is required for local development — defaults are pre-configured.
 
-# Soul Before Skin specific
-COMPATIBILITY_THRESHOLD=50
-REVELATION_CYCLE_DAYS=7
-EMOTIONAL_DEPTH_WEIGHT=0.3
-```
-
-### Angular Environment (Enhanced)
-Update `interface/Angular/src/environments/environment.ts`:
-```typescript
-export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:5000/api/v1',  // Must include /api/v1
-
-  // Soul Before Skin configuration
-  soulBeforeSkin: {
-    revelationCycleDays: 7,
-    compatibilityThreshold: 50,
-    defaultPhotoHidden: true,
-    emotionalOnboardingRequired: true
-  }
-};
-```
-
-## Local Development Environment
-
-### Development Setup (No Online Dependencies)
-**Complete Offline Development**:
-- Angular CLI with local development server
-- FastAPI with local algorithm processing
-- PostgreSQL running locally
-- No external APIs or cloud services required
-- All matching algorithms run locally in milliseconds
-
-**Database Setup**:
-```bash
-# Local PostgreSQL setup
-brew install postgresql  # macOS
-sudo apt-get install postgresql  # Ubuntu
-docker run --name postgres-local -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres  # Docker
-
-# Database initialization
-createdb dinner_first
-psql dinner_first < schema.sql
-```
+For production, copy `python-backend/.env.example` to `python-backend/.env` and fill in secrets.
 
 ## Development Workflow
 
-1. **Start PostgreSQL** (required for backend)
-   ```bash
-   brew services start postgresql  # macOS
-   sudo service postgresql start  # Ubuntu
-   ```
+1. **Ensure Docker Desktop is running**
 
-2. **Backend Development**:
+2. **Start the full stack**:
    ```bash
-   cd backend_py
-   source venv/bin/activate
-   python run.py  # Runs on port 5000
+   ./start-app.sh
    ```
+   On first run this builds images and runs `alembic upgrade head` automatically.
 
-3. **Angular Frontend**:
+3. **Test connectivity**:
    ```bash
-   cd interface/Angular
-   ng serve --port 5001  # Must use port 5001
-   ```
-
-4. **Test Connectivity**:
-   ```bash
-   python test_connection.py
-   curl http://localhost:5000/health
+   curl http://localhost:8000/health
    ```
 
 ## Key Access Points
-- **Backend API**: http://localhost:5000
-- **API Documentation**: http://localhost:5000/docs
-- **Angular Frontend**: http://localhost:5001
-- **Health Check**: http://localhost:5000/health
-- **Soul Connection Discovery**: http://localhost:5001/discover
-- **Emotional Onboarding**: http://localhost:5001/onboarding
+- **Backend API**: http://localhost:8000
+- **API Documentation**: http://localhost:8000/docs
+- **Angular Frontend**: http://localhost:4200
+- **Health Check**: http://localhost:8000/health
+- **Soul Connection Discovery**: http://localhost:4200/discover
+- **Emotional Onboarding**: http://localhost:4200/onboarding
 
 ## Critical Requirements
-- **PostgreSQL** must be running on port 5432
-- **Backend** runs on port 5000 with enhanced soul connection endpoints
-- **Angular** must use port 5001 for proper CORS configuration
-- **Database migrations** must be applied with `alembic upgrade head`
-- **Local algorithms** only - no external API dependencies
+- **Docker Desktop** must be running — no local PostgreSQL, Python, or Node.js required
+- **Backend** runs on port 8000 (FastAPI + uvicorn with hot-reload)
+- **Frontend** runs on port 4200 (Angular `ng serve`)
+- **Database migrations** run automatically on backend container startup
+- **Local algorithms** only — no external API dependencies
 - **Emotional onboarding** required before accessing matching features
 
 ## MVP Validation Metrics
