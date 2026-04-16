@@ -884,12 +884,13 @@ mat-card-actions {
   border-left: 4px solid #ef4444 !important;
 
   &::before {
-    content: '✕';
+    content: 'close';
+    font-family: 'Material Icons';
     position: absolute;
     top: 50%;
     left: 20px;
     transform: translateY(-50%);
-    font-size: 2rem;
+    font-size: 32px;
     color: #ef4444;
     font-weight: bold;
     z-index: 5;
@@ -909,12 +910,13 @@ mat-card-actions {
   border-right: 4px solid #22c55e !important;
 
   &::before {
-    content: '♡';
+    content: 'favorite';
+    font-family: 'Material Icons';
     position: absolute;
     top: 50%;
     right: 20px;
     transform: translateY(-50%);
-    font-size: 2rem;
+    font-size: 32px;
     color: #22c55e;
     font-weight: bold;
     z-index: 5;
@@ -934,12 +936,13 @@ mat-card-actions {
   border-top: 4px solid #f59e0b !important;
 
   &::before {
-    content: '⭐';
+    content: 'star';
+    font-family: 'Material Icons';
     position: absolute;
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 2rem;
+    font-size: 32px;
     color: #f59e0b;
     font-weight: bold;
     z-index: 5;
@@ -1060,12 +1063,14 @@ mat-card-actions {
 @media (max-width: 768px) {
   .soul-card.high-compatibility {
     &.swipe-right-preview::before {
-      content: '💖';
+      content: 'favorite';
+      font-family: 'Material Icons';
       animation: swipeIconPulse 0.3s ease-out, heartGlow 1s ease-in-out infinite alternate;
     }
 
     &.swipe-up-preview::before {
-      content: '✨';
+      content: 'star';
+      font-family: 'Material Icons';
       animation: swipeIconPulse 0.3s ease-out, starGlow 1s ease-in-out infinite alternate;
     }
   }
