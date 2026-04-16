@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,6 +13,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ChatService, TypingUser } from '../../core/services/chat.service';
 import { AuthService } from '../../core/services/auth.service';
+import { RevelationService } from '../../core/services/revelation.service';
+import { DailyRevelation, RevelationTimelineResponse } from '../../core/interfaces/revelation.interfaces';
 import { TypingIndicatorComponent } from '../../shared/components/typing-indicator/typing-indicator.component';
 import { Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -50,7 +52,8 @@ interface ChatUser {
     MatToolbarModule,
     MatDividerModule,
     MatProgressSpinnerModule,
-    TypingIndicatorComponent
+    TypingIndicatorComponent,
+    RouterModule
   ]
 })
 export class ChatComponent implements OnInit, OnDestroy {
@@ -70,10 +73,16 @@ export class ChatComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
   private currentUserId: string | null = null;
 
+  // Revelation preview banner
+  revelationDay = 0;
+  latestPartnerRevelation: DailyRevelation | null = null;
+  revelationTimelineLoaded = false;
+
   constructor(
     private fb: FormBuilder,
     private chatService: ChatService,
     private authService: AuthService,
+    private revelationService: RevelationService,
     private route: ActivatedRoute,
     private router: Router
   ) {
@@ -96,6 +105,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     if (this.userId) {
       this.loadChatData();
       this.setupTypingIndicators();
+      this.loadRevelationPreview(Number(this.userId));
     } else {
       this.error = 'Invalid chat. Please go back to matches.';
       this.isLoading = false;
@@ -135,6 +145,22 @@ export class ChatComponent implements OnInit, OnDestroy {
     });
   }
 
+
+  loadRevelationPreview(connectionId: number): void {
+    this.subscriptions.add(
+      this.revelationService.getRevelationTimeline(connectionId).subscribe({
+        next: (timeline: RevelationTimelineResponse) => {
+          this.revelationDay = timeline.current_day;
+          const partnerRevelation = timeline.revelations
+            .filter(r => r.sender_id !== Number(this.currentUserId))
+            .sort((a, b) => b.day_number - a.day_number)[0] ?? null;
+          this.latestPartnerRevelation = partnerRevelation;
+          this.revelationTimelineLoaded = true;
+        },
+        error: () => { this.revelationTimelineLoaded = true; }
+      })
+    );
+  }
 
   private scrollToBottom(): void {
     setTimeout(() => {

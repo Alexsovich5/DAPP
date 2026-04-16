@@ -79,7 +79,7 @@ export class ChatService {
   // Typing indicator management
   private typingUsers = new BehaviorSubject<Map<string, TypingUser>>(new Map());
   private typingSubject = new Subject<TypingIndicator>();
-  private typingTimer = new Map<string, NodeJS.Timeout>();
+  private typingTimer = new Map<string, ReturnType<typeof setTimeout>>();
   private currentUserId: string | null = null;
 
   // Typing detection
