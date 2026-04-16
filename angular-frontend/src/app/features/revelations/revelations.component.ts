@@ -3,14 +3,17 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { RevelationService } from '../../core/services/revelation.service';
 import { SoulConnectionService } from '../../core/services/soul-connection.service';
 import { HapticFeedbackService } from '../../core/services/haptic-feedback.service';
 import { RevelationKeyboardNavigationService } from './revelation-keyboard-navigation.service';
 import { RevelationsEmptyStateComponent } from './revelations-empty-state.component';
+import { PhotoRevealConsentDialogComponent } from '../../shared/components/photo-reveal-consent/photo-reveal-consent-dialog.component';
 import {
   RevelationPrompt,
   DailyRevelation,
+  RevelationTimelineResponse,
   RevelationTimelineResponse as RevelationTimeline,
   RevelationType
 } from '../../core/interfaces/revelation.interfaces';
@@ -18,7 +21,7 @@ import {
 @Component({
   selector: 'app-revelations',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RevelationsEmptyStateComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RevelationsEmptyStateComponent, MatDialogModule],
   template: `
     <div class="revelations-container" #revelationContainer>
       <header class="revelations-header">
@@ -954,7 +957,8 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
     private router: Router,
     private formBuilder: FormBuilder,
     private hapticFeedbackService: HapticFeedbackService,
-    private keyboardNavigationService: RevelationKeyboardNavigationService
+    private keyboardNavigationService: RevelationKeyboardNavigationService,
+    private dialog: MatDialog
   ) {
     this.revelationForm = this.formBuilder.group({
       content: ['', [Validators.required, Validators.minLength(20)]]
@@ -997,6 +1001,7 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
       next: (timeline) => {
         this.timeline = timeline;
         this.updateStreakAndTips();
+        this.checkForPhotoReveal(timeline);
 
         if (!timeline.is_cycle_complete && timeline.current_day <= 7) {
           prompts$.subscribe({
@@ -1185,6 +1190,26 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
 
   learnAboutRevelations() {
     this.router.navigate(['/help/revelations']);
+  }
+
+  checkForPhotoReveal(timeline: RevelationTimelineResponse): void {
+    if (timeline.current_day < 7 || !timeline.is_cycle_complete) return;
+
+    const partnerName = this.partnerName ?? 'your match';
+    const dialogRef = this.dialog.open(PhotoRevealConsentDialogComponent, {
+      width: '380px',
+      disableClose: true,
+      data: { partnerName }
+    });
+
+    dialogRef.afterClosed().subscribe((consented: boolean) => {
+      if (consented && this.connectionId) {
+        this.soulConnectionService.updateSoulConnection(
+          this.connectionId,
+          { mutual_reveal_consent: true }
+        ).subscribe();
+      }
+    });
   }
 
   goBack() {
