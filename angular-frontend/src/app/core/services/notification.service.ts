@@ -149,19 +149,19 @@ export class NotificationService {
     const notificationTypes = [
       {
         type: 'message' as const,
-        title: 'New Message 💬',
+        title: 'New Message',
         message: 'You received a heartfelt message',
         actionUrl: '/messages'
       },
       {
         type: 'revelation' as const,
-        title: 'New Revelation! ✨',
+        title: 'New Revelation',
         message: 'Someone shared a meaningful revelation with you',
         actionUrl: '/revelations?connectionId=1'
       },
       {
         type: 'match' as const,
-        title: 'New Match! 💫',
+        title: 'New Match',
         message: 'You have a high compatibility match waiting',
         actionUrl: '/matches'
       }
