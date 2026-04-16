@@ -114,16 +114,18 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.userId = this.route.snapshot.queryParamMap.get('connectionId');
 
     // Get current user ID from auth service
-    this.authService.currentUser$.subscribe(user => {
-      if (user) {
-        this.currentUserId = user.id.toString();
-        this.chatService.setCurrentUser(this.currentUserId);
-        // Load revelation preview now that currentUserId is set
-        if (this.userId && !this.revelationTimelineLoaded) {
-          this.loadRevelationPreview(Number(this.userId));
+    this.subscriptions.add(
+      this.authService.currentUser$.subscribe(user => {
+        if (user) {
+          this.currentUserId = user.id.toString();
+          this.chatService.setCurrentUser(this.currentUserId);
+          // Load revelation preview now that currentUserId is set
+          if (this.userId && !this.revelationTimelineLoaded) {
+            this.loadRevelationPreview(Number(this.userId));
+          }
         }
-      }
-    });
+      })
+    );
 
     if (this.userId) {
       this.loadChatData();

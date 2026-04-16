@@ -1017,13 +1017,6 @@ export class RevelationsComponent implements OnInit, OnDestroy, AfterViewInit {
           });
         }
 
-        // Mock photo reveal status for day 7
-        if (timeline.current_day === 7 || timeline.is_cycle_complete) {
-          this.userConsent = Math.random() > 0.5;
-          this.partnerConsent = Math.random() > 0.5;
-          this.photoRevealed = this.userConsent && this.partnerConsent;
-        }
-
         this.loading = false;
       },
       error: (error) => {
