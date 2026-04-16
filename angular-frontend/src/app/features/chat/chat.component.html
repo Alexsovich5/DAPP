@@ -11,9 +11,17 @@
         title="Chat partner's profile picture" [title]="chatPartner.firstName + '\'s avatar'" />
       <div class="user-info">
         <h2>{{chatPartner.firstName}} {{chatPartner.lastName}}</h2>
-        <span class="online-status">
-          {{chatPartner.lastActive ? 'Online' : 'Offline'}}
-        </span>
+        <div class="status-row">
+          <span class="online-status">
+            {{chatPartner.lastActive ? 'Online' : 'Offline'}}
+          </span>
+          <span
+            class="stage-chip"
+            *ngIf="connectionStageLabel"
+            [attr.aria-label]="'Connection stage: ' + connectionStageLabel">
+            {{ connectionStageLabel }}
+          </span>
+        </div>
       </div>
     </div>
     <button mat-icon-button type="button" (click)="navigateToDinnerPlanning()" matTooltip="Plan your first dinner" aria-label="Plan your first dinner">

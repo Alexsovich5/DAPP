@@ -15,6 +15,8 @@ import { ChatService, TypingUser } from '../../core/services/chat.service';
 import { AuthService } from '../../core/services/auth.service';
 import { RevelationService } from '../../core/services/revelation.service';
 import { DailyRevelation, RevelationTimelineResponse } from '../../core/interfaces/revelation.interfaces';
+import { SoulConnectionService } from '@core/services/soul-connection.service';
+import { ConnectionStage } from '@core/interfaces/soul-connection.interfaces';
 import { TypingIndicatorComponent } from '../../shared/components/typing-indicator/typing-indicator.component';
 import { Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -78,11 +80,27 @@ export class ChatComponent implements OnInit, OnDestroy {
   latestPartnerRevelation: DailyRevelation | null = null;
   revelationTimelineLoaded = false;
 
+  // Connection stage chip
+  connectionStage: ConnectionStage | null = null;
+
+  readonly STAGE_LABELS: Record<ConnectionStage, string> = {
+    soul_discovery:   'Soul Discovery',
+    revelation_phase: 'Revelation Phase',
+    photo_reveal:     'Photo Reveal',
+    dinner_planning:  'Dinner Planning',
+    completed:        'Completed'
+  };
+
+  get connectionStageLabel(): string {
+    return this.connectionStage ? (this.STAGE_LABELS[this.connectionStage] ?? '') : '';
+  }
+
   constructor(
     private fb: FormBuilder,
     private chatService: ChatService,
     private authService: AuthService,
     private revelationService: RevelationService,
+    private soulConnectionService: SoulConnectionService,
     private route: ActivatedRoute,
     private router: Router
   ) {
@@ -110,6 +128,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     if (this.userId) {
       this.loadChatData();
       this.setupTypingIndicators();
+      this.loadConnectionStage(Number(this.userId));
     } else {
       this.error = 'Invalid chat. Please go back to matches.';
       this.isLoading = false;
@@ -162,6 +181,17 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.revelationTimelineLoaded = true;
         },
         error: () => { this.revelationTimelineLoaded = true; }
+      })
+    );
+  }
+
+  private loadConnectionStage(connectionId: number): void {
+    this.subscriptions.add(
+      this.soulConnectionService.getSoulConnection(connectionId).subscribe({
+        next: (connection) => {
+          this.connectionStage = connection.connection_stage;
+        },
+        error: () => { /* non-critical — stage chip simply won't show */ }
       })
     );
   }
