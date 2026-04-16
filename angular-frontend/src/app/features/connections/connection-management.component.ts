@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
-import { Subscription } from 'rxjs';
+import { Subscription, take } from 'rxjs';
 import { SoulConnectionService } from '@core/services/soul-connection.service';
 import { AuthService } from '@core/services/auth.service';
 import { SoulConnection } from '@core/interfaces/soul-connection.interfaces';
@@ -131,17 +131,19 @@ export class ConnectionManagementComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.sub.add(
-      this.authService.currentUser$.subscribe(user => {
+      this.authService.currentUser$.pipe(take(1)).subscribe(user => {
         if (user) this.currentUserId = user.id;
+        this.loadConnections();
       })
     );
-    this.loadConnections();
   }
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
   }
 
+  // Note: 'completed' stage connections are intentionally excluded — they have
+  // already had their first dinner and no longer require active management.
   get activeConnections(): SoulConnection[] {
     return this.connections.filter(c => c.connection_stage === 'soul_discovery');
   }
