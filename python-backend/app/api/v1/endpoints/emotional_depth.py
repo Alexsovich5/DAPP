@@ -65,6 +65,7 @@ async def analyze_user_emotional_depth(
                     detail="Not authorized to analyze this user's emotional depth",
                 )
 
+
         # Perform emotional depth analysis
         depth_metrics = emotional_depth_service.analyze_emotional_depth(target_user, db)
 

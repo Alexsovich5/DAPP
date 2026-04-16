@@ -121,7 +121,7 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: backend-test-results
+        name: backend-test-results-${{ github.run_id }}
         path: |
           python-backend/htmlcov/
           python-backend/coverage.xml
@@ -220,11 +220,13 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: frontend-test-results
+        name: frontend-test-results-${{ github.run_id }}
         path: |
           angular-frontend/coverage/
           angular-frontend/dist/
           angular-frontend/.angular/cache/
+        overwrite: true
+        include-hidden-files: false
 
   security-tests:
     name: Security & Vulnerability Tests
@@ -290,10 +292,12 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: security-reports
+        name: security-reports-${{ github.run_id }}
         path: |
           python-backend/bandit-report.json
           python-backend/safety-report.json
+        overwrite: true
+        include-hidden-files: false
 
   integration-tests:
     name: Integration & E2E Tests
@@ -427,9 +431,11 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: performance-reports
+        name: performance-reports-${{ github.run_id }}
         path: |
           python-backend/benchmark.json
+        overwrite: true
+        include-hidden-files: false
 
   coverage-report:
     name: Generate Combined Coverage Report
@@ -445,14 +451,14 @@ jobs:
       uses: actions/download-artifact@v4
       continue-on-error: true
       with:
-        name: backend-test-results
+        name: backend-test-results-${{ github.run_id }}
         path: backend-coverage/
 
     - name: Download frontend test results
       uses: actions/download-artifact@v4
       continue-on-error: true
       with:
-        name: frontend-test-results
+        name: frontend-test-results-${{ github.run_id }}
         path: frontend-coverage/
 
     - name: Generate combined coverage report
@@ -496,8 +502,10 @@ jobs:
     - name: Upload combined coverage report
       uses: actions/upload-artifact@v4
       with:
-        name: combined-coverage-report
+        name: combined-coverage-report-${{ github.run_id }}
         path: coverage-report.md
+        overwrite: true
+        include-hidden-files: false
 
     - name: Comment PR with coverage results
       if: github.event_name == 'pull_request'

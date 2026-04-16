@@ -93,10 +93,12 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: security-reports
+          name: security-reports-${{ github.run_id }}
           path: |
             python-backend/bandit-report.json
             python-backend/safety-report.json
+          overwrite: true
+          include-hidden-files: false
 
   # Backend Testing
   backend-tests:
@@ -209,11 +211,12 @@ jobs:
           fi
 
       - name: Upload coverage reports
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           file: python-backend/coverage.xml
           flags: backend
           name: backend-coverage
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   # Frontend Testing
   frontend-tests:
@@ -251,10 +254,12 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: frontend-test-results
+          name: frontend-test-results-${{ github.run_id }}
           path: |
             angular-frontend/coverage/
             angular-frontend/e2e-results/
+          overwrite: true
+          include-hidden-files: false
 
   # Security Scanning
   security-scan:
@@ -513,8 +518,10 @@ jobs:
       - name: Upload performance results
         uses: actions/upload-artifact@v4
         with:
-          name: performance-results
+          name: performance-results-${{ github.run_id }}
           path: performance-tests/results.json
+          overwrite: true
+          include-hidden-files: false
 
   # Rollback capability
   rollback:

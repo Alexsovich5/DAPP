@@ -25,6 +25,7 @@ router = APIRouter()
 USERS_NOT_FOUND_ERROR = "One or both users not found"
 
 
+
 @router.get(
     "/comprehensive-analysis/{user1_id}/{user2_id}",
     response_model=Dict[str, Any],
