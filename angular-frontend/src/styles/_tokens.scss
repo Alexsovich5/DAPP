@@ -1,0 +1,111 @@
+// Design tokens — single source of truth for UI redesign Phase 1.
+// Spec: docs/superpowers/specs/2026-04-18-ui-redesign-design.md
+
+:root {
+  // Color — light (default)
+  --color-bg: #FBF3EC;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #F5EDE4;
+  --color-border: #E8DDD0;
+  --color-primary: #D17B5A;
+  --color-primary-hover: #B8684A;
+  --color-accent: #9BAE8A;
+  --color-accent-soft: #E8B9A0;
+  --color-text: #2F2420;
+  --color-text-muted: #8A6E5F;
+  --color-danger: #C4564B;
+  --color-warning: #E0A060;
+
+  // Spacing (pixel values exposed as rem-equivalent literals)
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  // Radii
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+
+  // Elevation
+  --elevation-sm: 0 1px 2px rgba(47, 36, 32, 0.06), 0 1px 3px rgba(47, 36, 32, 0.04);
+  --elevation-md: 0 4px 8px rgba(47, 36, 32, 0.08), 0 2px 4px rgba(47, 36, 32, 0.04);
+  --elevation-lg: 0 12px 24px rgba(47, 36, 32, 0.12), 0 4px 8px rgba(47, 36, 32, 0.06);
+
+  // Typography — size / line-height pairs + weights
+  --type-h1-size: 32px;    --type-h1-lh: 36px;    --type-h1-weight: 600;
+  --type-h2-size: 24px;    --type-h2-lh: 30px;    --type-h2-weight: 600;
+  --type-h3-size: 18px;    --type-h3-lh: 24px;    --type-h3-weight: 600;
+  --type-body-size: 16px;  --type-body-lh: 24px;  --type-body-weight: 400;
+  --type-small-size: 14px; --type-small-lh: 20px; --type-small-weight: 400;
+  --type-caption-size: 12px; --type-caption-lh: 16px; --type-caption-weight: 500;
+
+  // Font families
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  // -----------------------------------------------------------------
+  // LEGACY ALIASES — REMOVE IN TASK 19.
+  // Keep pre-migration files building during the SCSS migration run.
+  // -----------------------------------------------------------------
+  --emotional-primary: var(--color-primary);
+  --emotional-primary-hover: var(--color-primary-hover);
+  --emotional-accent: var(--color-accent);
+  --emotional-accent-soft: var(--color-accent-soft);
+  --emotional-danger: var(--color-danger);
+  --emotional-warning: var(--color-warning);
+  --df-primary: var(--color-primary);
+  --df-accent: var(--color-accent);
+  --df-bg: var(--color-bg);
+  --df-surface: var(--color-surface);
+  --df-text: var(--color-text);
+  --df-text-muted: var(--color-text-muted);
+  --text-primary: var(--color-text);
+  --text-secondary: var(--color-text-muted);
+  --surface-primary: var(--color-surface);
+  --surface-secondary: var(--color-surface-alt);
+}
+
+[data-theme='dark'] {
+  --color-bg: #1A1512;
+  --color-surface: #241D18;
+  --color-surface-alt: #2E261F;
+  --color-border: #3D332A;
+  --color-primary: #E08F6E;
+  --color-primary-hover: #F0A07F;
+  --color-accent: #B5C9A1;
+  --color-accent-soft: #F0C8B0;
+  --color-text: #F5EDE4;
+  --color-text-muted: #B59E8A;
+  --color-danger: #E06A5F;
+  --color-warning: #F0B478;
+
+  --elevation-sm: 0 1px 2px rgba(0, 0, 0, 0.32), 0 1px 3px rgba(0, 0, 0, 0.24);
+  --elevation-md: 0 4px 8px rgba(0, 0, 0, 0.40), 0 2px 4px rgba(0, 0, 0, 0.24);
+  --elevation-lg: 0 12px 24px rgba(0, 0, 0, 0.48), 0 4px 8px rgba(0, 0, 0, 0.32);
+}
+
+// Display-serif utility — opt-in Fraunces italic on hero/question/quote copy.
+.display-serif {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+}
+
+// Caption utility — uppercase tags/labels.
+.caption {
+  font-family: var(--font-ui);
+  font-size: var(--type-caption-size);
+  line-height: var(--type-caption-lh);
+  font-weight: var(--type-caption-weight);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
