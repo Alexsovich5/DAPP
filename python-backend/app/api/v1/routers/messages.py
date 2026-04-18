@@ -46,12 +46,10 @@ class ConversationMessage(BaseModel):
     id: int
     sender_id: int
     content: str
-    emotional_state: str
-    message_energy: str
+    message_type: str
     is_soul_revelation: bool
     is_read: bool
     created_at: str
-    read_at: Optional[str]
     is_own_message: bool
 
 
@@ -287,7 +285,7 @@ async def get_message_statistics(
             .filter(
                 Message.connection_id.in_(connection_ids),
                 Message.sender_id != current_user.id,
-                Message.is_read is False,
+                Message.is_read.is_(False),
             )
             .count()
             if connection_ids
@@ -299,13 +297,12 @@ async def get_message_statistics(
             [c for c in user_connections if c.status == "active"]
         )
 
-        # Get most used emotional states
-        emotional_states = (
-            db.query(Message.emotional_state, func.count(Message.id).label("count"))
+        # Message type distribution (text / revelation / photo / system)
+        message_type_counts = (
+            db.query(Message.message_type, func.count(Message.id).label("count"))
             .filter(Message.sender_id == current_user.id)
-            .group_by(Message.emotional_state)
+            .group_by(Message.message_type)
             .order_by(func.count(Message.id).desc())
-            .limit(5)
             .all()
         )
 
@@ -321,9 +318,9 @@ async def get_message_statistics(
                     "active": active_conversations,
                     "total": len(user_connections),
                 },
-                "emotional_patterns": [
-                    {"state": state, "count": count}
-                    for state, count in emotional_states
+                "message_types": [
+                    {"type": mtype, "count": count}
+                    for mtype, count in message_type_counts
                 ],
             },
             "generated_at": datetime.utcnow().isoformat(),
@@ -475,9 +472,9 @@ async def search_messages(
 
             base_query = base_query.filter(Message.connection_id == connection_id)
 
-        # Search in message content (case-insensitive)
+        # Search in message text (case-insensitive)
         search_results = (
-            base_query.filter(Message.content.ilike(f"%{query}%"))
+            base_query.filter(Message.message_text.ilike(f"%{query}%"))
             .order_by(Message.created_at.desc())
             .limit(limit)
             .all()
@@ -502,8 +499,8 @@ async def search_messages(
                         ),
                         "is_current_user": message.sender_id == current_user.id,
                     },
-                    "content": message.content,
-                    "emotional_state": message.emotional_state,
+                    "content": message.message_text,
+                    "message_type": message.message_type,
                     "created_at": message.created_at.isoformat(),
                 }
             )
@@ -524,32 +521,3 @@ async def search_messages(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to search messages",
         )
-
-    def _get_match_context(
-        self, content: str, query: str, context_chars: int = 50
-    ) -> str:
-        """Get context around search match"""
-        try:
-            query_lower = query.lower()
-            content_lower = content.lower()
-
-            start_idx = content_lower.find(query_lower)
-            if start_idx == -1:
-                return content[:100] + "..." if len(content) > 100 else content
-
-            # Get context around the match
-            context_start = max(0, start_idx - context_chars)
-            context_end = min(len(content), start_idx + len(query) + context_chars)
-
-            context = content[context_start:context_end]
-
-            # Add ellipsis if truncated
-            if context_start > 0:
-                context = "..." + context
-            if context_end < len(content):
-                context = context + "..."
-
-            return context
-
-        except Exception:
-            return content[:100] + "..." if len(content) > 100 else content

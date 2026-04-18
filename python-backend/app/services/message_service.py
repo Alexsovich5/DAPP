@@ -119,30 +119,18 @@ class MessageService:
                     error="rate_limited",
                 )
 
-            # Get sender info for emotional context
+            # Get sender info
             sender = db.query(User).filter(User.id == sender_id).first()
             partner_id = connection.get_partner_id(sender_id)
 
-            # Create message with emotional context
+            is_revelation = bool(
+                emotional_context and emotional_context.get("is_revelation", False)
+            )
             message = Message(
                 connection_id=connection_id,
                 sender_id=sender_id,
-                content=content.strip(),
-                emotional_state=(
-                    emotional_context.get("emotional_state")
-                    if emotional_context
-                    else sender.current_emotional_state
-                ),
-                message_energy=(
-                    emotional_context.get("message_energy", "medium")
-                    if emotional_context
-                    else "medium"
-                ),
-                is_soul_revelation=(
-                    emotional_context.get("is_revelation", False)
-                    if emotional_context
-                    else False
-                ),
+                message_text=content.strip(),
+                message_type="revelation" if is_revelation else "text",
             )
 
             db.add(message)
@@ -172,8 +160,7 @@ class MessageService:
                     "connection_id": connection_id,
                     "partner_id": partner_id,
                     "message_length": len(content),
-                    "emotional_state": message.emotional_state,
-                    "is_revelation": message.is_soul_revelation,
+                    "is_revelation": is_revelation,
                     "delivered": delivery_success,
                 },
                 db=db,
@@ -249,7 +236,6 @@ class MessageService:
             ]
             for message in unread_messages:
                 message.is_read = True
-                message.read_at = datetime.utcnow()
 
             if unread_messages:
                 db.commit()
@@ -265,15 +251,11 @@ class MessageService:
                     {
                         "id": message.id,
                         "sender_id": message.sender_id,
-                        "content": message.content,
-                        "emotional_state": message.emotional_state,
-                        "message_energy": message.message_energy,
-                        "is_soul_revelation": message.is_soul_revelation,
+                        "content": message.message_text,
+                        "message_type": message.message_type,
+                        "is_soul_revelation": message.message_type == "revelation",
                         "is_read": message.is_read,
                         "created_at": message.created_at.isoformat(),
-                        "read_at": (
-                            message.read_at.isoformat() if message.read_at else None
-                        ),
                         "is_own_message": message.sender_id == user_id,
                     }
                 )
@@ -291,7 +273,7 @@ class MessageService:
                         else "Unknown"
                     ),
                     "energy_level": connection.current_energy_level,
-                    "stage": connection.stage,
+                    "stage": connection.connection_stage,
                 },
                 "pagination": {
                     "limit": limit,
@@ -342,7 +324,7 @@ class MessageService:
                     .filter(
                         Message.connection_id == connection.id,
                         Message.sender_id != user_id,
-                        Message.is_read is False,
+                        Message.is_read.is_(False),
                     )
                     .count()
                 )
@@ -357,10 +339,12 @@ class MessageService:
                     ),
                     total_messages=connection.total_messages_exchanged,
                     last_message_at=connection.last_message_at,
-                    last_message_content=(last_message.content if last_message else ""),
+                    last_message_content=(
+                        last_message.message_text if last_message else ""
+                    ),
                     unread_count=unread_count,
                     emotional_energy=connection.current_energy_level,
-                    conversation_stage=connection.stage,
+                    conversation_stage=connection.connection_stage,
                 )
 
                 conversations.append(
@@ -455,9 +439,9 @@ class MessageService:
                 .filter(
                     Message.connection_id == connection_id,
                     Message.sender_id != user_id,
-                    Message.is_read is False,
+                    Message.is_read.is_(False),
                 )
-                .update({"is_read": True, "read_at": datetime.utcnow()})
+                .update({"is_read": True})
             )
 
             db.commit()
@@ -529,12 +513,10 @@ class MessageService:
                 "sender": {
                     "id": sender.id,
                     "name": f"{sender.first_name} {sender.last_name}",
-                    "emotional_state": message.emotional_state,
                 },
-                "content": message.content,
-                "emotional_state": message.emotional_state,
-                "message_energy": message.message_energy,
-                "is_soul_revelation": message.is_soul_revelation,
+                "content": message.message_text,
+                "message_type": message.message_type,
+                "is_soul_revelation": message.message_type == "revelation",
                 "created_at": message.created_at.isoformat(),
             }
 

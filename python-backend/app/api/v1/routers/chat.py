@@ -214,7 +214,7 @@ def get_conversations(
             .filter(
                 Message.connection_id == connection.id,
                 Message.sender_id != current_user.id,
-                Message.is_read is False,
+                Message.is_read.is_(False),
             )
             .count()
         )
