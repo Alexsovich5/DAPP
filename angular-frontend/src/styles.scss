@@ -1,5 +1,6 @@
 @use 'styles/tokens';
 @use 'styles/material-theme';
+@use 'app/shared/ui/button/df-button';
 
 html, body {
   height: 100%;
