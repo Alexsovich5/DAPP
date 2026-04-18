@@ -225,7 +225,6 @@ Create `angular-frontend/src/styles/_material-theme.scss`:
 
 ```scss
 @use '@angular/material' as mat;
-@use 'sass:map';
 
 @include mat.core();
 
@@ -298,7 +297,7 @@ $warn-palette: (
     100: #2F2420,
     200: #2F2420,
     300: #2F2420,
-    400: #FFFFFF,
+    400: #2F2420,
     500: #FFFFFF,
     600: #FFFFFF,
     700: #FFFFFF,
