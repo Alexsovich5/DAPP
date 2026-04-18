@@ -100,3 +100,4 @@ test_*_api.py
 
 # Playwright MCP screenshots
 .playwright-mcp/
+.superpowers/
