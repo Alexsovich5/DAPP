@@ -11,7 +11,7 @@
     max-width: 600px;
     margin-top: 2rem;
     background-color: var(--card-background);
-    color: var(--text-primary);
+    color: var(--color-text);
   }
 }
 
@@ -35,7 +35,7 @@
     margin: 0;
     font-size: 1.5rem;
     font-weight: 500;
-    color: var(--text-primary);
+    color: var(--color-text);
   }
 }
 
@@ -97,7 +97,7 @@ mat-divider {
     top: -0.7em;
     padding: 0 1em;
     background: var(--card-background);
-    color: var(--text-secondary);
+    color: var(--color-text-muted);
   }
 }
 
@@ -112,7 +112,7 @@ mat-divider {
     justify-content: center;
     gap: 0.5rem;
     height: 40px;
-    color: var(--text-primary);
+    color: var(--color-text);
     border-color: var(--border-color);
 
     &:hover:not([disabled]) {
@@ -121,7 +121,7 @@ mat-divider {
   }
 
   .google-btn {
-    color: var(--text-primary);
+    color: var(--color-text);
     border-color: var(--border-color);
 
     &:hover:not([disabled]) {
@@ -168,7 +168,7 @@ mat-divider {
 
   p {
     margin: 0.5rem 0;
-    color: var(--text-secondary);
+    color: var(--color-text-muted);
   }
 
   .copyright {

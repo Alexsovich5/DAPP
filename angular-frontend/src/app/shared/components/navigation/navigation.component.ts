@@ -199,7 +199,7 @@ import { Observable } from 'rxjs';
       align-items: center;
       gap: 0.5rem;
       text-decoration: none;
-      color: var(--text-primary);
+      color: var(--color-text);
       font-weight: 700;
       font-size: 1.2rem;
       transition: color 0.2s ease;
@@ -227,7 +227,7 @@ import { Observable } from 'rxjs';
       align-items: center;
       gap: 0.25rem;
       text-decoration: none;
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       transition: all 0.2s ease;
       padding: 0.5rem;
       border-radius: 8px;
@@ -331,7 +331,7 @@ import { Observable } from 'rxjs';
       gap: 0.75rem;
       padding: 0.75rem 1rem;
       text-decoration: none;
-      color: var(--text-primary);
+      color: var(--color-text);
       transition: background 0.2s ease;
       border: none;
       background: none;
@@ -380,7 +380,7 @@ import { Observable } from 'rxjs';
     .hamburger span {
       width: 20px;
       height: 2px;
-      background: var(--text-secondary);
+      background: var(--color-text-muted);
       transition: all 0.3s ease;
     }
 

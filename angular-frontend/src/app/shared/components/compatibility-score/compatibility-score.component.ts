@@ -29,7 +29,7 @@ import { MatIconModule } from '@angular/material/icon';
           <defs>
             <!-- Background gradient -->
             <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="var(--surface-secondary)" stop-opacity="0.3"/>
+              <stop offset="0%" stop-color="var(--color-surface-alt)" stop-opacity="0.3"/>
               <stop offset="100%" stop-color="var(--surface-tertiary)" stop-opacity="0.5"/>
             </linearGradient>
 
@@ -210,7 +210,7 @@ import { MatIconModule } from '@angular/material/icon';
     .score-number {
       display: block;
       font-weight: bold;
-      color: var(--text-primary);
+      color: var(--color-text);
       line-height: 1;
       transition: all 0.3s ease;
     }
@@ -227,7 +227,7 @@ import { MatIconModule } from '@angular/material/icon';
     .score-label {
       display: block;
       font-size: 0.7rem;
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       margin-top: 0.2rem;
       font-weight: 500;
       opacity: 0.8;
@@ -258,14 +258,14 @@ import { MatIconModule } from '@angular/material/icon';
     }
 
     .compatibility-title {
-      color: var(--text-primary);
+      color: var(--color-text);
       font-size: 1.1rem;
       font-weight: 600;
       margin: 0 0 0.5rem 0;
     }
 
     .compatibility-text {
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       font-size: 0.9rem;
       line-height: 1.5;
       margin: 0 0 1.5rem 0;
@@ -291,14 +291,14 @@ import { MatIconModule } from '@angular/material/icon';
     .indicator-label {
       flex: 0 0 120px;
       font-size: 0.8rem;
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       font-weight: 500;
     }
 
     .indicator-bar {
       flex: 1;
       height: 6px;
-      background: var(--surface-secondary);
+      background: var(--color-surface-alt);
       border-radius: 3px;
       overflow: hidden;
       position: relative;
@@ -437,16 +437,16 @@ import { MatIconModule } from '@angular/material/icon';
     /* Dark theme adaptation */
     .dark-theme {
       .score-number {
-        color: var(--text-primary);
+        color: var(--color-text);
       }
 
       .compatibility-title {
-        color: var(--text-primary);
+        color: var(--color-text);
       }
 
       .compatibility-text,
       .indicator-label {
-        color: var(--text-secondary);
+        color: var(--color-text-muted);
       }
 
       .indicator-bar {

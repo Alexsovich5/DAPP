@@ -255,7 +255,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
     }
 
     .tooltip-title {
-      color: var(--text-primary);
+      color: var(--color-text);
       font-size: 1.25rem;
       font-weight: 600;
       margin: 0;
@@ -266,7 +266,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
     .close-btn {
       background: none;
       border: none;
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       cursor: pointer;
       padding: 0.25rem;
       border-radius: 4px;
@@ -275,8 +275,8 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       flex-shrink: 0;
 
       &:hover, &:focus {
-        background: var(--surface-secondary);
-        color: var(--text-primary);
+        background: var(--color-surface-alt);
+        color: var(--color-text);
       }
     }
 
@@ -284,7 +284,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       margin-bottom: 1.5rem;
 
       p {
-        color: var(--text-secondary);
+        color: var(--color-text-muted);
         font-size: 1rem;
         line-height: 1.6;
         margin: 0;
@@ -299,7 +299,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
     .progress-bar {
       width: 100%;
       height: 4px;
-      background: var(--surface-secondary);
+      background: var(--color-surface-alt);
       border-radius: 2px;
       overflow: hidden;
       margin-bottom: 0.5rem;
@@ -326,7 +326,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
 
     .progress-text {
       font-size: 0.875rem;
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       font-weight: 500;
     }
 
@@ -370,8 +370,8 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       }
 
       &.secondary {
-        background: var(--surface-secondary);
-        color: var(--text-primary);
+        background: var(--color-surface-alt);
+        color: var(--color-text);
         border: 1px solid var(--border-color);
 
         &:hover:not(:disabled) {
@@ -398,7 +398,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       }
 
       kbd {
-        background: var(--surface-secondary);
+        background: var(--color-surface-alt);
         border: 1px solid var(--border-color);
         border-radius: 3px;
         padding: 0.125rem 0.25rem;
@@ -532,11 +532,11 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
     /* High contrast mode */
     @media (prefers-contrast: high) {
       .onboarding-tooltip {
-        border: 3px solid var(--text-primary);
+        border: 3px solid var(--color-text);
       }
 
       .action-btn.primary {
-        border: 2px solid var(--text-primary);
+        border: 2px solid var(--color-text);
       }
     }
   `],

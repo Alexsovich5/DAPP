@@ -304,14 +304,14 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
     .empty-state-title {
       font-size: 1.8rem;
       font-weight: 600;
-      color: var(--text-primary, #1f2937);
+      color: var(--color-text, #1f2937);
       margin: 0 0 1rem 0;
       line-height: 1.3;
     }
 
     .empty-state-description {
       font-size: 1.1rem;
-      color: var(--text-secondary, #6b7280);
+      color: var(--color-text-muted, #6b7280);
       margin: 0 0 2rem 0;
       line-height: 1.6;
     }
@@ -328,7 +328,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
     .tips-title {
       font-size: 1.1rem;
       font-weight: 600;
-      color: var(--text-primary, #1f2937);
+      color: var(--color-text, #1f2937);
       margin: 0 0 1rem 0;
     }
 
@@ -357,7 +357,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
     }
 
     .tip-text {
-      color: var(--text-primary, #1f2937);
+      color: var(--color-text, #1f2937);
       line-height: 1.5;
     }
 
@@ -384,7 +384,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 
     .progress-text {
       font-size: 0.9rem;
-      color: var(--text-secondary, #6b7280);
+      color: var(--color-text-muted, #6b7280);
       margin: 0;
     }
 
@@ -429,7 +429,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 
     .action-btn.secondary {
       background: var(--surface-color, #f8fafc);
-      color: var(--text-primary, #1f2937);
+      color: var(--color-text, #1f2937);
       border: 2px solid var(--border-color, #e5e7eb);
     }
 

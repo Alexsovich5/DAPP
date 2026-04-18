@@ -169,7 +169,7 @@ import { MatchCelebrationComponent } from '../match-celebration/match-celebratio
     .demo-container {
       min-height: 100vh;
       background: var(--background-color, #ffffff);
-      color: var(--text-primary, #1f2937);
+      color: var(--color-text, #1f2937);
     }
 
     .demo-content {

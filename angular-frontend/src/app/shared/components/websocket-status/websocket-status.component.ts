@@ -91,12 +91,12 @@ export interface ConnectionStatusInfo {
     .connection-status {
       font-size: 0.75rem;
       font-weight: 500;
-      color: var(--text-primary, #111827);
+      color: var(--color-text, #111827);
     }
 
     .status-details {
       font-size: 0.625rem;
-      color: var(--text-secondary, #6b7280);
+      color: var(--color-text-muted, #6b7280);
     }
 
     .status-metrics {
@@ -115,12 +115,12 @@ export interface ConnectionStatusInfo {
     .metric-value {
       font-size: 0.75rem;
       font-weight: 600;
-      color: var(--text-primary, #111827);
+      color: var(--color-text, #111827);
     }
 
     .metric-label {
       font-size: 0.625rem;
-      color: var(--text-secondary, #6b7280);
+      color: var(--color-text-muted, #6b7280);
     }
 
     /* Health-based styling */
@@ -171,16 +171,16 @@ export interface ConnectionStatusInfo {
     }
 
     .dark-theme .connection-status {
-      color: var(--text-primary-dark, #f9fafb);
+      color: var(--color-text-dark, #f9fafb);
     }
 
     .dark-theme .status-details,
     .dark-theme .metric-label {
-      color: var(--text-secondary-dark, #9ca3af);
+      color: var(--color-text-muted-dark, #9ca3af);
     }
 
     .dark-theme .metric-value {
-      color: var(--text-primary-dark, #f9fafb);
+      color: var(--color-text-dark, #f9fafb);
     }
 
     /* Animation keyframes */

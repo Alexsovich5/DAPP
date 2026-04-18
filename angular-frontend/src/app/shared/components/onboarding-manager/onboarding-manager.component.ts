@@ -178,13 +178,13 @@ import { OnboardingWelcomeComponent } from '../onboarding-welcome/onboarding-wel
       margin: 0;
       font-size: 1rem;
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--color-text);
     }
 
     .toggle-btn {
       background: none;
       border: none;
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       cursor: pointer;
       padding: 0.25rem;
       border-radius: 4px;
@@ -192,7 +192,7 @@ import { OnboardingWelcomeComponent } from '../onboarding-welcome/onboarding-wel
 
       &:hover {
         background: var(--background-tertiary);
-        color: var(--text-primary);
+        color: var(--color-text);
       }
     }
 
@@ -214,7 +214,7 @@ import { OnboardingWelcomeComponent } from '../onboarding-welcome/onboarding-wel
       margin: 0 0 0.75rem 0;
       font-size: 0.9rem;
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--color-text);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
@@ -248,14 +248,14 @@ import { OnboardingWelcomeComponent } from '../onboarding-welcome/onboarding-wel
     .tour-name {
       display: block;
       font-weight: 500;
-      color: var(--text-primary);
+      color: var(--color-text);
       margin-bottom: 0.25rem;
     }
 
     .tour-category {
       display: block;
       font-size: 0.75rem;
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
@@ -277,7 +277,7 @@ import { OnboardingWelcomeComponent } from '../onboarding-welcome/onboarding-wel
 
       &:disabled {
         background: var(--background-tertiary);
-        color: var(--text-secondary);
+        color: var(--color-text-muted);
         cursor: not-allowed;
       }
     }
@@ -297,12 +297,12 @@ import { OnboardingWelcomeComponent } from '../onboarding-welcome/onboarding-wel
 
     .state-item .label {
       font-weight: 500;
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
     }
 
     .state-item .value {
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--color-text);
     }
 
     /* Quick Actions */
@@ -317,7 +317,7 @@ import { OnboardingWelcomeComponent } from '../onboarding-welcome/onboarding-wel
       border: 1px solid var(--border-light);
       border-radius: 6px;
       background: var(--background-secondary);
-      color: var(--text-primary);
+      color: var(--color-text);
       font-size: 0.75rem;
       font-weight: 500;
       cursor: pointer;
@@ -347,7 +347,7 @@ import { OnboardingWelcomeComponent } from '../onboarding-welcome/onboarding-wel
       gap: 0.5rem;
       cursor: pointer;
       font-size: 0.85rem;
-      color: var(--text-primary);
+      color: var(--color-text);
 
       input[type="checkbox"] {
         margin: 0;

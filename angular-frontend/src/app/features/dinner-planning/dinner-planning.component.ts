@@ -122,8 +122,8 @@ const CUISINE_SUGGESTIONS: { label: string; icon: string }[] = [
   styles: [`
     .dinner-planning-page { padding: 16px; max-width: 600px; margin: 0 auto; }
     .page-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 16px; }
-    .page-header h1 { margin: 0 0 4px; font-size: 1.5rem; color: var(--text-primary); }
-    .subtitle { margin: 0; color: var(--text-secondary); font-size: 0.875rem; }
+    .page-header h1 { margin: 0 0 4px; font-size: 1.5rem; color: var(--color-text); }
+    .subtitle { margin: 0; color: var(--color-text-muted); font-size: 0.875rem; }
     .suggestions-card, .form-card { margin-bottom: 16px; }
     .cuisine-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
     mat-chip { cursor: pointer; }

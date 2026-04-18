@@ -80,7 +80,7 @@ const STAGE_ICONS: Record<ConnectionStage, string> = {
       border-radius: 50%;
     }
     .stats-row { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 4px; }
-    .stat { display: flex; align-items: center; gap: 4px; font-size: 0.875rem; color: var(--text-secondary); }
+    .stat { display: flex; align-items: center; gap: 4px; font-size: 0.875rem; color: var(--color-text-muted); }
     .stat mat-icon { font-size: 16px; width: 16px; height: 16px; }
     .stage-chip { font-size: 0.75rem; }
     .stage-revelation_phase { background: var(--color-primary-100, #fce7f3); }

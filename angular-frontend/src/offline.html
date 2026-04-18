@@ -9,8 +9,8 @@
             --primary-color: #ff6b9d;
             --secondary-color: #4ecdc4;
             --accent-color: #ffd93d;
-            --text-primary: #2d3748;
-            --text-secondary: #718096;
+            --color-text: #2d3748;
+            --color-text-muted: #718096;
             --background: #f7fafc;
             --surface: #ffffff;
             --border: #e2e8f0;
@@ -29,7 +29,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--text-primary);
+            color: var(--color-text);
             line-height: 1.6;
         }
 
@@ -85,7 +85,7 @@
 
         .offline-message {
             font-size: 1.1rem;
-            color: var(--text-secondary);
+            color: var(--color-text-muted);
             margin-bottom: 2rem;
             line-height: 1.7;
         }
@@ -152,7 +152,7 @@
 
         .action-button.secondary {
             background: transparent;
-            color: var(--text-primary);
+            color: var(--color-text);
             border: 2px solid var(--border);
         }
 
@@ -173,7 +173,7 @@
             font-size: 1.1rem;
             font-weight: 600;
             margin-bottom: 1rem;
-            color: var(--text-primary);
+            color: var(--color-text);
         }
 
         .offline-tips ul {
@@ -186,7 +186,7 @@
             display: flex;
             align-items: flex-start;
             gap: 0.75rem;
-            color: var(--text-secondary);
+            color: var(--color-text-muted);
             font-size: 0.95rem;
         }
 
@@ -205,7 +205,7 @@
             font-size: 1.1rem;
             font-weight: 600;
             margin-bottom: 1rem;
-            color: var(--text-primary);
+            color: var(--color-text);
         }
 
         .cached-items {
@@ -220,7 +220,7 @@
             border-radius: 12px;
             border: 1px solid var(--border);
             text-decoration: none;
-            color: var(--text-primary);
+            color: var(--color-text);
             transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
@@ -264,8 +264,8 @@
         /* Dark mode */
         @media (prefers-color-scheme: dark) {
             :root {
-                --text-primary: #e2e8f0;
-                --text-secondary: #a0aec0;
+                --color-text: #e2e8f0;
+                --color-text-muted: #a0aec0;
                 --background: #1a202c;
                 --surface: #2d3748;
                 --border: #4a5568;

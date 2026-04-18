@@ -80,8 +80,8 @@
   --color-info-900: #1e3a8a;
 
   // Semantic Color Mappings
-  --text-primary: var(--color-neutral-800);    // 15.78:1 contrast
-  --text-secondary: var(--color-neutral-600);  // 7.07:1 contrast
+  --color-text: var(--color-neutral-800);    // 15.78:1 contrast
+  --color-text-muted: var(--color-neutral-600);  // 7.07:1 contrast
   --text-tertiary: var(--color-neutral-500);   // 4.59:1 contrast
   --text-inverse: var(--color-neutral-50);     // For dark backgrounds
   --text-disabled: var(--color-neutral-400);   // For disabled states
@@ -119,8 +119,8 @@
 .light-theme,
 [data-theme="light"] {
   // Explicitly define light theme colors (same as :root defaults)
-  --text-primary: var(--color-neutral-800);
-  --text-secondary: var(--color-neutral-600);
+  --color-text: var(--color-neutral-800);
+  --color-text-muted: var(--color-neutral-600);
   --text-tertiary: var(--color-neutral-500);
   --text-inverse: var(--color-neutral-50);
   --text-disabled: var(--color-neutral-400);
@@ -156,8 +156,8 @@
 // Support both .dark-theme class (used by ThemeService) and [data-theme="dark"] attribute
 .dark-theme,
 [data-theme="dark"] {
-  --text-primary: var(--color-neutral-50);     // High contrast on dark
-  --text-secondary: var(--color-neutral-200);  // Medium contrast on dark
+  --color-text: var(--color-neutral-50);     // High contrast on dark
+  --color-text-muted: var(--color-neutral-200);  // Medium contrast on dark
   --text-tertiary: var(--color-neutral-300);   // Lower contrast on dark
   --text-inverse: var(--color-neutral-900);    // For light backgrounds
   --text-disabled: var(--color-neutral-600);   // For disabled states in dark mode
@@ -193,8 +193,8 @@
 
 // High Contrast Theme (WCAG AAA Compliant)
 [data-theme="high-contrast"] {
-  --text-primary: #000000;
-  --text-secondary: #000000;
+  --color-text: #000000;
+  --color-text-muted: #000000;
   --text-tertiary: #000000;
   --text-inverse: #ffffff;
 
@@ -229,11 +229,11 @@
 
 // Text Color Mixins
 @mixin text-primary {
-  color: var(--text-primary);
+  color: var(--color-text);
 }
 
 @mixin text-secondary {
-  color: var(--text-secondary);
+  color: var(--color-text-muted);
 }
 
 @mixin text-tertiary {

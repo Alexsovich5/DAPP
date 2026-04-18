@@ -398,7 +398,7 @@ import { CommonModule } from '@angular/common';
 
     /* Dark theme adaptations */
     .dark-theme .compatibility-display {
-      color: var(--text-primary, #f9fafb);
+      color: var(--color-text, #f9fafb);
     }
 
     /* Accessibility */
