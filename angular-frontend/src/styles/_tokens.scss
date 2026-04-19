@@ -51,27 +51,6 @@
   // Font families
   --font-display: 'Fraunces', Georgia, serif;
   --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-
-  // -----------------------------------------------------------------
-  // LEGACY ALIASES — REMOVE IN TASK 19.
-  // Keep pre-migration files building during the SCSS migration run.
-  // -----------------------------------------------------------------
-  --emotional-primary: var(--color-primary);
-  --emotional-primary-hover: var(--color-primary-hover);
-  --emotional-accent: var(--color-accent);
-  --emotional-accent-soft: var(--color-accent-soft);
-  --emotional-danger: var(--color-danger);
-  --emotional-warning: var(--color-warning);
-  --df-primary: var(--color-primary);
-  --df-accent: var(--color-accent);
-  --df-bg: var(--color-bg);
-  --df-surface: var(--color-surface);
-  --df-text: var(--color-text);
-  --df-text-muted: var(--color-text-muted);
-  --text-primary: var(--color-text);
-  --text-secondary: var(--color-text-muted);
-  --surface-primary: var(--color-surface);
-  --surface-secondary: var(--color-surface-alt);
 }
 
 [data-theme='dark'] {
