@@ -101,10 +101,6 @@ export const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
-    path: 'demo',
-    loadComponent: () => import('./shared/components/navigation/navigation-demo.component').then(m => m.NavigationDemoComponent)
-  },
-  {
     path: 'settings',
     loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent),
     canActivate: [AuthGuard]
