@@ -1,6 +1,7 @@
 @use 'styles/tokens';
 @use 'styles/material-theme';
 @use 'app/shared/ui/button/df-button';
+@use 'app/shared/ui/chip/df-chip';
 
 html, body {
   height: 100%;
