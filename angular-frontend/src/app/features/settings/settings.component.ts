@@ -294,7 +294,7 @@ interface AppSettings {
                 <p>Temporarily hide your profile from discovery</p>
               </div>
               <button class="action-btn warning" (click)="deactivateAccount()">
-                <span>⏸️</span> Deactivate
+                <mat-icon>pause_circle</mat-icon> Deactivate
               </button>
             </div>
 
