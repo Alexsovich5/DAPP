@@ -8,7 +8,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { ThemeService } from './core/services/theme.service';
 import { OfflineService } from './core/services/offline.service';
 import { ToastComponent } from './shared/components/toast/toast.component';
-import { NavigationComponent } from './shared/components/navigation/navigation.component';
+import { ResponsiveNavComponent } from './shared/navigation/responsive-nav.component';
 import { OnboardingManagerComponent } from './shared/components/onboarding-manager/onboarding-manager.component';
 import { OfflineStatusComponent } from './shared/components/offline-status/offline-status.component';
 
@@ -23,7 +23,7 @@ import { OfflineStatusComponent } from './shared/components/offline-status/offli
     MatIconModule,
     MatSidenavModule,
     ToastComponent,
-    NavigationComponent,
+    ResponsiveNavComponent,
     OnboardingManagerComponent,
     OfflineStatusComponent
   ],
