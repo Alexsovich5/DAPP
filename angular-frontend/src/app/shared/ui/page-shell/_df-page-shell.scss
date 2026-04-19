@@ -1,0 +1,19 @@
+.df-page-shell {
+  display: block;
+  margin: 0 auto;
+  padding: var(--space-4);
+
+  @media (min-width: 768px) { padding: var(--space-6); }
+  @media (min-width: 1280px) { padding: var(--space-8); }
+
+  &--reading { max-width: 720px; }
+  &--grid    { max-width: 1120px; }
+
+  &--chat {
+    max-width: 480px;
+    height: 100dvh;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+}
