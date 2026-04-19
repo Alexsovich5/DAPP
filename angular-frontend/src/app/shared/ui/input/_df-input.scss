@@ -1,0 +1,38 @@
+.df-input {
+  width: 100%;
+  padding: 10px var(--space-3);
+  font-family: var(--font-ui);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-lh);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+
+  &::placeholder { color: var(--color-text-muted); }
+
+  &:hover:not(:disabled) { border-color: color-mix(in srgb, var(--color-border) 50%, var(--color-text) 50%); }
+
+  &:focus-visible {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+  }
+
+  &:disabled {
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+  }
+
+  &[aria-invalid='true'] {
+    border-color: var(--color-danger);
+    &:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 22%, transparent); }
+  }
+}
+
+textarea.df-input {
+  min-height: 90px;
+  resize: vertical;
+}
