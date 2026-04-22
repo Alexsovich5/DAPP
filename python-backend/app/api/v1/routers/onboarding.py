@@ -3,6 +3,7 @@ from typing import Any, Dict, List
 
 from app.api.v1.deps import get_current_user
 from app.core.database import get_db
+from app.observability import metrics as obs
 from app.models.user import User
 from app.schemas.auth import User as UserSchema
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -94,6 +95,8 @@ def complete_onboarding(
         # Commit the changes
         db.commit()
         db.refresh(current_user)
+
+        obs.emotional_onboarding_completed_total.inc()
 
         logger.info(f"Onboarding completed successfully for user: {current_user.email}")
 

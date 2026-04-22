@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.models.daily_revelation import DailyRevelation, RevelationType
 from app.models.soul_connection import SoulConnection
 from app.models.user import User
+from app.observability import metrics as obs
 from app.schemas.daily_revelation import (
     DailyRevelationCreate,
     DailyRevelationResponse,
@@ -210,6 +211,10 @@ def create_revelation(
         db.add(new_revelation)
         db.commit()
         db.refresh(new_revelation)
+
+        obs.revelations_sent_total.labels(
+            day_number=str(revelation_data.day_number)
+        ).inc()
 
         # Update connection stage if needed
         if (

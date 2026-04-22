@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional
 from app.api.v1.deps import get_current_user
 from app.core.database import get_db
 from app.models.user import User
+from app.observability import metrics as obs
 from app.services.message_service import message_service
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
@@ -83,6 +84,9 @@ async def send_message(
             emotional_context=message_data.emotional_context,
             db=db,
         )
+
+        if result.success:
+            obs.messages_sent_total.inc()
 
         return SendMessageResponse(
             success=result.success,

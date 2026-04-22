@@ -76,6 +76,24 @@ try:
 except Exception as e:
     logger.error(f"Error creating database tables: {str(e)}")
 
+# Initialize soul_connections_active gauge from DB so process restarts
+# don't reset the count to zero. Best-effort — silently warn on failure.
+try:
+    from app.core.database import SessionLocal
+    from app.models.soul_connection import SoulConnection
+    from app.observability import metrics as obs
+    TERMINAL = ("ended", "archived", "closed", "inactive")
+    with SessionLocal() as session:
+        active = (
+            session.query(SoulConnection)
+            .filter(SoulConnection.connection_stage.notin_(TERMINAL))
+            .count()
+        )
+        obs.soul_connections_active.set(active)
+        logger.info(f"Initialized dapp_soul_connections_active gauge to {active}")
+except Exception as e:
+    logger.warning(f"Could not initialize soul_connections_active gauge: {e}")
+
 # Create API routers for v1
 v1_app = FastAPI(
     title="Dinner App API",
