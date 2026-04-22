@@ -6,10 +6,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSliderModule } from '@angular/material/slider';
-import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { PreferencesService } from '../../core/services/preferences.service';
+import { DfButtonDirective, DfInputDirective } from '../../shared/ui';
 
 interface CuisineOption {
   value: string;
@@ -30,9 +30,10 @@ interface CuisineOption {
     MatInputModule,
     MatSelectModule,
     MatSliderModule,
-    MatButtonModule,
     MatProgressBarModule,
-    MatIconModule
+    MatIconModule,
+    DfButtonDirective,
+    DfInputDirective
   ]
 })
 export class PreferencesComponent implements OnInit {

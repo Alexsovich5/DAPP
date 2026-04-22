@@ -1,32 +1,53 @@
 .preferences-container {
   max-width: 800px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  margin: var(--space-8) auto;
+  padding: 0 var(--space-4);
 
   mat-card {
-    margin-bottom: 2rem;
+    margin-bottom: var(--space-8);
+    background-color: var(--color-surface);
+    color: var(--color-text);
   }
 }
 
 .preference-section {
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-8);
 
   h2 {
-    color: var(--primary-color);
-    margin-bottom: 0.5rem;
-    font-size: 1.25rem;
+    color: var(--color-primary);
+    margin-bottom: var(--space-2);
+    font-size: var(--type-h3-size);
+    line-height: var(--type-h3-lh);
+    font-weight: var(--type-h3-weight);
   }
 
   .section-description {
-    color: rgba(0, 0, 0, 0.6);
-    margin-bottom: 1rem;
-    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-4);
+    font-size: var(--type-small-size);
   }
 }
 
 mat-form-field {
   width: 100%;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
+}
+
+.pref-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+
+  &__label {
+    font-size: var(--type-small-size);
+    color: var(--color-text-muted);
+  }
+
+  &__error {
+    font-size: var(--type-caption-size);
+    color: var(--color-danger);
+  }
 }
 
 .cuisine-option, .price-option {
@@ -34,20 +55,20 @@ mat-form-field {
   flex-direction: column;
 
   small {
-    color: rgba(0, 0, 0, 0.6);
-    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    font-size: var(--type-caption-size);
   }
 }
 
 .location-fields {
   display: grid;
-  gap: 1.5rem;
+  gap: var(--space-6);
 
   .distance-slider {
     label {
       display: block;
-      margin-bottom: 0.5rem;
-      color: rgba(0, 0, 0, 0.6);
+      margin-bottom: var(--space-2);
+      color: var(--color-text-muted);
     }
 
     mat-slider {
@@ -59,30 +80,30 @@ mat-form-field {
 .age-range {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
 }
 
 .action-buttons {
   display: flex;
-  gap: 1rem;
+  gap: var(--space-4);
   justify-content: flex-end;
-  margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
 }
 
 .loading-bar {
-  margin: 1rem 0;
+  margin: var(--space-4) 0;
 }
 
 .message {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 1rem;
-  border-radius: 4px;
-  margin-top: 1rem;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-sm);
+  margin-top: var(--space-4);
 
   mat-icon {
     font-size: 20px;
@@ -91,13 +112,15 @@ mat-form-field {
   }
 
   &.success-message {
-    background-color: #e8f5e9;
-    color: #2e7d32;
+    background-color: var(--color-surface-alt);
+    color: var(--color-accent);
+    border: 1px solid var(--color-accent);
   }
 
   &.error-message {
-    background-color: #ffebee;
-    color: #c62828;
+    background-color: var(--color-surface-alt);
+    color: var(--color-danger);
+    border: 1px solid var(--color-danger);
   }
 }
 
