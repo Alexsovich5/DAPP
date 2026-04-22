@@ -23,4 +23,7 @@ echo "Running database migrations..."
 alembic upgrade head
 
 echo "Starting FastAPI server..."
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+# Single worker so prometheus_client metrics live in one process REGISTRY.
+# Multi-worker would need PROMETHEUS_MULTIPROC_DIR + MultiProcessCollector;
+# overkill for a demo with modest traffic.
+exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1
