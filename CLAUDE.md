@@ -445,6 +445,25 @@ For production, copy `python-backend/.env.example` to `python-backend/.env` and 
 - **Soul Connection Discovery**: http://localhost:4200/discover
 - **Emotional Onboarding**: http://localhost:4200/onboarding
 
+## Demo Server (rolling release on `main`)
+
+This repo also runs as a public demo at `https://date.batcomputer.waynetower.de`,
+wired into the host's Grafana / Prometheus / Loki / NPM stack. It is built
+from a separate compose file with no source mounts:
+
+```bash
+./scripts/deploy-demo.sh         # rolling deploy from current HEAD
+./scripts/deploy-demo.sh --check # validate environment only
+```
+
+`main` is the demo branch — every merge to `main` is intended to be
+deployable via that script. Feature work goes through
+`feature/<name> → main` PRs (the older `development` branch is no longer
+the integration target).
+
+See **docs/demo-server.md** for full topology, observability layout,
+disaster recovery, and the eight `dapp_*` business metrics.
+
 ## Critical Requirements
 - **Docker Desktop** must be running — no local PostgreSQL, Python, or Node.js required
 - **Backend** runs on port 8000 (FastAPI + uvicorn with hot-reload)
