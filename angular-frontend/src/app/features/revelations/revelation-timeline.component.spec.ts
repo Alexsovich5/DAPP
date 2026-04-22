@@ -138,7 +138,7 @@ describe('RevelationTimelineComponent', () => {
     it('should get phase color for soul_discovery', () => {
       component.timelineData = mockTimelineData;
       const color = component.getPhaseColor();
-      expect(color).toBe('#667eea');
+      expect(color).toBe('var(--color-primary)');
     });
 
     it('should get phase color for deeper_connection', () => {
@@ -147,7 +147,7 @@ describe('RevelationTimelineComponent', () => {
         visualization: { ...mockTimelineData.visualization, phase: 'deeper_connection' }
       };
       const color = component.getPhaseColor();
-      expect(color).toBe('#e879f9');
+      expect(color).toBe('var(--color-accent-soft)');
     });
 
     it('should get phase color for photo_reveal', () => {
@@ -156,7 +156,7 @@ describe('RevelationTimelineComponent', () => {
         visualization: { ...mockTimelineData.visualization, phase: 'photo_reveal' }
       };
       const color = component.getPhaseColor();
-      expect(color).toBe('#ffd700');
+      expect(color).toBe('var(--color-warning)');
     });
 
     it('should get phase label', () => {
