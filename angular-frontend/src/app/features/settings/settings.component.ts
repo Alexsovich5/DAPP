@@ -334,19 +334,19 @@ interface AppSettings {
       text-align: center;
       margin-bottom: 2rem;
       padding-bottom: 1rem;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 1px solid var(--color-border);
     }
 
     .settings-header h1 {
       font-size: 2.5rem;
       font-weight: 600;
-      color: #2d3748;
+      color: var(--color-text);
       margin-bottom: 0.5rem;
     }
 
     .subtitle {
       font-size: 1.1rem;
-      color: #718096;
+      color: var(--color-text-muted);
       margin: 0;
     }
 
@@ -362,29 +362,29 @@ interface AppSettings {
       border-radius: 12px;
       padding: 2rem;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-border);
     }
 
     .danger-section {
-      border-color: #fed7d7;
+      border-color: var(--color-surface-alt);
       background: linear-gradient(135deg, rgba(245, 101, 101, 0.02) 0%, rgba(245, 101, 101, 0.01) 100%);
     }
 
     .section-header {
       margin-bottom: 1.5rem;
       padding-bottom: 1rem;
-      border-bottom: 1px solid #f7fafc;
+      border-bottom: 1px solid var(--color-surface-alt);
     }
 
     .section-header h2 {
       font-size: 1.3rem;
       font-weight: 600;
-      color: #2d3748;
+      color: var(--color-text);
       margin: 0 0 0.5rem 0;
     }
 
     .section-header p {
-      color: #718096;
+      color: var(--color-text-muted);
       margin: 0;
       font-size: 0.95rem;
     }
@@ -409,13 +409,13 @@ interface AppSettings {
     .setting-info h3, .action-info h3 {
       font-size: 1rem;
       font-weight: 600;
-      color: #2d3748;
+      color: var(--color-text);
       margin: 0 0 0.25rem 0;
     }
 
     .setting-info p, .action-info p {
       font-size: 0.9rem;
-      color: #718096;
+      color: var(--color-text-muted);
       margin: 0;
       line-height: 1.4;
     }
@@ -440,7 +440,7 @@ interface AppSettings {
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: #cbd5e0;
+      background-color: var(--color-border);
       transition: 0.3s;
       border-radius: 24px;
     }
@@ -458,7 +458,7 @@ interface AppSettings {
     }
 
     input:checked + .toggle-slider {
-      background-color: #667eea;
+      background-color: var(--color-primary);
     }
 
     input:checked + .toggle-slider:before {
@@ -467,10 +467,10 @@ interface AppSettings {
 
     .setting-select {
       padding: 0.5rem 1rem;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-border);
       border-radius: 6px;
       background: white;
-      color: #2d3748;
+      color: var(--color-text);
       font-size: 0.9rem;
       cursor: pointer;
       min-width: 200px;
@@ -478,7 +478,7 @@ interface AppSettings {
 
     .setting-select:focus {
       outline: none;
-      border-color: #667eea;
+      border-color: var(--color-primary);
       box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
@@ -493,7 +493,7 @@ interface AppSettings {
       flex: 1;
       height: 6px;
       border-radius: 3px;
-      background: #e2e8f0;
+      background: var(--color-border);
       outline: none;
       cursor: pointer;
     }
@@ -503,7 +503,7 @@ interface AppSettings {
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      background: #667eea;
+      background: var(--color-primary);
       cursor: pointer;
     }
 
@@ -511,14 +511,14 @@ interface AppSettings {
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      background: #667eea;
+      background: var(--color-primary);
       cursor: pointer;
       border: none;
     }
 
     .range-value {
       font-weight: 600;
-      color: #667eea;
+      color: var(--color-primary);
       min-width: 45px;
       text-align: center;
     }
@@ -537,36 +537,36 @@ interface AppSettings {
     }
 
     .action-btn.secondary {
-      background: #f7fafc;
-      color: #4a5568;
-      border: 1px solid #e2e8f0;
+      background: var(--color-surface-alt);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
     }
 
     .action-btn.secondary:hover {
-      background: #edf2f7;
-      border-color: #cbd5e0;
+      background: var(--color-surface-alt);
+      border-color: var(--color-border);
     }
 
     .action-btn.warning {
-      background: #fed7a1;
-      color: #c05621;
-      border: 1px solid #f6ad55;
+      background: var(--color-surface-alt);
+      color: var(--color-warning);
+      border: 1px solid var(--color-warning);
     }
 
     .action-btn.warning:hover {
-      background: #fbd38d;
-      border-color: #ed8936;
+      background: var(--color-surface-alt);
+      border-color: var(--color-warning);
     }
 
     .action-btn.danger {
-      background: #fed7d7;
-      color: #c53030;
-      border: 1px solid #fc8181;
+      background: var(--color-surface-alt);
+      color: var(--color-danger);
+      border: 1px solid var(--color-danger);
     }
 
     .action-btn.danger:hover {
-      background: #feb2b2;
-      border-color: #f56565;
+      background: var(--color-surface-alt);
+      border-color: var(--color-danger);
     }
 
     .save-actions {
@@ -574,11 +574,11 @@ interface AppSettings {
       justify-content: center;
       gap: 1rem;
       padding: 2rem 0;
-      border-top: 1px solid #e2e8f0;
+      border-top: 1px solid var(--color-border);
     }
 
     .save-btn {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--color-primary);
       color: white;
       border: none;
       padding: 1rem 2rem;
@@ -603,8 +603,8 @@ interface AppSettings {
 
     .reset-btn {
       background: white;
-      color: #718096;
-      border: 1px solid #e2e8f0;
+      color: var(--color-text-muted);
+      border: 1px solid var(--color-border);
       padding: 1rem 2rem;
       border-radius: 12px;
       font-size: 1.1rem;
@@ -617,8 +617,8 @@ interface AppSettings {
     }
 
     .reset-btn:hover {
-      background: #f7fafc;
-      border-color: #cbd5e0;
+      background: var(--color-surface-alt);
+      border-color: var(--color-border);
     }
 
     @media (max-width: 768px) {
