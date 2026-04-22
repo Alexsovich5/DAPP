@@ -3,12 +3,10 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/services/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { DfButtonDirective, DfInputDirective } from '../../../shared/ui';
 
 @Component({
   selector: 'app-forgot-password',
@@ -20,10 +18,9 @@ import { HttpErrorResponse } from '@angular/common/http';
     ReactiveFormsModule,
     RouterLink,
     MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    DfButtonDirective,
+    DfInputDirective
   ]
 })
 export class ForgotPasswordComponent {
