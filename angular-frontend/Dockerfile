@@ -10,14 +10,14 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production --silent
+# Install dependencies (includes devDeps — @angular/cli is needed at build time)
+RUN npm ci --silent
 
 # Copy source code
 COPY . .
 
-# Build for production with optimizations
-RUN npm run build -- --configuration production
+# Build with the demo configuration (swaps in environment.demo.ts)
+RUN npm run build -- --configuration demo
 
 # Stage 2: Production stage with Nginx
 FROM nginx:1.25-alpine as production
