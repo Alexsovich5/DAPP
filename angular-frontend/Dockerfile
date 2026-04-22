@@ -28,8 +28,11 @@ RUN apk add --no-cache curl
 # Copy custom nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy built application from builder stage
-COPY --from=builder /app/dist/dinner-app /usr/share/nginx/html
+# Angular 19 application builder emits browser assets under dist/<app>/browser/.
+# Copying the browser/ subtree directly (not the parent) ensures index.html lands
+# at /usr/share/nginx/html/index.html and replaces the stock "Welcome to nginx"
+# page baked into the base image.
+COPY --from=builder /app/dist/dinner-app/browser /usr/share/nginx/html
 
 # Create non-root user
 RUN addgroup -g 1001 -S dinner1 && \

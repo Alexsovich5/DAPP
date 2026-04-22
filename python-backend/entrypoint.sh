@@ -26,4 +26,13 @@ echo "Starting FastAPI server..."
 # Single worker so prometheus_client metrics live in one process REGISTRY.
 # Multi-worker would need PROMETHEUS_MULTIPROC_DIR + MultiProcessCollector;
 # overkill for a demo with modest traffic.
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1
+#
+# --proxy-headers + --forwarded-allow-ips="*" make uvicorn honor
+# X-Forwarded-Proto/Host from the upstream nginx so FastAPI's redirects
+# (e.g. /api/v1/health → /api/v1/health/) keep the original https:// scheme.
+exec uvicorn app.main:app \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --workers 1 \
+  --proxy-headers \
+  --forwarded-allow-ips="*"
