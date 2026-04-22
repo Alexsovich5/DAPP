@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { DfInputDirective } from '../../shared/ui';
 
 @Component({
   selector: 'app-onboarding-question',
   standalone: true,
   imports: [CommonModule, DfInputDirective],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <p class="onboarding-question__prompt display-serif">{{ prompt }}</p>
     <p class="onboarding-question__helper">{{ helper }}</p>

@@ -8,9 +8,9 @@ describe('OnboardingQuestionComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(OnboardingQuestionComponent);
     comp = fixture.componentInstance;
-    comp.prompt = 'What do you value most in a relationship?';
-    comp.helper = "Take your time. There's no right answer — only honest ones.";
-    comp.value = '';
+    fixture.componentRef.setInput('prompt', 'What do you value most in a relationship?');
+    fixture.componentRef.setInput('helper', "Take your time. There's no right answer — only honest ones.");
+    fixture.componentRef.setInput('value', '');
     fixture.detectChanges();
   });
 
@@ -21,17 +21,17 @@ describe('OnboardingQuestionComponent', () => {
   });
 
   it('renders counter N / 500', () => {
-    comp.value = 'hello';
+    fixture.componentRef.setInput('value', 'hello');
     fixture.detectChanges();
     const c: HTMLElement = fixture.nativeElement.querySelector('.onboarding-question__counter');
     expect(c.textContent?.trim()).toBe('5 / 500');
   });
 
   it('flags warning at 450 chars, danger at 500 chars', () => {
-    comp.value = 'a'.repeat(450);
+    fixture.componentRef.setInput('value', 'a'.repeat(450));
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.onboarding-question__counter')!.classList.contains('is-warning')).toBeTrue();
-    comp.value = 'a'.repeat(500);
+    fixture.componentRef.setInput('value', 'a'.repeat(500));
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.onboarding-question__counter')!.classList.contains('is-danger')).toBeTrue();
   });
