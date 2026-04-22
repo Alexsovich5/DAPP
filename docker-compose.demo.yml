@@ -1,0 +1,91 @@
+# docker-compose.demo.yml
+# Demo-server runtime for https://date.batcomputer.waynetower.de
+# Built images, no source mounts. Attaches to the host's existing
+# observability and reverse-proxy networks. See docs/demo-server.md
+# and docs/superpowers/specs/2026-04-22-dapp-demo-server-design.md.
+
+name: dapp
+
+services:
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: dapp-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dinner_first
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.demo}
+    volumes:
+      - dapp_postgres_data:/var/lib/postgresql/data
+    networks:
+      - dapp_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: dapp-postgres-exporter
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/dinner_first?sslmode=disable"
+    networks:
+      - dapp_internal
+      - monitoring
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  backend:
+    build:
+      context: ./python-backend
+      dockerfile: Dockerfile
+    image: dapp-backend:demo
+    container_name: dapp-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/dinner_first
+      DB_HOST: postgres
+      DB_USER: postgres
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env.demo}
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 1440
+      CORS_ORIGINS: https://date.batcomputer.waynetower.de
+      ENVIRONMENT: demo
+      DEBUG: "false"
+    networks:
+      - dapp_internal
+      - monitoring
+      - nginx_proxy
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./angular-frontend
+      dockerfile: Dockerfile
+    image: dapp-frontend:demo
+    container_name: dapp-frontend
+    restart: unless-stopped
+    networks:
+      - nginx_proxy
+    depends_on:
+      - backend
+
+volumes:
+  dapp_postgres_data:
+
+networks:
+  dapp_internal:
+    driver: bridge
+  monitoring:
+    external: true
+    name: monitoring_monitoring
+  nginx_proxy:
+    external: true
+    name: nginx_proxy

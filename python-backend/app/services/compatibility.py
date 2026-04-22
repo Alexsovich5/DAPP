@@ -1,6 +1,8 @@
 # import re
 from typing import Any, Dict, List
 
+from app.observability import metrics as obs
+
 
 class CompatibilityCalculator:
     """
@@ -973,51 +975,52 @@ class CompatibilityCalculator:
         Returns:
             Dict with total compatibility, breakdown, and match quality
         """
-        # Calculate individual scores
-        interest_score = self.calculate_interest_similarity(
-            user1_data.get("interests", []), user2_data.get("interests", [])
-        )
+        with obs.compatibility_calc_seconds.time():
+            # Calculate individual scores
+            interest_score = self.calculate_interest_similarity(
+                user1_data.get("interests", []), user2_data.get("interests", [])
+            )
 
-        values_score = self.calculate_values_compatibility(
-            user1_data.get("core_values", {}),
-            user2_data.get("core_values", {}),
-        )
+            values_score = self.calculate_values_compatibility(
+                user1_data.get("core_values", {}),
+                user2_data.get("core_values", {}),
+            )
 
-        demographic_score = self.calculate_demographic_compatibility(
-            user1_data, user2_data
-        )
+            demographic_score = self.calculate_demographic_compatibility(
+                user1_data, user2_data
+            )
 
-        # Calculate communication and personality compatibility using new methods
-        communication_score = self.calculate_communication_compatibility(
-            user1_data, user2_data
-        )
-        personality_score = self.calculate_personality_compatibility(
-            user1_data, user2_data
-        )
+            # Calculate communication and personality compatibility using new methods
+            communication_score = self.calculate_communication_compatibility(
+                user1_data, user2_data
+            )
+            personality_score = self.calculate_personality_compatibility(
+                user1_data, user2_data
+            )
 
-        # Calculate weighted total
-        total_score = (
-            interest_score * self.weights["interests"]
-            + values_score * self.weights["values"]
-            + demographic_score * self.weights["demographics"]
-            + communication_score * self.weights["communication"]
-            + personality_score * self.weights["personality"]
-        )
+            # Calculate weighted total
+            total_score = (
+                interest_score * self.weights["interests"]
+                + values_score * self.weights["values"]
+                + demographic_score * self.weights["demographics"]
+                + communication_score * self.weights["communication"]
+                + personality_score * self.weights["personality"]
+            )
 
-        return {
-            "total_compatibility": round(total_score * 100, 1),
-            "breakdown": {
-                "interests": round(interest_score * 100, 1),
-                "values": round(values_score * 100, 1),
-                "demographics": round(demographic_score * 100, 1),
-                "communication": round(communication_score * 100, 1),
-                "personality": round(personality_score * 100, 1),
-            },
-            "match_quality": self._get_match_quality_label(total_score),
-            "explanation": self._generate_compatibility_explanation(
-                total_score, interest_score, values_score, demographic_score
-            ),
-        }
+            return {
+                "total_compatibility": round(total_score * 100, 1),
+                "breakdown": {
+                    "interests": round(interest_score * 100, 1),
+                    "values": round(values_score * 100, 1),
+                    "demographics": round(demographic_score * 100, 1),
+                    "communication": round(communication_score * 100, 1),
+                    "personality": round(personality_score * 100, 1),
+                },
+                "match_quality": self._get_match_quality_label(total_score),
+                "explanation": self._generate_compatibility_explanation(
+                    total_score, interest_score, values_score, demographic_score
+                ),
+            }
 
     def _get_match_quality_label(self, score: float) -> str:
         """Convert compatibility score to descriptive label."""

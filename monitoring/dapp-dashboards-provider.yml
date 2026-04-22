@@ -1,0 +1,21 @@
+# monitoring/dapp-dashboards-provider.yml
+# Grafana provisioning config that picks up DAPP dashboards from the
+# provisioning directory. Mirrored to
+# /opt/monitoring/config/grafana/provisioning/dashboards/dapp.yml by
+# deploy-demo.sh.
+
+apiVersion: 1
+
+providers:
+  - name: dapp-dashboards
+    orgId: 1
+    folder: DAPP
+    folderUid: dapp
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/dapp
+      foldersFromFilesStructure: false

@@ -5,6 +5,7 @@ from app.api.v1.deps import get_current_user
 from app.core.database import get_db
 from app.models.soul_connection import SoulConnection
 from app.models.user import User
+from app.observability import metrics as obs
 from app.schemas.soul_connection import (
     CompatibilityResponse,
     DiscoveryResponse,
@@ -285,6 +286,9 @@ def initiate_soul_connection(
         db.commit()
         db.refresh(new_connection)
 
+        obs.soul_connections_initiated_total.inc()
+        obs.soul_connections_active.inc()
+
         logger.info(
             f"New soul connection created: {current_user.id} -> "
             f"{connection_data.user2_id}"
@@ -399,13 +403,23 @@ def update_soul_connection(
                 detail="Soul connection not found",
             )
 
-        # Update fields
+        # Update fields. Detect transitions to a terminal stage so we can
+        # decrement the active-connections gauge.
+        TERMINAL_STAGES = {"ended", "archived", "closed", "inactive"}
         update_dict = update_data.dict(exclude_unset=True)
+        became_terminal = False
         for field, value in update_dict.items():
+            if field in ("connection_stage", "status"):
+                prev = getattr(connection, field, None)
+                if value in TERMINAL_STAGES and prev not in TERMINAL_STAGES:
+                    became_terminal = True
             setattr(connection, field, value)
 
         db.commit()
         db.refresh(connection)
+
+        if became_terminal:
+            obs.soul_connections_active.dec()
 
         logger.info(f"Soul connection updated: {connection_id}")
         return connection

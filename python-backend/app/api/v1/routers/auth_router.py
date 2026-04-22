@@ -4,6 +4,7 @@ from typing import Any
 
 from app.api.v1.deps import get_current_user
 from app.core.database import get_db
+from app.observability import metrics as obs
 from app.core.security import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     create_access_token,
@@ -82,6 +83,8 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)) -> Any:
         db.commit()
         db.refresh(new_user)
 
+        obs.users_registered_total.inc()
+
         # Generate access token for immediate login
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
@@ -137,6 +140,7 @@ def login(
     # Verify credentials
     if not user or not verify_password(form_data.password, user.hashed_password):
         logger.warning(f"Failed login attempt for: {form_data.username}")
+        obs.login_attempts_total.labels(result="failure").inc()
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -146,6 +150,7 @@ def login(
     # Check if user is active
     if not user.is_active:
         logger.warning(f"Inactive user login attempt: {user.email}")
+        obs.login_attempts_total.labels(result="failure").inc()
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Account is inactive",
@@ -158,6 +163,7 @@ def login(
     )
 
     logger.info(f"Successful login for user: {user.email}")
+    obs.login_attempts_total.labels(result="success").inc()
     return LoginResponse(access_token=access_token, token_type="bearer", user=user)
 
 

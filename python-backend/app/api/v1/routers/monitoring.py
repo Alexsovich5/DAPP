@@ -199,74 +199,11 @@ async def get_metrics():
         raise HTTPException(status_code=500, detail="Failed to collect metrics")
 
 
-@router.get("/metrics/prometheus")
-async def get_prometheus_metrics():
-    """
-    Prometheus text format metrics
-    """
-    try:
-        metrics_lines = []
-
-        # Application metrics
-        metrics_lines.append(
-            "# HELP dinner_first_requests_total Total number of requests"
-        )
-        metrics_lines.append("# TYPE dinner_first_requests_total counter")
-        metrics_lines.append(
-            f"dinner_first_requests_total {metrics_store['requests_total']}"
-        )
-
-        metrics_lines.append("# HELP dinner_first_errors_total Total number of errors")
-        metrics_lines.append("# TYPE dinner_first_errors_total counter")
-        metrics_lines.append(
-            f"dinner_first_errors_total {metrics_store['errors_total']}"
-        )
-
-        metrics_lines.append("# HELP dinner_first_active_users Number of active users")
-        metrics_lines.append("# TYPE dinner_first_active_users gauge")
-        metrics_lines.append(
-            f"dinner_first_active_users {metrics_store['active_users']}"
-        )
-
-        # System metrics
-        metrics_lines.append(
-            "# HELP dinner_first_cpu_usage_percent CPU usage percentage"
-        )
-        metrics_lines.append("# TYPE dinner_first_cpu_usage_percent gauge")
-        metrics_lines.append(f"dinner_first_cpu_usage_percent {psutil.cpu_percent()}")
-
-        metrics_lines.append(
-            "# HELP dinner_first_memory_usage_percent Memory usage percentage"
-        )
-        metrics_lines.append("# TYPE dinner_first_memory_usage_percent gauge")
-        metrics_lines.append(
-            f"dinner_first_memory_usage_percent {psutil.virtual_memory().percent}"
-        )
-
-        # Database metrics
-        db_metrics = await get_database_metrics()
-        metrics_lines.append("# HELP dinner_first_db_connections Database connections")
-        metrics_lines.append("# TYPE dinner_first_db_connections gauge")
-        metrics_lines.append(
-            f"dinner_first_db_connections {db_metrics.get('active_connections', 0)}"
-        )
-
-        # Custom business metrics
-        custom_metrics = await get_custom_metrics()
-        for metric_name, value in custom_metrics.items():
-            metrics_lines.append(
-                f"# HELP dinner_first_{metric_name} {metric_name.replace('_', ' ').title()}"
-            )
-            metrics_lines.append(f"# TYPE dinner_first_{metric_name} gauge")
-            metrics_lines.append(f"dinner_first_{metric_name} {value}")
-
-        return "\n".join(metrics_lines)
-
-    except Exception as e:
-        logger.error(f"Prometheus metrics collection failed: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail="Failed to collect Prometheus metrics"
-        )
+# Legacy /metrics/prometheus endpoint removed. The unified Prometheus
+# exposition is now mounted at /metrics by app.observability.setup_observability.
+# It uses the global prometheus_client REGISTRY, which automatically includes
+# all dapp_* business metrics plus existing scattered metrics from cache,
+# events, sentiment, and ml modules.
 
 
 @router.get("/status")
