@@ -342,9 +342,11 @@ async def get_system_status():
 
 
 @router.get(
-    "/metrics",
-    summary="Health Metrics for Monitoring",
-    description="Get system performance and health metrics in monitoring-friendly format",
+    "/metrics-json",
+    summary="Health Metrics for Monitoring (JSON format)",
+    description="Get system performance and health metrics as JSON. "
+                "Renamed from /metrics so the canonical /metrics path can serve "
+                "the Prometheus exposition format (mounted at root).",
     response_description="Structured metrics data for monitoring systems",
     tags=["Health Monitoring", "Metrics"],
 )
