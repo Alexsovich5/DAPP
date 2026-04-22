@@ -65,6 +65,10 @@ app.middleware("http")(security_headers_middleware)
 cors_config = get_secure_cors_config()
 app.add_middleware(CORSMiddleware, **cors_config)
 
+# Prometheus metrics + /metrics endpoint (call after CORS is registered)
+from app.observability import setup_observability
+setup_observability(app)
+
 # Try to create database tables
 try:
     create_tables()
