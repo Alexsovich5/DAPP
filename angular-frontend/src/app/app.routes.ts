@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './features/auth/auth.guard';
-import { OnboardingStepGuard } from './features/onboarding/onboarding-step.guard';
 import { LandingComponent } from './features/landing/landing.component';
 
 export const routes: Routes = [
@@ -19,30 +18,8 @@ export const routes: Routes = [
   },
   {
     path: 'onboarding',
-    loadComponent: () => import('./features/onboarding/onboarding.component').then(m => m.OnboardingComponent),
+    loadComponent: () => import('./features/onboarding/onboarding-flow.component').then(m => m.OnboardingFlowComponent),
     canActivate: [AuthGuard],
-    children: [
-      { path: '', redirectTo: 'emotional-questions', pathMatch: 'full' },
-      {
-        path: 'emotional-questions',
-        loadComponent: () => import('./features/onboarding/emotional-questions/emotional-questions.component').then(m => m.EmotionalQuestionsComponent)
-      },
-      {
-        path: 'personality-assessment',
-        loadComponent: () => import('./features/onboarding/personality-assessment/personality-assessment.component').then(m => m.PersonalityAssessmentComponent),
-        canActivate: [OnboardingStepGuard]
-      },
-      {
-        path: 'interest-selection',
-        loadComponent: () => import('./features/onboarding/interest-selection/interest-selection.component').then(m => m.InterestSelectionComponent),
-        canActivate: [OnboardingStepGuard]
-      },
-      {
-        path: 'complete',
-        loadComponent: () => import('./features/onboarding/onboarding-complete/onboarding-complete.component').then(m => m.OnboardingCompleteComponent),
-        canActivate: [OnboardingStepGuard]
-      }
-    ]
   },
   {
     path: 'profile',
