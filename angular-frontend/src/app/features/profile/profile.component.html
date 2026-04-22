@@ -1,267 +1,44 @@
-<div class="profile-container">
-  <h1>Manage Your Profile</h1>
+<header class="profile__header">
+  <h1 class="profile__title">Your profile</h1>
+  <a dfButton variant="ghost" size="sm" data-role="edit" routerLink="/profile/edit">Edit</a>
+</header>
 
-  <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+<section class="profile__identity">
+  <df-avatar [name]="profile?.displayName || ''" size="lg"></df-avatar>
+  <h2 class="profile__name">{{ profile?.displayName }}</h2>
+  <p class="profile__meta">
+    <span *ngIf="profile?.location">{{ profile?.location }}</span>
+    <span *ngIf="profile?.age"> · {{ profile?.age }}</span>
+  </p>
+</section>
 
-  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
-    <!-- Basic Information -->
-    <h2>Basic Information</h2>
-    <mat-form-field appearance="fill">
-      <mat-label>First Name</mat-label>
-      <input matInput formControlName="firstName" placeholder="Enter your first name" [attr.aria-label]="'First name'"
-        title="First name" />
-      <mat-error *ngIf="profileForm.get('firstName')?.invalid">First name is required</mat-error>
-    </mat-form-field>
+<section class="profile__interests" *ngIf="profile?.interests?.length">
+  <df-chip *ngFor="let interest of profile?.interests" purpose="interest">{{ interest }}</df-chip>
+</section>
 
-    <mat-form-field appearance="fill">
-      <mat-label>Last Name</mat-label>
-      <input matInput formControlName="lastName" placeholder="Enter your last name" [attr.aria-label]="'Last name'"
-        title="Last name" />
-      <mat-error *ngIf="profileForm.get('lastName')?.invalid">Last name is required</mat-error>
-    </mat-form-field>
+<section class="profile__values" *ngIf="profile?.onboardingAnswers?.length">
+  <article *ngFor="let answer of profile?.onboardingAnswers; let i = index" class="profile__value-card">
+    <p class="caption">{{ valueLabels[i] }}</p>
+    <p class="profile__value-body display-serif">{{ answer }}</p>
+  </article>
+</section>
 
-    <mat-form-field appearance="fill">
-      <mat-label>Email</mat-label>
-      <input matInput formControlName="email" type="email" placeholder="Enter your email"
-        [attr.aria-label]="'Email address'" title="Email address" />
-      <mat-error *ngIf="profileForm.get('email')?.invalid">Valid email is required</mat-error>
-    </mat-form-field>
-
-    <mat-form-field appearance="fill">
-      <mat-label>Bio</mat-label>
-      <textarea matInput formControlName="bio" rows="4" placeholder="Tell us about yourself"
-        [attr.aria-label]="'Biography'" title="Biography"></textarea>
-      <mat-hint>{{profileForm.get('bio')?.value?.length || 0}}/500 characters</mat-hint>
-      <mat-error *ngIf="profileForm.get('bio')?.errors?.['maxlength']">Bio must be 500 characters or less</mat-error>
-    </mat-form-field>
-
-    <!-- Soul Before Skin Profile Section -->
-    <section class="soul-profile-section" aria-labelledby="soul-profile-heading">
-      <h2 id="soul-profile-heading">Your Soul Profile</h2>
-
-      <!-- Emotional Depth Score Display -->
-      <div class="emotional-depth-container" *ngIf="currentUser?.emotional_depth_score">
-        <div class="depth-score-card">
-          <mat-icon class="soul-icon">psychology</mat-icon>
-          <div class="score-content">
-            <h3>Emotional Depth Score</h3>
-            <div class="score-display">
-              <span class="score-number">{{currentUser!.emotional_depth_score ?? 0}}</span>
-              <span class="score-max">/100</span>
-            </div>
-            <div class="score-description">
-              {{getDepthScoreDescription(currentUser!.emotional_depth_score ?? 0)}}
-            </div>
-          </div>
-          <mat-progress-bar
-            mode="determinate"
-            [value]="currentUser!.emotional_depth_score ?? 0"
-            class="depth-progress">
-          </mat-progress-bar>
-        </div>
-      </div>
-
-      <!-- Soul Profile Visibility -->
-      <mat-form-field appearance="fill">
-        <mat-label>Soul Profile Visibility</mat-label>
-        <mat-select formControlName="soulProfileVisibility">
-          <mat-option value="hidden">Hidden - Only I can see</mat-option>
-          <mat-option value="connections_only">Connections Only - People I've matched with</mat-option>
-          <mat-option value="discovery">Discovery - Available for soul matching</mat-option>
-          <mat-option value="public">Public - Visible to everyone</mat-option>
-        </mat-select>
-        <mat-hint>Control who can see your emotional profile and depth score</mat-hint>
-      </mat-form-field>
-
-      <!-- Photo Sharing Consent -->
-      <div class="photo-consent-section">
-        <mat-slide-toggle formControlName="photoSharingConsent" color="primary">
-          Allow photo sharing after 7-day revelation cycle
-        </mat-slide-toggle>
-        <p class="consent-description">
-          When enabled, your photos can be revealed to soul connections after completing the progressive revelation timeline.
-        </p>
-      </div>
-    </section>
-
-    <!-- Core Values Editing -->
-    <section class="core-values-section" aria-labelledby="core-values-heading">
-      <h2 id="core-values-heading">Core Values</h2>
-      <p class="section-description">Update the values that guide your relationships and connections.</p>
-
-      <div formGroupName="coreValues" class="values-grid">
-        <mat-form-field appearance="fill">
-          <mat-label>What you value most in relationships</mat-label>
-          <textarea matInput formControlName="relationshipValues" rows="3"
-            placeholder="Describe what matters most to you in a relationship"
-            [attr.aria-label]="'Relationship values'"></textarea>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Your ideal evening together</mat-label>
-          <textarea matInput formControlName="idealEvening" rows="3"
-            placeholder="Describe your perfect evening with someone special"
-            [attr.aria-label]="'Ideal evening description'"></textarea>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>How you feel most understood</mat-label>
-          <textarea matInput formControlName="feelingUnderstood" rows="3"
-            placeholder="What makes you feel truly seen and understood?"
-            [attr.aria-label]="'Feeling understood description'"></textarea>
-        </mat-form-field>
-      </div>
-    </section>
-
-    <!-- Communication Style -->
-    <section class="communication-section" aria-labelledby="communication-heading">
-      <h2 id="communication-heading">Communication Style</h2>
-
-      <div formGroupName="communicationStyle" class="communication-controls">
-        <mat-form-field appearance="fill">
-          <mat-label>Preferred Communication Style</mat-label>
-          <mat-select formControlName="preferredStyle">
-            <mat-option value="deep_conversation">Deep Conversations</mat-option>
-            <mat-option value="playful_banter">Playful Banter</mat-option>
-            <mat-option value="supportive_listening">Supportive Listening</mat-option>
-            <mat-option value="direct_honest">Direct & Honest</mat-option>
-            <mat-option value="gentle_thoughtful">Gentle & Thoughtful</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Response Preference</mat-label>
-          <mat-select formControlName="responsePreference">
-            <mat-option value="immediate">Immediate responses</mat-option>
-            <mat-option value="thoughtful">Thoughtful, considered responses</mat-option>
-            <mat-option value="flexible">Flexible timing</mat-option>
-            <mat-option value="scheduled">Scheduled communication times</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-    </section>
-
-    <!-- Profile Picture -->
-    <section class="profile-picture-section" aria-labelledby="profile-picture-heading">
-      <h2 id="profile-picture-heading">Profile Picture</h2>
-      <div class="file-upload">
-        <label for="profile-picture-input" class="visually-hidden">Profile picture</label>
-        <button mat-raised-button type="button" color="primary" (click)="fileInput.click()"
-          [attr.aria-busy]="isUploading" aria-label="Upload profile picture">
-          <mat-icon>photo_camera</mat-icon>
-          {{isUploading ? 'Uploading...' : 'Upload Photo'}}
-        </button>
-        <input #fileInput id="profile-picture-input" type="file" tabindex="-1" class="visually-hidden"
-          (change)="onFileChange($event)" accept="image/*" [attr.aria-invalid]="!!uploadError"
-          title="Choose profile picture" aria-label="Choose profile picture" />
-        <mat-error *ngIf="uploadError" role="alert">
-          {{uploadError}}
-        </mat-error>
-        <mat-hint *ngIf="profileForm.get('profilePicture')?.value">
-          Current file: {{getFileName(profileForm.get('profilePicture')?.value)}}
-        </mat-hint>
-      </div>
-    </section>
-
-    <!-- Interests -->
-    <section class="interests-section" aria-labelledby="interests-heading">
-      <h2 id="interests-heading">Interests</h2>
-      <div formArrayName="interests" class="interests-section">
-        <div class="interest-input">
-          <mat-form-field appearance="fill">
-            <mat-label>Add Interest</mat-label>
-            <input matInput #interestInput placeholder="Enter an interest" [attr.aria-label]="'Enter an interest'"
-              title="Enter an interest" />
-          </mat-form-field>
-          <button mat-mini-fab type="button" color="primary"
-            (click)="addInterest(interestInput.value); interestInput.value = ''" aria-label="Add interest">
-            <mat-icon>add</mat-icon>
-          </button>
-        </div>
-        <mat-chip-row aria-label="Selected interests">
-          @for (interest of profileForm.get('interests')?.value; track interest) {
-          <mat-chip [removable]="true" (removed)="removeInterest(interest)">
-            {{interest}}
-            <mat-icon matChipRemove>cancel</mat-icon>
-          </mat-chip>
-          }
-        </mat-chip-row>
-      </div>
-    </section>
-
-    <!-- Dietary Preferences -->
-    <section aria-labelledby="dietary-heading">
-      <h2 id="dietary-heading">Dietary Preferences</h2>
-      <mat-form-field appearance="fill">
-        <mat-label>Dietary Preferences</mat-label>
-        <mat-select formControlName="dietaryPreferences" multiple>
-          <mat-option *ngFor="let option of dietaryOptions" [value]="option">
-            {{option | titlecase}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </section>
-
-    <!-- Location Preferences -->
-    <section formGroupName="locationPreferences" aria-labelledby="location-heading">
-      <h2 id="location-heading">Location</h2>
-      <mat-form-field appearance="fill">
-        <mat-label>City</mat-label>
-        <input matInput formControlName="city" placeholder="Enter your city" [attr.aria-label]="'City'" title="City" />
-      </mat-form-field>
-
-      <div class="slider-section">
-        <label for="distance-slider">Maximum Distance</label>
-        <output>{{profileForm.get('locationPreferences.maxDistance')?.value}} miles</output>
-        <mat-slider min="5" max="100" step="5" discrete>
-          <input matSliderThumb id="distance-slider" formControlName="maxDistance" title="Maximum distance in miles">
-        </mat-slider>
-      </div>
-    </section>
-
-    <!-- Match Preferences -->
-    <section formGroupName="matchPreferences" aria-labelledby="match-heading">
-      <h2 id="match-heading">Match Preferences</h2>
-      <mat-form-field appearance="fill">
-        <mat-label>Interested In</mat-label>
-        <mat-select formControlName="genders" multiple>
-          <mat-option *ngFor="let gender of genderOptions" [value]="gender">
-            {{gender | titlecase}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <div formGroupName="ageRange" class="age-range-section">
-        <h3>Age Range</h3>
-        <div class="age-inputs">
-          <mat-form-field appearance="fill">
-            <mat-label>Min Age</mat-label>
-            <input matInput type="number" formControlName="min" min="18" max="99" placeholder="Minimum age"
-              [attr.aria-label]="'Minimum age'" title="Minimum age" />
-            <mat-error *ngIf="profileForm.get('matchPreferences.ageRange.min')?.errors?.['min']">
-              Minimum age must be at least 18
-            </mat-error>
-          </mat-form-field>
-
-          <mat-form-field appearance="fill">
-            <mat-label>Max Age</mat-label>
-            <input matInput type="number" formControlName="max" min="18" max="99" placeholder="Maximum age"
-              [attr.aria-label]="'Maximum age'" title="Maximum age" />
-            <mat-error *ngIf="profileForm.get('matchPreferences.ageRange.max')?.errors?.['max']">
-              Maximum age must be 99 or less
-            </mat-error>
-          </mat-form-field>
-        </div>
-      </div>
-    </section>
-
-    <div class="form-actions">
-      <button mat-raised-button color="primary" type="submit" [disabled]="!profileForm.valid || isLoading">
-        Save Changes
-      </button>
+<section class="profile__photos" [class.is-collapsed]="photosCollapsed">
+  <button class="profile__photos-toggle" type="button"
+          (click)="photosCollapsed = !photosCollapsed"
+          [attr.aria-expanded]="!photosCollapsed">
+    <mat-icon>{{ photosCollapsed ? 'expand_more' : 'expand_less' }}</mat-icon>
+    <span>Photos</span>
+  </button>
+  <div class="profile__photos-body" *ngIf="!photosCollapsed">
+    <p class="profile__photos-note">
+      Photos are shared per-connection, on Day 7, with mutual consent.
+    </p>
+    <div class="profile__photos-grid" *ngIf="profile?.photos?.length">
+      <img *ngFor="let photo of profile?.photos" [src]="photo.url" alt="" />
     </div>
-  </form>
-
-  <mat-error *ngIf="error" class="error-message" role="alert">{{error}}</mat-error>
-  <output *ngIf="successMessage" class="success-message">{{successMessage}}</output>
-</div>
+    <button dfButton variant="secondary" size="sm" type="button" (click)="uploadPhoto()">
+      Upload a photo
+    </button>
+  </div>
+</section>
