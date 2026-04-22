@@ -100,3 +100,6 @@ test_*_api.py
 
 # Playwright MCP screenshots
 .playwright-mcp/
+
+# Worktrees (isolated workspaces for feature branches)
+.worktrees/
