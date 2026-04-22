@@ -25,7 +25,7 @@ describe('OnboardingFlowComponent', () => {
   });
 
   it('advances when Continue is clicked and answer is non-empty', () => {
-    comp.answers[0] = 'I value trust.';
+    comp.onAnswer('I value trust.');
     fixture.detectChanges();
     fixture.nativeElement.querySelector('button[data-role="continue"]').click();
     fixture.detectChanges();
@@ -33,15 +33,19 @@ describe('OnboardingFlowComponent', () => {
   });
 
   it('disables Continue when current answer is empty', () => {
-    comp.answers[0] = '';
+    comp.onAnswer('');
     fixture.detectChanges();
     const btn: HTMLButtonElement = fixture.nativeElement.querySelector('button[data-role="continue"]');
     expect(btn.disabled).toBeTrue();
   });
 
   it('Back decrements stepIndex on screens 2-3', () => {
-    comp.stepIndex = 1;
+    comp.onAnswer('screen 1 answer');
     fixture.detectChanges();
+    fixture.nativeElement.querySelector('button[data-role="continue"]').click();
+    fixture.detectChanges();
+    expect(comp.stepIndex).toBe(1);
+
     fixture.nativeElement.querySelector('button[data-role="back"]').click();
     fixture.detectChanges();
     expect(comp.stepIndex).toBe(0);

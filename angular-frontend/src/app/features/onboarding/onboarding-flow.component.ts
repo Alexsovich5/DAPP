@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { DfButtonDirective } from '../../shared/ui';
 import { OnboardingQuestionComponent } from './onboarding-question.component';
@@ -11,6 +11,7 @@ interface Prompt { prompt: string; helper: string; optional?: boolean; }
   selector: 'app-onboarding-flow',
   standalone: true,
   imports: [CommonModule, RouterLink, DfButtonDirective, OnboardingQuestionComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="onboarding-flow__chrome">
       <div class="onboarding-flow__progress" role="progressbar"
