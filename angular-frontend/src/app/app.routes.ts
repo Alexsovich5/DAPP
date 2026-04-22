@@ -64,7 +64,27 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
+    path: 'dashboard',
+    redirectTo: 'discover',
+    pathMatch: 'full'
+  },
+  {
+    path: 'auth/login',
+    redirectTo: 'login',
+    pathMatch: 'full'
+  },
+  {
+    path: 'auth/register',
+    redirectTo: 'register',
+    pathMatch: 'full'
+  },
+  {
     path: 'revelations',
+    loadComponent: () => import('./features/revelations/revelations.component').then(m => m.RevelationsComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'revelations/compose/:connectionId',
     loadComponent: () => import('./features/revelations/revelations.component').then(m => m.RevelationsComponent),
     canActivate: [AuthGuard]
   },
