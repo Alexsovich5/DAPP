@@ -1,0 +1,26 @@
+.df-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 4px var(--space-3);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-ui);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-lh);
+  font-weight: 500;
+
+  &--stage {
+    background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+    color: var(--color-primary);
+  }
+  &--interest {
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+  }
+  &--counter {
+    background: transparent;
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+    font-variant-numeric: tabular-nums;
+  }
+}

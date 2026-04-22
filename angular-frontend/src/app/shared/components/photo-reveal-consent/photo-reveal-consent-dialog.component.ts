@@ -51,7 +51,7 @@ export interface PhotoRevealConsentData {
     h2 { margin: 0 0 8px; }
     .consent-note {
       font-size: 0.85rem;
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       margin-top: 8px;
     }
     mat-dialog-actions {

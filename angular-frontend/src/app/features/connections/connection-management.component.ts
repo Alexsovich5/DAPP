@@ -99,18 +99,18 @@ import { ConnectionCardComponent } from './connection-card.component';
   styles: [`
     .connections-page { padding: 16px; max-width: 600px; margin: 0 auto; }
     .page-header { margin-bottom: 16px; }
-    .page-header h1 { margin: 0 0 4px; font-size: 1.5rem; color: var(--text-primary); }
-    .subtitle { margin: 0; color: var(--text-secondary); font-size: 0.875rem; }
+    .page-header h1 { margin: 0 0 4px; font-size: 1.5rem; color: var(--color-text); }
+    .subtitle { margin: 0; color: var(--color-text-muted); font-size: 0.875rem; }
     .connections-list { padding: 12px 0; }
     .loading-state, .error-state {
       display: flex; align-items: center; justify-content: center;
       flex-direction: column; gap: 8px; padding: 32px 0;
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
     }
-    .error-state mat-icon { color: var(--status-error); font-size: 32px; width: 32px; height: 32px; }
+    .error-state mat-icon { color: var(--color-danger); font-size: 32px; width: 32px; height: 32px; }
     .empty-state {
       display: flex; flex-direction: column; align-items: center;
-      gap: 8px; padding: 32px 0; color: var(--text-secondary);
+      gap: 8px; padding: 32px 0; color: var(--color-text-muted);
     }
     .empty-state mat-icon { font-size: 40px; width: 40px; height: 40px; }
   `]

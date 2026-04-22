@@ -219,7 +219,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
       min-width: 200px;
 
       &:hover {
-        background: var(--surface-secondary);
+        background: var(--color-surface-alt);
         transform: translateY(-1px);
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
       }
@@ -262,20 +262,20 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
     .mood-name {
       display: block;
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--color-text);
       font-size: 0.9rem;
     }
 
     .mood-description {
       display: block;
       font-size: 0.75rem;
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       opacity: 0.8;
     }
 
     .toggle-icon {
       transition: transform 0.3s ease;
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
 
       &.rotated {
         transform: rotate(180deg);
@@ -304,7 +304,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
       align-items: center;
       gap: 1rem;
       padding: 1rem;
-      background: var(--surface-secondary);
+      background: var(--color-surface-alt);
       border-radius: 12px;
       margin-bottom: 1.5rem;
     }
@@ -316,13 +316,13 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
     .adaptive-info label {
       display: block;
       font-weight: 500;
-      color: var(--text-primary);
+      color: var(--color-text);
       margin-bottom: 0.25rem;
       cursor: pointer;
     }
 
     .adaptive-info small {
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       font-size: 0.8rem;
     }
 
@@ -337,7 +337,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
     .mood-option {
       position: relative;
       padding: 1rem;
-      background: var(--surface-secondary);
+      background: var(--color-surface-alt);
       border: 2px solid transparent;
       border-radius: 12px;
       cursor: pointer;
@@ -421,7 +421,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
 
     .mood-option .mood-name {
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--color-text);
       font-size: 0.9rem;
     }
 
@@ -431,7 +431,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
 
     .mood-intensity {
       font-size: 0.75rem;
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       text-transform: uppercase;
       letter-spacing: 0.5px;
       font-weight: 500;
@@ -452,7 +452,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
 
     .effects-list li {
       font-size: 0.8rem;
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       margin-bottom: 0.25rem;
 
       &:before {
@@ -510,7 +510,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
 
     .suggestion-text {
       font-size: 0.85rem;
-      color: var(--text-primary);
+      color: var(--color-text);
     }
 
     .suggestion-button {
@@ -538,7 +538,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
     .preview-title {
       font-size: 0.9rem;
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--color-text);
       margin: 0 0 1rem 0;
     }
 

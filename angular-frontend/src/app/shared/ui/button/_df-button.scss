@@ -1,0 +1,50 @@
+.df-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  letter-spacing: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease,
+    box-shadow 120ms ease, transform 120ms ease;
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &--sm { padding: 6px var(--space-3); font-size: var(--type-small-size); line-height: var(--type-small-lh); }
+  &--md { padding: 10px var(--space-4); font-size: var(--type-body-size); line-height: var(--type-body-lh); }
+  &--lg { padding: 14px var(--space-5); font-size: var(--type-h3-size); line-height: var(--type-h3-lh); }
+
+  &--primary {
+    background: var(--color-primary);
+    color: #FFFFFF;
+    &:hover:not(:disabled) { background: var(--color-primary-hover); }
+  }
+  &--secondary {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--color-border);
+    &:hover:not(:disabled) { background: var(--color-surface-alt); }
+  }
+  &--ghost {
+    background: transparent;
+    color: var(--color-primary);
+    &:hover:not(:disabled) { background: var(--color-surface-alt); }
+  }
+  &--danger {
+    background: var(--color-danger);
+    color: #FFFFFF;
+    &:hover:not(:disabled) { filter: brightness(0.92); }
+  }
+}

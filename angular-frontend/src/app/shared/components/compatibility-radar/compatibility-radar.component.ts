@@ -227,7 +227,7 @@ import { SoulConnectionService } from '../../../core/services/soul-connection.se
 
     .score-label {
       font-size: 0.9rem;
-      color: var(--text-secondary, #6b7280);
+      color: var(--color-text-muted, #6b7280);
       margin-top: 0.25rem;
     }
 
@@ -240,7 +240,7 @@ import { SoulConnectionService } from '../../../core/services/soul-connection.se
 
     .loading-message {
       font-size: 1rem;
-      color: var(--text-secondary, #6b7280);
+      color: var(--color-text-muted, #6b7280);
       text-align: center;
     }
 
@@ -311,7 +311,7 @@ import { SoulConnectionService } from '../../../core/services/soul-connection.se
     .tooltip-title {
       font-weight: 600;
       margin-bottom: 0.25rem;
-      color: var(--text-primary, #1f2937);
+      color: var(--color-text, #1f2937);
     }
 
     .tooltip-score {
@@ -322,7 +322,7 @@ import { SoulConnectionService } from '../../../core/services/soul-connection.se
 
     .tooltip-description {
       font-size: 0.8rem;
-      color: var(--text-secondary, #6b7280);
+      color: var(--color-text-muted, #6b7280);
       line-height: 1.4;
     }
 
@@ -364,12 +364,12 @@ import { SoulConnectionService } from '../../../core/services/soul-connection.se
     .legend-label {
       font-size: 0.9rem;
       font-weight: 500;
-      color: var(--text-primary, #1f2937);
+      color: var(--color-text, #1f2937);
     }
 
     .legend-score {
       font-size: 0.8rem;
-      color: var(--text-secondary, #6b7280);
+      color: var(--color-text-muted, #6b7280);
     }
 
     .legend-bar {
@@ -393,7 +393,7 @@ import { SoulConnectionService } from '../../../core/services/soul-connection.se
 
     .insights-title {
       margin: 0 0 1rem 0;
-      color: var(--text-primary, #1f2937);
+      color: var(--color-text, #1f2937);
       font-size: 1.2rem;
       font-weight: 600;
       text-align: center;
@@ -436,7 +436,7 @@ import { SoulConnectionService } from '../../../core/services/soul-connection.se
 
     .insight-text {
       font-size: 0.9rem;
-      color: var(--text-primary, #1f2937);
+      color: var(--color-text, #1f2937);
       line-height: 1.4;
     }
 
@@ -567,7 +567,7 @@ export class CompatibilityRadarComponent implements OnInit, OnDestroy, AfterView
   }
 
   get labelColor(): string {
-    return 'var(--text-primary, #1f2937)';
+    return 'var(--color-text, #1f2937)';
   }
 
   get labelBackgroundColor(): string {

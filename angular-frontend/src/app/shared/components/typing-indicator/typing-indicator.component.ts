@@ -186,7 +186,7 @@ export interface TypingUser {
       display: flex;
       align-items: center;
       gap: 0.25rem;
-      color: var(--text-secondary, #6b7280);
+      color: var(--color-text-muted, #6b7280);
       font-size: 0.85rem;
       position: relative;
     }
@@ -294,7 +294,7 @@ export interface TypingUser {
     }
 
     .dark-theme .typing-text {
-      color: var(--text-secondary-dark, #d1d5db);
+      color: var(--color-text-muted-dark, #d1d5db);
     }
 
     /* Accessibility */

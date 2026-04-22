@@ -1,10 +1,10 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { SoulConnection, ConnectionStage } from '@core/interfaces/soul-connection.interfaces';
+import { DfButtonDirective } from '../../shared/ui';
 
 const STAGE_LABELS: Record<ConnectionStage, string> = {
   soul_discovery:   'Soul Discovery',
@@ -25,7 +25,7 @@ const STAGE_ICONS: Record<ConnectionStage, string> = {
 @Component({
   selector: 'app-connection-card',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, MatChipsModule],
+  imports: [CommonModule, MatCardModule, MatIconModule, MatChipsModule, DfButtonDirective],
   template: `
     <mat-card class="connection-card" role="article" [attr.aria-label]="partnerName + ' connection'">
       <mat-card-header>
@@ -60,8 +60,9 @@ const STAGE_ICONS: Record<ConnectionStage, string> = {
 
       <mat-card-actions>
         <button
-          mat-raised-button
-          color="primary"
+          dfButton
+          variant="primary"
+          size="md"
           type="button"
           data-testid="open-chat-btn"
           [attr.aria-label]="'Open chat with ' + partnerName"
@@ -76,18 +77,18 @@ const STAGE_ICONS: Record<ConnectionStage, string> = {
     .connection-card { margin-bottom: 12px; }
     .avatar {
       display: flex; align-items: center; justify-content: center;
-      background: var(--background-secondary);
+      background: var(--color-surface-alt);
       border-radius: 50%;
     }
     .stats-row { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 4px; }
-    .stat { display: flex; align-items: center; gap: 4px; font-size: 0.875rem; color: var(--text-secondary); }
+    .stat { display: flex; align-items: center; gap: 4px; font-size: 0.875rem; color: var(--color-text-muted); }
     .stat mat-icon { font-size: 16px; width: 16px; height: 16px; }
     .stage-chip { font-size: 0.75rem; }
-    .stage-revelation_phase { background: var(--color-primary-100, #fce7f3); }
-    .stage-photo_reveal     { background: var(--color-accent-100, #ede9fe); }
-    .stage-dinner_planning  { background: var(--color-success-100, #dcfce7); }
-    .stage-completed        { background: var(--background-secondary); }
-    button[mat-raised-button] mat-icon { margin-right: 4px; }
+    .stage-revelation_phase { background: var(--color-accent-soft); }
+    .stage-photo_reveal     { background: var(--color-surface-alt); }
+    .stage-dinner_planning  { background: var(--color-accent); color: var(--color-text); }
+    .stage-completed        { background: var(--color-surface-alt); }
+    button[dfButton] mat-icon { margin-right: 4px; }
   `]
 })
 export class ConnectionCardComponent {

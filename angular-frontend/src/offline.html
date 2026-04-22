@@ -9,8 +9,8 @@
             --primary-color: #ff6b9d;
             --secondary-color: #4ecdc4;
             --accent-color: #ffd93d;
-            --text-primary: #2d3748;
-            --text-secondary: #718096;
+            --color-text: #2d3748;
+            --color-text-muted: #718096;
             --background: #f7fafc;
             --surface: #ffffff;
             --border: #e2e8f0;
@@ -29,7 +29,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--text-primary);
+            color: var(--color-text);
             line-height: 1.6;
         }
 
@@ -85,7 +85,7 @@
 
         .offline-message {
             font-size: 1.1rem;
-            color: var(--text-secondary);
+            color: var(--color-text-muted);
             margin-bottom: 2rem;
             line-height: 1.7;
         }
@@ -152,7 +152,7 @@
 
         .action-button.secondary {
             background: transparent;
-            color: var(--text-primary);
+            color: var(--color-text);
             border: 2px solid var(--border);
         }
 
@@ -173,7 +173,7 @@
             font-size: 1.1rem;
             font-weight: 600;
             margin-bottom: 1rem;
-            color: var(--text-primary);
+            color: var(--color-text);
         }
 
         .offline-tips ul {
@@ -186,12 +186,12 @@
             display: flex;
             align-items: flex-start;
             gap: 0.75rem;
-            color: var(--text-secondary);
+            color: var(--color-text-muted);
             font-size: 0.95rem;
         }
 
         .offline-tips li::before {
-            content: '💡';
+            content: '\2023';
             flex-shrink: 0;
         }
 
@@ -205,7 +205,7 @@
             font-size: 1.1rem;
             font-weight: 600;
             margin-bottom: 1rem;
-            color: var(--text-primary);
+            color: var(--color-text);
         }
 
         .cached-items {
@@ -220,7 +220,7 @@
             border-radius: 12px;
             border: 1px solid var(--border);
             text-decoration: none;
-            color: var(--text-primary);
+            color: var(--color-text);
             transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
@@ -264,8 +264,8 @@
         /* Dark mode */
         @media (prefers-color-scheme: dark) {
             :root {
-                --text-primary: #e2e8f0;
-                --text-secondary: #a0aec0;
+                --color-text: #e2e8f0;
+                --color-text-muted: #a0aec0;
                 --background: #1a202c;
                 --surface: #2d3748;
                 --border: #4a5568;
@@ -294,7 +294,7 @@
 <body>
     <div class="offline-container">
         <div class="offline-icon">
-            💔
+            &hearts;
         </div>
 
         <h1 class="offline-title">You're Offline</h1>
@@ -311,10 +311,10 @@
 
         <div class="offline-actions">
             <button class="action-button" onclick="checkConnection()">
-                🔄 Check Connection
+                &#8635; Check Connection
             </button>
             <button class="action-button secondary" onclick="goOffline()">
-                📱 Browse Offline
+                Browse Offline
             </button>
         </div>
 
@@ -332,19 +332,19 @@
             <h3>Available Offline</h3>
             <div class="cached-items">
                 <a href="/" class="cached-item">
-                    <div class="cached-item-icon">🏠</div>
+                    <div class="cached-item-icon">&#8962;</div>
                     <div class="cached-item-label">Home</div>
                 </a>
                 <a href="/profile" class="cached-item">
-                    <div class="cached-item-icon">👤</div>
+                    <div class="cached-item-icon">&#9786;</div>
                     <div class="cached-item-label">Profile</div>
                 </a>
                 <a href="/messages" class="cached-item">
-                    <div class="cached-item-icon">💬</div>
+                    <div class="cached-item-icon">&#9993;</div>
                     <div class="cached-item-label">Messages</div>
                 </a>
                 <a href="/settings" class="cached-item">
-                    <div class="cached-item-icon">⚙️</div>
+                    <div class="cached-item-icon">&#9881;</div>
                     <div class="cached-item-label">Settings</div>
                 </a>
             </div>
@@ -378,7 +378,7 @@
                 // Provide feedback that check was performed
                 const button = event.target;
                 const originalText = button.textContent;
-                button.textContent = '🔍 Checking...';
+                button.textContent = 'Checking...';
                 button.disabled = true;
 
                 setTimeout(() => {
@@ -423,11 +423,11 @@
 
         // Add some personality with random encouraging messages
         const encouragingMessages = [
-            "Distance means nothing when someone means everything 💕",
-            "True connections transcend internet connections ✨",
-            "Your soul mate is worth waiting for, even offline 💖",
-            "Love finds a way, online or offline 💫",
-            "The best connections are heart-to-heart 💝"
+            "Distance means nothing when someone means everything.",
+            "True connections transcend internet connections.",
+            "Your soul mate is worth waiting for, even offline.",
+            "Love finds a way, online or offline.",
+            "The best connections are heart-to-heart."
         ];
 
         // Show random encouraging message

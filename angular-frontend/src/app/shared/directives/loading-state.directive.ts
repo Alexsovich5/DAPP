@@ -98,7 +98,7 @@ export class LoadingStateDirective implements OnInit, OnDestroy {
     this.messageElement.style.cssText = `
       text-align: center;
       padding: 1rem;
-      color: var(--text-secondary, #6b7280);
+      color: var(--color-text-muted, #6b7280);
       font-size: 0.9rem;
       font-style: italic;
       animation: message-fade 1.5s ease-in-out infinite alternate;

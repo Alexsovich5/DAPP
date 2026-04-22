@@ -271,7 +271,7 @@ import { SoulConfig } from '../../models/soul-types';
     .soul-label {
       margin-top: 0.5rem;
       font-size: 0.9rem;
-      color: var(--text-secondary, #6b7280);
+      color: var(--color-text-muted, #6b7280);
       text-align: center;
       font-weight: 500;
     }
@@ -368,7 +368,7 @@ import { SoulConfig } from '../../models/soul-types';
     }
 
     .level {
-      color: var(--text-secondary, #6b7280);
+      color: var(--color-text-muted, #6b7280);
       font-style: italic;
     }
 
@@ -382,7 +382,7 @@ import { SoulConfig } from '../../models/soul-types';
 
     .status-text {
       font-size: 0.9rem;
-      color: var(--text-secondary, #6b7280);
+      color: var(--color-text-muted, #6b7280);
       margin: 0;
       padding: 0.5rem 1rem;
       background: var(--background-color, #ffffff);

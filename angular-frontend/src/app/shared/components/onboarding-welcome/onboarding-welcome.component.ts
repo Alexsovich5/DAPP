@@ -319,7 +319,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 
     .tagline {
       font-size: 1.1rem;
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       font-weight: 500;
       font-style: italic;
     }
@@ -334,7 +334,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
     .section-title {
       font-size: 1.3rem;
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--color-text);
       margin: 2rem 0 1rem 0;
       text-align: center;
     }
@@ -348,7 +348,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
     .philosophy-text {
       font-size: 1.1rem;
       line-height: 1.7;
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       max-width: 600px;
       margin: 0 auto;
     }
@@ -366,7 +366,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       align-items: center;
       gap: 1.5rem;
       padding: 1.5rem;
-      background: var(--surface-secondary);
+      background: var(--color-surface-alt);
       border-radius: 16px;
       border: 1px solid var(--border-color);
       transition: all 0.3s ease;
@@ -398,12 +398,12 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
     .step-title {
       font-size: 1.1rem;
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--color-text);
       margin: 0 0 0.5rem 0;
     }
 
     .step-description {
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       margin: 0;
       line-height: 1.5;
     }
@@ -425,7 +425,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
     .benefit {
       text-align: center;
       padding: 1.5rem;
-      background: var(--surface-secondary);
+      background: var(--color-surface-alt);
       border-radius: 12px;
       border: 1px solid var(--border-color);
     }
@@ -438,13 +438,13 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
     .benefit-title {
       font-size: 1rem;
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--color-text);
       margin: 0 0 0.5rem 0;
     }
 
     .benefit-description {
       font-size: 0.9rem;
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       margin: 0;
       line-height: 1.4;
     }
@@ -463,7 +463,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       border-radius: 16px;
       cursor: pointer;
       transition: all 0.3s ease;
-      background: var(--surface-secondary);
+      background: var(--color-surface-alt);
 
       &:hover {
         border-color: var(--primary-color);
@@ -497,12 +497,12 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
     .option-title {
       font-size: 1.1rem;
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--color-text);
       margin: 0;
     }
 
     .option-description {
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       margin: 0 0 1rem 0;
       line-height: 1.5;
       font-size: 0.9rem;
@@ -572,8 +572,8 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       }
 
       &.secondary {
-        background: var(--surface-secondary);
-        color: var(--text-primary);
+        background: var(--color-surface-alt);
+        color: var(--color-text);
         border: 1px solid var(--border-color);
 
         &:hover {
@@ -592,7 +592,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
     }
 
     .footer-text {
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       margin: 0;
       font-size: 0.9rem;
       font-style: italic;

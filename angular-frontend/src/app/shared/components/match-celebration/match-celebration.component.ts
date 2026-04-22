@@ -272,7 +272,7 @@ import { SoulConfig } from '../../models/soul-types';
 
     .celebration-subtitle {
       font-size: 1.1rem;
-      color: var(--text-secondary, #6b7280);
+      color: var(--color-text-muted, #6b7280);
       margin: 0;
       animation: subtitle-fade-in 1s ease-out 0.5s both;
     }
@@ -293,7 +293,7 @@ import { SoulConfig } from '../../models/soul-types';
     .highlights-title {
       font-size: 1.3rem;
       font-weight: 600;
-      color: var(--text-primary, #1f2937);
+      color: var(--color-text, #1f2937);
       text-align: center;
       margin: 0 0 1.5rem 0;
     }
@@ -332,7 +332,7 @@ import { SoulConfig } from '../../models/soul-types';
 
     .highlight-label {
       font-weight: 500;
-      color: var(--text-primary, #1f2937);
+      color: var(--color-text, #1f2937);
     }
 
     .highlight-score {
@@ -396,7 +396,7 @@ import { SoulConfig } from '../../models/soul-types';
 
     .action-btn.secondary {
       background: var(--surface-color, #f8fafc);
-      color: var(--text-primary, #1f2937);
+      color: var(--color-text, #1f2937);
       border: 2px solid var(--primary-color, #ec4899);
     }
 
@@ -407,7 +407,7 @@ import { SoulConfig } from '../../models/soul-types';
 
     .action-btn.tertiary {
       background: transparent;
-      color: var(--text-secondary, #6b7280);
+      color: var(--color-text-muted, #6b7280);
       border: 1px solid var(--border-color, #e5e7eb);
     }
 
@@ -429,7 +429,7 @@ import { SoulConfig } from '../../models/soul-types';
     .insights-title {
       font-size: 1.1rem;
       font-weight: 600;
-      color: var(--text-primary, #1f2937);
+      color: var(--color-text, #1f2937);
       margin: 0 0 1rem 0;
       text-align: center;
     }
@@ -445,7 +445,7 @@ import { SoulConfig } from '../../models/soul-types';
       align-items: center;
       gap: 0.75rem;
       font-size: 0.9rem;
-      color: var(--text-primary, #1f2937);
+      color: var(--color-text, #1f2937);
     }
 
     .insight-icon {
@@ -463,7 +463,7 @@ import { SoulConfig } from '../../models/soul-types';
       background: var(--surface-color, #f8fafc);
       border-radius: 50%;
       font-size: 1.5rem;
-      color: var(--text-secondary, #6b7280);
+      color: var(--color-text-muted, #6b7280);
       cursor: pointer;
       transition: all 0.3s ease;
       display: flex;

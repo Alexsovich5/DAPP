@@ -163,7 +163,7 @@ import { SkeletonLoaderComponent } from '../skeleton-loader/skeleton-loader.comp
 
     .loading-text {
       font-size: 1.1rem;
-      color: var(--text-secondary, #6b7280);
+      color: var(--color-text-muted, #6b7280);
       text-align: center;
       margin-top: 1rem;
       font-weight: 500;

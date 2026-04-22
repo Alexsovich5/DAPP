@@ -9,7 +9,6 @@ import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
@@ -19,6 +18,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatStepperModule } from '@angular/material/stepper';
+
+import { DfButtonDirective, DfInputDirective } from '../../../shared/ui';
 
 @Component({
   selector: 'app-register',
@@ -32,7 +33,6 @@ import { MatStepperModule } from '@angular/material/stepper';
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule,
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
@@ -41,7 +41,9 @@ import { MatStepperModule } from '@angular/material/stepper';
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatDividerModule,
-    MatStepperModule
+    MatStepperModule,
+    DfButtonDirective,
+    DfInputDirective
   ]
 })
 export class RegisterComponent implements OnInit {

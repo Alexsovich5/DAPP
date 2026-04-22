@@ -1,0 +1,56 @@
+:host { display: block; }
+
+.desktop-top-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: 64px;
+  padding: 0 var(--space-6);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+
+  &__logo {
+    color: var(--color-text);
+    font-size: var(--type-h3-size);
+    text-decoration: none;
+  }
+
+  &__tabs {
+    display: flex;
+    gap: var(--space-5);
+    flex: 1;
+  }
+
+  &__tab {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-weight: 500;
+    padding: var(--space-2) 0;
+    border-bottom: 2px solid transparent;
+
+    &.is-active {
+      color: var(--color-text);
+      border-bottom-color: var(--color-primary);
+    }
+
+    &:hover { color: var(--color-text); }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  &__bell { color: var(--color-text-muted); }
+
+  &__avatar-trigger {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+}

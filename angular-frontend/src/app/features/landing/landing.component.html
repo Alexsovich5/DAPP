@@ -1,147 +1,27 @@
-<div class="landing-container">
-  <!-- Hero Section -->
-  <div class="hero-section">
-    <mat-toolbar>
-      <span class="app-logo"><mat-icon class="logo-icon">local_dining</mat-icon> Dinner First</span>
-      <span class="spacer"></span>
-      <app-theme-toggle></app-theme-toggle>
-      <button mat-stroked-button color="secondary" (click)="navigateToLogin()">Sign In</button>
-    </mat-toolbar>
+<a class="landing__signin" routerLink="/auth/login">Sign in</a>
 
-    <div class="hero-content">
-      <div class="hero-text">
-        <h1>Soul Before Skin Dating</h1>
-        <p>Experience deep emotional connections through progressive revelation before photos. Discover your perfect soul match through meaningful conversations and shared values.</p>
-        <div class="hero-buttons">
-          <button mat-raised-button color="secondary" (click)="navigateToRegister()">Begin Soul Discovery</button>
-          <button mat-stroked-button color="secondary" (click)="navigateToLogin()">Continue Journey</button>
-        </div>
-      </div>
-      <div class="hero-image">
-        <div class="soul-connection-visual">
-          <div class="soul-orb"><mat-icon>favorite</mat-icon></div>
-          <div class="connection-lines"></div>
-          <div class="soul-orb"><mat-icon>auto_awesome</mat-icon></div>
-        </div>
+<section class="landing__hero">
+  <h1 class="landing__hero-stack">
+    <span class="landing__hero-line display-serif">Soul</span>
+    <span class="landing__hero-line display-serif">before</span>
+    <span class="landing__hero-line display-serif">skin.</span>
+  </h1>
+  <p class="landing__subhead">
+    Seven days of progressive revelation. Then, if it feels right — dinner.
+  </p>
+  <a dfButton variant="primary" size="lg" routerLink="/auth/register" class="landing__cta">
+    Begin your story
+  </a>
+</section>
+
+<section class="landing__how">
+  <article class="landing__how-card">
+    <div *ngFor="let step of steps" class="landing__how-row">
+      <mat-icon class="landing__how-icon" fontSet="material-icons-outlined">{{ step.icon }}</mat-icon>
+      <div class="landing__how-text">
+        <h3 class="landing__how-title">{{ step.title }}</h3>
+        <p class="landing__how-body">{{ step.body }}</p>
       </div>
     </div>
-    <div class="wave-divider">
-      <svg preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 74">
-        <path
-          d="M456.464 0.0433865C277.158 -1.70575 0 50.0141 0 50.0141V74H1440V50.0141C1440 50.0141 1320.4 31.1925 1243.09 27.0276C1099.33 19.2816 1019.08 53.1981 875.138 50.0141C710.527 46.3727 621.108 1.64949 456.464 0.0433865Z">
-        </path>
-      </svg>
-    </div>
-  </div>
-
-  <!-- Features Section -->
-  <div class="features-section">
-    <h2>How Soul Before Skin Works</h2>
-    <div class="features-grid">
-      <mat-card class="feature-card">
-        <mat-card-content>
-          <div class="feature-icon"><mat-icon>psychology</mat-icon></div>
-          <h3>Emotional Onboarding</h3>
-          <p>Share your values, dreams, and what makes you feel truly understood through thoughtful questions designed to reveal your authentic self.</p>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="feature-card">
-        <mat-card-content>
-          <div class="feature-icon"><mat-icon>diversity_3</mat-icon></div>
-          <h3>Soul-Based Matching</h3>
-          <p>Our local algorithms match you based on compatibility of values, interests, and emotional depth - not just physical appearance.</p>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="feature-card">
-        <mat-card-content>
-          <div class="feature-icon"><mat-icon>calendar_today</mat-icon></div>
-          <h3>7-Day Revelation Cycle</h3>
-          <p>Share meaningful revelations with your matches over 7 days, building deep emotional connection before photo reveals.</p>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="feature-card">
-        <mat-card-content>
-          <div class="feature-icon"><mat-icon>photo_camera</mat-icon></div>
-          <h3>Photo Reveal & Beyond</h3>
-          <p>After building soul connection, mutually consent to photo reveals and plan your first dinner date with someone who truly knows you.</p>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  </div>
-
-  <!-- Testimonials Section -->
-  <div class="testimonials-section">
-    <h2>Soul Connection Success Stories</h2>
-    <div class="testimonials-grid">
-      <mat-card class="testimonial-card">
-        <mat-card-content>
-          <p>"Through 7 days of sharing our deepest thoughts, we built an incredible connection before ever seeing each other. When we finally met for dinner, it felt like reconnecting with my soulmate."</p>
-          <p class="testimonial-author">— Sarah & Michael</p>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="testimonial-card">
-        <mat-card-content>
-          <p>"The Soul Before Skin approach changed everything for me. I found someone who truly understands my values and dreams. Our emotional connection was so strong that physical attraction followed naturally."</p>
-          <p class="testimonial-author">— James & Emily</p>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="testimonial-card">
-        <mat-card-content>
-          <p>"I was skeptical about not seeing photos first, but the revelation process helped me discover what really matters. We're planning our third dinner date and I've never felt more emotionally connected."</p>
-          <p class="testimonial-author">— Alex & Jordan</p>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  </div>
-
-  <!-- CTA Section -->
-  <div class="cta-section">
-    <h2>Join thousands discovering authentic soul connections</h2>
-    <p class="cta-subtitle">Experience dating that prioritizes emotional depth and meaningful connection</p>
-    <button mat-raised-button color="secondary" (click)="navigateToRegister()">
-      Start Your Soul Journey
-    </button>
-  </div>
-
-  <!-- Footer -->
-  <footer>
-    <div class="footer-content">
-      <div class="footer-section">
-        <h3>Dinner First</h3>
-        <p>Connecting souls through meaningful conversation, leading to authentic dinner dates. Experience dating that values emotional depth over superficial attraction.</p>
-      </div>
-
-      <div class="footer-section">
-        <h3>Soul Journey</h3>
-        <button type="button" mat-button (click)="navigateToLink('/about')">Our Philosophy</button>
-        <button type="button" mat-button (click)="navigateToLink('/privacy')">Privacy & Safety</button>
-        <button type="button" mat-button (click)="navigateToLink('/terms')">Terms of Service</button>
-        <button type="button" mat-button (click)="navigateToLink('/contact')">Soul Support</button>
-      </div>
-
-      <div class="footer-section">
-        <h3>Join the Movement</h3>
-        <div class="social-links">
-          <a mat-icon-button href="#" target="_blank" title="Share our soul-first philosophy" aria-label="Facebook">
-            <mat-icon>share</mat-icon>
-          </a>
-          <a mat-icon-button href="#" target="_blank" title="Follow soul connection stories" aria-label="Twitter">
-            <mat-icon>campaign</mat-icon>
-          </a>
-          <a mat-icon-button href="#" target="_blank" title="Soul before skin inspiration" aria-label="Instagram">
-            <mat-icon>photo_camera</mat-icon>
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <div class="footer-bottom">
-      <p>&copy; {{currentYear}} Dinner First: Soul Before Skin. Revolutionizing authentic connections.</p>
-    </div>
-  </footer>
-</div>
+  </article>
+</section>
