@@ -107,7 +107,7 @@ import { ConnectionCardComponent } from './connection-card.component';
       flex-direction: column; gap: 8px; padding: 32px 0;
       color: var(--color-text-muted);
     }
-    .error-state mat-icon { color: var(--status-error); font-size: 32px; width: 32px; height: 32px; }
+    .error-state mat-icon { color: var(--color-danger); font-size: 32px; width: 32px; height: 32px; }
     .empty-state {
       display: flex; flex-direction: column; align-items: center;
       gap: 8px; padding: 32px 0; color: var(--color-text-muted);
