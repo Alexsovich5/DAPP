@@ -129,13 +129,13 @@ import { NotificationService, Notification } from '../../core/services/notificat
       align-items: center;
       margin-bottom: 1.5rem;
       padding-bottom: 1rem;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 1px solid var(--color-border);
     }
 
     .notifications-header h1 {
       font-size: 2rem;
       font-weight: 600;
-      color: #2d3748;
+      color: var(--color-text);
       margin: 0;
     }
 
@@ -146,8 +146,8 @@ import { NotificationService, Notification } from '../../core/services/notificat
 
     .action-btn {
       padding: 0.5rem 1rem;
-      border: 1px solid #667eea;
-      background: #667eea;
+      border: 1px solid var(--color-primary);
+      background: var(--color-primary);
       color: white;
       border-radius: 6px;
       cursor: pointer;
@@ -157,8 +157,8 @@ import { NotificationService, Notification } from '../../core/services/notificat
     }
 
     .action-btn:hover:not(:disabled) {
-      background: #5a67d8;
-      border-color: #5a67d8;
+      background: var(--color-primary-hover);
+      border-color: var(--color-primary-hover);
     }
 
     .action-btn:disabled {
@@ -168,13 +168,13 @@ import { NotificationService, Notification } from '../../core/services/notificat
 
     .action-btn.secondary {
       background: white;
-      color: #718096;
-      border-color: #e2e8f0;
+      color: var(--color-text-muted);
+      border-color: var(--color-border);
     }
 
     .action-btn.secondary:hover:not(:disabled) {
-      background: #f7fafc;
-      border-color: #cbd5e0;
+      background: var(--color-surface-alt);
+      border-color: var(--color-border);
     }
 
     .notification-stats {
@@ -189,7 +189,7 @@ import { NotificationService, Notification } from '../../core/services/notificat
       padding: 1rem;
       border-radius: 8px;
       text-align: center;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-border);
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
 
@@ -197,13 +197,13 @@ import { NotificationService, Notification } from '../../core/services/notificat
       display: block;
       font-size: 1.5rem;
       font-weight: bold;
-      color: #667eea;
+      color: var(--color-primary);
       margin-bottom: 0.25rem;
     }
 
     .stat-label {
       font-size: 0.8rem;
-      color: #718096;
+      color: var(--color-text-muted);
     }
 
     .notifications-list {
@@ -218,14 +218,14 @@ import { NotificationService, Notification } from '../../core/services/notificat
       display: flex;
       align-items: flex-start;
       padding: 1rem;
-      border-bottom: 1px solid #f7fafc;
+      border-bottom: 1px solid var(--color-surface-alt);
       cursor: pointer;
       transition: all 0.2s ease;
       position: relative;
     }
 
     .notification-item:hover {
-      background: #f7fafc;
+      background: var(--color-surface-alt);
     }
 
     .notification-item:last-child {
@@ -234,34 +234,34 @@ import { NotificationService, Notification } from '../../core/services/notificat
 
     .notification-item.unread {
       background: linear-gradient(90deg, rgba(102, 126, 234, 0.02) 0%, rgba(102, 126, 234, 0.01) 100%);
-      border-left: 4px solid #667eea;
+      border-left: 4px solid var(--color-primary);
     }
 
     .notification-item.type-revelation {
-      border-left-color: #ffd700;
+      border-left-color: var(--color-warning);
     }
 
     .notification-item.type-message {
-      border-left-color: #48bb78;
+      border-left-color: var(--color-accent);
     }
 
     .notification-item.type-match {
-      border-left-color: #ed64a6;
+      border-left-color: var(--color-accent-soft);
     }
 
     .notification-item.type-photo_reveal {
-      border-left-color: #f56565;
+      border-left-color: var(--color-danger);
     }
 
     .notification-item.type-system {
-      border-left-color: #4299e1;
+      border-left-color: var(--color-primary);
     }
 
     .notification-icon {
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background: #f7fafc;
+      background: var(--color-surface-alt);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -271,23 +271,23 @@ import { NotificationService, Notification } from '../../core/services/notificat
     }
 
     .type-revelation .notification-icon {
-      background: #fff5cd;
+      background: var(--color-surface-alt);
     }
 
     .type-message .notification-icon {
-      background: #c6f6d5;
+      background: var(--color-surface-alt);
     }
 
     .type-match .notification-icon {
-      background: #fed7e2;
+      background: var(--color-surface-alt);
     }
 
     .type-photo_reveal .notification-icon {
-      background: #fed7d7;
+      background: var(--color-surface-alt);
     }
 
     .type-system .notification-icon {
-      background: #bee3f8;
+      background: var(--color-surface-alt);
     }
 
     .notification-content {
@@ -305,20 +305,20 @@ import { NotificationService, Notification } from '../../core/services/notificat
     .notification-title {
       font-size: 1rem;
       font-weight: 600;
-      color: #2d3748;
+      color: var(--color-text);
       margin: 0;
       line-height: 1.3;
     }
 
     .notification-time {
       font-size: 0.8rem;
-      color: #a0aec0;
+      color: var(--color-text-muted);
       white-space: nowrap;
       margin-left: 1rem;
     }
 
     .notification-message {
-      color: #4a5568;
+      color: var(--color-text);
       margin: 0 0 0.75rem 0;
       line-height: 1.4;
       font-size: 0.95rem;
@@ -332,12 +332,12 @@ import { NotificationService, Notification } from '../../core/services/notificat
 
     .notification-type {
       font-size: 0.8rem;
-      color: #718096;
+      color: var(--color-text-muted);
       font-weight: 500;
     }
 
     .read-status {
-      background: #667eea;
+      background: var(--color-primary);
       color: white;
       padding: 0.2rem 0.5rem;
       border-radius: 10px;
@@ -357,8 +357,8 @@ import { NotificationService, Notification } from '../../core/services/notificat
       height: 24px;
       border: none;
       border-radius: 50%;
-      background: #f7fafc;
-      color: #718096;
+      background: var(--color-surface-alt);
+      color: var(--color-text-muted);
       cursor: pointer;
       transition: all 0.2s ease;
       display: flex;
@@ -368,13 +368,13 @@ import { NotificationService, Notification } from '../../core/services/notificat
     }
 
     .action-btn-small:hover {
-      background: #edf2f7;
+      background: var(--color-surface-alt);
       transform: scale(1.1);
     }
 
     .action-btn-small.secondary:hover {
-      background: #fed7d7;
-      color: #c53030;
+      background: var(--color-surface-alt);
+      color: var(--color-danger);
     }
 
     .empty-state {
@@ -393,18 +393,18 @@ import { NotificationService, Notification } from '../../core/services/notificat
     .empty-state h2 {
       font-size: 1.5rem;
       font-weight: 600;
-      color: #2d3748;
+      color: var(--color-text);
       margin-bottom: 0.5rem;
     }
 
     .empty-state p {
-      color: #718096;
+      color: var(--color-text-muted);
       margin-bottom: 2rem;
       line-height: 1.6;
     }
 
     .cta-button {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--color-primary);
       color: white;
       border: none;
       padding: 0.75rem 1.5rem;
@@ -429,7 +429,7 @@ import { NotificationService, Notification } from '../../core/services/notificat
     }
 
     .notification-legend h3 {
-      color: #2d3748;
+      color: var(--color-text);
       margin: 0 0 1rem 0;
       font-size: 1.1rem;
     }
@@ -444,7 +444,7 @@ import { NotificationService, Notification } from '../../core/services/notificat
       align-items: center;
       gap: 0.75rem;
       font-size: 0.9rem;
-      color: #4a5568;
+      color: var(--color-text);
     }
 
     .legend-icon {
