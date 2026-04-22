@@ -9,8 +9,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { DfButtonDirective, DfChipComponent, DfInputDirective } from '../../shared/ui';
 
 const CUISINE_SUGGESTIONS: { label: string; icon: string }[] = [
   { label: 'Italian',       icon: 'local_pizza' },
@@ -34,8 +34,10 @@ const CUISINE_SUGGESTIONS: { label: string; icon: string }[] = [
     MatDatepickerModule,
     MatNativeDateModule,
     MatIconModule,
-    MatChipsModule,
     MatSnackBarModule,
+    DfButtonDirective,
+    DfChipComponent,
+    DfInputDirective,
   ],
   template: `
     <div class="dinner-planning-page">
@@ -58,15 +60,18 @@ const CUISINE_SUGGESTIONS: { label: string; icon: string }[] = [
         </mat-card-header>
         <mat-card-content>
           <div class="cuisine-chips" role="group" aria-label="Cuisine options">
-            <mat-chip
+            <df-chip
               *ngFor="let c of cuisines"
-              [class.selected]="selectedCuisine === c.label"
+              purpose="interest"
+              [class.is-selected]="selectedCuisine === c.label"
               [attr.aria-pressed]="selectedCuisine === c.label"
               role="button"
-              (click)="selectCuisine(c.label)">
-              <mat-icon matChipLeadingIcon aria-hidden="true">{{ c.icon }}</mat-icon>
+              tabindex="0"
+              (click)="selectCuisine(c.label)"
+              (keydown.enter)="selectCuisine(c.label)">
+              <mat-icon aria-hidden="true">{{ c.icon }}</mat-icon>
               {{ c.label }}
-            </mat-chip>
+            </df-chip>
           </div>
         </mat-card-content>
       </mat-card>
@@ -93,22 +98,23 @@ const CUISINE_SUGGESTIONS: { label: string; icon: string }[] = [
               <mat-error *ngIf="dinnerForm.get('date')?.errors?.['required']">Please choose a date</mat-error>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Notes (optional)</mat-label>
+            <label class="dinner-form__field">
+              <span class="dinner-form__field-label">Notes (optional)</span>
               <textarea
-                matInput
+                dfInput
                 formControlName="notes"
                 rows="3"
                 placeholder="Anything special to plan for — dietary needs, occasion, vibe..."
                 aria-label="Dinner notes">
               </textarea>
-            </mat-form-field>
+            </label>
 
             <button
-              mat-raised-button
-              color="primary"
+              dfButton
+              variant="primary"
+              size="md"
               type="submit"
-              class="submit-btn"
+              class="dinner-form__submit"
               [disabled]="dinnerForm.invalid || isSubmitting"
               aria-label="Send dinner plan to partner">
               <mat-icon>send</mat-icon>
@@ -126,12 +132,14 @@ const CUISINE_SUGGESTIONS: { label: string; icon: string }[] = [
     .subtitle { margin: 0; color: var(--color-text-muted); font-size: 0.875rem; }
     .suggestions-card, .form-card { margin-bottom: 16px; }
     .cuisine-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-    mat-chip { cursor: pointer; }
-    mat-chip.selected { background: var(--interactive-primary) !important; color: white !important; }
+    df-chip { cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+    df-chip.is-selected { background: var(--color-primary); color: var(--color-surface); }
     .dinner-form { display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }
     .full-width { width: 100%; }
-    .submit-btn { width: 100%; margin-top: 4px; }
-    .submit-btn mat-icon { margin-right: 6px; vertical-align: middle; }
+    .dinner-form__field { display: flex; flex-direction: column; gap: var(--space-1); }
+    .dinner-form__field-label { font-size: var(--type-small-size); color: var(--color-text-muted); }
+    .dinner-form__submit { width: 100%; margin-top: 4px; }
+    .dinner-form__submit mat-icon { margin-right: 6px; vertical-align: middle; }
   `]
 })
 export class DinnerPlanningComponent implements OnInit, OnDestroy {
