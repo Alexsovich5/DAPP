@@ -53,12 +53,13 @@ COPY --from=builder --chown=dinner1:dinner1 /root/.local /home/dinner1/.local
 # Copy application code
 COPY --chown=dinner1:dinner1 . .
 
-# Create necessary directories
+# Create necessary directories and make entrypoint executable
 RUN mkdir -p /app/logs /app/uploads \
-    && chown -R dinner1:dinner1 /app/logs /app/uploads
+    && chown -R dinner1:dinner1 /app/logs /app/uploads \
+    && chmod +x /app/entrypoint.sh
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+# Health check — uses root /health (see app/main.py:248)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Switch to non-root user
@@ -67,5 +68,5 @@ USER dinner1
 # Expose port
 EXPOSE 8000
 
-# Start command
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+# Entrypoint waits for DB, runs `alembic upgrade head`, then exec's uvicorn
+ENTRYPOINT ["/app/entrypoint.sh"]
