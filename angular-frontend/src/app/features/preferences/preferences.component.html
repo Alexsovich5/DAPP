@@ -11,7 +11,7 @@
                 <section class="preference-section">
                     <h2>Cuisine Preferences</h2>
                     <p class="section-description">Select your favorite types of cuisine</p>
-                    <mat-form-field appearance="fill">
+                    <mat-form-field appearance="outline">
                         <mat-label>Favorite Cuisines</mat-label>
                         <mat-select formControlName="cuisinePreferences" multiple>
                             <mat-option *ngFor="let cuisine of cuisineOptions" [value]="cuisine.value">
@@ -31,7 +31,7 @@
                 <section class="preference-section">
                     <h2>Dietary Restrictions</h2>
                     <p class="section-description">Select any dietary restrictions or preferences</p>
-                    <mat-form-field appearance="fill">
+                    <mat-form-field appearance="outline">
                         <mat-label>Dietary Restrictions</mat-label>
                         <mat-select formControlName="dietaryRestrictions" multiple>
                             <mat-option *ngFor="let restriction of dietaryRestrictions" [value]="restriction">
@@ -45,7 +45,7 @@
                 <section class="preference-section">
                     <h2>Price Range</h2>
                     <p class="section-description">Select your preferred price ranges for dining</p>
-                    <mat-form-field appearance="fill">
+                    <mat-form-field appearance="outline">
                         <mat-label>Preferred Price Ranges</mat-label>
                         <mat-select formControlName="priceRanges" multiple>
                             <mat-option *ngFor="let range of priceRanges" [value]="range.value">
@@ -65,7 +65,7 @@
                 <section class="preference-section">
                     <h2>Dining Style</h2>
                     <p class="section-description">Choose your preferred dining environments</p>
-                    <mat-form-field appearance="fill">
+                    <mat-form-field appearance="outline">
                         <mat-label>Dining Styles</mat-label>
                         <mat-select formControlName="diningStyles" multiple>
                             <mat-option *ngFor="let style of diningStyles" [value]="style">
@@ -79,7 +79,7 @@
                 <section class="preference-section">
                     <h2>Meal Preferences</h2>
                     <p class="section-description">Select your preferred meal times</p>
-                    <mat-form-field appearance="fill">
+                    <mat-form-field appearance="outline">
                         <mat-label>Preferred Meals</mat-label>
                         <mat-select formControlName="mealPreferences" multiple>
                             <mat-option *ngFor="let meal of mealPreferences" [value]="meal">
@@ -93,7 +93,7 @@
                 <section class="preference-section">
                     <h2>Atmosphere</h2>
                     <p class="section-description">Choose your preferred dining atmospheres</p>
-                    <mat-form-field appearance="fill">
+                    <mat-form-field appearance="outline">
                         <mat-label>Preferred Atmospheres</mat-label>
                         <mat-select formControlName="atmospherePreferences" multiple>
                             <mat-option *ngFor="let atmosphere of atmospherePreferences" [value]="atmosphere">
@@ -108,13 +108,18 @@
                     <h2>Location Preferences</h2>
                     <p class="section-description">Set your location and search radius</p>
                     <div class="location-fields">
-                        <mat-form-field appearance="fill">
-                            <mat-label>City</mat-label>
-                            <input matInput formControlName="city" placeholder="Enter your city">
-                            <mat-error *ngIf="isFieldInvalid('location.city')">
+                        <label class="pref-field">
+                            <span class="pref-field__label">City</span>
+                            <input
+                                dfInput
+                                formControlName="city"
+                                placeholder="Enter your city">
+                            <span
+                                class="pref-field__error"
+                                *ngIf="isFieldInvalid('location.city')">
                                 City is required
-                            </mat-error>
-                        </mat-form-field>
+                            </span>
+                        </label>
 
                         <div class="distance-slider">
                             <mat-label id="maxDistanceLabel">Maximum Distance:
@@ -132,26 +137,38 @@
                     <p class="section-description">Set your matching preferences</p>
 
                     <div formGroupName="ageRange" class="age-range">
-                        <mat-form-field appearance="fill">
-                            <mat-label>Minimum Age</mat-label>
-                            <input matInput type="number" formControlName="min" placeholder="Enter minimum age"
+                        <label class="pref-field">
+                            <span class="pref-field__label">Minimum Age</span>
+                            <input
+                                dfInput
+                                type="number"
+                                formControlName="min"
+                                placeholder="Minimum age"
                                 aria-label="Minimum age">
-                            <mat-error *ngIf="isFieldInvalid('matchPreferences.ageRange.min')">
+                            <span
+                                class="pref-field__error"
+                                *ngIf="isFieldInvalid('matchPreferences.ageRange.min')">
                                 Must be at least 18 years old
-                            </mat-error>
-                        </mat-form-field>
+                            </span>
+                        </label>
 
-                        <mat-form-field appearance="fill">
-                            <mat-label>Maximum Age</mat-label>
-                            <input matInput type="number" formControlName="max" placeholder="Enter maximum age"
+                        <label class="pref-field">
+                            <span class="pref-field__label">Maximum Age</span>
+                            <input
+                                dfInput
+                                type="number"
+                                formControlName="max"
+                                placeholder="Maximum age"
                                 aria-label="Maximum age">
-                            <mat-error *ngIf="isFieldInvalid('matchPreferences.ageRange.max')">
+                            <span
+                                class="pref-field__error"
+                                *ngIf="isFieldInvalid('matchPreferences.ageRange.max')">
                                 Must be less than 100 years old
-                            </mat-error>
-                        </mat-form-field>
+                            </span>
+                        </label>
                     </div>
 
-                    <mat-form-field appearance="fill">
+                    <mat-form-field appearance="outline">
                         <mat-label>Gender Preference</mat-label>
                         <mat-select formControlName="genderPreference">
                             <mat-option value="any">Any</mat-option>
@@ -161,7 +178,7 @@
                         </mat-select>
                     </mat-form-field>
 
-                    <mat-form-field appearance="fill">
+                    <mat-form-field appearance="outline">
                         <mat-label>Looking For</mat-label>
                         <mat-select formControlName="lookingFor">
                             <mat-option value="friendship">Friendship</mat-option>
@@ -174,10 +191,20 @@
 
                 <!-- Action Buttons -->
                 <div class="action-buttons">
-                    <button mat-stroked-button type="button" (click)="reset()" [disabled]="!isDirty()">
+                    <button
+                        type="button"
+                        dfButton
+                        variant="secondary"
+                        size="md"
+                        (click)="reset()"
+                        [disabled]="!isDirty()">
                         Reset Changes
                     </button>
-                    <button mat-raised-button color="primary" type="submit"
+                    <button
+                        dfButton
+                        variant="primary"
+                        size="md"
+                        type="submit"
                         [disabled]="!preferencesForm.valid || isLoading">
                         Save Preferences
                     </button>

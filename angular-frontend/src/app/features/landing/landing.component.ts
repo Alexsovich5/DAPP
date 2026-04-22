@@ -1,40 +1,21 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatButtonModule } from '@angular/material/button';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
+import { DfButtonDirective } from '../../shared/ui';
 
 @Component({
   selector: 'app-landing',
+  standalone: true,
+  imports: [CommonModule, RouterLink, MatIconModule, DfButtonDirective],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './landing.component.html',
   styleUrls: ['./landing.component.scss'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatToolbarModule,
-    MatButtonModule,
-    MatIconModule,
-    MatCardModule,
-    ThemeToggleComponent
-  ]
 })
 export class LandingComponent {
-  constructor(private readonly router: Router) {}
-
-  currentYear = new Date().getFullYear();
-
-  navigateToRegister(): void {
-    this.router.navigate(['/register']);
-  }
-
-  navigateToLogin(): void {
-    this.router.navigate(['/login']);
-  }
-
-  navigateToLink(path: string): void {
-    this.router.navigate([path]);
-  }
+  readonly steps = [
+    { icon: 'psychology',   title: 'Discover souls',    body: 'Match on what you value — not what you look like.' },
+    { icon: 'auto_stories', title: 'Reveal slowly',     body: 'Seven days of progressive revelation. One prompt a day.' },
+    { icon: 'restaurant',   title: 'Meet over dinner',  body: 'If it still feels right, you plan one meal together.' },
+  ];
 }

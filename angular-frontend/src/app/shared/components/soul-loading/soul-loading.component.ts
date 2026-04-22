@@ -215,7 +215,7 @@ import { CommonModule } from '@angular/common';
     }
 
     .loading-title {
-      color: var(--text-primary);
+      color: var(--color-text);
       font-size: 1.5rem;
       font-weight: 600;
       margin: 0 0 0.5rem 0;
@@ -227,7 +227,7 @@ import { CommonModule } from '@angular/common';
     }
 
     .loading-subtitle {
-      color: var(--text-secondary);
+      color: var(--color-text-muted);
       font-size: 1rem;
       margin: 0 0 1.5rem 0;
       line-height: 1.5;
@@ -245,7 +245,7 @@ import { CommonModule } from '@angular/common';
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--surface-secondary);
+      background: var(--color-surface-alt);
       transition: all 0.3s ease;
 
       &.active {
@@ -422,11 +422,11 @@ import { CommonModule } from '@angular/common';
     /* Dark theme adaptation */
     .dark-theme {
       .loading-title {
-        color: var(--text-primary);
+        color: var(--color-text);
       }
 
       .loading-subtitle {
-        color: var(--text-secondary);
+        color: var(--color-text-muted);
       }
 
       .dot {

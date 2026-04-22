@@ -1,0 +1,17 @@
+.df-card {
+  display: block;
+  padding: var(--space-5);
+  border-radius: var(--radius-xl);
+
+  &--connection {
+    background: var(--color-surface);
+    box-shadow: var(--elevation-sm);
+  }
+
+  &--revelation {
+    background: var(--color-surface-alt);
+    border-left: 3px solid var(--color-accent);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4) var(--space-5);
+  }
+}

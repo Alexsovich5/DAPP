@@ -182,13 +182,13 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
       align-items: center;
       margin-bottom: 1.5rem;
       padding-bottom: 1rem;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 1px solid var(--color-border);
     }
 
     .messages-header h1 {
       font-size: 2rem;
       font-weight: 600;
-      color: #2d3748;
+      color: var(--color-text);
       margin: 0;
     }
 
@@ -199,23 +199,23 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
 
     .filter-btn {
       padding: 0.5rem 1rem;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-border);
       background: white;
       border-radius: 20px;
-      color: #718096;
+      color: var(--color-text-muted);
       cursor: pointer;
       transition: all 0.2s ease;
       font-size: 0.9rem;
     }
 
     .filter-btn:hover {
-      border-color: #667eea;
-      color: #667eea;
+      border-color: var(--color-primary);
+      color: var(--color-primary);
     }
 
     .filter-btn.active {
-      background: #667eea;
-      border-color: #667eea;
+      background: var(--color-primary);
+      border-color: var(--color-primary);
       color: white;
     }
 
@@ -231,7 +231,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
       padding: 1rem;
       border-radius: 12px;
       text-align: center;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-border);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
@@ -239,13 +239,13 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
       display: block;
       font-size: 1.5rem;
       font-weight: bold;
-      color: #667eea;
+      color: var(--color-primary);
       margin-bottom: 0.25rem;
     }
 
     .stat-label {
       font-size: 0.8rem;
-      color: #718096;
+      color: var(--color-text-muted);
     }
 
     .messages-list {
@@ -259,14 +259,14 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
       display: flex;
       align-items: center;
       padding: 1rem;
-      border-bottom: 1px solid #f7fafc;
+      border-bottom: 1px solid var(--color-surface-alt);
       cursor: pointer;
       transition: all 0.2s ease;
       position: relative;
     }
 
     .message-item:hover {
-      background: #f7fafc;
+      background: var(--color-surface-alt);
     }
 
     .message-item:last-child {
@@ -275,12 +275,12 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
 
     .message-item.unread {
       background: linear-gradient(90deg, rgba(102, 126, 234, 0.03) 0%, rgba(102, 126, 234, 0.01) 100%);
-      border-left: 4px solid #667eea;
+      border-left: 4px solid var(--color-primary);
     }
 
     .message-item.revealing {
       background: linear-gradient(90deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 215, 0, 0.01) 100%);
-      border-left: 4px solid #ffd700;
+      border-left: 4px solid var(--color-warning);
     }
 
     .message-avatar {
@@ -292,7 +292,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--color-primary);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -309,7 +309,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
       right: 2px;
       width: 12px;
       height: 12px;
-      background: #48bb78;
+      background: var(--color-accent);
       border: 2px solid white;
       border-radius: 50%;
     }
@@ -321,8 +321,8 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
     }
 
     .day-badge {
-      background: #ffd700;
-      color: #744210;
+      background: var(--color-warning);
+      color: var(--color-text);
       font-size: 0.7rem;
       font-weight: bold;
       padding: 0.2rem 0.4rem;
@@ -345,13 +345,13 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
     .partner-name {
       font-size: 1.1rem;
       font-weight: 600;
-      color: #2d3748;
+      color: var(--color-text);
       margin: 0;
     }
 
     .compatibility-score {
       font-size: 0.8rem;
-      color: #48bb78;
+      color: var(--color-accent);
       font-weight: 600;
     }
 
@@ -360,7 +360,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
     }
 
     .last-message {
-      color: #4a5568;
+      color: var(--color-text);
       margin: 0 0 0.25rem 0;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -368,7 +368,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
       font-size: 0.95rem;
 
       &.typing-message {
-        color: #667eea;
+        color: var(--color-primary);
         font-style: italic;
       }
     }
@@ -377,7 +377,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      color: #667eea;
+      color: var(--color-primary);
       font-style: italic;
     }
 
@@ -391,7 +391,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
       width: 4px;
       height: 4px;
       border-radius: 50%;
-      background: #667eea;
+      background: var(--color-primary);
       animation: typing-dot-bounce 1.4s ease-in-out infinite;
     }
 
@@ -420,7 +420,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
 
     .connection-stage {
       font-size: 0.8rem;
-      color: #718096;
+      color: var(--color-text-muted);
       font-style: italic;
     }
 
@@ -432,7 +432,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
 
     .timestamp {
       font-size: 0.8rem;
-      color: #a0aec0;
+      color: var(--color-text-muted);
     }
 
     .message-indicators {
@@ -442,7 +442,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
     }
 
     .unread-badge {
-      background: #667eea;
+      background: var(--color-primary);
       color: white;
       font-size: 0.7rem;
       font-weight: bold;
@@ -453,8 +453,8 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
     }
 
     .revelation-badge {
-      background: #ffd700;
-      color: #744210;
+      background: var(--color-warning);
+      color: var(--color-text);
       font-size: 0.7rem;
       font-weight: bold;
       padding: 0.2rem 0.5rem;
@@ -473,8 +473,8 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
       height: 32px;
       border: none;
       border-radius: 50%;
-      background: #f7fafc;
-      color: #718096;
+      background: var(--color-surface-alt);
+      color: var(--color-text-muted);
       cursor: pointer;
       transition: all 0.2s ease;
       display: flex;
@@ -484,17 +484,17 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
     }
 
     .action-btn:hover {
-      background: #edf2f7;
+      background: var(--color-surface-alt);
       transform: scale(1.05);
     }
 
     .action-btn.revelation {
-      background: #fff5cd;
-      color: #b7791f;
+      background: var(--color-surface-alt);
+      color: var(--color-warning);
     }
 
     .action-btn.revelation:hover {
-      background: #fef5e7;
+      background: var(--color-surface-alt);
     }
 
     .empty-state {
@@ -513,17 +513,17 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
     .empty-state h2 {
       font-size: 1.5rem;
       font-weight: 600;
-      color: #2d3748;
+      color: var(--color-text);
       margin-bottom: 0.5rem;
     }
 
     .empty-state p {
-      color: #718096;
+      color: var(--color-text-muted);
       margin-bottom: 2rem;
     }
 
     .cta-button {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--color-primary);
       color: white;
       border: none;
       padding: 0.75rem 1.5rem;
@@ -551,7 +551,7 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
       width: 56px;
       height: 56px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--color-primary);
       color: white;
       border: none;
       box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
@@ -575,8 +575,8 @@ type MessageFilter = 'all' | 'unread' | 'revealing';
     .spinner {
       width: 32px;
       height: 32px;
-      border: 3px solid #e2e8f0;
-      border-top: 3px solid #667eea;
+      border: 3px solid var(--color-border);
+      border-top: 3px solid var(--color-primary);
       border-radius: 50%;
       animation: spin 1s linear infinite;
       margin: 0 auto 1rem;

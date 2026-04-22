@@ -6,52 +6,94 @@
         <h1>Sign In</h1>
       </div>
 
-      <mat-error *ngIf="error" class="error-alert">
-        <mat-icon>error</mat-icon>
-        {{error}}
-        <button mat-icon-button (click)="error = null">
+      <div *ngIf="error" class="auth__error" role="alert">
+        <mat-icon aria-hidden="true">error</mat-icon>
+        <span class="auth__error-text">{{ error }}</span>
+        <button
+          type="button"
+          dfButton
+          variant="ghost"
+          size="sm"
+          class="auth__error-close"
+          aria-label="Dismiss error"
+          (click)="error = null">
           <mat-icon>close</mat-icon>
         </button>
-      </mat-error>
+      </div>
 
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline">
-          <mat-label>Email Address</mat-label>
-          <input matInput formControlName="email" type="email" autocomplete="email" required>
-          <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
+        <label class="auth-field">
+          <span class="auth-field__label">Email Address</span>
+          <input
+            dfInput
+            formControlName="email"
+            type="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+            required>
+          <span
+            class="auth-field__error"
+            *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.hasError('required')">
             Email is required
-          </mat-error>
-          <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
+          </span>
+          <span
+            class="auth-field__error"
+            *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.hasError('email')">
             Please enter a valid email address
-          </mat-error>
-        </mat-form-field>
+          </span>
+        </label>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Password</mat-label>
-          <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'"
-            autocomplete="current-password" required>
-          <button mat-icon-button type="button" matSuffix (click)="togglePasswordVisibility()"
-            [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hidePassword">
-            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
-          </button>
-          <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+        <label class="auth-field">
+          <span class="auth-field__label">Password</span>
+          <span class="auth-field__control">
+            <input
+              dfInput
+              formControlName="password"
+              [type]="hidePassword ? 'password' : 'text'"
+              autocomplete="current-password"
+              placeholder="Your password"
+              required>
+            <button
+              type="button"
+              class="auth-field__toggle"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="hidePassword ? 'Show password' : 'Hide password'"
+              [attr.aria-pressed]="!hidePassword">
+              <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+          </span>
+          <span
+            class="auth-field__error"
+            *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required')">
             Password is required
-          </mat-error>
-          <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">
+          </span>
+          <span
+            class="auth-field__error"
+            *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.hasError('minlength')">
             Password must be at least 6 characters
-          </mat-error>
-        </mat-form-field>
+          </span>
+        </label>
 
         <div class="form-actions">
           <mat-checkbox formControlName="rememberMe" color="primary">
             Remember me
           </mat-checkbox>
-          <button type="button" mat-button color="primary" (click)="navigateToForgotPassword()">
+          <button
+            type="button"
+            dfButton
+            variant="ghost"
+            size="sm"
+            (click)="navigateToForgotPassword()">
             Forgot password?
           </button>
         </div>
 
-        <button mat-raised-button color="primary" type="submit" class="submit-button"
+        <button
+          dfButton
+          variant="primary"
+          size="md"
+          type="submit"
+          class="submit-button"
           [disabled]="loginForm.invalid || isLoading">
           <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
           <span *ngIf="!isLoading">Sign In</span>
@@ -60,11 +102,23 @@
         <mat-divider class="divider"></mat-divider>
 
         <div class="social-buttons">
-          <button mat-stroked-button (click)="loginWithGoogle()" type="button" class="google-btn">
+          <button
+            type="button"
+            dfButton
+            variant="secondary"
+            size="md"
+            class="google-btn"
+            (click)="loginWithGoogle()">
             <mat-icon>account_circle</mat-icon>
             Google
           </button>
-          <button mat-stroked-button (click)="loginWithFacebook()" type="button" class="facebook-btn">
+          <button
+            type="button"
+            dfButton
+            variant="secondary"
+            size="md"
+            class="facebook-btn"
+            (click)="loginWithFacebook()">
             <mat-icon>share</mat-icon>
             Facebook
           </button>
@@ -72,7 +126,12 @@
 
         <div class="register-prompt">
           <span>Don't have an account yet?</span>
-          <button type="button" mat-button color="primary" (click)="navigateToRegister()">
+          <button
+            type="button"
+            dfButton
+            variant="ghost"
+            size="sm"
+            (click)="navigateToRegister()">
             Create one now
           </button>
         </div>

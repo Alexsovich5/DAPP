@@ -289,13 +289,13 @@ export interface RevelationDayData {
     .completion-percent {
       font-size: 1.5rem;
       font-weight: bold;
-      color: #2d3748;
+      color: var(--color-text);
       margin-bottom: 0.25rem;
     }
 
     .phase-label {
       font-size: 0.8rem;
-      color: #718096;
+      color: var(--color-text-muted);
       text-transform: capitalize;
     }
 
@@ -312,13 +312,13 @@ export interface RevelationDayData {
       display: block;
       font-size: 1.25rem;
       font-weight: bold;
-      color: #667eea;
+      color: var(--color-primary);
       margin-bottom: 0.25rem;
     }
 
     .stat-label {
       font-size: 0.8rem;
-      color: #718096;
+      color: var(--color-text-muted);
     }
 
     /* Timeline Track */
@@ -392,7 +392,7 @@ export interface RevelationDayData {
       width: 60px;
       height: 60px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent-soft) 100%);
       color: white;
       font-size: 1.5rem;
       font-weight: bold;
@@ -415,8 +415,8 @@ export interface RevelationDayData {
       width: 24px;
       height: 24px;
       border-radius: 50%;
-      background: #f7fafc;
-      border: 2px solid #e2e8f0;
+      background: var(--color-surface-alt);
+      border: 2px solid var(--color-border);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -425,9 +425,9 @@ export interface RevelationDayData {
     }
 
     .user-status.completed, .partner-status.completed {
-      background: linear-gradient(135deg, #ffd700, #ffa500);
-      border-color: #ffd700;
-      color: #744210;
+      background: linear-gradient(135deg, var(--color-warning), var(--color-warning));
+      border-color: var(--color-warning);
+      color: var(--color-text);
       box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
     }
 
@@ -441,12 +441,12 @@ export interface RevelationDayData {
     .day-title {
       font-size: 1.2rem;
       font-weight: 600;
-      color: #2d3748;
+      color: var(--color-text);
       margin: 0;
     }
 
     .day-prompt {
-      color: #4a5568;
+      color: var(--color-text);
       font-style: italic;
       margin: 0;
       line-height: 1.5;
@@ -471,11 +471,11 @@ export interface RevelationDayData {
     }
 
     .user-revelation {
-      border-left-color: #667eea;
+      border-left-color: var(--color-primary);
     }
 
     .partner-revelation {
-      border-left-color: #e879f9;
+      border-left-color: var(--color-accent-soft);
     }
 
     .user-revelation:hover, .partner-revelation:hover {
@@ -485,7 +485,7 @@ export interface RevelationDayData {
 
     .revelation-snippet {
       font-style: italic;
-      color: #4a5568;
+      color: var(--color-text);
       margin-bottom: 0.5rem;
       line-height: 1.4;
     }
@@ -495,7 +495,7 @@ export interface RevelationDayData {
       justify-content: space-between;
       align-items: center;
       font-size: 0.8rem;
-      color: #718096;
+      color: var(--color-text-muted);
     }
 
     .author {
@@ -505,7 +505,7 @@ export interface RevelationDayData {
     /* Locked Day */
     .day-locked {
       text-align: center;
-      color: #a0aec0;
+      color: var(--color-text-muted);
     }
 
     .lock-icon {
@@ -535,7 +535,7 @@ export interface RevelationDayData {
     }
 
     .line-segment.active {
-      background: linear-gradient(to bottom, #667eea, #764ba2);
+      background: linear-gradient(to bottom, var(--color-primary), var(--color-accent-soft));
     }
 
     /* Timeline Actions */
@@ -544,7 +544,7 @@ export interface RevelationDayData {
       padding: 1.5rem;
       border-radius: 12px;
       margin-top: 2rem;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-border);
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     }
 
@@ -553,19 +553,19 @@ export interface RevelationDayData {
     }
 
     .today-prompt h3 {
-      color: #2d3748;
+      color: var(--color-text);
       margin-bottom: 0.5rem;
     }
 
     .today-prompt p {
-      color: #718096;
+      color: var(--color-text-muted);
       margin: 0;
     }
 
     .share-revelation-btn {
       width: 100%;
       padding: 1rem 1.5rem;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent-soft) 100%);
       color: white;
       border: none;
       border-radius: 8px;
@@ -585,7 +585,7 @@ export interface RevelationDayData {
     }
 
     .share-revelation-btn:disabled {
-      background: #a0aec0;
+      background: var(--color-text-muted);
       cursor: not-allowed;
       transform: none;
       box-shadow: none;
@@ -605,18 +605,18 @@ export interface RevelationDayData {
     }
 
     .reveal-header h3 {
-      color: #744210;
+      color: var(--color-text);
       margin-bottom: 0.5rem;
     }
 
     .reveal-header p {
-      color: #975a16;
+      color: var(--color-warning);
       margin-bottom: 1.5rem;
     }
 
     .consent-btn {
-      background: linear-gradient(135deg, #ffd700, #ffa500);
-      color: #744210;
+      background: linear-gradient(135deg, var(--color-warning), var(--color-warning));
+      color: var(--color-text);
       border: none;
       padding: 1rem 2rem;
       border-radius: 8px;
@@ -690,7 +690,7 @@ export interface RevelationDayData {
     }
 
     .timeline-day:focus {
-      outline: 2px solid #667eea;
+      outline: 2px solid var(--color-primary);
       outline-offset: 2px;
     }
   `]
@@ -752,9 +752,9 @@ export class RevelationTimelineComponent implements OnInit, OnDestroy {
   getPhaseColor(): string {
     const phase = this.timelineData?.visualization.phase || 'soul_discovery';
     const colors = {
-      soul_discovery: '#667eea',
-      deeper_connection: '#e879f9',
-      photo_reveal: '#ffd700'
+      soul_discovery: 'var(--color-primary)',
+      deeper_connection: 'var(--color-accent-soft)',
+      photo_reveal: 'var(--color-warning)'
     };
     return colors[phase];
   }
@@ -772,9 +772,9 @@ export class RevelationTimelineComponent implements OnInit, OnDestroy {
   getTimelineGradient(): string {
     const phase = this.timelineData?.visualization.phase || 'soul_discovery';
     const gradients = {
-      soul_discovery: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
-      deeper_connection: 'linear-gradient(90deg, #e879f9 0%, #667eea 100%)',
-      photo_reveal: 'linear-gradient(90deg, #ffd700 0%, #ffa500 100%)'
+      soul_discovery: 'linear-gradient(90deg, var(--color-primary) 0%, var(--color-accent-soft) 100%)',
+      deeper_connection: 'linear-gradient(90deg, var(--color-accent-soft) 0%, var(--color-primary) 100%)',
+      photo_reveal: 'linear-gradient(90deg, var(--color-warning) 0%, var(--color-warning) 100%)'
     };
     return gradients[phase];
   }

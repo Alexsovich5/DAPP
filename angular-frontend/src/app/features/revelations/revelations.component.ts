@@ -26,8 +26,9 @@ import {
   template: `
     <div class="revelations-container" #revelationContainer>
       <header class="revelations-header">
-        <button class="back-btn" (click)="goBack()">
-          <span>←</span> Back
+        <button class="back-btn" (click)="goBack()" aria-label="Go back">
+          <mat-icon>arrow_back</mat-icon>
+          <span>Back</span>
         </button>
         <div class="header-content">
           <h1>Daily Revelations</h1>
@@ -255,33 +256,33 @@ import {
       gap: 1rem;
       margin-bottom: 2rem;
       padding-bottom: 1rem;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 1px solid var(--color-border);
     }
 
     .back-btn {
       padding: 0.5rem;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-border);
       background: white;
       border-radius: 8px;
       cursor: pointer;
-      color: #718096;
+      color: var(--color-text-muted);
       transition: all 0.2s ease;
     }
 
     .back-btn:hover {
-      border-color: #667eea;
-      color: #667eea;
+      border-color: var(--color-primary);
+      color: var(--color-primary);
     }
 
     .header-content h1 {
       font-size: 2rem;
       font-weight: 600;
-      color: #2d3748;
+      color: var(--color-text);
       margin: 0 0 0.25rem 0;
     }
 
     .subtitle {
-      color: #718096;
+      color: var(--color-text-muted);
       margin: 0;
     }
 
@@ -301,24 +302,24 @@ import {
     }
 
     .progress-header h2 {
-      color: #2d3748;
+      color: var(--color-text);
       margin: 0;
       font-size: 1.5rem;
     }
 
     .completion-status {
       font-weight: 600;
-      color: #f56565;
+      color: var(--color-danger);
     }
 
     .completion-status.complete {
-      color: #48bb78;
+      color: var(--color-accent);
     }
 
     .streak-badge {
-      background: #fff5f5;
-      color: #c53030;
-      border: 1px solid #fed7d7;
+      background: var(--color-surface-alt);
+      color: var(--color-danger);
+      border: 1px solid var(--color-surface-alt);
       padding: 0.25rem 0.5rem;
       border-radius: 999px;
       font-size: 0.85rem;
@@ -351,28 +352,28 @@ import {
       justify-content: center;
       font-weight: bold;
       font-size: 1.1rem;
-      border: 3px solid #e2e8f0;
+      border: 3px solid var(--color-border);
       background: white;
-      color: #a0aec0;
+      color: var(--color-text-muted);
       transition: all 0.3s ease;
     }
 
     .day-circle.completed .day-number {
-      background: #48bb78;
-      border-color: #48bb78;
+      background: var(--color-accent);
+      border-color: var(--color-accent);
       color: white;
     }
 
     .day-circle.current .day-number {
-      background: #667eea;
-      border-color: #667eea;
+      background: var(--color-primary);
+      border-color: var(--color-primary);
       color: white;
       box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
     }
 
     .day-label {
       font-size: 0.8rem;
-      color: #718096;
+      color: var(--color-text-muted);
       text-align: center;
       max-width: 80px;
     }
@@ -383,13 +384,13 @@ import {
       left: 25px;
       right: 25px;
       height: 3px;
-      background: #e2e8f0;
+      background: var(--color-border);
       z-index: 1;
     }
 
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, #48bb78 0%, #667eea 100%);
+      background: linear-gradient(90deg, var(--color-accent) 0%, var(--color-primary) 100%);
       transition: width 0.5s ease;
     }
 
@@ -436,13 +437,13 @@ import {
     }
 
     .prompt-header h3 {
-      color: #2d3748;
+      color: var(--color-text);
       margin: 0;
       font-size: 1.3rem;
     }
 
     .prompt-type {
-      background: #667eea;
+      background: var(--color-primary);
       color: white;
       padding: 0.5rem 1rem;
       border-radius: 20px;
@@ -456,7 +457,7 @@ import {
 
     .prompt-text {
       font-size: 1.1rem;
-      color: #2d3748;
+      color: var(--color-text);
       margin-bottom: 1rem;
       font-weight: 500;
     }
@@ -465,13 +466,13 @@ import {
       background: white;
       padding: 1rem;
       border-radius: 8px;
-      border-left: 4px solid #667eea;
+      border-left: 4px solid var(--color-primary);
     }
 
     .example-response h4 {
       margin: 0 0 0.5rem 0;
       font-size: 0.9rem;
-      color: #718096;
+      color: var(--color-text-muted);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
@@ -479,19 +480,19 @@ import {
     .example-response p {
       margin: 0;
       font-style: italic;
-      color: #4a5568;
+      color: var(--color-text);
     }
 
     .whats-next {
       margin-top: 1rem;
-      background: #f7fafc;
-      border: 1px solid #e2e8f0;
+      background: var(--color-surface-alt);
+      border: 1px solid var(--color-border);
       border-radius: 12px;
       padding: 1rem;
     }
     .whats-next h4 {
       margin: 0 0 0.5rem 0;
-      color: #2d3748;
+      color: var(--color-text);
     }
 
     .revelation-form {
@@ -509,13 +510,13 @@ import {
       display: block;
       margin-bottom: 0.5rem;
       font-weight: 600;
-      color: #2d3748;
+      color: var(--color-text);
     }
 
     .form-group textarea {
       width: 100%;
       padding: 1rem;
-      border: 2px solid #e2e8f0;
+      border: 2px solid var(--color-border);
       border-radius: 8px;
       font-size: 1rem;
       line-height: 1.5;
@@ -526,15 +527,15 @@ import {
 
     .form-group textarea:focus {
       outline: none;
-      border-color: #667eea;
+      border-color: var(--color-primary);
     }
 
     .form-group textarea.error {
-      border-color: #f56565;
+      border-color: var(--color-danger);
     }
 
     .error-message {
-      color: #f56565;
+      color: var(--color-danger);
       font-size: 0.8rem;
       margin-top: 0.5rem;
     }
@@ -544,7 +545,7 @@ import {
     }
 
     .share-btn {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent-soft) 100%);
       color: white;
       border: none;
       padding: 1rem 2rem;
@@ -574,7 +575,7 @@ import {
     }
 
     .revelations-timeline h3 {
-      color: #2d3748;
+      color: var(--color-text);
       margin: 0 0 2rem 0;
       font-size: 1.3rem;
     }
@@ -593,13 +594,13 @@ import {
 
     .revelation-item.sent {
       background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(102, 126, 234, 0.02) 100%);
-      border-left: 4px solid #667eea;
+      border-left: 4px solid var(--color-primary);
       margin-left: 2rem;
     }
 
     .revelation-item.received {
       background: linear-gradient(135deg, rgba(72, 187, 120, 0.05) 0%, rgba(72, 187, 120, 0.02) 100%);
-      border-left: 4px solid #48bb78;
+      border-left: 4px solid var(--color-accent);
       margin-right: 2rem;
     }
 
@@ -611,7 +612,7 @@ import {
     }
 
     .day-badge {
-      background: #667eea;
+      background: var(--color-primary);
       color: white;
       padding: 0.25rem 0.75rem;
       border-radius: 12px;
@@ -627,21 +628,21 @@ import {
 
     .sender-name {
       font-weight: 600;
-      color: #2d3748;
+      color: var(--color-text);
     }
 
     .revelation-type {
       font-size: 0.8rem;
-      color: #718096;
+      color: var(--color-text-muted);
     }
 
     .timestamp {
       font-size: 0.8rem;
-      color: #a0aec0;
+      color: var(--color-text-muted);
     }
 
     .revelation-content p {
-      color: #4a5568;
+      color: var(--color-text);
       line-height: 1.6;
       margin: 0;
       font-size: 1rem;
@@ -655,12 +656,12 @@ import {
 
     .action-btn {
       padding: 0.5rem 1rem;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--color-border);
       background: white;
       border-radius: 20px;
       cursor: pointer;
       font-size: 0.8rem;
-      color: #718096;
+      color: var(--color-text-muted);
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
@@ -668,8 +669,8 @@ import {
     }
 
     .action-btn:hover {
-      border-color: #667eea;
-      color: #667eea;
+      border-color: var(--color-primary);
+      color: var(--color-primary);
     }
 
     .photo-reveal-section {
@@ -678,20 +679,20 @@ import {
 
     .photo-reveal-card {
       background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%);
-      border: 2px solid #ffd700;
+      border: 2px solid var(--color-warning);
       border-radius: 16px;
       padding: 2rem;
       text-align: center;
     }
 
     .photo-reveal-header h3 {
-      color: #2d3748;
+      color: var(--color-text);
       margin: 0 0 0.5rem 0;
       font-size: 1.5rem;
     }
 
     .photo-reveal-header p {
-      color: #718096;
+      color: var(--color-text-muted);
       margin: 0 0 2rem 0;
     }
 
@@ -715,25 +716,25 @@ import {
 
     .consent-item .user {
       font-weight: 600;
-      color: #2d3748;
+      color: var(--color-text);
     }
 
     .consent-item .status {
       padding: 0.5rem 1rem;
       border-radius: 20px;
       font-size: 0.9rem;
-      background: #f7fafc;
-      color: #718096;
+      background: var(--color-surface-alt);
+      color: var(--color-text-muted);
     }
 
     .consent-item .status.agreed {
-      background: #c6f6d5;
-      color: #22543d;
+      background: var(--color-surface-alt);
+      color: var(--color-accent);
     }
 
     .consent-btn {
-      background: #ffd700;
-      color: #744210;
+      background: var(--color-warning);
+      color: var(--color-text);
       border: none;
       padding: 1rem 2rem;
       border-radius: 12px;
@@ -747,22 +748,22 @@ import {
     }
 
     .consent-btn.agreed {
-      background: #48bb78;
+      background: var(--color-accent);
       color: white;
     }
 
     .photo-revealed h4 {
-      color: #2d3748;
+      color: var(--color-text);
       margin: 0 0 1rem 0;
     }
 
     .photo-revealed p {
-      color: #718096;
+      color: var(--color-text-muted);
       margin: 0 0 2rem 0;
     }
 
     .view-profile-btn {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent-soft) 100%);
       color: white;
       border: none;
       padding: 1rem 2rem;
@@ -787,8 +788,8 @@ import {
     .spinner {
       width: 40px;
       height: 40px;
-      border: 4px solid #e2e8f0;
-      border-top: 4px solid #667eea;
+      border: 4px solid var(--color-border);
+      border-top: 4px solid var(--color-primary);
       border-radius: 50%;
       animation: spin 1s linear infinite;
       margin: 0 auto 1rem;
@@ -829,7 +830,7 @@ import {
 
     /* Keyboard navigation styles */
     .keyboard-focused {
-      outline: 2px solid var(--primary-color, #ec4899) !important;
+      outline: 2px solid var(--primary-color, var(--color-accent-soft)) !important;
       outline-offset: 2px;
       box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.2);
       transition: all 0.2s ease;
@@ -837,7 +838,7 @@ import {
 
     .keyboard-highlighted {
       background-color: var(--highlight-bg, rgba(236, 72, 153, 0.1));
-      border: 2px solid var(--primary-color, #ec4899);
+      border: 2px solid var(--primary-color, var(--color-accent-soft));
       transform: scale(1.02);
       transition: all 0.3s ease;
     }
@@ -860,7 +861,7 @@ import {
     }
 
     .day-circle:focus-visible {
-      outline: 2px solid var(--primary-color, #ec4899);
+      outline: 2px solid var(--primary-color, var(--color-accent-soft));
       outline-offset: 4px;
     }
 
@@ -878,26 +879,26 @@ import {
     .revelation-item.keyboard-highlighted {
       transform: translateY(-4px);
       box-shadow: 0 12px 35px rgba(236, 72, 153, 0.2);
-      border-left: 4px solid var(--primary-color, #ec4899);
+      border-left: 4px solid var(--primary-color, var(--color-accent-soft));
     }
 
     .revelation-item:focus-visible {
-      outline: 2px solid var(--primary-color, #ec4899);
+      outline: 2px solid var(--primary-color, var(--color-accent-soft));
       outline-offset: 2px;
     }
 
     /* Enhanced focus styles for form elements */
     #revelation-content:focus {
-      outline: 2px solid var(--primary-color, #ec4899);
+      outline: 2px solid var(--primary-color, var(--color-accent-soft));
       outline-offset: 2px;
       box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.1);
-      border-color: var(--primary-color, #ec4899);
+      border-color: var(--primary-color, var(--color-accent-soft));
     }
 
     .share-btn:focus,
     .action-btn:focus,
     .consent-btn:focus {
-      outline: 2px solid var(--primary-color, #ec4899);
+      outline: 2px solid var(--primary-color, var(--color-accent-soft));
       outline-offset: 2px;
       box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.2);
     }

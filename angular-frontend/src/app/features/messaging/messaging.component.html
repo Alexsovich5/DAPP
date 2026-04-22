@@ -1,276 +1,47 @@
-<div class="messaging-container" [class.high-contrast]="highContrastMode" [class.mobile-messaging]="isMobile">
-  <div *ngIf="isLoading" class="loading-spinner">
-    <mat-spinner></mat-spinner>
-  </div>
-
-  <div *ngIf="connectionNotFound" class="connection-not-found">
-    <p>Connection not found</p>
-  </div>
-
-  <div *ngIf="!isLoading && !connectionNotFound">
-    <!-- Header -->
-    <div class="messaging-header">
-      <div class="partner-info">
-        <h2>{{ connectionInfo?.partner_name }}</h2>
-        <div class="connection-status">
-          <span class="online-status" *ngIf="connectionInfo?.is_online">Online</span>
-          <span class="last-seen" *ngIf="!connectionInfo?.is_online && connectionInfo?.last_seen">
-            Last seen {{ connectionInfo.last_seen | date:'short' }}
-          </span>
-        </div>
-      </div>
-      <div class="connection-details">
-        <span class="compatibility-score">{{ connectionInfo?.compatibility_score }}% Match</span>
-        <span class="revelation-progress">Day {{ connectionInfo?.current_day }}</span>
-        <button type="button" class="connection-insights" (click)="showConnectionInsights = !showConnectionInsights">
-          Insights
-        </button>
-      </div>
+<df-page-shell variant="chat" class="messaging">
+  <header class="messaging__header">
+    <button mat-icon-button aria-label="Back" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <df-avatar [name]="connection?.otherUser?.displayName || ''" size="sm"></df-avatar>
+    <div class="messaging__title">
+      <h1 class="messaging__name">{{ connection?.otherUser?.displayName }}</h1>
+      <p class="messaging__subtitle">
+        Day {{ connection?.dayNumber || 1 }} · {{ connection?.compatibility || 0 }}% compatibility
+      </p>
     </div>
+    <button mat-icon-button [matMenuTriggerFor]="moreMenu" aria-label="More">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <mat-menu #moreMenu="matMenu">
+      <button mat-menu-item (click)="onReport()">Report</button>
+      <button mat-menu-item (click)="onUnmatch()">Unmatch</button>
+    </mat-menu>
+  </header>
 
-    <!-- Connection Warning -->
-    <div *ngIf="!webSocketService.isConnected()" class="connection-warning">
-      <span class="connection-status">Reconnecting...</span>
-      <span>Connection issues - messages may be delayed</span>
-    </div>
+  <df-chip purpose="stage" class="messaging__banner" (click)="openRevelation()">
+    Day {{ connection?.dayNumber || 1 }} · {{ revelationPrompt }}
+  </df-chip>
 
-    <!-- Insights Panel -->
-    <div *ngIf="showConnectionInsights" class="insights-panel">
-      <p>Your compatibility score is {{ connectionInfo?.compatibility_score }}%</p>
-      <p>Connection stage: {{ connectionInfo?.connection_stage }}</p>
-    </div>
+  <ol class="messaging__list">
+    <li *ngFor="let msg of messages; trackBy: trackById"
+        class="messaging__bubble"
+        [class.is-outgoing]="msg.sender_id === currentUserId">
+      <p class="messaging__bubble-text">{{ msg.message_text }}</p>
+      <span class="messaging__bubble-meta">{{ msg.created_at | date:'shortTime' }}</span>
+    </li>
+  </ol>
 
-    <!-- Messages Container -->
-    <div #messagesContainer class="messages-container" [class.bottom-positioned]="isMobile">
-      <cdk-virtual-scroll-viewport *ngIf="messages.length > 100" itemSize="80" class="messages-list">
-        <button type="button"
-             *cdkVirtualFor="let message of messages; trackBy: trackByMessageId"
-             class="message-item"
-             [class.own-message]="message.is_own_message"
-             [class.partner-message]="!message.is_own_message"
-             [class.unread]="!message.is_read"
-             [class.search-highlight]="false"
-             [class.filtered-out]="false"
-             [attr.data-message-id]="message.id"
-             [attr.tabindex]="0"
-             (click)="copyMessageText(message)"
-             (contextmenu)="$event.preventDefault()">
-
-          <div class="emotional-tone" *ngIf="message.emotional_tone" [class]="message.emotional_tone"></div>
-
-          <div *ngIf="message.reply_to_message_id" class="reply-indicator">
-            Replying to previous message
-          </div>
-
-          <div class="message-content" [ngClass]="message.message_type">
-            <div *ngIf="message.message_type === 'text'" class="message-text">
-              {{ message.message_text }}
-            </div>
-            <div *ngIf="message.message_type === 'revelation_share'" class="revelation-message">
-              <mat-icon class="revelation-icon">favorite</mat-icon>
-              {{ message.message_text }}
-            </div>
-            <div *ngIf="message.message_type === 'emoji'" class="emoji-message">
-              {{ message.message_text }}
-            </div>
-            <img *ngIf="message.message_type === 'image'" [src]="message.message_text" loading="lazy" alt="Shared image">
-          </div>
-
-          <div class="message-meta">
-            <span class="message-time">{{ message.created_at | date:'short' }}</span>
-          </div>
-
-          <div class="message-actions" role="group" aria-label="Message actions">
-            <button type="button" class="action-btn reply-button" (click)="replyingTo = message; $event.stopPropagation()">
-              Reply
-            </button>
-            <button type="button" class="action-btn reaction-button" (click)="$event.stopPropagation()">
-              React
-            </button>
-            <button *ngIf="message.is_own_message" type="button" class="action-btn edit-button" (click)="editingMessageId = message.id; $event.stopPropagation()">
-              Edit
-            </button>
-            <button *ngIf="message.is_own_message" type="button" class="action-btn delete-button" (click)="$event.stopPropagation()">
-              Delete
-            </button>
-          </div>
-        </button>
-      </cdk-virtual-scroll-viewport>
-
-      <!-- Standard List for smaller message counts -->
-      <div *ngIf="messages.length <= 100" class="messages-list">
-        <div *ngFor="let message of messages; trackBy: trackByMessageId"
-             class="message-item"
-             [class.own-message]="message.is_own_message"
-             [class.partner-message]="!message.is_own_message"
-             [class.unread]="!message.is_read"
-             [attr.data-message-id]="message.id"
-             [attr.tabindex]="0">
-
-          <div class="emotional-tone" *ngIf="message.emotional_tone" [class]="message.emotional_tone"></div>
-
-          <div *ngIf="message.reply_to_message_id" class="reply-indicator">
-            Replying to previous message
-          </div>
-
-          <div class="message-content" [ngClass]="message.message_type">
-            <div *ngIf="message.message_type === 'text'" class="message-text">
-              {{ message.message_text }}
-            </div>
-            <div *ngIf="message.message_type === 'revelation_share'" class="revelation-message">
-              <mat-icon class="revelation-icon">favorite</mat-icon>
-              {{ message.message_text }}
-            </div>
-            <div *ngIf="message.message_type === 'emoji'" class="emoji-message">
-              {{ message.message_text }}
-            </div>
-          </div>
-
-          <div class="message-meta">
-            <span class="message-time">{{ message.created_at | date:'short' }}</span>
-          </div>
-
-          <div class="message-actions" role="group" aria-label="Message actions">
-            <button type="button" class="action-btn reply-button" (click)="replyingTo = message">
-              Reply
-            </button>
-            <button type="button" class="action-btn reaction-button">
-              React
-            </button>
-            <button *ngIf="message.is_own_message" type="button" class="action-btn edit-button" (click)="editingMessageId = message.id">
-              Edit
-            </button>
-            <button *ngIf="message.is_own_message" type="button" class="action-btn delete-button">
-              Delete
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Typing Indicator -->
-      <div *ngIf="partnerTyping" class="typing-indicator">
-        {{ connectionInfo?.partner_name }} is typing...
-      </div>
-    </div>
-
-    <!-- Live Region for Screen Readers -->
-    <div aria-live="polite" class="sr-only"></div>
-
-    <!-- Message Input Area -->
-    <div class="message-input-container">
-      <div *ngIf="replyingTo" class="replying-to">
-        Replying to {{ replyingTo.sender_name }}
-        <button type="button" (click)="replyingTo = undefined">Cancel</button>
-      </div>
-
-      <div class="input-wrapper">
-        <button type="button" class="emoji-picker-button" (click)="showEmojiPicker = !showEmojiPicker" aria-label="Open emoji picker">
-          <mat-icon>sentiment_satisfied_alt</mat-icon>
-        </button>
-
-        <textarea
-          #messageInput
-          class="message-input"
-          [formControl]="messageControl"
-          placeholder="Type your message..."
-          [attr.aria-label]="'Type your message'"
-          [attr.inputmode]="isMobile ? 'text' : null"
-          [attr.enterkeyhint]="isMobile ? 'send' : null"
-          (keydown.enter)="!$event.shiftKey && sendMessage(); $event.preventDefault()"
-          (focus)="isMobile && adjustForVirtualKeyboard()">
-        </textarea>
-
-        <button type="button" class="quick-responses-button" (click)="showQuickResponses = !showQuickResponses">
-          Quick
-        </button>
-
-        <button type="button" class="message-suggestions" (click)="showQuickResponses = !showQuickResponses">
-          Suggest
-        </button>
-
-        <button
-          type="button"
-          class="send-button"
-          [disabled]="!messageControl.value?.trim() || isMessageTooLong()"
-          [attr.aria-label]="'Send message'"
-          (click)="sendMessage()">
-          <mat-icon>send</mat-icon>
-        </button>
-      </div>
-
-      <div class="input-meta">
-        <span class="character-count">
-          {{ messageControl.value?.length || 0 }} / {{ 2000 }}
-        </span>
-        <span *ngIf="currentEmotionalTone" class="tone-indicator">
-          Tone: {{ currentEmotionalTone }}
-        </span>
-      </div>
-
-      <!-- Emoji Picker -->
-      <div *ngIf="showEmojiPicker" class="emoji-picker">
-        <button type="button" (click)="insertEmoji('❤️')">❤️</button>
-        <button type="button" (click)="insertEmoji('😊')">😊</button>
-        <button type="button" (click)="insertEmoji('👍')">👍</button>
-        <button type="button" (click)="insertEmoji('🙏')">🙏</button>
-      </div>
-
-      <!-- Quick Responses -->
-      <div *ngIf="showQuickResponses" class="quick-responses">
-        <button type="button" class="quick-response" (click)="sendMessage('Your message touched my soul')">
-          Your message touched my soul
-        </button>
-        <button type="button" class="quick-response" (click)="sendMessage('I appreciate your authenticity')">
-          I appreciate your authenticity
-        </button>
-      </div>
-    </div>
-
-    <!-- Toolbar -->
-    <div class="message-toolbar">
-      <button type="button" class="search-messages">Search</button>
-      <button type="button" class="message-filter">Filter</button>
-      <button type="button" class="export-messages" (click)="downloadAsFile()">Export</button>
-    </div>
-
-    <!-- Search Input -->
-    <div class="search-container" style="display: none;">
-      <input type="text" class="message-search-input" placeholder="Search messages...">
-    </div>
-
-    <!-- Filter Options -->
-    <div class="filter-options" style="display: none;">
-      <button type="button" class="filter-revelations">Revelations Only</button>
-    </div>
-
-    <!-- Context Menu -->
-    <div class="message-context-menu" style="display: none;">
-      <button type="button" class="menu-item">Copy</button>
-      <button type="button" class="menu-item">Reply</button>
-      <button type="button" class="menu-item">Delete</button>
-    </div>
-
-    <!-- Reaction Picker -->
-    <div class="reaction-picker" style="display: none;">
-      <button type="button">❤️</button>
-      <button type="button">😊</button>
-      <button type="button">👍</button>
-    </div>
-
-    <!-- Edit Input -->
-    <div *ngIf="editingMessageId" class="edit-container">
-      <input type="text" class="edit-input" placeholder="Edit message...">
-      <button type="button" class="save-edit">Save</button>
-    </div>
-
-    <!-- Delete Confirmation -->
-    <div class="delete-confirmation" style="display: none;">
-      <p>Are you sure you want to delete this message?</p>
-      <button type="button" class="confirm-delete">Yes, Delete</button>
-      <button type="button" class="cancel-delete">Cancel</button>
-    </div>
-
-    <!-- Retry Button (for failed messages) -->
-    <button type="button" class="retry-send" style="display: none;">Retry</button>
-  </div>
-</div>
+  <form class="messaging__composer" (ngSubmit)="sendMessage()">
+    <button type="button" mat-icon-button aria-label="Attach" (click)="openAttachSheet()">
+      <mat-icon>add</mat-icon>
+    </button>
+    <input dfInput
+      class="messaging__composer-input"
+      [(ngModel)]="draft" name="draft"
+      placeholder="Message" aria-label="Compose message" />
+    <button type="submit" mat-icon-button aria-label="Send" [disabled]="!draft?.trim()">
+      <mat-icon>send</mat-icon>
+    </button>
+  </form>
+</df-page-shell>

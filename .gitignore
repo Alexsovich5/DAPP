@@ -103,3 +103,6 @@ test_*_api.py
 
 # Worktrees (isolated workspaces for feature branches)
 .worktrees/
+
+# Superpowers session state
+.superpowers/

@@ -1,209 +1,71 @@
-/* Import WCAG 2.1 AA Compliant Color System */
-@import 'app/shared/styles/accessibility-colors';
+@use 'styles/tokens';
+@use 'styles/material-theme';
+@use 'app/shared/ui/button/df-button';
+@use 'app/shared/ui/chip/df-chip';
+@use 'app/shared/ui/card/df-card';
+@use 'app/shared/ui/input/df-input';
+@use 'app/shared/ui/avatar/df-avatar';
+@use 'app/shared/ui/page-shell/df-page-shell';
 
-/* Import Icon Standardization */
-@import 'app/shared/styles/icon-standards';
-
-/* Import Swipe Gesture Styles */
-@import 'app/shared/styles/swipe-gestures';
-
-/* Import Angular Material themes */
-@import '@angular/material/prebuilt-themes/pink-bluegrey.css';
-
-/* Dark theme override for Material components */
-.dark-theme {
-
-  // Override Material colors for dark mode
-  .mat-toolbar {
-    background-color: var(--header-background) !important;
-    color: var(--text-primary) !important;
-  }
-
-  .mat-card {
-    background-color: var(--card-background) !important;
-    color: var(--text-primary) !important;
-  }
-
-  .mat-button, .mat-raised-button, .mat-stroked-button {
-    color: var(--text-primary) !important;
-  }
-
-  .mat-form-field {
-    color: var(--text-primary) !important;
-
-    .mat-form-field-label {
-      color: var(--text-secondary) !important;
-    }
-
-    .mat-input-element {
-      color: var(--text-primary) !important;
-    }
-
-    .mat-form-field-outline {
-      color: var(--border-color) !important;
-    }
-
-    .mat-form-field-outline-thick {
-      color: var(--primary-color) !important;
-    }
-  }
-
-  .mat-icon {
-    color: var(--text-primary) !important;
-  }
-
-  .mat-divider {
-    border-top-color: var(--border-color) !important;
-  }
-
-  .mat-progress-bar {
-    background-color: var(--surface-color) !important;
-  }
-
-  .mat-stepper-horizontal {
-    background-color: var(--card-background) !important;
-  }
-
-  .mat-step-header {
-    color: var(--text-primary) !important;
-  }
-
-  .mat-checkbox {
-    color: var(--text-primary) !important;
-  }
-
-  .mat-error {
-    color: var(--error-text) !important;
-  }
-}
-
-// Global styles
 html, body {
   height: 100%;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-body {
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
-  line-height: 1.6;
-  -webkit-text-size-adjust: 100%;
+  padding: 0;
 }
 
-// Improved mobile typography
-@media (max-width: 768px) {
-  body {
-    font-size: 16px; // Prevents zoom on iOS
-  }
-
-  h1 {
-    font-size: 2rem;
-    line-height: 1.2;
-  }
-
-  h2 {
-    font-size: 1.75rem;
-    line-height: 1.3;
-  }
-
-  h3 {
-    font-size: 1.5rem;
-    line-height: 1.3;
-  }
-
-  p {
-    font-size: 1.1rem;
-    line-height: 1.6;
-  }
-
-  button {
-    min-height: 44px;
-    min-width: 44px;
-    font-size: 1rem;
-  }
-
-  .mat-button, .mat-raised-button, .mat-stroked-button {
-    min-height: 48px !important;
-    font-size: 1.1rem !important;
-    padding: 0.75rem 1.5rem !important;
-  }
-
-  .mat-form-field {
-    font-size: 1.1rem !important;
-  }
-
-  input, textarea, select {
-    font-size: 16px !important; // Prevents zoom on iOS
-  }
-}
-
-// Legacy color mappings for backward compatibility
-:root {
-  // Map legacy colors to accessible variants for new features
-  --primary-color: var(--interactive-primary);
-  --primary-color-rgb: 236, 72, 153;
-  --accent-color: var(--interactive-accent);
-  --accent-color-rgb: 139, 92, 246;
-  --background-color: var(--background-primary);
-  --surface-color: var(--background-secondary);
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --border-color: #e5e7eb;
-  --card-background: var(--background-primary);
-  --header-background: var(--background-primary);
-  --shadow-color: rgba(0, 0, 0, 0.1);
-  --error-background: var(--color-error-50);
-  --error-border: var(--color-error-200);
-  --error-text: var(--status-error);
-}
-
-.dark-theme {
-  // Dark theme legacy mappings with explicit colors for compatibility
-  --primary-color: var(--interactive-primary);
-  --primary-color-rgb: 244, 114, 182;
-  --accent-color: var(--interactive-accent);
-  --accent-color-rgb: 167, 139, 250;
-  --background-color: var(--background-primary);
-  --surface-color: var(--background-secondary);
-  --text-primary: #f9fafb;
-  --text-secondary: #d1d5db;
-  --border-color: #374151;
-  --card-background: var(--background-primary);
-  --header-background: var(--background-primary);
-  --shadow-color: rgba(0, 0, 0, 0.3);
-  --error-background: rgba(220, 38, 38, 0.1);
-  --error-border: rgba(220, 38, 38, 0.2);
-  --error-text: var(--status-error);
-}
-
-// Apply theme colors to body
 body {
-  background-color: var(--background-color);
-  color: var(--text-primary);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-lh);
+  font-weight: var(--type-body-weight);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-// Enhanced Accessibility Features
+*, *::before, *::after {
+  box-sizing: border-box;
+}
 
-// Focus management and keyboard navigation
-*:focus {
-  outline: 2px solid var(--focus-ring-primary);
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  &:hover { color: var(--color-primary-hover); }
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
-// High contrast theme support
-@media (prefers-contrast: high) {
-  *:focus {
-    outline: 3px solid currentColor;
-    outline-offset: 2px;
-  }
-
-  button, a, input, textarea, select {
-    border: 2px solid currentColor !important;
-  }
+// Material Icons Outlined — default to outlined variant app-wide.
+.mat-icon,
+.material-icons,
+.material-icons-outlined {
+  font-family: 'Material Icons Outlined', 'Material Icons', sans-serif;
+  font-feature-settings: 'liga';
 }
 
-// Reduced motion support
+// Prevent browser autofill yellow background on themed inputs.
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--color-text);
+  -webkit-box-shadow: 0 0 0 1000px var(--color-surface) inset;
+  caret-color: var(--color-text);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -212,307 +74,5 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-}
-
-// Color scheme preference
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    color-scheme: dark;
-  }
-}
-
-// Enhanced button accessibility
-button {
-  cursor: pointer;
-  min-height: 44px;
-  min-width: 44px;
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
-
-  &:focus {
-    @include focus-ring-primary;
-  }
-}
-
-// Form control accessibility
-input, textarea, select {
-  font-size: 16px; // Prevents zoom on iOS
-  min-height: 44px;
-  color: var(--text-primary) !important;
-  background-color: var(--background-primary);
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-
-  &:focus {
-    @include focus-ring-primary;
-  }
-
-  &:invalid {
-    border-color: var(--status-error);
-    box-shadow: 0 0 0 1px var(--status-error);
-  }
-
-  &::placeholder {
-    color: var(--text-tertiary) !important;
-    opacity: 0.7;
-  }
-}
-
-// Ensure Material textareas and selects are also visible
-.mat-input-element {
-  color: var(--text-primary) !important;
-
-  &:disabled {
-    color: var(--text-disabled) !important;
-  }
-}
-
-// Link accessibility
-a {
-  color: var(--interactive-primary);
-  text-decoration: underline;
-  text-decoration-skip-ink: auto;
-
-  &:hover {
-    color: var(--interactive-primary-hover);
-  }
-
-  &:focus {
-    @include focus-ring-primary;
-  }
-
-  // Skip link for screen readers
-  &.skip-link {
-    position: absolute;
-    top: -40px;
-    left: 6px;
-    background: var(--background-primary);
-    color: var(--text-primary);
-    padding: 8px;
-    z-index: 9999;
-    text-decoration: none;
-    border-radius: 4px;
-    border: 2px solid var(--interactive-primary);
-
-    &:focus {
-      top: 6px;
-    }
-  }
-}
-
-// Ensure text has sufficient line height for readability
-p, li, td, th {
-  line-height: 1.6;
-}
-
-// Improve spacing for better readability
-h1, h2, h3, h4, h5, h6 {
-  line-height: 1.3;
-  margin-bottom: 0.75em;
-
-  &:first-child {
-    margin-top: 0;
-  }
-}
-
-// Lists accessibility
-ul, ol {
-  padding-left: 1.5em;
-
-  li {
-    margin-bottom: 0.25em;
-  }
-}
-
-// Table accessibility
-table {
-  border-collapse: collapse;
-  width: 100%;
-
-  th, td {
-    padding: 0.75rem;
-    text-align: left;
-    border: 1px solid var(--border-medium);
-  }
-
-  th {
-    background-color: var(--background-secondary);
-    font-weight: 600;
-  }
-
-  caption {
-    @include text-primary;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    text-align: left;
-  }
-}
-
-// Angular Material overrides for accessibility
-.mat-button, .mat-raised-button, .mat-stroked-button, .mat-flat-button {
-  min-height: 44px !important;
-  @include text-primary;
-
-  &:focus {
-    @include focus-ring-primary;
-  }
-
-  &.mat-primary {
-    @include interactive-primary;
-  }
-
-  &.mat-accent {
-    @include interactive-accent;
-  }
-}
-
-.mat-form-field {
-  .mat-form-field-label {
-    color: var(--text-secondary) !important;
-  }
-
-  .mat-input-element {
-    color: var(--text-primary) !important;
-    caret-color: var(--text-primary) !important;
-
-    &:focus {
-      @include focus-ring-primary;
-    }
-
-    &::placeholder {
-      color: var(--text-tertiary) !important;
-      opacity: 0.7;
-    }
-  }
-
-  &.mat-focused .mat-form-field-label {
-    color: var(--interactive-primary) !important;
-  }
-
-  // Ensure all Material form field variants have visible text
-  &.mat-form-field-appearance-fill .mat-input-element,
-  &.mat-form-field-appearance-outline .mat-input-element,
-  &.mat-form-field-appearance-legacy .mat-input-element {
-    color: var(--text-primary) !important;
-    caret-color: var(--text-primary) !important;
-  }
-
-  // CRITICAL: Fix outline appearance borders (used in login form)
-  &.mat-form-field-appearance-outline {
-    .mat-form-field-outline {
-      color: var(--border-medium) !important;
-    }
-
-    .mat-form-field-outline-thick {
-      color: var(--interactive-primary) !important;
-    }
-
-    &.mat-focused .mat-form-field-outline-thick {
-      color: var(--interactive-primary) !important;
-    }
-
-    &:hover:not(.mat-focused) .mat-form-field-outline {
-      color: var(--border-strong) !important;
-    }
-  }
-
-  // Fix autofill styles
-  input:-webkit-autofill,
-  input:-webkit-autofill:hover,
-  input:-webkit-autofill:focus {
-    -webkit-text-fill-color: var(--text-primary) !important;
-    -webkit-box-shadow: 0 0 0px 1000px var(--background-primary) inset !important;
-    transition: background-color 5000s ease-in-out 0s;
-  }
-}
-
-.mat-error {
-  color: var(--status-error) !important;
-}
-
-// Material Design Components (MDC) form field styling
-.mat-mdc-form-field {
-  .mdc-text-field {
-    background-color: transparent !important;
-  }
-
-  .mat-mdc-form-field-focus-overlay {
-    background-color: transparent !important;
-  }
-
-  // MDC outline appearance
-  &.mat-mdc-form-field-appearance-outline {
-    .mdc-notched-outline__leading,
-    .mdc-notched-outline__trailing,
-    .mdc-notched-outline__notch {
-      border-color: var(--border-medium) !important;
-    }
-
-    &:hover:not(.mdc-text-field--focused) {
-      .mdc-notched-outline__leading,
-      .mdc-notched-outline__trailing,
-      .mdc-notched-outline__notch {
-        border-color: var(--border-strong) !important;
-      }
-    }
-
-    &.mdc-text-field--focused {
-      .mdc-notched-outline__leading,
-      .mdc-notched-outline__trailing,
-      .mdc-notched-outline__notch {
-        border-color: var(--interactive-primary) !important;
-        border-width: 2px !important;
-      }
-    }
-  }
-
-  // MDC input element
-  .mat-mdc-input-element {
-    color: var(--text-primary) !important;
-    caret-color: var(--text-primary) !important;
-
-    &::placeholder {
-      color: var(--text-tertiary) !important;
-      opacity: 0.7;
-    }
-  }
-
-  // MDC label
-  .mat-mdc-floating-label {
-    color: var(--text-secondary) !important;
-  }
-
-  &.mat-focused .mat-mdc-floating-label {
-    color: var(--interactive-primary) !important;
-  }
-}
-
-.mat-card {
-  background-color: var(--background-primary) !important;
-  @include text-primary;
-  border: 1px solid var(--border-light);
-}
-
-// Global dark mode styles
-.dark-theme {
-  // Scrollbar styling for dark mode
-  ::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: var(--background-secondary);
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: var(--border-medium);
-    border-radius: 4px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--border-strong);
   }
 }

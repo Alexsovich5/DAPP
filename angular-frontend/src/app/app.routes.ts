@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './features/auth/auth.guard';
-import { OnboardingStepGuard } from './features/onboarding/onboarding-step.guard';
 import { LandingComponent } from './features/landing/landing.component';
 
 export const routes: Routes = [
@@ -19,34 +18,18 @@ export const routes: Routes = [
   },
   {
     path: 'onboarding',
-    loadComponent: () => import('./features/onboarding/onboarding.component').then(m => m.OnboardingComponent),
+    loadComponent: () => import('./features/onboarding/onboarding-flow.component').then(m => m.OnboardingFlowComponent),
     canActivate: [AuthGuard],
-    children: [
-      { path: '', redirectTo: 'emotional-questions', pathMatch: 'full' },
-      {
-        path: 'emotional-questions',
-        loadComponent: () => import('./features/onboarding/emotional-questions/emotional-questions.component').then(m => m.EmotionalQuestionsComponent)
-      },
-      {
-        path: 'personality-assessment',
-        loadComponent: () => import('./features/onboarding/personality-assessment/personality-assessment.component').then(m => m.PersonalityAssessmentComponent),
-        canActivate: [OnboardingStepGuard]
-      },
-      {
-        path: 'interest-selection',
-        loadComponent: () => import('./features/onboarding/interest-selection/interest-selection.component').then(m => m.InterestSelectionComponent),
-        canActivate: [OnboardingStepGuard]
-      },
-      {
-        path: 'complete',
-        loadComponent: () => import('./features/onboarding/onboarding-complete/onboarding-complete.component').then(m => m.OnboardingCompleteComponent),
-        canActivate: [OnboardingStepGuard]
-      }
-    ]
   },
   {
     path: 'profile',
     loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'profile/edit',
+    loadComponent: () =>
+      import('./features/profile/profile-edit/profile-edit.component').then(m => m.ProfileEditComponent),
     canActivate: [AuthGuard]
   },
   {
@@ -81,7 +64,27 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
+    path: 'dashboard',
+    redirectTo: 'discover',
+    pathMatch: 'full'
+  },
+  {
+    path: 'auth/login',
+    redirectTo: 'login',
+    pathMatch: 'full'
+  },
+  {
+    path: 'auth/register',
+    redirectTo: 'register',
+    pathMatch: 'full'
+  },
+  {
     path: 'revelations',
+    loadComponent: () => import('./features/revelations/revelations.component').then(m => m.RevelationsComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'revelations/compose/:connectionId',
     loadComponent: () => import('./features/revelations/revelations.component').then(m => m.RevelationsComponent),
     canActivate: [AuthGuard]
   },
@@ -99,10 +102,6 @@ export const routes: Routes = [
         m => m.DinnerPlanningComponent
       ),
     canActivate: [AuthGuard]
-  },
-  {
-    path: 'demo',
-    loadComponent: () => import('./shared/components/navigation/navigation-demo.component').then(m => m.NavigationDemoComponent)
   },
   {
     path: 'settings',

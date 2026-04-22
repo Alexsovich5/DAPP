@@ -1,0 +1,20 @@
+.df-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--color-accent-soft), var(--color-primary));
+  color: #FFFFFF;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  overflow: hidden;
+  user-select: none;
+
+  &--sm { width: 32px; height: 32px; font-size: var(--type-small-size); }
+  &--md { width: 48px; height: 48px; font-size: var(--type-h3-size); }
+  &--lg { width: 72px; height: 72px; font-size: var(--type-h2-size); }
+
+  img { width: 100%; height: 100%; object-fit: cover; }
+
+  &__monogram { letter-spacing: 0.02em; }
+}
