@@ -152,7 +152,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       position: fixed;
       max-width: 400px;
       min-width: 300px;
-      background: var(--surface-color);
+      background: var(--color-surface);
       border-radius: 16px;
       box-shadow:
         0 24px 48px rgba(0, 0, 0, 0.15),
@@ -191,28 +191,28 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
     .theme-discovery {
       border-color: rgba(96, 165, 250, 0.3);
       background: linear-gradient(135deg,
-        var(--surface-color) 0%,
+        var(--color-surface) 0%,
         rgba(96, 165, 250, 0.05) 100%);
     }
 
     .theme-connection {
       border-color: rgba(255, 107, 157, 0.3);
       background: linear-gradient(135deg,
-        var(--surface-color) 0%,
+        var(--color-surface) 0%,
         rgba(255, 107, 157, 0.05) 100%);
     }
 
     .theme-growth {
       border-color: rgba(52, 211, 153, 0.3);
       background: linear-gradient(135deg,
-        var(--surface-color) 0%,
+        var(--color-surface) 0%,
         rgba(52, 211, 153, 0.05) 100%);
     }
 
     .theme-celebration {
       border-color: rgba(255, 215, 0, 0.3);
       background: linear-gradient(135deg,
-        var(--surface-color) 0%,
+        var(--color-surface) 0%,
         rgba(255, 215, 0, 0.05) 100%);
     }
 
@@ -419,28 +419,28 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       bottom: -16px;
       left: 50%;
       transform: translateX(-50%);
-      border-top-color: var(--surface-color);
+      border-top-color: var(--color-surface);
     }
 
     .arrow-bottom {
       top: -16px;
       left: 50%;
       transform: translateX(-50%);
-      border-bottom-color: var(--surface-color);
+      border-bottom-color: var(--color-surface);
     }
 
     .arrow-left {
       right: -16px;
       top: 50%;
       transform: translateY(-50%);
-      border-left-color: var(--surface-color);
+      border-left-color: var(--color-surface);
     }
 
     .arrow-right {
       left: -16px;
       top: 50%;
       transform: translateY(-50%);
-      border-right-color: var(--surface-color);
+      border-right-color: var(--color-surface);
     }
 
     /* Animations */
@@ -499,7 +499,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
     /* Dark theme adaptation */
     .dark-theme {
       .onboarding-tooltip {
-        background: var(--surface-color);
+        background: var(--color-surface);
         box-shadow:
           0 24px 48px rgba(0, 0, 0, 0.3),
           0 8px 24px rgba(0, 0, 0, 0.2),
