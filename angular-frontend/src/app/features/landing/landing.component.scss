@@ -1,9 +1,17 @@
+// :host owns the page-fill background + the absolute-positioned signin
+// reference frame. The inner df-page-shell handles horizontal max-width
+// and gutter padding. Vertical padding overrides on .landing-shell
+// preserve the marketing page's heavier breathing room.
 :host {
   display: block;
   min-height: 100dvh;
   background: var(--color-bg);
-  padding: var(--space-12) var(--space-6) var(--space-16);
   position: relative;
+}
+
+.landing-shell {
+  padding-top: var(--space-12);
+  padding-bottom: var(--space-16);
 }
 
 .landing__signin {
