@@ -1,27 +1,29 @@
 <a class="landing__signin" routerLink="/auth/login">Sign in</a>
 
-<section class="landing__hero">
-  <h1 class="landing__hero-stack">
-    <span class="landing__hero-line display-serif">Soul</span>
-    <span class="landing__hero-line display-serif">before</span>
-    <span class="landing__hero-line display-serif">skin.</span>
-  </h1>
-  <p class="landing__subhead">
-    Seven days of progressive revelation. Then, if it feels right — dinner.
-  </p>
-  <a dfButton variant="primary" size="lg" routerLink="/auth/register" class="landing__cta">
-    Begin your story
-  </a>
-</section>
+<df-page-shell variant="reading" class="landing-shell">
+  <section class="landing__hero">
+    <h1 class="landing__hero-stack">
+      <span class="landing__hero-line display-serif">Soul</span>
+      <span class="landing__hero-line display-serif">before</span>
+      <span class="landing__hero-line display-serif">skin.</span>
+    </h1>
+    <p class="landing__subhead">
+      Seven days of progressive revelation. Then, if it feels right — dinner.
+    </p>
+    <a dfButton variant="primary" size="lg" routerLink="/auth/register" class="landing__cta">
+      Begin your story
+    </a>
+  </section>
 
-<section class="landing__how">
-  <article class="landing__how-card">
-    <div *ngFor="let step of steps" class="landing__how-row">
-      <mat-icon class="landing__how-icon" fontSet="material-icons-outlined">{{ step.icon }}</mat-icon>
-      <div class="landing__how-text">
-        <h3 class="landing__how-title">{{ step.title }}</h3>
-        <p class="landing__how-body">{{ step.body }}</p>
+  <section class="landing__how">
+    <article class="landing__how-card">
+      <div *ngFor="let step of steps" class="landing__how-row">
+        <mat-icon class="landing__how-icon" fontSet="material-icons-outlined">{{ step.icon }}</mat-icon>
+        <div class="landing__how-text">
+          <h3 class="landing__how-title">{{ step.title }}</h3>
+          <p class="landing__how-body">{{ step.body }}</p>
+        </div>
       </div>
-    </div>
-  </article>
-</section>
+    </article>
+  </section>
+</df-page-shell>
