@@ -75,7 +75,7 @@ export class OnboardingTargetDirective implements OnInit, OnDestroy {
     // Add custom styling
     element.style.position = 'relative';
     element.style.zIndex = '9990';
-    element.style.outline = '3px solid var(--primary-color)';
+    element.style.outline = '3px solid var(--color-primary)';
     element.style.outlineOffset = '4px';
     element.style.borderRadius = '8px';
     element.style.transition = 'all 0.3s ease';

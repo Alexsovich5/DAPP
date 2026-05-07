@@ -211,7 +211,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
       gap: 1rem;
       padding: 0.75rem 1rem;
       background: var(--color-surface);
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--color-border);
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -225,7 +225,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
       }
 
       &:focus {
-        outline: 2px solid var(--primary-color);
+        outline: 2px solid var(--color-primary);
         outline-offset: 2px;
       }
     }
@@ -289,7 +289,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
       left: 0;
       right: 0;
       background: var(--color-surface);
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--color-border);
       border-radius: 16px;
       padding: 1.5rem;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
@@ -351,18 +351,18 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
       }
 
       &:focus {
-        outline: 2px solid var(--primary-color);
+        outline: 2px solid var(--color-primary);
         outline-offset: 2px;
       }
 
       &.active {
-        border-color: var(--primary-color);
+        border-color: var(--color-primary);
         background: rgba(255, 107, 157, 0.05);
         box-shadow: 0 4px 20px rgba(255, 107, 157, 0.2);
       }
 
       &.recommended {
-        border-color: var(--accent-color);
+        border-color: var(--color-accent);
 
         &::before {
           content: '';
@@ -371,7 +371,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
           left: -2px;
           right: -2px;
           bottom: -2px;
-          background: linear-gradient(45deg, var(--accent-color), var(--primary-color));
+          background: linear-gradient(45deg, var(--color-accent), var(--color-primary));
           border-radius: 14px;
           z-index: -1;
         }
@@ -441,7 +441,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
     .emotional-effects {
       margin-top: 0.75rem;
       padding-top: 0.75rem;
-      border-top: 1px solid var(--border-color);
+      border-top: 1px solid var(--color-border);
     }
 
     .effects-list {
@@ -457,7 +457,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
 
       &:before {
         content: '\2713 ';
-        color: var(--primary-color);
+        color: var(--color-primary);
         font-weight: bold;
       }
     }
@@ -467,7 +467,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
       position: absolute;
       top: -8px;
       right: -8px;
-      background: var(--accent-color);
+      background: var(--color-accent);
       color: white;
       padding: 0.25rem 0.5rem;
       border-radius: 12px;
@@ -609,12 +609,12 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
     .dark-theme {
       .mood-toggle {
         background: var(--color-surface);
-        border-color: var(--border-color);
+        border-color: var(--color-border);
       }
 
       .mood-options {
         background: var(--color-surface);
-        border-color: var(--border-color);
+        border-color: var(--color-border);
       }
     }
 

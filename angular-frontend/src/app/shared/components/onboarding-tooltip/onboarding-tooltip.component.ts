@@ -307,7 +307,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
 
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+      background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
       border-radius: 2px;
       transition: width 0.3s ease;
       position: relative;
@@ -354,7 +354,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       }
 
       &.primary {
-        background: var(--primary-color);
+        background: var(--color-primary);
         color: white;
 
         &:hover:not(:disabled) {
@@ -364,7 +364,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
         }
 
         &:focus {
-          outline: 2px solid var(--primary-color);
+          outline: 2px solid var(--color-primary);
           outline-offset: 2px;
         }
       }
@@ -372,7 +372,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
       &.secondary {
         background: var(--color-surface-alt);
         color: var(--color-text);
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--color-border);
 
         &:hover:not(:disabled) {
           background: var(--surface-tertiary);
@@ -390,7 +390,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
     .keyboard-hint {
       margin-top: 1rem;
       padding-top: 1rem;
-      border-top: 1px solid var(--border-color);
+      border-top: 1px solid var(--color-border);
 
       small {
         color: var(--text-tertiary);
@@ -399,7 +399,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
 
       kbd {
         background: var(--color-surface-alt);
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--color-border);
         border-radius: 3px;
         padding: 0.125rem 0.25rem;
         font-size: 0.7rem;
@@ -512,7 +512,7 @@ import { HapticFeedbackService } from '../../../core/services/haptic-feedback.se
 
       .keyboard-hint kbd {
         background: var(--surface-tertiary);
-        border-color: var(--border-color);
+        border-color: var(--color-border);
       }
     }
 

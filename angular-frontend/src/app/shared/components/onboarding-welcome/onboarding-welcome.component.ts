@@ -310,8 +310,8 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       font-weight: 700;
       margin: 0 0 0.5rem 0;
       background: linear-gradient(135deg,
-        var(--primary-color) 0%,
-        var(--accent-color) 100%);
+        var(--color-primary) 0%,
+        var(--color-accent) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -368,7 +368,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       padding: 1.5rem;
       background: var(--color-surface-alt);
       border-radius: 16px;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--color-border);
       transition: all 0.3s ease;
 
       &:hover {
@@ -381,7 +381,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       flex-shrink: 0;
       width: 40px;
       height: 40px;
-      background: var(--primary-color);
+      background: var(--color-primary);
       color: white;
       border-radius: 50%;
       display: flex;
@@ -427,7 +427,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       padding: 1.5rem;
       background: var(--color-surface-alt);
       border-radius: 12px;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--color-border);
     }
 
     .benefit-icon {
@@ -459,25 +459,25 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 
     .option-card {
       padding: 1.5rem;
-      border: 2px solid var(--border-color);
+      border: 2px solid var(--color-border);
       border-radius: 16px;
       cursor: pointer;
       transition: all 0.3s ease;
       background: var(--color-surface-alt);
 
       &:hover {
-        border-color: var(--primary-color);
+        border-color: var(--color-primary);
         transform: translateY(-2px);
         box-shadow: 0 8px 24px rgba(255, 107, 157, 0.2);
       }
 
       &:focus {
-        outline: 2px solid var(--primary-color);
+        outline: 2px solid var(--color-primary);
         outline-offset: 2px;
       }
 
       &.selected {
-        border-color: var(--primary-color);
+        border-color: var(--color-primary);
         background: rgba(255, 107, 157, 0.05);
         box-shadow: 0 8px 24px rgba(255, 107, 157, 0.2);
       }
@@ -510,7 +510,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
 
     .option-duration {
       font-size: 0.8rem;
-      color: var(--accent-color);
+      color: var(--color-accent);
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -541,7 +541,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       display: flex;
       gap: 1rem;
       padding: 2rem;
-      border-top: 1px solid var(--border-color);
+      border-top: 1px solid var(--color-border);
       background: var(--color-surface);
     }
 
@@ -561,7 +561,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       }
 
       &.primary {
-        background: var(--primary-color);
+        background: var(--color-primary);
         color: white;
 
         &:hover:not(:disabled) {
@@ -574,7 +574,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       &.secondary {
         background: var(--color-surface-alt);
         color: var(--color-text);
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--color-border);
 
         &:hover {
           background: var(--surface-tertiary);
@@ -588,7 +588,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       text-align: center;
       padding: 1rem 2rem;
       background: rgba(255, 107, 157, 0.03);
-      border-top: 1px solid var(--border-color);
+      border-top: 1px solid var(--color-border);
     }
 
     .footer-text {

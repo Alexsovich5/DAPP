@@ -219,7 +219,7 @@ import { CommonModule } from '@angular/common';
       font-size: 1.5rem;
       font-weight: 600;
       margin: 0 0 0.5rem 0;
-      background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+      background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -249,7 +249,7 @@ import { CommonModule } from '@angular/common';
       transition: all 0.3s ease;
 
       &.active {
-        background: var(--primary-color);
+        background: var(--color-primary);
         transform: scale(1.2);
         box-shadow: 0 0 12px rgba(255, 107, 157, 0.6);
       }
@@ -433,7 +433,7 @@ import { CommonModule } from '@angular/common';
         background: var(--surface-tertiary);
 
         &.active {
-          background: var(--primary-color);
+          background: var(--color-primary);
         }
       }
     }

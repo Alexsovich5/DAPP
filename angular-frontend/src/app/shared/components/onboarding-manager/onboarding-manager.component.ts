@@ -264,7 +264,7 @@ import { OnboardingWelcomeComponent } from '../onboarding-welcome/onboarding-wel
       padding: 0.5rem 1rem;
       border: none;
       border-radius: 6px;
-      background: var(--primary-color);
+      background: var(--color-primary);
       color: white;
       font-size: 0.75rem;
       font-weight: 600;
@@ -325,7 +325,7 @@ import { OnboardingWelcomeComponent } from '../onboarding-welcome/onboarding-wel
 
       &:hover:not(:disabled) {
         background: var(--background-tertiary);
-        border-color: var(--primary-color);
+        border-color: var(--color-primary);
       }
 
       &:disabled {
