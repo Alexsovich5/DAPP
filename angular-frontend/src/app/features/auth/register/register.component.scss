@@ -1,18 +1,24 @@
-.register-container {
+// `df-page-shell variant="reading"` provides outer max-width (720px) +
+// responsive padding. The register card is wider than auth/login (600px)
+// because of the multi-step stepper. Vertical centering is page-local
+// until a shared `auth` shell variant exists.
+.register-shell {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 100vh;
-  padding: var(--space-8) var(--space-4);
+  justify-content: center;
   background-color: var(--color-bg);
+}
 
-  mat-card {
-    width: 100%;
-    max-width: 600px;
-    margin-top: var(--space-8);
-    background-color: var(--color-surface);
-    color: var(--color-text);
-  }
+.register-card {
+  width: 100%;
+  max-width: 600px;
+  padding: var(--space-6);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-sm);
 }
 
 .header {

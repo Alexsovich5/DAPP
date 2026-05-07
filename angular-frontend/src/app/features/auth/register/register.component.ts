@@ -6,7 +6,6 @@ import { AuthService } from '../../../core/services/auth.service';
 import { RegisterData } from '../../../core/interfaces/auth.interfaces';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 
-import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -19,7 +18,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatStepperModule } from '@angular/material/stepper';
 
-import { DfButtonDirective, DfInputDirective } from '../../../shared/ui';
+import { DfButtonDirective, DfInputDirective, DfPageShellComponent } from '../../../shared/ui';
 
 @Component({
   selector: 'app-register',
@@ -30,7 +29,6 @@ import { DfButtonDirective, DfInputDirective } from '../../../shared/ui';
     CommonModule,
     ReactiveFormsModule,
     RouterLink,
-    MatCardModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
@@ -43,7 +41,8 @@ import { DfButtonDirective, DfInputDirective } from '../../../shared/ui';
     MatDividerModule,
     MatStepperModule,
     DfButtonDirective,
-    DfInputDirective
+    DfInputDirective,
+    DfPageShellComponent
   ]
 })
 export class RegisterComponent implements OnInit {
