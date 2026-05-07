@@ -4,14 +4,13 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 
-import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 
 import { AuthService } from '../../../core/services/auth.service';
-import { DfButtonDirective, DfInputDirective } from '../../../shared/ui';
+import { DfButtonDirective, DfInputDirective, DfPageShellComponent } from '../../../shared/ui';
 
 @Component({
   selector: 'app-login',
@@ -21,13 +20,13 @@ import { DfButtonDirective, DfInputDirective } from '../../../shared/ui';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatCardModule,
     MatIconModule,
     MatCheckboxModule,
     MatProgressSpinnerModule,
     MatDividerModule,
     DfButtonDirective,
-    DfInputDirective
+    DfInputDirective,
+    DfPageShellComponent
   ]
 })
 export class LoginComponent implements OnInit {

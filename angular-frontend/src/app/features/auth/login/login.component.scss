@@ -1,18 +1,25 @@
-.login-container {
+// `df-page-shell variant="reading"` provides the outer max-width (720px) +
+// responsive padding. The login card is narrower (400px) and centered inside.
+// Vertical centering across short pages is page-local until the design
+// system grows an `auth` shell variant.
+.login-shell {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 100vh;
-  padding: var(--space-8) var(--space-4);
+  justify-content: center;
   background-color: var(--color-bg);
+}
 
-  mat-card {
-    width: 100%;
-    max-width: 400px;
-    margin-top: var(--space-8);
-    background-color: var(--color-surface);
-    color: var(--color-text);
-  }
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  margin-top: var(--space-8);
+  padding: var(--space-6);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-sm);
 }
 
 .header {
