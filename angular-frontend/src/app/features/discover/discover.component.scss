@@ -1,8 +1,9 @@
+// Outer padding now provided by the inner df-page-shell. :host keeps
+// only the page-fill background and full-viewport min-height.
 :host {
   display: block;
   min-height: 100dvh;
   background: var(--color-bg);
-  padding: var(--space-6);
 }
 
 .discover__header {
