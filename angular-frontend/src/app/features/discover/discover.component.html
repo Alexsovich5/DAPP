@@ -1,52 +1,54 @@
-<header class="discover__header">
-  <h1 class="discover__headline display-serif">
-    {{ potentialMatches.length }} souls for today.
-  </h1>
-  <p class="discover__subhead">Based on what you value.</p>
-</header>
+<df-page-shell variant="reading" class="discover-shell">
+  <header class="discover__header">
+    <h1 class="discover__headline display-serif">
+      {{ potentialMatches.length }} souls for today.
+    </h1>
+    <p class="discover__subhead">Based on what you value.</p>
+  </header>
 
-<section *ngIf="focalCard" class="discover__stack">
-  <df-card layout="connection" class="discover__focal">
-    <df-chip purpose="stage" class="discover__stage">
-      {{ focalCard.compatibility.match_quality || 'Soul discovery' }}
-    </df-chip>
-    <df-avatar
-      [name]="focalCard.profile_preview.first_name"
-      size="md"
-      class="discover__avatar"></df-avatar>
-    <h2 class="discover__name">
-      {{ focalCard.profile_preview.first_name }}
-      <span class="discover__age" *ngIf="focalCard.profile_preview.age">
-        · {{ focalCard.profile_preview.age }}
-      </span>
-    </h2>
-    <p class="discover__bio">{{ focalCard.profile_preview.bio || '' }}</p>
+  <section *ngIf="focalCard" class="discover__stack">
+    <df-card layout="connection" class="discover__focal">
+      <df-chip purpose="stage" class="discover__stage">
+        {{ focalCard.compatibility.match_quality || 'Soul discovery' }}
+      </df-chip>
+      <df-avatar
+        [name]="focalCard.profile_preview.first_name"
+        size="md"
+        class="discover__avatar"></df-avatar>
+      <h2 class="discover__name">
+        {{ focalCard.profile_preview.first_name }}
+        <span class="discover__age" *ngIf="focalCard.profile_preview.age">
+          · {{ focalCard.profile_preview.age }}
+        </span>
+      </h2>
+      <p class="discover__bio">{{ focalCard.profile_preview.bio || '' }}</p>
 
-    <blockquote class="discover__quote" *ngIf="focalCard.compatibility?.explanation">
-      <p class="display-serif">{{ focalCard.compatibility.explanation }}</p>
-    </blockquote>
+      <blockquote class="discover__quote" *ngIf="focalCard.compatibility?.explanation">
+        <p class="display-serif">{{ focalCard.compatibility.explanation }}</p>
+      </blockquote>
 
-    <div class="discover__actions">
-      <button dfButton variant="secondary" size="md" data-role="pass"
-              (click)="pass(focalCard)">Pass</button>
-      <button dfButton variant="primary" size="md" data-role="begin"
-              (click)="beginConnection(focalCard)">Begin</button>
-    </div>
-  </df-card>
+      <div class="discover__actions">
+        <button dfButton variant="secondary" size="md" data-role="pass"
+                (click)="pass(focalCard)">Pass</button>
+        <button dfButton variant="primary" size="md" data-role="begin"
+                (click)="beginConnection(focalCard)">Begin</button>
+      </div>
+    </df-card>
 
-  <button *ngFor="let peek of peekCards" class="discover__peek"
-          (click)="promotePeek(peek.user_id)">
-    <df-avatar [name]="peek.profile_preview.first_name" size="sm"></df-avatar>
-    <span class="discover__peek-name">{{ peek.profile_preview.first_name }}</span>
-    <span class="discover__peek-compat">{{ peek.compatibility.total_compatibility }}%</span>
-  </button>
-</section>
+    <button *ngFor="let peek of peekCards" class="discover__peek"
+            (click)="promotePeek(peek.user_id)">
+      <df-avatar [name]="peek.profile_preview.first_name" size="sm"></df-avatar>
+      <span class="discover__peek-name">{{ peek.profile_preview.first_name }}</span>
+      <span class="discover__peek-compat">{{ peek.compatibility.total_compatibility }}%</span>
+    </button>
+  </section>
 
-<section *ngIf="!focalCard && !isLoading" class="discover__empty">
-  <p class="discover__empty-copy">No souls today. Check back tomorrow.</p>
-</section>
+  <section *ngIf="!focalCard && !isLoading" class="discover__empty">
+    <p class="discover__empty-copy">No souls today. Check back tomorrow.</p>
+  </section>
 
-<section *ngIf="error" class="discover__error" role="alert">
-  <p>{{ error }}</p>
-  <button dfButton variant="ghost" size="sm" (click)="load()">Try again</button>
-</section>
+  <section *ngIf="error" class="discover__error" role="alert">
+    <p>{{ error }}</p>
+    <button dfButton variant="ghost" size="sm" (click)="load()">Try again</button>
+  </section>
+</df-page-shell>

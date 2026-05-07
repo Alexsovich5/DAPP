@@ -8,6 +8,7 @@ import {
   DfButtonDirective,
   DfCardComponent,
   DfChipComponent,
+  DfPageShellComponent,
 } from '../../shared/ui';
 
 @Component({
@@ -19,6 +20,7 @@ import {
     DfButtonDirective,
     DfCardComponent,
     DfChipComponent,
+    DfPageShellComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './discover.component.html',
