@@ -9,9 +9,11 @@
 
 ## TL;DR
 
-The redesign foundation (Phase 1 tokens + Phase 2/3 primitives) shipped, but **adoption is uneven** — most feature pages still render via raw Angular Material rather than the new `df-*` primitives. App-shell layout is correct (responsive nav at root), but page-level layout is inconsistent: only 2 of 17 features use `df-page-shell`. Several large component files (1,000+ LOC) and a `messages` ↔ `messaging` duplication are structural smells separate from the visual layer.
+The redesign foundation (Phase 1 tokens + Phase 2/3 primitives) shipped. **Button and input adoption is good** (`dfButton` in 11 features, `dfInput` in 7), but **`df-page-shell` adoption lags** — only 1 feature uses the shell as its outer container. Several large component files (1,000+ LOC) and a `messages` ↔ `messaging` duplication are structural smells separate from the visual layer.
 
-The design system is **complete enough to finish the migration**; what's missing is the migration itself.
+The design system is **complete enough to finish the shell migration**; what's missing is wrapping pages with `df-page-shell` so the outer frame is consistent across the app.
+
+> **Correction (2026-05-07):** An earlier draft of this doc reported `dfButton` and `dfInput` adoption as 0 % across features. That was a static-grep error — I searched for `df-button`/`df-input` (hyphen) but the actual directive selectors are `dfButton`/`dfInput` (camelCase attribute selectors). The corrected table is in §2 below. **The headline migration gap is `df-page-shell`, not the input directives.**
 
 ---
 
@@ -58,14 +60,14 @@ The token set is small and opinionated, which is good — but no `--breakpoint-*
 
 | Primitive | Features using it | Coverage |
 |-----------|-------------------|----------|
-| `df-page-shell` | 2 of 17 | **12 %** |
-| `df-card` | 1 | 6 % |
-| `df-chip` | 5 | 29 % |
-| `df-avatar` | 5 | 29 % |
-| `df-button` | **0** | 0 % |
-| `df-input` | **0** | 0 % |
+| `dfButton` | 11 of 17 | **65 %** |
+| `dfInput` | 7 of 17 | 41 % |
+| `df-chip` | 5 of 17 | 29 % |
+| `df-avatar` | 5 of 17 | 29 % |
+| `df-page-shell` | 1 of 17 | **6 %** |
+| `df-card` | 1 of 17 | 6 % |
 
-12 of 17 feature directories import *something* from `shared/ui/`, but not necessarily the layout-defining primitives.
+Buttons and inputs migrated well (likely as part of the original Phase 2/3 work). The unmigrated layer is the **outer page frame** — `df-page-shell` is barely used. That's the biggest visual-consistency gap and the right target for P1.
 
 ### Pages still rendering raw Material (not via primitives)
 
@@ -181,7 +183,7 @@ Pick the 11 pages without `df-page-shell` and migrate them in this order:
 6. `landing`
 7. `chat`, `messaging`, `preferences`
 
-Each migration is mechanical: wrap the template in `<df-page-shell>`, replace `<mat-button>` with `<button df-button>` (or whatever the directive shape is), replace `<mat-form-field>+<input matInput>` with `<df-input>`. Estimate: ~30-60 min per page.
+Each migration is mostly the shell wrap: replace `<div class="page-container"><mat-card>...</mat-card></div>` with `<df-page-shell variant="reading|grid">`. The `dfButton`/`dfInput` directives are already adopted on most pages, so they're rarely the touch point. Estimate: ~20-40 min per page (faster than originally scoped because of the corrected adoption table). Detailed recipe in `docs/frontend-p1-migration-plan.md`.
 
 ### P2 — Canonical breakpoints
 
