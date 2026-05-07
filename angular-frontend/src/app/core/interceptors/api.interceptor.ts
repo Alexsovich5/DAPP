@@ -77,8 +77,19 @@ export const ApiInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, nex
         // Client-side error
         errorMsg = `Error: ${error.error.message}`;
       } else {
-        // Server-side error
-        errorMsg = `Error Code: ${error.status}, Message: ${error.message || error.error?.detail || 'Unknown error'}`;
+        // Server-side error. Prefer FastAPI's structured `detail` field
+        // (e.g. "Username already exists") over Angular's generic
+        // "Http failure response for ..." string. Fall back to a status-
+        // based message only when neither is present.
+        const detail = typeof error.error?.detail === 'string'
+          ? error.error.detail
+          : null;
+        const fallbackMessage = error.message?.startsWith('Http failure')
+          ? null
+          : error.message;
+        errorMsg = detail
+          ?? fallbackMessage
+          ?? `Request failed with status ${error.status}`;
 
         // Handle authentication errors
         if (error.status === 401) {
