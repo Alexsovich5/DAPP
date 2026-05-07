@@ -210,7 +210,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
       align-items: center;
       gap: 1rem;
       padding: 0.75rem 1rem;
-      background: var(--surface-color);
+      background: var(--color-surface);
       border: 1px solid var(--border-color);
       border-radius: 12px;
       cursor: pointer;
@@ -288,7 +288,7 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
       top: calc(100% + 0.5rem);
       left: 0;
       right: 0;
-      background: var(--surface-color);
+      background: var(--color-surface);
       border: 1px solid var(--border-color);
       border-radius: 16px;
       padding: 1.5rem;
@@ -608,12 +608,12 @@ import { HapticFeedbackService } from '@core/services/haptic-feedback.service';
     /* Dark theme */
     .dark-theme {
       .mood-toggle {
-        background: var(--surface-color);
+        background: var(--color-surface);
         border-color: var(--border-color);
       }
 
       .mood-options {
-        background: var(--surface-color);
+        background: var(--color-surface);
         border-color: var(--border-color);
       }
     }

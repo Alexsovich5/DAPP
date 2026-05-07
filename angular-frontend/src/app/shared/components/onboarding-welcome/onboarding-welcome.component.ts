@@ -244,7 +244,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       max-width: 800px;
       max-height: 90vh;
       width: calc(100vw - 2rem);
-      background: var(--surface-color);
+      background: var(--color-surface);
       border-radius: 24px;
       box-shadow:
         0 32px 64px rgba(0, 0, 0, 0.15),
@@ -542,7 +542,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
       gap: 1rem;
       padding: 2rem;
       border-top: 1px solid var(--border-color);
-      background: var(--surface-color);
+      background: var(--color-surface);
     }
 
     .action-btn {
@@ -661,7 +661,7 @@ import { SoulOrbComponent } from '../soul-orb/soul-orb.component';
     /* Dark theme */
     .dark-theme {
       .welcome-modal {
-        background: var(--surface-color);
+        background: var(--color-surface);
         box-shadow:
           0 32px 64px rgba(0, 0, 0, 0.3),
           0 16px 32px rgba(0, 0, 0, 0.2);

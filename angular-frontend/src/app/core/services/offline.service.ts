@@ -135,6 +135,18 @@ export class OfflineService {
       return;
     }
 
+    // The build does not currently ship /sw.js (no @angular/service-worker
+    // dependency). Probing first prevents a noisy "ServiceWorker registration
+    // failed: bad HTTP response code (404)" error in every browser tab.
+    try {
+      const probe = await fetch('/sw.js', { method: 'HEAD', cache: 'no-store' });
+      if (!probe.ok) {
+        return;
+      }
+    } catch {
+      return;
+    }
+
     try {
       const registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/'
